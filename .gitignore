@@ -1,0 +1,27 @@
+# Logs and temporary files
+*.log
+*.tmp
+/tmp/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+
+# Node.js
+node_modules/
+.npm
+.pnpm-store/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDE / Editor configs
+.vscode/
+.idea/
+*.swp
+*~

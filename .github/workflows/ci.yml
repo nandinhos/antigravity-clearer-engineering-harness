@@ -1,0 +1,49 @@
+name: CEH Quality & Test Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate:
+    name: Validate Harness & Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax check on Bash scripts
+        run: |
+          find clearer-engineering/ -name "*.sh" -exec bash -n {} +
+
+      - name: Syntax check on Python scripts
+        run: |
+          python3 -m py_compile clearer-engineering/scripts/safety-gate.py
+
+      - name: Make scripts executable
+        run: |
+          chmod +x clearer-engineering/scripts/*
+          chmod +x clearer-engineering/tests/*
+
+      - name: Run Component & Integration Test Suite
+        run: |
+          # Test runner in headless CI environment (without full agy binary)
+          python3 clearer-engineering/scripts/safety-gate.py --check "rm -rf /" | grep '"decision": "deny"'
+          python3 clearer-engineering/scripts/safety-gate.py --check "git reset --hard" | grep '"decision": "ask"'
+          python3 clearer-engineering/scripts/safety-gate.py --check "npm test" | grep '"decision": "allow"'
+          bash clearer-engineering/scripts/detect-project.sh .
+          bash clearer-engineering/scripts/preflight.sh
+          bash clearer-engineering/scripts/diff-audit.sh
+          bash clearer-engineering/scripts/evidence-report.sh
+
+      - name: Run Adversarial Test Suite
+        run: |
+          ./clearer-engineering/tests/run-adversarial-tests.sh

@@ -1,248 +1,170 @@
-# CLEARER Engineering Harness (CEH) para Google Antigravity
+<div align="center">
 
-O **CLEARER Engineering Harness (CEH)** é um framework de engenharia de software de alta precisão projetado nativamente para o **Google Antigravity**. Ele transforma o agente de IA em um **engenheiro de software orientado por evidências**, eliminando comportamentos especulativos, alucinações de código (*hallucination coding*) e aprovações cegas (*fake pass*).
+# 🛡️ CLEARER Engineering Harness (CEH)
+### Evidence-Driven Software Engineering Framework for Google Antigravity
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
+[![Tests](https://img.shields.io/badge/Tests-100%25%20Passing-brightgreen.svg)](./clearer-engineering/tests/)
+[![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-the-risk-dial)
+
+[**Português (Brasil)**](./README_PT.md) | **English**
+
+</div>
 
 ---
 
-## 1. Instalação e Ativação
+## 📖 Overview
 
-### Instalação via Antigravity CLI
+The **CLEARER Engineering Harness (CEH)** is a production-grade software engineering harness natively engineered for **Google Antigravity**. 
+
+Rather than relying on vague prompts or unverified model assumptions, CEH forces the agent to act as a **rigorous, evidence-driven software engineer**. It eliminates *hallucination coding*, bans *fake pass* test reporting, minimizes the blast radius of changes, and conducts independent adversarial code reviews before changes are finalized.
+
+```mermaid
+flowchart TD
+    A[🎯 Concrete Goal] --> B[🔍 Load Context - Inspect Before Edit]
+    B --> C[🚧 Explicit Boundaries & Minimal Blast Radius]
+    C --> D[⚓ Anchors & Real Code Evidence]
+    D --> E[📋 Implementation & Deterministic Tests]
+    E --> F[🕵️ Adversarial Code Review]
+    F --> G[⚖️ Evidence & Claims Audit]
+    G --> H[📊 Verifiable Final Contract]
+```
+
+---
+
+## ⚡ Quick Start & Installation
+
+### 1. Install via Antigravity CLI
+
 ```bash
-# Validar estrutura do plugin
+# Clone the repository
+git clone https://github.com/nandinhos/antigravity-clearer-engineering-harness.git
+cd antigravity-clearer-engineering-harness
+
+# Validate plugin manifest and assets
 agy plugin validate ./clearer-engineering
 
-# Instalar o plugin no Antigravity
+# Install the plugin into Antigravity
 agy plugin install ./clearer-engineering
-
-# Listar plugins instalados
-agy plugin list
 ```
 
-### Verificação do Perfil de Agente
+### 2. Verify Available Harness Profiles
+
 ```bash
-# Listar perfis de agentes disponíveis
 agy agent
 ```
-Você verá:
-- `bc-harness` (Beer and Code Harness)
-- `clearer-harness` (CLEARER Engineering Harness)
-- `gemini-orchestrator` (Gemini Orchestrator)
 
-### Aliases de Shell Configurados (`~/.bashrc` e `~/.zshrc`)
-```bash
-# Iniciar sessão Antigravity com o perfil CLEARER Harness
-agy-ceh
-
-# Iniciar sessão com auto-aprovação de edições controladas
-agy-ceh-yolo
-```
-
----
-
-## 2. Arquitetura do Harness
-
+Output:
 ```text
-clearer-engineering/
-├── plugin.json                 # Manifesto do plugin Antigravity
-├── hooks.json                  # Integração do Safety Gate no PreToolUse
-├── rules/                      # Regras ativas e políticas de engenharia
-│   ├── AGENTS.md               # Regras consolidadas do CLEARER
-│   ├── core-engineering.md     # Princípios de ciclo de vida e modulação
-│   ├── evidence-policy.md      # Semântica OBSERVED, INFERRED, UNKNOWN e Claims
-│   ├── coding-policy.md        # Inspect before edit e blast radius mínimo
-│   ├── testing-policy.md       # Verificação determinística e proibição de fake pass
-│   ├── security-policy.md      # Security by default e vetores de risco
-│   └── git-safety.md           # Proteção de repositório e auditoria de diff
-├── skills/                     # Habilidades invocáveis sob demanda
-│   ├── clearer/                # Dispatcher e classificador de risco
-│   ├── clearer-feature/        # Workflow de implementação de features
-│   ├── clearer-bugfix/         # Workflow Root-Cause First para bugs
-│   ├── clearer-refactor/       # Refatoração com baseline e preservação de contratos
-│   ├── clearer-review/         # Revisão adversarial baseada no Git diff
-│   ├── clearer-audit/          # Auditoria formal de claims vs evidências
-│   ├── clearer-map/            # Mapeamento técnico read-only do codebase
-│   └── clearer-test/           # Execução determinística de testes e captura de logs
-├── agents/                     # Subagentes especializados do harness
-│   ├── investigator/           # Descoberta de contexto e Evidence Pack (Read-only)
-│   ├── architect/              # Análise de blast radius e Implementation Plan
-│   ├── implementer/            # Implementação precisa sem refatorações fora de escopo
-│   ├── test-engineer/          # Execução de testes e criação de casos de regressão
-│   ├── reviewer/               # Revisão adversarial do diff (BLOCKER, HIGH, MEDIUM...)
-│   └── evidence-auditor/       # Auditoria de claims e relatório final
-├── scripts/                    # Utilitários executáveis de suporte
-│   ├── detect-project.sh       # Detector agnóstico de stack, frameworks e ferramentas
-│   ├── preflight.sh            # Inspeção de sanidade prévia do repositório
-│   ├── safety-gate.py          # Safety Gate interceptador de comandos perigosos
-│   ├── test-runner.sh          # Executor determinístico com saída padronizada
-│   ├── diff-audit.sh           # Auditor de diff, markers de conflito e blast radius
-│   └── evidence-report.sh      # Gerador de relatório no formato padrão CEH
-└── tests/                      # Suíte de testes automatizados e adversariais
-    ├── run-all-tests.sh        # Suíte de testes de integração e componentes
-    └── run-adversarial-tests.sh# Validação dos 5 casos adversariais do PRD
+Available agents:
+bc-harness
+clearer-harness
+gemini-orchestrator
+```
+
+### 3. Configure Shell Aliases (`~/.bashrc` / `~/.zshrc`)
+
+```bash
+# Run Antigravity with the CLEARER Engineering Harness profile
+alias agy-ceh='agy --agent clearer-harness'
+
+# Run in auto-approved edit mode with safety gate active
+alias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'
 ```
 
 ---
 
-## 3. O Protocolo CLEARER
+## 🧠 The 7-Step CLEARER Protocol
 
-Toda ação de engenharia passa pelas 7 etapas fundamentais:
+Every engineering task is strictly routed through the 7 CLEARER principles:
 
-- **C — Concrete Goal**: Objetivo concreto, arquivos envolvidos, restrições e condição de parada.
-- **L — Load Context**: *Inspect before edit*. Detecção agnóstica de stack, convenções e testes existentes.
-- **E — Explicit Boundaries**: Delimitação estrita de escopo e blast radius mínimo.
-- **A — Anchors and Examples**: Código real, schemas e testes como única fonte da verdade.
-- **R — Response Contract**: Toda execução gera um contrato verificável de saída.
-- **E — Enable Evidence and Tools**: Observação direta sobre suposição; captura de saídas e logs reais.
-- **R — Review and Validate**: Ciclo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT → REPORT`.
-
----
-
-## 4. O Risk Dial
-
-| Nível | Cenário de Aplicação | Requisitos do Processo |
+| Step | Principle | Description |
 |---|---|---|
-| **LOW** | Extrações, leituras, renomeações locais, consultas. | Baixa sobrecarga, execução ágil, sem orquestração desnecessária. |
-| **MEDIUM** | Features novas, correções de bugs, refatores, alterações em APIs ou banco. | Inspeção → Plano → Implementação → Testes → Diff Audit → Relatório. |
-| **HIGH** | Autenticação, autorização, transações de pagamento, concorrência, migrações destrutivas, segurança. | Investigação profunda, subagentes especializados, revisão adversarial e auditoria formal. |
+| **C** | **Concrete Goal** | Define precise requirements, acceptance criteria, boundaries, and stop conditions. |
+| **L** | **Load Context** | *Inspect before edit*. Detect stack, locate entrypoints, tests, and dependencies. Never guess. |
+| **E** | **Explicit Boundaries** | Confine blast radius. State what is in-scope, out-of-scope, and invariant contracts. |
+| **A** | **Anchors & Examples** | Ground every decision in real code, schemas, migrations, and existing patterns. |
+| **R** | **Response Contract** | Emit structured, auditable outputs (Changes, Evidence, Tests, Review, Confidence). |
+| **E** | **Enable Evidence & Tools** | Direct observation over speculation. Capture raw command outputs and exit codes. |
+| **R** | **Review & Validate** | Run the complete verification loop: `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT`. |
 
 ---
 
-## 5. Semântica de Evidência e Auditoria de Claims
+## 🎚️ The Risk Dial
 
-### Semântica de Fatos
-- **`OBSERVED`**: Fato comprovado diretamente por arquivo lido, schema ou comando executado.
-- **`INFERRED`**: Conclusão técnica deduzida a partir de dados observados (pendente de validação).
-- **`UNKNOWN`**: Informação não encontrada no repositório.
+CEH automatically modulates cognitive overhead and agent chaining based on the **cost of failure**:
 
-> [!CRITICAL]
-> **UNKNOWN nunca pode silenciosamente virar OBSERVED.**
-> Se um método, tabela ou classe não for encontrado, registre como `UNKNOWN` ou `NOT FOUND`. Proibido inventar código inexistente (*hallucination coding*).
-
-### Auditoria de Claims
-Toda alegação é classificada como:
-- **`SUPPORTED`**: Amparada por teste com exit code 0 ou linha de código inspecionada.
-- **`PARTIALLY_SUPPORTED`**: Parcialmente comprovada com ressalvas explícitas.
-- **`UNSUPPORTED`**: Rejeitada ou sem evidência verificável.
+| Level | Suitable Tasks | Enforced Procedure |
+|---|---|---|
+| **`LOW`** | Read-only queries, formatting, simple symbol renames, local documentation. | Fast execution, lean context, zero unnecessary agent orchestration. |
+| **`MEDIUM`** | Features, bug fixes, controlled refactorings, API endpoints, schema additions. | Inspect → Minimal Plan → Surgical Implement → Automated Tests → Diff Audit → Report. |
+| **`HIGH`** | Auth, permissions, payments, concurrency, destructive migrations, production scripts. | Deep Investigation → Specialized Subagents → Red/Green Tests → Adversarial Review → Formal Audit. |
 
 ---
 
-## 6. Papéis dos Agentes Especializados
+## 🤖 Specialized Agent Roles
 
-```text
-                    ┌─────────────────────────┐
-                    │ CEH ORCHESTRATOR        │
-                    └────────────┬────────────┘
-                                 │
-                     ┌───────────▼────────────┐
-                     │ ceh-investigator       │ (Read-Only Context Discovery)
-                     └───────────┬────────────┘
-                                 │ Evidence Pack
-                     ┌───────────▼────────────┐
-                     │ ceh-architect          │ (Blast Radius & Plan)
-                     └───────────┬────────────┘
-                                 │ Implementation Plan
-                     ┌───────────▼────────────┐
-                     │ ceh-implementer        │ (Precision Coding)
-                     └───────────┬────────────┘
-                                 │ Diff
-                  ┌──────────────┴──────────────┐
-                  │                             │
-         ┌────────▼────────┐           ┌────────▼────────┐
-         │ceh-test-engineer│           │  ceh-reviewer   │ (Adversarial Review)
-         └────────┬────────┘           └────────┬────────┘
-                  │                             │
-                  └──────────────┬──────────────┘
-                                 │
-                        ┌────────▼─────────┐
-                        │ceh-evidence-audit│ (Claim ↔ Evidence Verification)
-                        └────────┬─────────┘
-                                 │
-                           FINAL REPORT
+```mermaid
+graph TD
+    ORCH[👑 CEH Orchestrator] --> INV[🔎 ceh-investigator<br/>Read-Only Context Discovery]
+    INV -->|Evidence Pack| ARC[📐 ceh-architect<br/>Blast Radius & Plan]
+    ARC -->|Implementation Plan| IMP[🔨 ceh-implementer<br/>Precision Coding]
+    IMP -->|Git Diff| TST[🧪 ceh-test-engineer<br/>Deterministic Testing]
+    IMP -->|Git Diff| REV[⚔️ ceh-reviewer<br/>Adversarial Code Review]
+    TST --> AUD[⚖️ ceh-evidence-auditor<br/>Claim ↔ Evidence Audit]
+    REV --> AUD
+    AUD --> REP[📄 Verifiable Final Report]
 ```
 
 ---
 
-## 7. Comandos e Exemplos de Uso
+## 🛠️ Built-in Skills & Slash Commands
 
-### Comandos de Terminal
-```bash
-# Iniciar Antigravity com o perfil CLEARER Harness
-agy-ceh
-
-# Iniciar em modo YOLO (auto-aprovando edições controladas)
-agy-ceh-yolo
-
-# Executar prompt direto com saída não-interativa
-agy --agent clearer-harness -p "Mapeie a arquitetura deste projeto"
-```
-
-### Skills Invocáveis no Chat
-- **`/clearer`**: Dispatcher inteligente que avalia a solicitação e define o Risk Dial.
-- **`/clearer-feature`**: Fluxo estruturado para implementação de novas funcionalidades.
-  ```text
-  /clearer-feature "Implementar autenticação JWT no endpoint de login"
-  ```
-- **`/clearer-bugfix`**: Correção de bug Root-Cause First (Sintoma → Reprodução → Causa → Teste Red → Fix Green).
-  ```text
-  /clearer-bugfix "Corrigir cálculo de desconto quando o cupom expira às 23:59"
-  ```
-- **`/clearer-refactor`**: Refatoração segura com baseline de testes e preservação de contratos.
-  ```text
-  /clearer-refactor "Extrair lógica de cálculo fiscal para o serviço TaxCalculator"
-  ```
-- **`/clearer-review`**: Revisão adversarial do Git diff classificando findings em BLOCKER, HIGH, MEDIUM, LOW, INFO.
-  ```text
-  /clearer-review
-  ```
-- **`/clearer-map`**: Mapeamento técnico read-only do repositório (Stack, rotas, banco, testes e riscos).
-  ```text
-  /clearer-map
-  ```
-- **`/clearer-audit`**: Auditoria formal de claims vs evidências na entrega.
-  ```text
-  /clearer-audit
-  ```
-- **`/clearer-test`**: Execução determinística de testes e registro de evidências brutas.
-  ```text
-  /clearer-test
-  ```
+| Command / Skill | Purpose |
+|---|---|
+| **`/clearer`** | Smart dispatcher: analyzes request intent, sets the Risk Dial, and routes execution. |
+| **`/clearer-feature`** | Step-by-step feature workflow with blast radius calculation and test coverage. |
+| **`/clearer-bugfix`** | **Root-Cause First** bug fixing: `Symptom → Reproduction → Hypothesis → Evidence → Root Cause → Red Test → Fix → Green Test`. |
+| **`/clearer-refactor`** | Safe refactoring: captures baseline behavior, preserves API contracts, and audits diffs. |
+| **`/clearer-review`** | Adversarial review of `git diff`, classifying findings as `BLOCKER`, `HIGH`, `MEDIUM`, `LOW`, `INFO`. |
+| **`/clearer-audit`** | Final verification: audits all claims as `SUPPORTED`, `PARTIALLY_SUPPORTED`, or `UNSUPPORTED`. |
+| **`/clearer-map`** | Read-only technical mapping of stack, entrypoints, schemas, and architecture. |
+| **`/clearer-test`** | Runs test runners and captures deterministic evidence (COMMAND, EXIT CODE, PASS/FAIL). |
 
 ---
 
-## 8. Segurança e Safety Gate
+## 🔒 Safety Gate (`PreToolUse` Hook)
 
-O CEH inclui um interceptador de segurança (`scripts/safety-gate.py`) acionado pelo hook `PreToolUse`:
+CEH includes an automated command interceptor in `scripts/safety-gate.py`:
 
-- **`DENY` (Bloqueio Total)**: `rm -rf /`, `rm -rf ~`, `DROP DATABASE`, `mkfs`, `gcloud projects delete`, fork bombs.
-- **`ASK` (Requer Confirmação)**: `rm -rf <dir>`, `git reset --hard`, `git clean -fdx`, `git push --force`, `migrate:fresh`, `db:wipe`, `terraform destroy`.
-- **`ALLOW` (Permitido)**: Comandos de inspeção, testes (`npm test`, `pest`, `pytest`), linters e operações não destrutivas.
+- ⛔ **`DENY` (Hard Block)**: `rm -rf /`, `DROP DATABASE`, `mkfs`, `gcloud projects delete`, fork bombs.
+- ⚠️ **`ASK` (Requires User Confirmation)**: `rm -rf <path>`, `git reset --hard`, `git clean -fdx`, `git push --force`, `migrate:fresh`, `db:wipe`, `terraform destroy`.
+- ✅ **`ALLOW` (Automated Execution)**: Safe inspections, test suites (`npm test`, `pest`, `pytest`), linters, and compilers.
 
 ---
 
-## 9. Testes e Validação do Harness
+## 🧪 Validation & Test Suites
 
-O harness inclui duas suítes de testes completas:
+CEH includes a complete automated test harness:
 
 ```bash
-# 1. Executar testes de componentes e integração
+# 1. Run Component & Integration Tests (17 tests)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Executar testes adversariais dos 5 casos do PRD
+# 2. Run Adversarial Suite (5 core test cases)
 ./clearer-engineering/tests/run-adversarial-tests.sh
 ```
 
-Ambas as suítes rodam com **100% de aprovação**.
+### Adversarial Test Cases Verified:
+1. **Investigate First**: Requesting code modifications without providing signatures forces read-only discovery first.
+2. **Deterministic Test Verification**: Failing tests are captured as `FAIL` with raw exit codes (no *fake pass*).
+3. **Regression Detection**: Unintended merge conflict markers or syntax regressions are flagged by the Diff Auditor.
+4. **Anti-Hallucination Bound**: Non-existent classes or methods remain strictly `UNKNOWN` / `NOT FOUND`.
+5. **Safety Gate Gating**: Destructive shell operations are caught and gated (`DENY` / `ASK`).
 
 ---
 
-## 10. Desinstalação
+## 📄 License
 
-Caso deseje remover o plugin e os perfis:
-```bash
-# Desinstalar via Antigravity CLI
-agy plugin uninstall clearer-engineering
-
-# Remover arquivos de configuração
-rm -rf ~/.gemini/config/plugins/clearer-engineering
-rm -rf ~/.gemini/config/agents/clearer-harness
-```
+Distributed under the **Apache License 2.0**. See [`LICENSE`](./LICENSE) for details.
