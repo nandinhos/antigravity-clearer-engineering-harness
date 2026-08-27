@@ -1,0 +1,18 @@
+{
+  "name": "clearer-engineering",
+  "version": "1.0.0",
+  "description": "CLEARER Engineering Harness (CEH) - Evidence-driven software engineering harness for Google Antigravity with Risk Dial, Adversarial Review, and Evidence Auditing.",
+  "author": {
+    "name": "CLEARER Engineering Team"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "clearer",
+    "engineering",
+    "harness",
+    "evidence",
+    "testing",
+    "audit",
+    "antigravity"
+  ]
+}
