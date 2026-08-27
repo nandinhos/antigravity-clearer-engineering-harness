@@ -33,51 +33,61 @@ flowchart TD
 
 ---
 
-## ⚡ Instalação Rápida
+## ⚡ Instalação Global em Um Comando (One-Liner)
 
-### 1. Instalar via Antigravity CLI
+Instale o CEH no Linux, macOS ou WSL executando no terminal:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
+```
+
+### Instalação Manual
 
 ```bash
 # Clonar o repositório
 git clone https://github.com/nandinhos/antigravity-clearer-engineering-harness.git
 cd antigravity-clearer-engineering-harness
 
-# Validar o manifesto e recursos do plugin
-agy plugin validate ./clearer-engineering
-
-# Instalar o plugin no Antigravity
-agy plugin install ./clearer-engineering
-```
-
-### 2. Verificar Perfis de Agente Disponíveis
-
-```bash
-agy agent
-```
-
-Saída esperada:
-```text
-Available agents:
-bc-harness
-clearer-harness
-gemini-orchestrator
-```
-
-### 3. Configurar Aliases no Shell (`~/.bashrc` ou `~/.zshrc`)
-
-```bash
-# Iniciar o Antigravity com o perfil do CLEARER Engineering Harness
-alias agy-ceh='agy --agent clearer-harness'
-
-# Iniciar em modo YOLO (auto-aprovação de edições com safety gate ativo)
-alias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'
+# Executar o instalador
+chmod +x install.sh
+./install.sh
 ```
 
 ---
 
-## 🧠 O Protocolo CLEARER em 7 Etapas
+## 🚀 Como Utilizar
 
-Toda tarefa de engenharia segue rigorosamente as 7 diretrizes:
+Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.zshrc`) e execute:
+
+```bash
+# Iniciar o Antigravity com o perfil CLEARER Engineering Harness
+agy-ceh
+
+# Iniciar em modo YOLO (auto-aprovação de edições com Safety Gate ativo)
+agy-ceh-yolo
+```
+
+---
+
+## 📚 Documentação Técnica Completa (`docs/`)
+
+Explore as diretrizes aprofundadas do CEH:
+
+| Documento | Descrição |
+|---|---|
+| 📜 [**Guia do Protocolo CLEARER**](./docs/clearer_protocol.md) | Explicação completa das 7 etapas do ciclo de engenharia (*Concrete Goal*, *Load Context*, etc.). |
+| 🎚️ [**Especificação do Risk Dial**](./docs/risk_dial.md) | Como o CEH modula o esforço entre os níveis **LOW**, **MEDIUM** e **HIGH**. |
+| ⚖️ [**Semântica de Evidências & Claims**](./docs/evidence_semantics.md) | Classificação epistêmica (`OBSERVED`, `INFERRED`, `UNKNOWN`) e auditoria de claims (`SUPPORTED`). |
+| 🏗️ [**Arquitetura do Sistema**](./docs/architecture.md) | Topologia, contratos de dados entre subagentes e integração de hooks do Antigravity. |
+| 🤖 [**Guia de Subagentes Especializados**](./docs/agents_guide.md) | Papéis e contratos de entrada/saída de Investigator, Architect, Implementer, Test Engineer, Reviewer e Auditor. |
+| 🛠️ [**Manual de Skills & Comandos**](./docs/skills_and_commands.md) | Como utilizar `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-refactor`, etc. |
+| 🛡️ [**Guia do Safety Gate**](./docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos com `DENY > ASK > ALLOW`. |
+| 💻 [**Instalação & Configuração**](./docs/installation.md) | Guia completo de instalação global, dependências e desinstalação. |
+| 💡 [**Exemplos Práticos**](./docs/examples.md) | Casos reais de uso em TypeScript/Next.js, PHP/Laravel e Python/FastAPI. |
+
+---
+
+## 🧠 O Protocolo CLEARER em 7 Etapas
 
 | Etapa | Princípio | Descrição |
 |---|---|---|
@@ -93,8 +103,6 @@ Toda tarefa de engenharia segue rigorosamente as 7 diretrizes:
 
 ## 🎚️ O Risk Dial
 
-O CEH modula o esforço cognitivo e a sobrecarga de subagentes baseado no **custo do erro**:
-
 | Nível | Tarefas Indicadas | Procedimento Obrigatório |
 |---|---|---|
 | **`LOW`** | Consultas, formatações, renomeações locais simples, extrações pontuais. | Execução rápida, contexto enxuto, zero sobrecarga de subagentes. |
@@ -103,7 +111,7 @@ O CEH modula o esforço cognitivo e a sobrecarga de subagentes baseado no **cust
 
 ---
 
-## 🤖 Papéis dos Agentes Especializados
+## 🤖 Topologia de Subagentes Especializados
 
 ```mermaid
 graph TD
@@ -119,40 +127,13 @@ graph TD
 
 ---
 
-## 🛠️ Skills e Comandos Disponíveis
-
-| Comando / Skill | Objetivo |
-|---|---|
-| **`/clearer`** | Dispatcher inteligente: analisa a solicitação, define o Risk Dial e seleciona o fluxo. |
-| **`/clearer-feature`** | Workflow de ciclo completo para desenvolvimento de novas funcionalidades. |
-| **`/clearer-bugfix`** | Correção de bug **Root-Cause First**: `Sintoma → Reprodução → Causa → Teste Red → Fix → Teste Green`. |
-| **`/clearer-refactor`** | Refatoração segura: estabelece baseline, preserva contratos e audita o diff. |
-| **`/clearer-review`** | Revisão adversarial do `git diff`, classificando achados em `BLOCKER`, `HIGH`, `MEDIUM`, `LOW`, `INFO`. |
-| **`/clearer-audit`** | Auditoria formal de claims como `SUPPORTED`, `PARTIALLY_SUPPORTED` ou `UNSUPPORTED`. |
-| **`/clearer-map`** | Mapeamento técnico read-only da arquitetura, stack, rotas e matriz de riscos. |
-| **`/clearer-test`** | Execução determinística de testes e registro de evidências brutas (COMMAND, EXIT CODE, PASS/FAIL). |
-
----
-
-## 🔒 Safety Gate (Hook `PreToolUse`)
-
-O CEH inclui um interceptador de segurança em `scripts/safety-gate.py`:
-
-- ⛔ **`DENY` (Bloqueio Total)**: `rm -rf /`, `DROP DATABASE`, `mkfs`, `gcloud projects delete`, fork bombs.
-- ⚠️ **`ASK` (Requer Confirmação)**: `rm -rf <path>`, `git reset --hard`, `git clean -fdx`, `git push --force`, `migrate:fresh`, `db:wipe`, `terraform destroy`.
-- ✅ **`ALLOW` (Execução Automática)**: Inspeções seguras, suítes de teste (`npm test`, `pest`, `pytest`), linters e compiladores.
-
----
-
-## 🧪 Validação e Suítes de Teste
-
-O harness possui duas suítes automatizadas completas:
+## 🧪 Suíte de Testes Automatizada
 
 ```bash
 # 1. Executar testes de integração e componentes (17 testes)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Executar suíte de testes adversariais (5 cenários do PRD)
+# 2. Executar suíte de testes adversariais (5 cenários)
 ./clearer-engineering/tests/run-adversarial-tests.sh
 ```
 

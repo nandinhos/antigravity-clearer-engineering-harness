@@ -33,51 +33,61 @@ flowchart TD
 
 ---
 
-## ⚡ Quick Start & Installation
+## ⚡ Global One-Line Installation
 
-### 1. Install via Antigravity CLI
+Install CEH across Linux, macOS, or WSL with a single command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
+```
+
+### Manual Installation
 
 ```bash
 # Clone the repository
 git clone https://github.com/nandinhos/antigravity-clearer-engineering-harness.git
 cd antigravity-clearer-engineering-harness
 
-# Validate plugin manifest and assets
-agy plugin validate ./clearer-engineering
-
-# Install the plugin into Antigravity
-agy plugin install ./clearer-engineering
-```
-
-### 2. Verify Available Harness Profiles
-
-```bash
-agy agent
-```
-
-Output:
-```text
-Available agents:
-bc-harness
-clearer-harness
-gemini-orchestrator
-```
-
-### 3. Configure Shell Aliases (`~/.bashrc` / `~/.zshrc`)
-
-```bash
-# Run Antigravity with the CLEARER Engineering Harness profile
-alias agy-ceh='agy --agent clearer-harness'
-
-# Run in auto-approved edit mode with safety gate active
-alias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'
+# Run the installer
+chmod +x install.sh
+./install.sh
 ```
 
 ---
 
-## 🧠 The 7-Step CLEARER Protocol
+## 🚀 Quick Usage
 
-Every engineering task is strictly routed through the 7 CLEARER principles:
+Reload your shell or run `source ~/.bashrc` (or `source ~/.zshrc`), then:
+
+```bash
+# Start Antigravity with the CLEARER Engineering Harness profile
+agy-ceh
+
+# Or start in auto-approved edit mode (with Safety Gate active)
+agy-ceh-yolo
+```
+
+---
+
+## 📚 Complete Technical Documentation (`docs/`)
+
+Deep dive into CEH principles, architectures, and guidelines:
+
+| Document | Description |
+|---|---|
+| 📜 [**CLEARER Protocol Guide**](./docs/clearer_protocol.md) | Complete explanation of the 7-step engineering cycle (*Concrete Goal*, *Load Context*, etc.). |
+| 🎚️ [**Risk Dial Specification**](./docs/risk_dial.md) | How CEH modulates cognitive effort across **LOW**, **MEDIUM**, and **HIGH** risk levels. |
+| ⚖️ [**Evidence Semantics & Claims**](./docs/evidence_semantics.md) | Epistemic classification (`OBSERVED`, `INFERRED`, `UNKNOWN`) and claim auditing (`SUPPORTED`). |
+| 🏗️ [**System Architecture**](./docs/architecture.md) | Topologies, data contracts, and Antigravity hook integration. |
+| 🤖 [**Specialized Agents Guide**](./docs/agents_guide.md) | Role descriptions and I/O contracts for Investigator, Architect, Implementer, Test Engineer, Reviewer, and Auditor. |
+| 🛠️ [**Skills & Commands Manual**](./docs/skills_and_commands.md) | How to use `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-refactor`, etc. |
+| 🛡️ [**Safety Gate Guide**](./docs/safety_gate.md) | How `PreToolUse` hooks intercept destructive commands with `DENY > ASK > ALLOW`. |
+| 💻 [**Installation & Troubleshooting**](./docs/installation.md) | Global installation, environment prerequisites, and uninstallation. |
+| 💡 [**Practical Examples**](./docs/examples.md) | Real-world workflows across TypeScript, PHP/Laravel, and Python/FastAPI. |
+
+---
+
+## 🧠 The 7-Step CLEARER Protocol
 
 | Step | Principle | Description |
 |---|---|---|
@@ -93,8 +103,6 @@ Every engineering task is strictly routed through the 7 CLEARER principles:
 
 ## 🎚️ The Risk Dial
 
-CEH automatically modulates cognitive overhead and agent chaining based on the **cost of failure**:
-
 | Level | Suitable Tasks | Enforced Procedure |
 |---|---|---|
 | **`LOW`** | Read-only queries, formatting, simple symbol renames, local documentation. | Fast execution, lean context, zero unnecessary agent orchestration. |
@@ -103,7 +111,7 @@ CEH automatically modulates cognitive overhead and agent chaining based on the *
 
 ---
 
-## 🤖 Specialized Agent Roles
+## 🤖 Specialized Agent Topology
 
 ```mermaid
 graph TD
@@ -119,49 +127,15 @@ graph TD
 
 ---
 
-## 🛠️ Built-in Skills & Slash Commands
-
-| Command / Skill | Purpose |
-|---|---|
-| **`/clearer`** | Smart dispatcher: analyzes request intent, sets the Risk Dial, and routes execution. |
-| **`/clearer-feature`** | Step-by-step feature workflow with blast radius calculation and test coverage. |
-| **`/clearer-bugfix`** | **Root-Cause First** bug fixing: `Symptom → Reproduction → Hypothesis → Evidence → Root Cause → Red Test → Fix → Green Test`. |
-| **`/clearer-refactor`** | Safe refactoring: captures baseline behavior, preserves API contracts, and audits diffs. |
-| **`/clearer-review`** | Adversarial review of `git diff`, classifying findings as `BLOCKER`, `HIGH`, `MEDIUM`, `LOW`, `INFO`. |
-| **`/clearer-audit`** | Final verification: audits all claims as `SUPPORTED`, `PARTIALLY_SUPPORTED`, or `UNSUPPORTED`. |
-| **`/clearer-map`** | Read-only technical mapping of stack, entrypoints, schemas, and architecture. |
-| **`/clearer-test`** | Runs test runners and captures deterministic evidence (COMMAND, EXIT CODE, PASS/FAIL). |
-
----
-
-## 🔒 Safety Gate (`PreToolUse` Hook)
-
-CEH includes an automated command interceptor in `scripts/safety-gate.py`:
-
-- ⛔ **`DENY` (Hard Block)**: `rm -rf /`, `DROP DATABASE`, `mkfs`, `gcloud projects delete`, fork bombs.
-- ⚠️ **`ASK` (Requires User Confirmation)**: `rm -rf <path>`, `git reset --hard`, `git clean -fdx`, `git push --force`, `migrate:fresh`, `db:wipe`, `terraform destroy`.
-- ✅ **`ALLOW` (Automated Execution)**: Safe inspections, test suites (`npm test`, `pest`, `pytest`), linters, and compilers.
-
----
-
-## 🧪 Validation & Test Suites
-
-CEH includes a complete automated test harness:
+## 🧪 Automated Testing & Verification
 
 ```bash
-# 1. Run Component & Integration Tests (17 tests)
+# 1. Run Component & Integration Suite (17 tests)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Run Adversarial Suite (5 core test cases)
+# 2. Run Adversarial Verification Suite (5 cases)
 ./clearer-engineering/tests/run-adversarial-tests.sh
 ```
-
-### Adversarial Test Cases Verified:
-1. **Investigate First**: Requesting code modifications without providing signatures forces read-only discovery first.
-2. **Deterministic Test Verification**: Failing tests are captured as `FAIL` with raw exit codes (no *fake pass*).
-3. **Regression Detection**: Unintended merge conflict markers or syntax regressions are flagged by the Diff Auditor.
-4. **Anti-Hallucination Bound**: Non-existent classes or methods remain strictly `UNKNOWN` / `NOT FOUND`.
-5. **Safety Gate Gating**: Destructive shell operations are caught and gated (`DENY` / `ASK`).
 
 ---
 
