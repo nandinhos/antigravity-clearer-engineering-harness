@@ -42,16 +42,33 @@ Toda alegação de conclusão, compatibilidade ou funcionamento deve ser auditá
 
 ---
 
-## 4. O Risk Dial
+## 4. O Risk Dial & Automação de Execução
 
 Adapte a sobrecarga e o rigor ao custo do erro:
 - **`LOW`** (consultas, extrações, renomeações locais): Baixa sobrecarga, execução ágil, sem orquestração pesada.
-- **`MEDIUM`** (padrão para engenharia: features, bugfixes, refactors, APIs): Exige inspeção, plano conciso, implementação cirúrgica, testes, revisão do diff e evidência final.
-- **`HIGH`** (auth, pagamentos, concorrência, migrações destrutivas, segurança, produção): Exige investigação profunda, evidências cruzadas, subagentes especializados, revisão adversarial e auditoria estrita.
+- **`MEDIUM`** (padrão de engenharia: features, bugfixes, refatores, APIs): **Execução Contínua em Turno Único (Single-Turn End-to-End)**. O agente executa o ciclo completo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` de forma autônoma e fluida quando o objetivo e limites estiverem claros, entregando o código pronto com o Contrato de Evidências.
+- **`HIGH`** (auth core, pagamentos, concorrência crítica, migrações destrutivas, segurança): Exige investigação profunda, evidências cruzadas, subagentes especializados, revisão adversarial, auditoria estrita e checkpoint humano obrigatório.
 
 ---
 
-## 5. Fail-Closed Engineering
+## 5. Craftsmanship & Alto Nível de Engenharia
 
-Diante de ausência de evidência, ambiguidade crítica ou falha de teste:
-**BLOQUEIE, PERGUNTE OU REPORTE UNKNOWN. NUNCA PRESUMA SUCESSO.**
+Toda codificação sob o CEH deve seguir os mais altos padrões de artesanato de software:
+1. **Código Limpo & Idiomático**: Seguir estritamente as convenções da linguagem e da stack do projeto.
+2. **Tipagem Estrita & Robustez**: Proibido uso de tipos soltos (`any`/`mixed`) sem validação de tipo. Tratamento defensivo de nulos, timeouts e exceções.
+3. **Blast Radius Mínimo & Cirúrgico**: Alterar apenas o estritamente necessário. Proibido ruído de formatação ou alterações cosméticas fora de escopo.
+4. **Testes Comportamentais & Determinísticos**: Cobrir o comportamento real e cenários de borda. Proibido "fake pass" ou testes frágeis.
+5. **Zero Regressão**: Toda alteração deve passar por auto-auditoria de diff (`scripts/diff-audit.sh`) antes da entrega.
+
+---
+
+## 6. Checkpoints por Exceção (Fail-Closed on Real Hazards)
+
+O agente só interrompe o fluxo autônomo e emite *handoff / pedido de esclarecimento* diante de **4 condições de exceção**:
+1. **Ambiguidade Real de Negócio**: Quando houver múltiplos caminhos arquiteturais excludentes não detalhados na solicitação.
+2. **Risco Destrutivo (Safety Gate)**: Comandos interceptados como `DENY` ou `ASK` no `scripts/safety-gate.py` (exclusão de banco, reset destrutivo de Git, recursos de nuvem).
+3. **Falha de Teste Persistente**: Quando uma suíte de testes falhar e, após 1 iteração de auto-reparo fundamentada em evidências, o erro persistir.
+4. **Risco HIGH Explícito**: Tarefas classificadas formalmente como `HIGH` exigem checkpoint de aprovação antes da execução.
+
+Se o fluxo transcorrer sem exceções, o agente entrega a tarefa 100% concluída, testada e auditada com o **Response Contract**.
+

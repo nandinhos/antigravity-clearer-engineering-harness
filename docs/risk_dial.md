@@ -47,7 +47,7 @@ graph TD
 
 ---
 
-## 2. Nível MEDIUM (Médio Risco — Padrão de Engenharia)
+## 2. Nível MEDIUM (Médio Risco — Padrão de Engenharia & Execução Contínua)
 
 ### Quando Utilizar:
 - Desenvolvimento de novas funcionalidades (*features*).
@@ -56,13 +56,22 @@ graph TD
 - Criação ou modificação de rotas de API, regras de negócio ou controllers.
 - Alterações em models e schemas não-destrutivos.
 
-### Procedimento Obrigatório:
+### Dinâmica de Execução Contínua (Single-Turn End-to-End):
+Para maximizar a produtividade e a experiência do desenvolvedor (DX), as tarefas `MEDIUM` são executadas de ponta a ponta em uma única rodada:
 1. **Inspeção Prévia**: Leitura do código existente e testes correspondentes.
-2. **Plano de Implementação Conciso**: Arquivos tocados, mudanças propostas, contratos preservados e estratégia de teste.
-3. **Implementação Cirúrgica**: Aplicação com blast radius mínimo.
-4. **Execução de Testes**: Disparo do runner real de testes com captura do exit code.
-5. **Auditoria de Diff**: Verificação de whitespace, conflitos e arquivos tocados com `scripts/diff-audit.sh`.
-6. **Relatório de Evidências**: Emissão do Response Contract.
+2. **Plano de Implementação Bounded**: Arquivos tocados, mudanças propostas, contratos preservados e estratégia de teste.
+3. **Implementação Cirúrgica de Alto Nível**: Código limpo, tipagem estrita e arquitetura defensiva.
+4. **Execução de Testes com Auto-Reparo**: Disparo do runner real de testes (`scripts/test-runner.sh`) com tolerância a 1 iteração de diagnóstico caso haja falha.
+5. **Auditoria de Diff**: Verificação de integridade com `scripts/diff-audit.sh`.
+6. **Relatório de Evidências**: Emissão do Response Contract consolidado.
+
+### Checkpoints por Exceção (Quando o Agente Interrompe a Execução):
+O fluxo só é pausado com pedido de alinhamento humano nas 4 seguintes exceções:
+- Ambiguidade real de regras de negócio sem evidência no repositório;
+- Tentativa de comando destrutivo bloqueado pelo Safety Gate (`DENY` / `ASK`);
+- Falha persistente de testes após auto-reparo;
+- Classificação expressa da tarefa como nível `HIGH`.
+
 
 ---
 

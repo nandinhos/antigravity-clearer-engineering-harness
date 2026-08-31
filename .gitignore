@@ -1,8 +1,29 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+*.pub
+*secret*
+*credential*
+service-account*.json
+google-creds.json
+*token*.json
+
 # Logs and temporary files
 *.log
 *.tmp
+*.bak
+*.orig
 /tmp/
 .cache/
+scratch/
+.scratch/
 
 # Python
 __pycache__/
@@ -10,11 +31,15 @@ __pycache__/
 *$py.class
 .pytest_cache/
 .coverage
+htmlcov/
+.mypy_cache/
 
 # Node.js
 node_modules/
 .npm
 .pnpm-store/
+dist/
+build/
 
 # OS specific
 .DS_Store
@@ -25,3 +50,5 @@ Thumbs.db
 .idea/
 *.swp
 *~
+.local/
+

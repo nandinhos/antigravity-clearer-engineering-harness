@@ -24,13 +24,25 @@ HARD_BLOCK_PATTERNS = [
     (r"\bgcloud\s+projects\s+delete\b", "Hard block: Deleting GCP project detected."),
 ]
 
+# Safe development patterns explicitly allowed (ALLOW bypass over generic ASK)
+SAFE_DEV_PATTERNS = [
+    # Safe temporary/scratch cleanup
+    r"\brm\s+-[rRfF]+\s+(?:/tmp/|tmp/|\.tmp/|scratch/|\.cache/|dist/|build/|storage/framework/cache/|coverage/)",
+    # Safe single file removal
+    r"\brm\s+-[rRfF]*[fF][rRfF]*\s+[a-zA-Z0-9_\-\.\/]+\.[a-zA-Z0-9]+(?:\s|$)",
+    # Safe git checkout/restore of specific files (not '.' or whole tree)
+    r"\bgit\s+checkout\s+(?![\.\-]\s*$)[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
+    r"\bgit\s+restore\s+(?![\.\-]\s*$)[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
+]
+
 # Destructive patterns that REQUIRE USER CONFIRMATION (ASK)
 ASK_PATTERNS = [
     (r"\brm\s+-[rRfF]+", "Recursive or forced file deletion (rm -rf)."),
     (r"\bgit\s+reset\s+--hard\b", "Destructive Git reset discarding uncommitted changes (git reset --hard)."),
     (r"\bgit\s+clean\s+-[a-zA-Z]*f", "Git clean discarding untracked files (git clean -f)."),
-    (r"\bgit\s+restore\s+\.\b", "Git restore discarding all working tree changes."),
+    (r"\bgit\s+restore\s+(?:\.|\s+--staged\s+\.)\b", "Git restore discarding all working tree changes."),
     (r"\bgit\s+checkout\s+--\s+\.\b", "Git checkout discarding all modified files."),
+    (r"\bgit\s+checkout\s+\.\b", "Git checkout discarding all working tree files."),
     (r"\bgit\s+branch\s+-[dD]\b", "Deleting a Git branch."),
     (r"\bgit\s+push\s+.*--force\b", "Force pushing to remote repository (git push --force)."),
     (r"\bgit\s+push\s+.*-f\b", "Force pushing to remote repository (git push -f)."),
@@ -59,17 +71,23 @@ def evaluate_command(cmd_line: str) -> tuple[str, str]:
 
     cmd_normalized = cmd_line.strip()
 
-    # 1. Check Hard Blocks (DENY)
+    # 1. Check Hard Blocks (DENY has absolute priority)
     for pattern, reason in HARD_BLOCK_PATTERNS:
         if re.search(pattern, cmd_normalized, re.IGNORECASE):
             return "deny", f"[CEH SAFETY BLOCK] {reason}"
 
-    # 2. Check Confirmation Required (ASK)
+    # 2. Check Safe Development Bypasses (ALLOW safe scratch/cache and single-file operations)
+    for pattern in SAFE_DEV_PATTERNS:
+        if re.search(pattern, cmd_normalized, re.IGNORECASE):
+            return "allow", "Command matches safe development operation pattern."
+
+    # 3. Check Confirmation Required (ASK)
     for pattern, reason in ASK_PATTERNS:
         if re.search(pattern, cmd_normalized, re.IGNORECASE):
             return "ask", f"[CEH SAFETY WARNING] {reason} Please confirm execution."
 
     return "allow", "Command complies with CEH safety policy."
+
 
 def handle_hook():
     """Processes Antigravity PreToolUse hook JSON from stdin."""

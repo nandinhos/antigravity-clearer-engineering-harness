@@ -14,7 +14,11 @@ graph TD
         ORCH[👑 CEH Orchestrator<br/>clearer-harness]
         SG{🛡️ Safety Gate<br/>PreToolUse Hook}
         
-        subgraph SPECIALIZED_AGENTS [Subagentes Especializados]
+        subgraph PIPELINE_MEDIUM [Pipeline Contínuo - MEDIUM / DX Fluida]
+            FLOW[INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → REPORT]
+        end
+
+        subgraph SPECIALIZED_AGENTS [Subagentes Especializados - HIGH Risk]
             INV[🔎 ceh-investigator<br/>Read-Only Context Discovery]
             ARC[📐 ceh-architect<br/>Blast Radius & Plan]
             IMP[🔨 ceh-implementer<br/>Precision Code Implementation]
@@ -23,7 +27,7 @@ graph TD
             AUD[⚖️ ceh-evidence-auditor<br/>Claim ↔ Evidence Auditor]
         end
         
-        subgraph SCRIPTS_LAYER [Camada de Automação]
+        subgraph SCRIPTS_LAYER [Camada de Scripts de Automação]
             S1[detect-project.sh]
             S2[preflight.sh]
             S3[test-runner.sh]
@@ -33,8 +37,9 @@ graph TD
     end
 
     AGY --> SG
-    SG -->|ALLOW / ASK| ORCH
-    ORCH --> INV
+    SG -->|ALLOW| ORCH
+    ORCH -->|MEDIUM Risk: Single-Turn| FLOW
+    ORCH -->|HIGH Risk: Multi-Agent| INV
     INV -->|Evidence Pack| ARC
     ARC -->|Implementation Plan| IMP
     IMP -->|Git Diff| TST
@@ -42,8 +47,10 @@ graph TD
     TST -->|Test Evidence| AUD
     REV -->|Review Findings| AUD
     AUD -->|Response Contract| AGY
-    AGY -->|Relatório Auditado| User
+    FLOW -->|Response Contract| AGY
+    AGY -->|Entrega Validada + Evidências| User
 ```
+
 
 ---
 

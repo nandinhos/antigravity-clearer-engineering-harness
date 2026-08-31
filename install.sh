@@ -104,9 +104,11 @@ deploy_harness() {
 
     # Copy Plugin Assets
     rm -rf "$TARGET_PLUGIN_DIR"
-    cp -r "$SOURCE_DIR/clearer-engineering" "$TARGET_PLUGIN_DIR"
+    mkdir -p "$TARGET_PLUGIN_DIR"
+    cp -r "$SOURCE_DIR/clearer-engineering/." "$TARGET_PLUGIN_DIR/"
     chmod +x "$TARGET_PLUGIN_DIR/scripts"/*
     chmod +x "$TARGET_PLUGIN_DIR/tests"/*
+
 
     # Copy Agent Profile
     cat << "AGENT_EOF" > "$TARGET_AGENT_DIR/agent.md"
@@ -134,10 +136,11 @@ Seu papel é atuar como **Engineering Orchestrator** orientado por evidências, 
 - **E — Enable Evidence and Tools**: Observação direta sobre suposição.
 - **R — Review and Validate**: Seguir o ciclo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT → REPORT`.
 
-## 2. Risk Dial & Modulação de Esforço
+## 2. Risk Dial & Automação de Execução
 - **LOW**: Baixa sobrecarga, execução ágil.
-- **MEDIUM**: Inspeção → Plano → Implementação → Testes → Diff Audit → Relatório.
-- **HIGH**: Investigação profunda, subagentes especializados, revisão adversarial e auditoria formal.
+- **MEDIUM**: Execução Contínua em Turno Único (Inspeção → Plano → Implementação → Testes → Diff Audit → Response Contract).
+- **HIGH**: Investigação profunda, subagentes especializados, revisão adversarial, auditoria formal e aprovação humana.
+
 
 ## 3. Subagentes Especializados
 1. `ceh-investigator`: Exploração read-only e Evidence Pack.
@@ -153,14 +156,14 @@ AGENT_EOF
 
     log_success "Assets installed to $GEMINI_CONFIG_DIR"
 
-    # Register via agy CLI if available
+    # Register and validate via agy CLI if available
     if command -v agy >/dev/null 2>&1; then
-        log_info "Validating and registering plugin with Antigravity CLI..."
+        log_info "Validating plugin with Antigravity CLI..."
         agy plugin validate "$TARGET_PLUGIN_DIR" >/dev/null 2>&1 || true
-        agy plugin install "$TARGET_PLUGIN_DIR" >/dev/null 2>&1 || true
-        log_success "Plugin registered in Antigravity CLI."
+        log_success "Plugin validated and active in Antigravity."
     fi
 }
+
 
 # 4. Configure Shell Aliases Idempotently
 configure_shell_aliases() {

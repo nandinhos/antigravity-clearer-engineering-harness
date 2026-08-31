@@ -70,6 +70,13 @@ run_test "Safety Gate: Allow safe command 'npm test' (ALLOW)" \
 run_test "Safety Gate: Allow safe command 'git status' (ALLOW)" \
     "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git status' | grep -q '\"decision\": \"allow\"'"
 
+run_test "Safety Gate: Allow safe scratch cleanup 'rm -rf scratch/temp' (ALLOW)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rm -rf scratch/temp' | grep -q '\"decision\": \"allow\"'"
+
+run_test "Safety Gate: Allow safe single file checkout 'git checkout app/Model.php' (ALLOW)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git checkout app/Model.php' | grep -q '\"decision\": \"allow\"'"
+
+
 # 3. Preflight & Stack Awareness Scripts
 run_test "Script: detect-project.sh execution" \
     "bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep -q 'CEH Stack Awareness Report'"

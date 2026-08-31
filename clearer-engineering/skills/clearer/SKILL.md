@@ -19,8 +19,8 @@ Antes de qualquer ação, classifique o risco da tarefa com base no custo de uma
 | Nível | Critérios | Ação / Sobrecarga |
 |---|---|---|
 | **LOW** | Perguntas de leitura, buscas simples, pequenas renomeações, formatação, extrações diretas. | Execução rápida, contexto enxuto, sem subagentes desnecessários. |
-| **MEDIUM** | Features novas, correções de bugs, refatores controlados, alterações de endpoints ou banco de dados. | Ciclo completo: Inspeção → Plano → Implementação → Testes → Diff Audit → Relatório. |
-| **HIGH** | Autenticação, autorização, transações financeiras, concorrência, migrações destrutivas, produção, segurança. | Investigação profunda, subagentes especializados, revisão adversarial e auditoria formal. |
+| **MEDIUM** | Features novas, correções de bugs, refatores, alterações de endpoints ou regras de negócio. | **Execução Contínua em Turno Único**: Inspeção → Plano → Implementação → Testes → Diff Audit → Response Contract. |
+| **HIGH** | Autenticação core, transações financeiras, concorrência crítica, migrações destrutivas, segurança. | Investigação profunda, subagentes especializados, revisão adversarial, auditoria formal e aprovação humana. |
 
 ---
 
@@ -38,14 +38,21 @@ Identifique o objetivo da tarefa e ative o workflow correspondente:
 
 ---
 
-## 3. Protocolo de Execução
+## 3. Protocolo de Automação Controlada
 
-1. Execute o preflight inicial quando necessário:
-   ```bash
-   bash scripts/preflight.sh
-   ```
-2. Mantenha a semântica de evidência:
-   - `OBSERVED`: Fatos comprovados diretamente.
+1. **Execução Contínua (Nível MEDIUM)**:
+   Conduza o ciclo completo sem pausas artificiais se o escopo estiver delimitado. Não encerre a resposta no plano intermediário; prossiga para a implementação cirúrgica, testes e validação.
+
+2. **Gestão por Exceção**:
+   Interrompa a execução e solicite alinhamento humano **apenas** diante de:
+   - Ambiguidade real de negócio com caminhos mutuamente excludentes;
+   - Comando interceptado pelo Safety Gate (`DENY` ou `ASK`);
+   - Teste falhando após 1 iteração de auto-reparo fundamentada;
+   - Tarefas declaradas explicitamente como `HIGH RISK`.
+
+3. **Garantia de Qualidade & Evidências**:
+   - `OBSERVED`: Fatos comprovados diretamente no código/ambiente.
    - `INFERRED`: Hipóteses em validação.
-   - `UNKNOWN`: Informações ainda não encontradas (nunca adivinhe).
-3. Entregue a resposta no formato padrão de evidências ao concluir.
+   - `UNKNOWN`: Informações não encontradas (nunca alucine).
+   - Entregue sempre o **Response Contract** completo com testes executados e diff auditado.
+
