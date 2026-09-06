@@ -12,7 +12,18 @@ Seu objetivo é analisar a intenção do desenvolvedor, avaliar o nível de risc
 
 ---
 
-## 1. Classificação do Risk Dial
+## 1. Identificação Mandatória de Ambiente (Environment Awareness)
+
+**Antes de propor ações ou comandos**, identifique formalmente o ambiente de execução:
+- **`DEV` / `TEST`**: Comandos destrutivos permitidos para fins de correção, com salvaguarda de backup e rollback local.
+- **`HOMOLOGACAO`**: Comandos destrutivos exigem confirmação em 2 alertas explícitos (Impacto em HML e Backup & Rollback mandatórios).
+- **`PRODUCAO`**: Comandos destrutivos são **TERMINANTEMENTE PROIBIDOS (`DENY` - fora de cogitação)**.
+
+Execute `scripts/detect-project.sh` ou `scripts/preflight.sh` para catalogar stack e ambiente com evidência formal (`OBSERVED`).
+
+---
+
+## 2. Classificação do Risk Dial
 
 Antes de qualquer ação, classifique o risco da tarefa com base no custo de uma resposta errada:
 
@@ -24,7 +35,7 @@ Antes de qualquer ação, classifique o risco da tarefa com base no custo de uma
 
 ---
 
-## 2. Roteamento de Skills
+## 3. Roteamento de Skills
 
 Identifique o objetivo da tarefa e ative o workflow correspondente:
 
@@ -38,7 +49,7 @@ Identifique o objetivo da tarefa e ative o workflow correspondente:
 
 ---
 
-## 3. Protocolo de Automação Controlada
+## 4. Protocolo de Automação Controlada
 
 1. **Execução Contínua (Nível MEDIUM)**:
    Conduza o ciclo completo sem pausas artificiais se o escopo estiver delimitado. Não encerre a resposta no plano intermediário; prossiga para a implementação cirúrgica, testes e validação.

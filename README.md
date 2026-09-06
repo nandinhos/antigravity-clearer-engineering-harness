@@ -125,7 +125,10 @@ Deep dive into CEH principles, architectures, and guidelines:
 
 The continuous agent stream is only halted upon encountering **4 strict exception conditions**:
 1. **Real Business Ambiguity**: Mutually exclusive architectural/business decisions lacking specification.
-2. **Destructive Risk (Safety Gate)**: Commands intercepted as `DENY` or `ASK` in `safety-gate.py` (`rm -rf /`, `DROP DATABASE`, `migrate:fresh`, etc.).
+2. **Destructive Risk (Environment-Aware Safety Gate)**:
+   - In `PRODUCTION`: Destructive commands strictly forbidden (`DENY` - completely off limits).
+   - In `HOMOLOGAÇÃO / STAGING`: Mandatory human confirmation (`ASK`) with **2 Explicit Alerts** (HML blast radius and Backup & Rollback readiness).
+   - In `DEV / TEST`: Destructive commands permitted for rapid corrective iteration (`ALLOW` with local safeguard notice), preserving `DENY` for catastrophic OS commands (`rm -rf /`, fork bombs).
 3. **Persistent Test Failure**: Test suite failing after 1 evidence-grounded auto-heal iteration.
 4. **Explicit HIGH Level**: Tasks formally classified as high risk.
 

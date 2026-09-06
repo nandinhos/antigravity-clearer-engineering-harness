@@ -45,24 +45,24 @@ echo ""
 run_test "Antigravity CLI plugin validation" \
     "agy plugin validate '$PLUGIN_DIR' >/dev/null"
 
-# 2. Safety Gate Unit Tests (Deny / Ask / Allow)
-run_test "Safety Gate: Hard block 'rm -rf /' (DENY)" \
+# 2. Safety Gate Unit & Environment Tests
+run_test "Safety Gate: Hard block catastrophic 'rm -rf /' (DENY in any env)" \
     "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rm -rf /' | grep -q '\"decision\": \"deny\"'"
 
-run_test "Safety Gate: Hard block 'DROP DATABASE prod' (DENY)" \
-    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'DROP DATABASE production' | grep -q '\"decision\": \"deny\"'"
+run_test "Safety Gate: Production tier strictly blocks destructive commands (DENY)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git push origin main --force' --env production | grep -q '\"decision\": \"deny\"'"
 
-run_test "Safety Gate: Ask confirmation for 'git reset --hard' (ASK)" \
-    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git reset --hard HEAD~1' | grep -q '\"decision\": \"ask\"'"
+run_test "Safety Gate: Staging tier requires confirmation with 2 explicit alerts (ASK)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git reset --hard HEAD~1' --env staging | grep -q '\"decision\": \"ask\"' && python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git reset --hard HEAD~1' --env staging | grep -q 'ALERTA 1/2' && python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git reset --hard HEAD~1' --env staging | grep -q 'ALERTA 2/2'"
 
-run_test "Safety Gate: Ask confirmation for 'git clean -fdx' (ASK)" \
-    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git clean -fdx' | grep -q '\"decision\": \"ask\"'"
+run_test "Safety Gate: Staging tier asks for git clean -fdx (ASK)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git clean -fdx' --env staging | grep -q '\"decision\": \"ask\"'"
 
-run_test "Safety Gate: Ask confirmation for 'git push --force' (ASK)" \
-    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git push origin main --force' | grep -q '\"decision\": \"ask\"'"
+run_test "Safety Gate: Development tier permits destructive actions with rollback notice (ALLOW)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git reset --hard HEAD~1' --env development | grep -q '\"decision\": \"allow\"'"
 
-run_test "Safety Gate: Ask confirmation for 'artisan migrate:fresh' (ASK)" \
-    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'php artisan migrate:fresh' | grep -q '\"decision\": \"ask\"'"
+run_test "Safety Gate: Comprehensive Safety Matrix Suite (18 test cases)" \
+    "python3 '$PLUGIN_DIR/tests/test_safety_matrix.py' >/dev/null"
 
 run_test "Safety Gate: Allow safe command 'npm test' (ALLOW)" \
     "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'npm test' | grep -q '\"decision\": \"allow\"'"
@@ -78,8 +78,8 @@ run_test "Safety Gate: Allow safe single file checkout 'git checkout app/Model.p
 
 
 # 3. Preflight & Stack Awareness Scripts
-run_test "Script: detect-project.sh execution" \
-    "bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep -q 'CEH Stack Awareness Report'"
+run_test "Script: detect-project.sh execution & environment awareness" \
+    "bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep -q 'CEH Stack & Environment Awareness Report'"
 
 run_test "Script: preflight.sh execution" \
     "bash '$PLUGIN_DIR/scripts/preflight.sh' | grep -q 'CEH Preflight Inspection'"

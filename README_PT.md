@@ -125,7 +125,10 @@ Explore as diretrizes aprofundadas do CEH:
 
 O fluxo contínuo do agente só é interrompido diante de **4 condições de parada estritas**:
 1. **Ambiguidade Real de Negócio**: Decisões de arquitetura/negócio excludentes sem especificação clara.
-2. **Risco Destrutivo (Safety Gate)**: Comandos interceptados como `DENY` ou `ASK` no `safety-gate.py` (`rm -rf /`, `DROP DATABASE`, `migrate:fresh`, etc.).
+2. **Risco Destrutivo (Safety Gate Granular por Ambiente)**:
+   - Em `PRODUÇÃO`: Comandos destrutivos são terminantemente proibidos (`DENY` - "fora de cogitação").
+   - Em `HOMOLOGAÇÃO`: Exige confirmação humana obrigatória (`ASK`) com **2 Alertas Explícitos** (Impacto HML e Salvaguardas de Backup/Rollback).
+   - Em `DEV / TEST`: Comandos destrutivos liberados para fins de correção ágil com aviso de salvaguarda local (`ALLOW`), mantendo `DENY` para suicídios de SO (`rm -rf /`, etc.).
 3. **Falha Persistente de Testes**: Quebra de suíte de testes após 1 iteração de auto-reparo fundamentada.
 4. **Nível HIGH Explícito**: Tarefas classificadas expressamente como de alto risco.
 

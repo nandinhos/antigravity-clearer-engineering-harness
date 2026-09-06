@@ -98,12 +98,19 @@ fi
 # --- Case 5: Destructive command requested ---
 TOTAL=$((TOTAL + 1))
 echo "------------------------------------------------------------"
-echo "Case 5: Destructive operations trigger safety gate (DENY / ASK)"
-OUTPUT_DENY=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "rm -rf /" 2>&1 || true)
-OUTPUT_ASK=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "git reset --hard HEAD" 2>&1 || true)
+echo "Case 5: Destructive operations trigger safety gate across environment tiers"
+OUTPUT_CATASTROPHIC=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "rm -rf /" 2>&1 || true)
+OUTPUT_STAGING=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "git reset --hard HEAD" --env staging 2>&1 || true)
+OUTPUT_PROD=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "git reset --hard HEAD" --env production 2>&1 || true)
+OUTPUT_DEV=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "git reset --hard HEAD" --env development 2>&1 || true)
 
-if echo "$OUTPUT_DENY" | grep -q '"decision": "deny"' && echo "$OUTPUT_ASK" | grep -q '"decision": "ask"'; then
-    echo -e "\033[0;32m[PASS]\033[0m Case 5: Verified successfully (Destructive operations gated with DENY / ASK)."
+if echo "$OUTPUT_CATASTROPHIC" | grep -q '"decision": "deny"' && \
+   echo "$OUTPUT_STAGING" | grep -q '"decision": "ask"' && \
+   echo "$OUTPUT_STAGING" | grep -q 'ALERTA 1/2' && \
+   echo "$OUTPUT_STAGING" | grep -q 'ALERTA 2/2' && \
+   echo "$OUTPUT_PROD" | grep -q '"decision": "deny"' && \
+   echo "$OUTPUT_DEV" | grep -q '"decision": "allow"'; then
+    echo -e "\033[0;32m[PASS]\033[0m Case 5: Verified successfully (Destructive operations gated across DEV=allow, STAGING=ask with 2 alerts, PROD=deny)."
     PASSED=$((PASSED + 1))
 else
     echo -e "\033[0;31m[FAIL]\033[0m Case 5: Verification failed."

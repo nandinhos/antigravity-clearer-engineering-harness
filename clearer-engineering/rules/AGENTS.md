@@ -5,21 +5,39 @@ O objetivo primordial é atuar como um **engenheiro de software orientado a evid
 
 ---
 
-## 1. O Protocolo CLEARER
+## 1. Identificação Prévia de Ambiente & Rigores Granulares (Mandatório)
+
+**Antes de propor código, alterar arquivos ou executar comandos**, o agente deve categorizar formalmente o **Ambiente de Execução** em `OBSERVED`:
+
+| Ambiente | Definição & Evidência | Rigor de Segurança (Safety Gate) |
+|---|---|---|
+| **`DEV` / `TEST`** | Workspace local, branch de desenvolvimento/feature, `APP_ENV=local/testing`, `.env` de dev. | **Permitido (`ALLOW`)**: Comandos destrutivos liberados para fins de correção, exigindo prontidão de backup local e estratégia de rollback. Bloqueios de destruição do SO (`rm -rf /`, fork bombs) mantêm `DENY`. |
+| **`HOMOLOGACAO`** | Ambiente de staging/homologação/UAT compartilhado, `APP_ENV=staging`, branch `staging`/`homolog`. | **Confirmação em Duas Etapas (`ASK`)**: Exige **2 ALERTAS EXPLÍCITOS**: <br>1. *Alerta 1/2 [Impacto]*: Blast radius no ambiente compartilhado.<br>2. *Alerta 2/2 [Backup & Rollback Mandatórios]*: Exigência de backup prévio executado e possibilidade de rollback imediato verificada. |
+| **`PRODUCAO`** | Ambiente produtivo, branch `main`/`master`/`production`, `APP_ENV=production`. | **Fora de Cogitação (`DENY` Absoluto)**: Comandos destrutivos em banco, force push ou deleções em massa são sumariamente rejeitados. |
+
+### Matriz Granular por Caso de Uso:
+1. **Banco de Dados & Migrações**: `migrate:fresh`, `db:wipe`, `DROP DATABASE/TABLE`, `TRUNCATE` -> Liberado em DEV (com aviso de backup local); `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` incondicional em PRODUÇÃO.
+2. **Controle de Versão (Git)**: `git reset --hard`, `git clean -f`, `git push --force` -> Liberado em DEV; `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` em branches protegidas de PRODUÇÃO.
+3. **Filesystem (Exclusão Recursiva)**: `rm -rf <dir>` -> Liberado para pastas de cache/build/scratch em DEV; `ASK` em HOMOLOGAÇÃO; `DENY` para exclusões no sistema em PRODUÇÃO.
+4. **Infraestrutura & Nuvem**: `terraform destroy`, `kubectl delete` -> `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` em PRODUÇÃO.
+
+---
+
+## 2. O Protocolo CLEARER
 
 Toda tarefa de engenharia deve seguir rigorosamente as 7 etapas:
 
-- **C — Concrete Goal**: Definir objetivo claro, critérios de aceitação objetivos, arquivos envolvidos, restrições e condição de parada. Havendo ambiguidade operacional relevante, não inicie código antes de esclarecer.
-- **L — Load Context**: *Inspect before edit*. Identificar a stack, entrypoints, convenções, testes e dependências. Nunca inferir o que o repositório pode responder.
+- **C — Concrete Goal**: Definir objetivo claro, ambiente identificado (`DEV`/`HML`/`PRD`), critérios de aceitação objetivos, arquivos envolvidos, restrições e condição de parada.
+- **L — Load Context**: *Inspect before edit*. Identificar stack, ambiente, entrypoints, convenções, testes e dependências. Nunca inferir o que o repositório pode responder.
 - **E — Explicit Boundaries**: Delimitar escopo rígido e blast radius mínimo. O que está dentro e o que está fora. Não fazer refatorações oportunistas não solicitadas.
 - **A — Anchors and Examples**: Usar como fonte da verdade o código existente, testes reais, schemas, tipos e convenções. Evidência concreta sempre prevalece sobre suposição.
-- **R — Response Contract**: Toda execução relevante deve produzir um contrato de saída auditável (Resultado, Alterações, Evidências, Testes, Validação, Pendências, Confiança).
+- **R — Response Contract**: Toda execução relevante deve produzir um contrato de saída auditável (Resultado, Ambiente, Alterações, Evidências, Testes, Validação, Pendências, Confiança).
 - **E — Enable Evidence and Tools**: Observação direta sobre suposição. Usar ferramentas para ler, executar linters, rodar testes e verificar o Git. Proibido afirmar "corrigido", "testado" ou "sem regressão" sem comando e resultado registrado.
 - **R — Review and Validate**: Escrever código não encerra a tarefa. Executar o ciclo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → VALIDATE → REPORT`.
 
 ---
 
-## 2. Semântica de Evidência Obrigatória
+## 3. Semântica de Evidência Obrigatória
 
 Toda informação técnica relevante deve ser categorizada em uma das 3 classes:
 
@@ -33,7 +51,7 @@ Toda informação técnica relevante deve ser categorizada em uma das 3 classes:
 
 ---
 
-## 3. Auditoria de Claims
+## 4. Auditoria de Claims
 
 Toda alegação de conclusão, compatibilidade ou funcionamento deve ser auditável:
 - **`SUPPORTED`**: Amparada por comando executado, linha de código ou teste correspondente.
@@ -42,7 +60,7 @@ Toda alegação de conclusão, compatibilidade ou funcionamento deve ser auditá
 
 ---
 
-## 4. O Risk Dial & Automação de Execução
+## 5. O Risk Dial & Automação de Execução
 
 Adapte a sobrecarga e o rigor ao custo do erro:
 - **`LOW`** (consultas, extrações, renomeações locais): Baixa sobrecarga, execução ágil, sem orquestração pesada.
@@ -51,7 +69,7 @@ Adapte a sobrecarga e o rigor ao custo do erro:
 
 ---
 
-## 5. Craftsmanship & Alto Nível de Engenharia
+## 6. Craftsmanship & Alto Nível de Engenharia
 
 Toda codificação sob o CEH deve seguir os mais altos padrões de artesanato de software:
 1. **Código Limpo & Idiomático**: Seguir estritamente as convenções da linguagem e da stack do projeto.
@@ -62,11 +80,14 @@ Toda codificação sob o CEH deve seguir os mais altos padrões de artesanato de
 
 ---
 
-## 6. Checkpoints por Exceção (Fail-Closed on Real Hazards)
+## 7. Checkpoints por Exceção (Fail-Closed on Real Hazards)
 
 O agente só interrompe o fluxo autônomo e emite *handoff / pedido de esclarecimento* diante de **4 condições de exceção**:
 1. **Ambiguidade Real de Negócio**: Quando houver múltiplos caminhos arquiteturais excludentes não detalhados na solicitação.
-2. **Risco Destrutivo (Safety Gate)**: Comandos interceptados como `DENY` ou `ASK` no `scripts/safety-gate.py` (exclusão de banco, reset destrutivo de Git, recursos de nuvem).
+2. **Risco Destrutivo (Safety Gate)**:
+   - Em `PRODUCAO`: Comandos destrutivos interceptados como `DENY` ("fora de cogitação").
+   - Em `HOMOLOGACAO`: Comandos destrutivos interceptados como `ASK` com confirmação humana em dois alertas explícitos (Impacto HML e Salvaguardas de Backup & Rollback).
+   - Em `DEV`: Comandos destrutivos liberados para correção com salvaguarda local, mantendo `DENY` para suicídios de SO (`rm -rf /`, fork bombs).
 3. **Falha de Teste Persistente**: Quando uma suíte de testes falhar e, após 1 iteração de auto-reparo fundamentada em evidências, o erro persistir.
 4. **Risco HIGH Explícito**: Tarefas classificadas formalmente como `HIGH` exigem checkpoint de aprovação antes da execução.
 

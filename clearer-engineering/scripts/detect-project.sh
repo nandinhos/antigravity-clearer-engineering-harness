@@ -7,9 +7,98 @@ set -euo pipefail
 TARGET_DIR="${1:-$(pwd)}"
 cd "$TARGET_DIR"
 
-echo "=== [CEH Stack Awareness Report] ==="
+echo "=== [CEH Stack & Environment Awareness Report] ==="
 echo "Target Directory: $TARGET_DIR"
 echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+echo ""
+
+# 0. Environment Detection (DEV / HOMOLOGAÇÃO / PRODUÇÃO)
+DETECTED_ENV="development"
+ENV_EVIDENCE="Default fallback (local workspace)"
+
+# 0.1 Check Shell / System Environment Variables
+for var in CEH_ENV APP_ENV NODE_ENV ENVIRONMENT ENV STAGE; do
+    if [[ -n "${!var:-}" ]]; then
+        RAW_VAL="${!var}"
+        VAL=$(echo "$RAW_VAL" | tr '[:upper:]' '[:lower:]')
+        if [[ "$VAL" =~ (prod|production|prd|live) ]]; then
+            DETECTED_ENV="production"
+            ENV_EVIDENCE="Environment variable $var=$RAW_VAL"
+            break
+        elif [[ "$VAL" =~ (stage|staging|homolog|homologacao|uat|qa) ]]; then
+            DETECTED_ENV="staging"
+            ENV_EVIDENCE="Environment variable $var=$RAW_VAL"
+            break
+        elif [[ "$VAL" =~ (dev|development|local|test|testing) ]]; then
+            DETECTED_ENV="development"
+            ENV_EVIDENCE="Environment variable $var=$RAW_VAL"
+            break
+        fi
+    fi
+done
+
+# 0.2 Check Configuration Files if not overridden by explicit var
+if [[ "$DETECTED_ENV" == "development" && "$ENV_EVIDENCE" == *"Default fallback"* ]]; then
+    if [[ -f ".env.production" ]]; then
+        DETECTED_ENV="production"
+        ENV_EVIDENCE="File .env.production present"
+    elif [[ -f ".env.staging" ]] || [[ -f ".env.homolog" ]]; then
+        DETECTED_ENV="staging"
+        ENV_EVIDENCE="File .env.staging / .env.homolog present"
+    elif [[ -f ".env" ]]; then
+        for key in CEH_ENV APP_ENV NODE_ENV ENVIRONMENT ENV STAGE; do
+            MATCH=$(grep -E "^${key}=" .env 2>/dev/null | head -n 1 | cut -d'=' -f2- | tr -d '"'"'" | tr -d ' ' || true)
+            if [[ -n "$MATCH" ]]; then
+                VAL=$(echo "$MATCH" | tr '[:upper:]' '[:lower:]')
+                if [[ "$VAL" =~ (prod|production|prd|live) ]]; then
+                    DETECTED_ENV="production"
+                    ENV_EVIDENCE="File .env (${key}=${MATCH})"
+                    break
+                elif [[ "$VAL" =~ (stage|staging|homolog|homologacao|uat|qa) ]]; then
+                    DETECTED_ENV="staging"
+                    ENV_EVIDENCE="File .env (${key}=${MATCH})"
+                    break
+                elif [[ "$VAL" =~ (dev|development|local|test|testing) ]]; then
+                    DETECTED_ENV="development"
+                    ENV_EVIDENCE="File .env (${key}=${MATCH})"
+                    break
+                fi
+            fi
+        done
+    fi
+fi
+
+# 0.3 Check Git Branch (preventive escalation)
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
+    if [[ "$DETECTED_ENV" == "development" && "$ENV_EVIDENCE" == *"Default fallback"* ]]; then
+        BRANCH_LOWER=$(echo "$CURRENT_BRANCH" | tr '[:upper:]' '[:lower:]')
+        if [[ "$BRANCH_LOWER" =~ ^(main|master|production|prod)$ ]]; then
+            DETECTED_ENV="production"
+            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}' (production escalation)"
+        elif [[ "$BRANCH_LOWER" =~ (staging|stage|homolog|uat|qa) ]]; then
+            DETECTED_ENV="staging"
+            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}'"
+        fi
+    fi
+fi
+
+ENV_UPPER=$(echo "$DETECTED_ENV" | tr '[:lower:]' '[:upper:]')
+echo "--- Environment Awareness ---"
+echo "Detected Environment: $ENV_UPPER"
+echo "Evidence Source:      $ENV_EVIDENCE"
+case "$DETECTED_ENV" in
+    production)
+        echo "Safety Gate Policy:   PRODUÇÃO STRICT (Comandos destrutivos são FORA DE COGITAÇÃO - DENY)"
+        ;;
+    staging)
+        echo "Safety Gate Policy:   HOMOLOGAÇÃO GATED (Exige confirmação com 2 ALERTAS + Backup e Rollback)"
+        ;;
+    *)
+        echo "Safety Gate Policy:   DESENVOLVIMENTO (Destrutivos permitidos com prontidão de backup/rollback)"
+        ;;
+esac
+echo "-----------------------------"
 echo ""
 
 STACKS=()
