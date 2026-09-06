@@ -132,6 +132,23 @@ O fluxo contínuo do agente só é interrompido diante de **4 condições de par
 3. **Falha Persistente de Testes**: Quebra de suíte de testes após 1 iteração de auto-reparo fundamentada.
 4. **Nível HIGH Explícito**: Tarefas classificadas expressamente como de alto risco.
 
+## 🌿 Estratégias de Branches & Modos de Desenvolvimento
+
+O CEH apoia o desenvolvedor com **2 modos de topologia Git**, identificados proativamente no carregamento do projeto:
+
+1. **Modo Enterprise (3 Branches: `dev` ➔ `staging` ➔ `main`)**:
+   - `dev`: Desenvolvimento core, testes e movimentações livres (`ALLOW` com salvaguardas).
+   - `staging`: Homologação com dados reais e validação (`ASK` com 2 alertas e backup obrigatório).
+   - `main`: Produção protegida para deploy (`DENY` incondicional).
+   - *Ideal para equipes, esteiras de CI/CD e sistemas corporativos.*
+
+2. **Modo Clássico (2 Branches: `dev` ➔ `main`)**:
+   - `dev`: Onde todas as tarefas, spikes e correções ocorrem (`ALLOW`).
+   - `main`: Produção protegida para release direto (`DENY`).
+   - *Ideal para projetos ágeis, MVPs e desenvolvedores solo.*
+
+> **Assistente Automatizado**: Execute `bash clearer-engineering/scripts/setup-branches.sh --classic` (ou `--enterprise`) para configurar a topologia do seu repositório em 1 clique.
+
 ---
 
 ## 🧪 Suíte de Testes Automatizada

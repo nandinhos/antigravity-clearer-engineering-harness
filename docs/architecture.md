@@ -134,3 +134,34 @@ No ecossistema do **Antigravity CLI (`agy`)**, perfis de agentes customizados (`
 - **Orquestrador Central (`clearer-harness`)**: Declarado com conjunto integral de ferramentas (`run_command`, `write_to_file`, `replace_file_content`, `multi_replace_file_content`, leitura, busca, subagentes e tarefas) para conduzir fluxos completos nos níveis `LOW` e `MEDIUM` sem bloqueios de permissão.
 - **Subagentes Cirúrgicos**: Cada subagente recebe estritamente as ferramentas necessárias para seu papel (ex.: `ceh-implementer` possui ferramentas de escrita e substituição, mas não executa comandos de shell; `ceh-reviewer` pode rodar `git diff`, mas não altera código).
 
+---
+
+## 5. Estratégias de Branches & Topologias Canônicas
+
+O CEH suporta nativamente dois modos canônicos de engenharia de software para isolamento de riscos:
+
+### A. Modo Enterprise (3 Branches: `dev` ➔ `staging` ➔ `main`)
+Projetado para equipes, sistemas corporativos e ambientes com esteira formal de homologação/UAT:
+- **`dev` (Desenvolvimento Core)**: Trabalho ativo com total liberdade de testes e auto-reparo (`ALLOW` com salvaguardas).
+- **`staging` (Homologação / UAT)**: Promoção e testes integrados com dados reais (`ASK` com confirmação dupla de 2 alertas).
+- **`main` (Produção)**: Deploy estável com proteção incondicional contra comandos destrutivos (`DENY`).
+
+### B. Modo Clássico (2 Branches: `dev` ➔ `main`)
+Projetado para MVPs, startups, pequenos times e desenvolvedores ágeis:
+- **`dev` (Desenvolvimento Ágil)**: Onde todas as features, spikes e correções ocorrem (`ALLOW`).
+- **`main` (Produção)**: Promoção direta para produção estável (`DENY`).
+
+### C. Derivações Padronizadas
+Em ambos os modos, features e correções derivam sempre da branch `dev` (`dev-[slug]-referencia` ou `dev/[slug]`), preservando a estabilidade da árvore principal.
+
+### D. Assistente Automatizado (`setup-branches.sh`)
+O script [`scripts/setup-branches.sh`](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/scripts/setup-branches.sh) inspeciona o repositório e configura automaticamente a topologia desejada:
+```bash
+# Modo Clássico (2 branches)
+bash clearer-engineering/scripts/setup-branches.sh --classic
+
+# Modo Enterprise (3 branches)
+bash clearer-engineering/scripts/setup-branches.sh --enterprise
+```
+
+

@@ -82,7 +82,7 @@ run_test "Script: detect-project.sh execution & environment awareness" \
     "bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep -q 'CEH Stack & Environment Awareness Report'"
 
 run_test "Script: detect-project.sh reports Canonical Branch Topology" \
-    "bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep -q 'Canonical Branch Topology Audit'"
+    "bash -c 'TMP=\$(mktemp -d); git -C \"\$TMP\" init -b main >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; touch \"\$TMP/f\"; git -C \"\$TMP\" add f; git -C \"\$TMP\" commit -m i >/dev/null; bash \"$PLUGIN_DIR/scripts/detect-project.sh\" \"\$TMP\" | grep -q \"Canonical Branch Topology Audit\" && rm -rf \"\$TMP\"'"
 
 run_test "Script: setup-branches.sh --enterprise (Modo 3 Branches)" \
     "bash -c 'TMP=\$(mktemp -d); git -C \"\$TMP\" init -b main >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; touch \"\$TMP/f\"; git -C \"\$TMP\" add f; git -C \"\$TMP\" commit -m i >/dev/null; bash \"$PLUGIN_DIR/scripts/setup-branches.sh\" --enterprise \"\$TMP\" >/dev/null; git -C \"\$TMP\" show-ref --verify --quiet refs/heads/dev && git -C \"\$TMP\" show-ref --verify --quiet refs/heads/staging && bash \"$PLUGIN_DIR/scripts/detect-project.sh\" \"\$TMP\" | grep -q 'MODO ENTERPRISE' && rm -rf \"\$TMP\"'"

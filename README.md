@@ -132,6 +132,23 @@ The continuous agent stream is only halted upon encountering **4 strict exceptio
 3. **Persistent Test Failure**: Test suite failing after 1 evidence-grounded auto-heal iteration.
 4. **Explicit HIGH Level**: Tasks formally classified as high risk.
 
+## 🌿 Branching Strategies & Development Modes
+
+CEH natively supports **2 Git topology modes**, proactively identified upon loading the project:
+
+1. **Enterprise Mode (3 Branches: `dev` ➔ `staging` ➔ `main`)**:
+   - `dev`: Core development, free movement and tests (`ALLOW` with safeguards).
+   - `staging`: Homologation with real data and verification (`ASK` with 2 alerts and mandatory backup).
+   - `main`: Protected production for stable deploy (`DENY` - off limits).
+   - *Ideal for teams, CI/CD pipelines, and corporate environments.*
+
+2. **Classic Mode (2 Branches: `dev` ➔ `main`)**:
+   - `dev`: Where all features, spikes and bugfixes occur (`ALLOW`).
+   - `main`: Protected production for direct releases (`DENY`).
+   - *Ideal for agile projects, MVPs, and solo developers.*
+
+> **Automated Assistant**: Run `bash clearer-engineering/scripts/setup-branches.sh --classic` (or `--enterprise`) to configure your repository topology in 1 command.
+
 ---
 
 ## 🧪 Automated Testing & Verification
