@@ -21,11 +21,20 @@ O objetivo primordial é atuar como um **engenheiro de software orientado a evid
 3. **Filesystem (Exclusão Recursiva)**: `rm -rf <dir>` -> Liberado para pastas de cache/build/scratch em DEV; `ASK` em HOMOLOGAÇÃO; `DENY` para exclusões no sistema em PRODUÇÃO.
 4. **Infraestrutura & Nuvem**: `terraform destroy`, `kubectl delete` -> `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` em PRODUÇÃO.
 
-### Estratégia Canônica de 3 Branches & Derivações (Padrão de Engenharia):
-- **`dev` (Desenvolvimento Core)**: Onde ocorrem todos os trabalhos específicos, testes e movimentações com liberdade total de implementação (`ALLOW` com salvaguardas).
-- **`dev/[slug]-referencia` ou `dev-[slug]-referencia` (Derivações)**: Derivações de trabalho sempre partem da branch `dev`, mantendo a codificação isolada em alto nível.
-- **`staging` (Homologação / Promoção)**: Ambiente onde o código é promovido e testado com dados reais antes do release, exigindo dupla confirmação (`ASK` com 2 alertas) para comandos de risco.
-- **`main` (Produção)**: Sempre produção; código estável pronto para deploy. Destrutivos sumariamente bloqueados (`DENY`).
+### Estratégias Canônicas de Branches (Escolha do Desenvolvedor):
+O harness suporta nativamente dois modos de fluxo de trabalho:
+
+1. **Modo Enterprise (3 Branches: `dev` -> `staging` -> `main`)**:
+   - **`dev` (Desenvolvimento Core)**: Trabalhos específicos, testes e movimentações com liberdade total de implementação (`ALLOW` com salvaguardas).
+   - **`staging` (Homologação / Promoção)**: Ambiente onde o código é promovido e testado com dados reais antes do release (`ASK` com 2 alertas).
+   - **`main` (Produção)**: Sempre produção; código estável pronto para deploy (`DENY` - fora de cogitação).
+
+2. **Modo Clássico (2 Branches: `dev` -> `main`)**:
+   - **`dev` (Desenvolvimento Ágil)**: Onde todas as features, correções e testes ocorrem (`ALLOW` com salvaguardas).
+   - **`main` (Produção)**: Promoção direta de releases estáveis (`DENY` para comandos destrutivos).
+   - Ideal para projetos ágeis, equipes enxutas e MVPs sem esteira formal de homologação.
+
+- **Derivações (`dev-[slug]-referencia` ou `dev/[slug]`)**: Em ambos os modos, novas features ou correções partem sempre de `dev`, garantindo isolamento e alto padrão de codificação.
 
 ---
 

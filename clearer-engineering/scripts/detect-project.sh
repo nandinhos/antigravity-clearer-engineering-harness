@@ -266,12 +266,37 @@ echo "Linters/Checkers:  ${LINTERS[*]:-None detected}"
 echo "Infra/Containers:  ${INFRA[*]:-None detected}"
 echo ""
 
-# Git status overview
+# Git status & Canonical Topology Audit
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
     UNCOMMITTED=$(git status --porcelain | wc -l | tr -d ' ')
     echo "Git Branch:        $CURRENT_BRANCH"
     echo "Uncommitted Files: $UNCOMMITTED"
+
+    # Canonical Branch Topology Verification (Modo 3 Branches ou Modo 2 Branches)
+    HAS_MAIN=0
+    HAS_STAGING=0
+    HAS_DEV=0
+    if git show-ref --verify --quiet refs/heads/main || git show-ref --verify --quiet refs/heads/master || git show-ref --verify --quiet refs/remotes/origin/main || git show-ref --verify --quiet refs/remotes/origin/master; then HAS_MAIN=1; fi
+    if git show-ref --verify --quiet refs/heads/staging || git show-ref --verify --quiet refs/heads/homolog || git show-ref --verify --quiet refs/heads/homologacao || git show-ref --verify --quiet refs/remotes/origin/staging; then HAS_STAGING=1; fi
+    if git show-ref --verify --quiet refs/heads/dev || git show-ref --verify --quiet refs/heads/develop || git show-ref --verify --quiet refs/remotes/origin/dev; then HAS_DEV=1; fi
+
+    echo ""
+    echo "--- Canonical Branch Topology Audit ---"
+    if [[ $HAS_MAIN -eq 1 && $HAS_STAGING -eq 1 && $HAS_DEV -eq 1 ]]; then
+        echo "Topology Status:   [✔ CONFORME - MODO ENTERPRISE 3-BRANCHES] (dev -> staging -> main)"
+    elif [[ $HAS_MAIN -eq 1 && $HAS_DEV -eq 1 ]]; then
+        echo "Topology Status:   [✔ CONFORME - MODO CLÁSSICO 2-BRANCHES] (dev -> main)"
+    else
+        echo "Topology Status:   [⚠️ PENDENTE DE ALINHAMENTO] Repositório sem branch de desenvolvimento 'dev'."
+        echo "  • Produção (main):        $([ $HAS_MAIN -eq 1 ] && echo '✔' || echo '❌ Ausente')"
+        echo "  • Homologação (staging):  $([ $HAS_STAGING -eq 1 ] && echo '✔' || echo '❌ Ausente')"
+        echo "  • Desenvolvimento (dev):  $([ $HAS_DEV -eq 1 ] && echo '✔' || echo '❌ Ausente')"
+        echo ""
+        echo "💡 Orientação de Engenharia CEH (Escolha o seu modo):"
+        echo "   [Opção 1 - Clássico]:    bash $(dirname "$0")/setup-branches.sh --classic    (dev e main)"
+        echo "   [Opção 2 - Enterprise]:  bash $(dirname "$0")/setup-branches.sh --enterprise (dev, staging e main)"
+    fi
 else
     echo "Git:               Not a git repository"
 fi
