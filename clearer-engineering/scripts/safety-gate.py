@@ -155,14 +155,18 @@ def detect_environment(explicit_env: str | None = None, cmd_line: str = "") -> t
     except Exception:
         pass
 
-    # 5. Git branch inspection (preventive escalation)
+    # 5. Git branch inspection (preventive escalation & canonical flow)
     branch = get_git_branch()
     if branch:
         branch_lower = branch.lower()
         if branch_lower in ["main", "master", "production", "prod"]:
-            return "production", f"Git branch '{branch}' (production escalation)"
-        if any(term in branch_lower for term in ["staging", "stage", "homolog", "uat", "qa"]):
-            return "staging", f"Git branch '{branch}'"
+            return "production", f"Git branch '{branch}' (canonical production branch)"
+        if any(term in branch_lower for term in ["staging", "stage", "homolog", "homologacao", "uat", "qa"]):
+            return "staging", f"Git branch '{branch}' (canonical staging branch)"
+        if branch_lower in ["dev", "develop"]:
+            return "development", f"Git branch '{branch}' (canonical dev branch)"
+        if branch_lower.startswith("dev/") or branch_lower.startswith("dev-") or branch_lower.startswith("feature/") or branch_lower.startswith("fix/"):
+            return "development", f"Git branch '{branch}' (derivation from dev)"
 
     # Default fallback: safe local development
     return "development", "Default workspace fallback (development/local)"

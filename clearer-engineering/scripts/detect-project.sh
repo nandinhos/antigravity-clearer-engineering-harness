@@ -68,17 +68,23 @@ if [[ "$DETECTED_ENV" == "development" && "$ENV_EVIDENCE" == *"Default fallback"
     fi
 fi
 
-# 0.3 Check Git Branch (preventive escalation)
+# 0.3 Check Git Branch (preventive escalation & canonical flow)
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
     if [[ "$DETECTED_ENV" == "development" && "$ENV_EVIDENCE" == *"Default fallback"* ]]; then
         BRANCH_LOWER=$(echo "$CURRENT_BRANCH" | tr '[:upper:]' '[:lower:]')
         if [[ "$BRANCH_LOWER" =~ ^(main|master|production|prod)$ ]]; then
             DETECTED_ENV="production"
-            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}' (production escalation)"
-        elif [[ "$BRANCH_LOWER" =~ (staging|stage|homolog|uat|qa) ]]; then
+            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}' (canonical production branch)"
+        elif [[ "$BRANCH_LOWER" =~ (staging|stage|homolog|homologacao|uat|qa) ]]; then
             DETECTED_ENV="staging"
-            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}'"
+            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}' (canonical staging branch)"
+        elif [[ "$BRANCH_LOWER" =~ ^(dev|develop)$ ]]; then
+            DETECTED_ENV="development"
+            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}' (canonical dev branch)"
+        elif [[ "$BRANCH_LOWER" =~ ^dev/ ]] || [[ "$BRANCH_LOWER" =~ ^dev- ]] || [[ "$BRANCH_LOWER" =~ ^(feature|fix)/ ]]; then
+            DETECTED_ENV="development"
+            ENV_EVIDENCE="Git branch '${CURRENT_BRANCH}' (derivation from dev)"
         fi
     fi
 fi

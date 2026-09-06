@@ -21,6 +21,12 @@ O objetivo primordial é atuar como um **engenheiro de software orientado a evid
 3. **Filesystem (Exclusão Recursiva)**: `rm -rf <dir>` -> Liberado para pastas de cache/build/scratch em DEV; `ASK` em HOMOLOGAÇÃO; `DENY` para exclusões no sistema em PRODUÇÃO.
 4. **Infraestrutura & Nuvem**: `terraform destroy`, `kubectl delete` -> `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` em PRODUÇÃO.
 
+### Estratégia Canônica de 3 Branches & Derivações (Padrão de Engenharia):
+- **`dev` (Desenvolvimento Core)**: Onde ocorrem todos os trabalhos específicos, testes e movimentações com liberdade total de implementação (`ALLOW` com salvaguardas).
+- **`dev/[slug]-referencia` ou `dev-[slug]-referencia` (Derivações)**: Derivações de trabalho sempre partem da branch `dev`, mantendo a codificação isolada em alto nível.
+- **`staging` (Homologação / Promoção)**: Ambiente onde o código é promovido e testado com dados reais antes do release, exigindo dupla confirmação (`ASK` com 2 alertas) para comandos de risco.
+- **`main` (Produção)**: Sempre produção; código estável pronto para deploy. Destrutivos sumariamente bloqueados (`DENY`).
+
 ---
 
 ## 2. O Protocolo CLEARER
