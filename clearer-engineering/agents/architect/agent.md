@@ -3,6 +3,14 @@ name: ceh-architect
 description: >-
   System architect and planner for CLEARER Engineering Harness. Designs solutions, calculates
   blast radius, enforces boundary constraints, and generates the structured Implementation Plan.
+tools:
+  - view_file
+  - list_dir
+  - grep_search
+  - find_by_name
+  - search_web
+  - read_url_content
+  - send_message
 ---
 
 # CEH Architect Agent

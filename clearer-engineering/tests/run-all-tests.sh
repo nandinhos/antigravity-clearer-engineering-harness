@@ -98,9 +98,18 @@ run_test "Test Runner: Success scenario returns exit code 0" \
 run_test "Test Runner: Failing test correctly reports FAIL without masking" \
     "bash '$PLUGIN_DIR/scripts/test-runner.sh' 'false' | grep -q 'STATUS:    FAIL'"
 
-# 6. Global Agent Profile Availability
+# 6. Global Agent Profile Availability & Tools Configuration
 run_test "Antigravity Agent Profile 'clearer-harness' is recognized" \
     "agy agent | grep -q 'clearer-harness'"
+
+run_test "Agent Profile 'clearer-harness' has write and execution tools declared" \
+    "grep -q 'write_to_file' '$HOME/.gemini/config/agents/clearer-harness/agent.md' && grep -q 'run_command' '$HOME/.gemini/config/agents/clearer-harness/agent.md'"
+
+run_test "Plugin Subagent 'ceh-implementer' has code editing tools" \
+    "grep -q 'write_to_file' '$PLUGIN_DIR/agents/implementer/agent.md' && grep -q 'replace_file_content' '$PLUGIN_DIR/agents/implementer/agent.md'"
+
+run_test "Plugin Subagent 'ceh-test-engineer' has execution and editing tools" \
+    "grep -q 'run_command' '$PLUGIN_DIR/agents/test-engineer/agent.md' && grep -q 'write_to_file' '$PLUGIN_DIR/agents/test-engineer/agent.md'"
 
 # 7. Shell Aliases Configuration
 run_test "Shell alias 'agy-ceh' configured in ~/.bashrc and ~/.zshrc" \

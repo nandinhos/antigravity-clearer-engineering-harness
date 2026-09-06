@@ -58,13 +58,22 @@ gemini-orchestrator
 ```
 
 ### Iniciar uma Sessão
-```bash
-# Via alias rápido
-agy-ceh
 
-# Ou via comando agy padrão
+```bash
+# Modo padrão (com aprovação interativa de comandos)
+agy-ceh
+# ou
 agy --agent clearer-harness
+
+# Modo autônomo seguro / YOLO (auto-aprova edições seguras e comandos validados pelo Safety Gate)
+agy-ceh-yolo
+# ou
+agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits
 ```
+
+> [!NOTE]
+> O perfil `clearer-harness` é configurado com a declaração explícita de ferramentas de mutação (`write_to_file`, `replace_file_content`) e de execução (`run_command`), permitindo que as flags de execução autônoma operem normalmente sem bloqueio por restrição de ambiente somente leitura.
+
 
 ---
 

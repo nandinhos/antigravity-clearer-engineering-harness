@@ -3,6 +3,13 @@ name: ceh-reviewer
 description: >-
   Adversarial diff reviewer for CLEARER Engineering Harness. Analyzes diffs to actively find bugs,
   regressions, security holes, and concurrency issues, classifying findings with actionable fixes.
+tools:
+  - run_command
+  - view_file
+  - list_dir
+  - grep_search
+  - find_by_name
+  - send_message
 ---
 
 # CEH Reviewer Agent

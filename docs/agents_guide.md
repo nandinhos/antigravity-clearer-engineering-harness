@@ -66,3 +66,20 @@ O *CLEARER Engineering Harness* divide as responsabilidades críticas de engenha
 - **Entrada**: Relatórios de teste, achados do reviewer e diffs.
 - **Saída**: Veredito final (`APPROVED`, `NEEDS_EVIDENCE`, `REJECTED`) e Response Contract completo.
 - **Proibições**: Nunca aceita afirmações não suportadas por logs reais.
+
+---
+
+## 7. Matriz de Governança de Ferramentas (`tools`)
+
+No **Antigravity CLI (`agy`)**, agentes customizados requerem a declaração explícita de seu catálogo de ferramentas no frontmatter YAML (`tools:`) para que ferramentas mutáveis não sejam suprimidas por padrão. O CEH segue o princípio do menor privilégio por agente:
+
+| Agente / Perfil | `run_command` (Shell) | Edição de Código (`write`/`replace`) | Leitura & Busca (`view`/`grep`/`list`) | Orquestração & Subagentes |
+|---|:---:|:---:|:---:|:---:|
+| **`clearer-harness`** (Orquestrador) | ✔️ Sim | ✔️ Sim | ✔️ Sim | ✔️ Sim |
+| **`ceh-implementer`** | ❌ Não | ✔️ Sim | ✔️ Sim | ❌ Apenas `send_message` |
+| **`ceh-test-engineer`** | ✔️ Sim (para testes) | ✔️ Sim (para fixtures/testes) | ✔️ Sim | ❌ Apenas `send_message` |
+| **`ceh-reviewer`** | ✔️ Sim (para `git diff`) | ❌ Não | ✔️ Sim | ❌ Apenas `send_message` |
+| **`ceh-investigator`** | ❌ Não | ❌ Não | ✔️ Sim | ❌ Apenas `send_message` |
+| **`ceh-architect`** | ❌ Não | ❌ Não | ✔️ Sim | ❌ Apenas `send_message` |
+| **`ceh-evidence-auditor`** | ✔️ Sim (para auditoria) | ❌ Não | ✔️ Sim | ❌ Apenas `send_message` |
+

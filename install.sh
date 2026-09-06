@@ -118,6 +118,25 @@ description: >-
   CLEARER Engineering Harness (CEH) Orchestrator para Google Antigravity. Conduz o ciclo de
   engenharia orientado a evidências com Risk Dial (LOW, MEDIUM, HIGH), semântica OBSERVED/INFERRED/UNKNOWN,
   revisão adversarial de diffs e auditoria estrita de claims.
+tools:
+  - run_command
+  - write_to_file
+  - replace_file_content
+  - multi_replace_file_content
+  - view_file
+  - list_dir
+  - grep_search
+  - find_by_name
+  - search_web
+  - read_url_content
+  - manage_task
+  - schedule
+  - generate_image
+  - ask_question
+  - invoke_subagent
+  - define_subagent
+  - manage_subagents
+  - send_message
 ---
 
 # CLEARER Engineering Harness (Antigravity Profile)

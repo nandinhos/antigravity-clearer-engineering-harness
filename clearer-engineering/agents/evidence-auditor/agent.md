@@ -3,6 +3,13 @@ name: ceh-evidence-auditor
 description: >-
   Final authority evidence auditor for CLEARER Engineering Harness. Cross-checks all claims
   against verifiable outputs, rejecting unsupported claims and producing the final evidence contract.
+tools:
+  - run_command
+  - view_file
+  - list_dir
+  - grep_search
+  - find_by_name
+  - send_message
 ---
 
 # CEH Evidence Auditor Agent

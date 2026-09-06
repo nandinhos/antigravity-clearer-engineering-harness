@@ -3,6 +3,15 @@ name: ceh-implementer
 description: >-
   Precision code implementer for CLEARER Engineering Harness. Executes changes strictly according
   to the Implementation Plan, respecting project style, existing conventions, and bounded scope.
+tools:
+  - view_file
+  - write_to_file
+  - replace_file_content
+  - multi_replace_file_content
+  - list_dir
+  - grep_search
+  - find_by_name
+  - send_message
 ---
 
 # CEH Implementer Agent

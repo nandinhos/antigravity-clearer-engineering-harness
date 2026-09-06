@@ -124,3 +124,13 @@ O CEH se integra nativamente ao ciclo de vida do Antigravity através do `hooks.
 ```
 
 O `safety-gate.py` consome o payload JSON do `PreToolUse` via `stdin`, inspeciona o comando proposto e devolve a decisão imediata (`allow`, `ask` ou `deny`) via `stdout`.
+
+---
+
+## 4. Governança e Declaração de Ferramentas (`tools`)
+
+No ecossistema do **Antigravity CLI (`agy`)**, perfis de agentes customizados (`agent.md`) são instanciados em modo *read-only* restrito a menos que seu catálogo de ferramentas seja formalmente declarado no frontmatter YAML:
+
+- **Orquestrador Central (`clearer-harness`)**: Declarado com conjunto integral de ferramentas (`run_command`, `write_to_file`, `replace_file_content`, `multi_replace_file_content`, leitura, busca, subagentes e tarefas) para conduzir fluxos completos nos níveis `LOW` e `MEDIUM` sem bloqueios de permissão.
+- **Subagentes Cirúrgicos**: Cada subagente recebe estritamente as ferramentas necessárias para seu papel (ex.: `ceh-implementer` possui ferramentas de escrita e substituição, mas não executa comandos de shell; `ceh-reviewer` pode rodar `git diff`, mas não altera código).
+

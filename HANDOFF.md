@@ -87,4 +87,5 @@ Para resolver a fricção entre autonomia e governança, a seguinte arquitetura 
 2. **Skills (`clearer-feature`, `clearer-bugfix`, `clearer-refactor`, `clearer`)**: Ajustadas para conduzir o ciclo completo sem paradas intermediárias artificiais.
 3. **Safety Gate Inteligente (`safety-gate.py`)**: Suporte a limpezas de cache/scratch/build de desenvolvimento e operações atômicas no Git, preservando bloqueios rígidos contra perda de dados.
 4. **Padrões de Código (`docs/coding_standards.md`)**: Diretrizes explícitas de Clean Code, tipagem estrita, resiliência defensiva e testes comportamentais.
+5. **Declaração Explícita de Ferramentas em Perfis do Antigravity CLI (2026-09-06)**: Descoberto que o runtime do Antigravity CLI (`agy`) restringe qualquer perfil customizado (`agent.md`) ao modo estritamente *read-only* caso o frontmatter YAML não liste explicitamente o bloco `tools:`. O template do `clearer-harness` no `install.sh` e os subagentes do plugin foram atualizados com seus catálogos de ferramentas para permitir a mutação e execução contínua no modo YOLO (`agy-ceh-yolo`).
 

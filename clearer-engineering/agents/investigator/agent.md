@@ -3,6 +3,14 @@ name: ceh-investigator
 description: >-
   Read-only context investigator for CLEARER Engineering Harness. Discovers codebase architecture,
   locates symbols, traces dependencies, and compiles the structured Evidence Pack without editing files.
+tools:
+  - view_file
+  - list_dir
+  - grep_search
+  - find_by_name
+  - search_web
+  - read_url_content
+  - send_message
 ---
 
 # CEH Investigator Agent
