@@ -251,9 +251,7 @@ def handle_hook():
             decision, reason, env, use_case = evaluate_command(cmd_line)
             output = {
                 "decision": decision,
-                "reason": reason,
-                "environment": env,
-                "use_case": use_case
+                "reason": reason
             }
             print(json.dumps(output, ensure_ascii=False))
             return
