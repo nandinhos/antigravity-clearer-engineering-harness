@@ -5,7 +5,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Tests-19%2F19%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Tests-25%2F25%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalist-blueviolet.svg)](#-ponytail-mode--ast-first-philosophy)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-the-risk-dial--execution-autonomy)
 
 [**Português (Brasil)**](./README_PT.md) | **English**
@@ -19,21 +20,11 @@
 The **CLEARER Engineering Harness (CEH)** is a production-grade software engineering harness natively engineered for **Google Antigravity** (IDE and `agy` CLI).
 
 Rather than relying on vague prompts or unverified model assumptions, CEH operates under the highest standards of **Staff Software Engineering**:
-- **Continuous Execution for MEDIUM Risk**: The complete `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` cycle is conducted end-to-end in a **Single-Turn**, eliminating artificial stops and unnecessary micro-handoffs.
-- **High-Level Craftsmanship**: Strict typing, Clean Code/SOLID, defensive architecture (explicit handling of nulls, timeouts, and exceptions), and deterministic behavioral tests.
-- **Management by Exception**: Strict checkpoints that only halt execution when facing real business ambiguities, destructive commands in the Safety Gate, persistent test failures, or explicit `HIGH RISK` tasks.
-- **Zero Hallucination & Zero Fake Pass**: Prohibits speculative code creation and guarantees every claim is backed by real execution logs and exit codes.
-
-```mermaid
-flowchart TD
-    A[🎯 Concrete Goal] --> B[🔍 Load Context - Inspect Before Edit]
-    B --> C[🚧 Explicit Boundaries & Minimal Blast Radius]
-    C --> D[⚓ Anchors & Real Code Evidence]
-    D --> E[📋 Surgical Implementation & Strict Typing]
-    E --> F[🧪 Deterministic Testing & Auto-Heal]
-    F --> G[🕵️ Adversarial Diff Review]
-    G --> H[📊 Verifiable Response Contract]
-```
+- **Environment Awareness & Granular Safety Gate**: Proactive safety policies tailored to `DEV` (freedom with local safety), `HOMOLOGACAO` (2-step explicit alerts), and `PRODUCAO` (destructive actions strictly denied).
+- **Ponytail Mode & AST First Philosophy**: "Understand deeply, build concisely, deliver correctly". 5-step decision ladder, minimal functional diffs, and relational AST navigation with graceful fallback.
+- **Flexible Canonical Topologies**: Native support for **Enterprise Mode (3 branches: `dev` ➔ `staging` ➔ `main`)** and **Classic Mode (2 branches: `dev` ➔ `main`)**, with interactive `ceh-branches` helper.
+- **Continuous Execution for MEDIUM Risk**: The complete `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` cycle is conducted end-to-end in a **Single-Turn**.
+- **Zero Hallucination & Zero Fake Pass**: Prohibits speculative code creation and guarantees every claim is backed by real execution logs in `OBSERVED`.
 
 ---
 
@@ -45,36 +36,46 @@ Install or update CEH across Linux, macOS, or WSL with a single command:
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
 ```
 
-### Manual Installation
+---
 
-```bash
-# Clone the repository
-git clone https://github.com/nandinhos/antigravity-clearer-engineering-harness.git
-cd antigravity-clearer-engineering-harness
+## 🚀 Terminal & CLI Command Suite
 
-# Run the installer
-chmod +x install.sh
-./install.sh
-```
+Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the complete CLI toolkit:
+
+| Command | What it does | Context / Example |
+|---|---|---|
+| `ceh` / `agy-ceh` | Starts Antigravity CLI under the `clearer-harness` profile. | Daily terminal workflow. |
+| `agy-ceh-yolo` | Starts Antigravity with auto-approved safe edits. | Continuous agile dev mode. |
+| `ceh-env` | Instant detection of active environment (`DEV`/`STAGING`/`PROD`), branch, and safety policy. | Pre-coding sanity check. |
+| `ceh-branches` | Audits and sets up canonical project branches (Enterprise or Classic). | New repository setup. |
+| `ceh-preflight` | Runs the full engineering readiness and project integrity check. | Pre-release validation. |
+| `ceh-help` | Interactive quick guide and command cheat sheet in terminal. | Fast reference manual. |
+
+> **In Antigravity IDE**: Global rules, skills, hooks, and the **Engineering Cockpit** (`engineering_cockpit.md`) are active automatically across all workspaces.
 
 ---
 
-## 🚀 Quick Usage
+## 🛡️ Environment Safety Tiers (Safety Gate)
 
-Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`), then:
+| Environment | Definition & Evidence | Execution Policy | Destructive Commands |
+|---|---|:---:|---|
+| **`DEV` / `TEST`** | Branch `dev` or derivations (`dev/*`), `APP_ENV=local/testing`, local `.env`. | 🟢 **`ALLOW`** | **Permitted with safeguards**: Allowed for rapid bugfixes, requiring local backup readiness. Absolute block for OS destruction (`rm -rf /`). |
+| **`HOMOLOGACAO`** | Branch `staging`/`homolog`, `APP_ENV=staging`, `.env.staging`. | 🟡 **`ASK (2 Alerts)`** | **Mandatory two-stage confirmation**: <br>1. *Alert 1/2 [Impact]*: Shared environment blast radius.<br>2. *Alert 2/2 [Backup & Rollback]*: Verified backup readiness. |
+| **`PRODUCAO`** | Branch `main`/`master`, `APP_ENV=production`. | 🔴 **`DENY`** | **STRICTLY PROHIBITED**: Destructive database commands, force push, or bulk deletions are immediately rejected. |
 
-```bash
-# Start Antigravity with the CLEARER Engineering Harness profile
-agy-ceh
+---
 
-# Or start in YOLO mode (continuous end-to-end execution with active Safety Gate)
-agy-ceh-yolo
+## 🥋 Ponytail Mode & AST First Philosophy
 
-# Quick alias
-ceh
-```
-
-> **In Antigravity IDE**: Global rules, skills, and hooks from CEH are loaded automatically across all workspace sessions.
+1. **Ponytail Decision Ladder**: Before proposing code or adding dependencies, ask:
+   - *Does this strictly need to exist?* (YAGNI).
+   - *Does it already exist in the codebase?* (Reuse existing traits, helpers, and components).
+   - *Does the standard library (stdlib) solve it?* (Zero external packages for trivial tasks).
+   - *Does a native platform API exist?* (Prioritize framework and runtime native features).
+   - *Does a surgical intervention suffice?* (Write the smallest functional diff possible).
+2. **AST First with Graceful Fallback**:
+   - If the project has Graphify (`graphify-out/graph.json` or MCP), the agent prioritizes zero-cost relational AST queries.
+   - If Graphify is not present, the agent gracefully falls back to native surgical search (`grep_search` and sliced `view_file`), strictly prohibiting full file context dumps.
 
 ---
 

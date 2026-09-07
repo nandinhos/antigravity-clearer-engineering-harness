@@ -195,11 +195,13 @@ alias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions -
 alias ceh='agy --agent clearer-harness'
 alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'
 alias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'
+alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'
+alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
 "
 
     for rc_file in "$HOME/.bashrc" "$HOME/.zshrc"; do
         if [[ -f "$rc_file" ]]; then
-            if ! grep -q "alias ceh-env=" "$rc_file"; then
+            if ! grep -q "alias ceh-help=" "$rc_file"; then
                 echo "$ALIAS_BLOCK" >> "$rc_file"
                 log_success "Aliases added to $rc_file"
             else
@@ -242,9 +244,12 @@ main() {
     echo -e "  ${CYAN}${BOLD}source ~/.bashrc${NC} (or ${CYAN}${BOLD}source ~/.zshrc${NC})"
     echo ""
     echo -e "  Available commands:"
-    echo -e "  - ${BOLD}agy-ceh${NC}       : Launch Antigravity with CLEARER Harness profile"
-    echo -e "  - ${BOLD}agy-ceh-yolo${NC}  : Launch with auto-approved safe edits"
-    echo -e "  - ${BOLD}ceh${NC}           : Short alias for agy-ceh"
+    echo -e "  - ${BOLD}ceh / agy-ceh${NC}     : Launch Antigravity with CLEARER Harness profile"
+    echo -e "  - ${BOLD}agy-ceh-yolo${NC}      : Launch with auto-approved safe edits"
+    echo -e "  - ${BOLD}ceh-env${NC}           : Detect active environment (DEV/STAGING/PROD) & branch"
+    echo -e "  - ${BOLD}ceh-branches${NC}      : Audit & configure branch topology (Enterprise/Classic)"
+    echo -e "  - ${BOLD}ceh-preflight${NC}     : Run full project engineering readiness check"
+    echo -e "  - ${BOLD}ceh-help${NC}          : Interactive quick guide & command cheat sheet"
     echo ""
     echo -e "  Documentation & Guides: ${BLUE}https://github.com/nandinhos/antigravity-clearer-engineering-harness${NC}"
     echo ""

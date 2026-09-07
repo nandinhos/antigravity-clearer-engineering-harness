@@ -2,9 +2,9 @@ name: CEH Quality & Test Suite
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, staging, dev ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, staging, dev ]
 
 jobs:
   validate:
@@ -18,32 +18,62 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Syntax check on Bash scripts
         run: |
           find clearer-engineering/ -name "*.sh" -exec bash -n {} +
+          bash -n install.sh
 
       - name: Syntax check on Python scripts
         run: |
           python3 -m py_compile clearer-engineering/scripts/safety-gate.py
+          python3 -m py_compile clearer-engineering/tests/test_safety_matrix.py
 
       - name: Make scripts executable
         run: |
           chmod +x clearer-engineering/scripts/*
           chmod +x clearer-engineering/tests/*
+          chmod +x install.sh
 
-      - name: Run Component & Integration Test Suite
+      - name: Run Safety Gate Unit Test Matrix (18 cases across DEV, STAGING, PROD)
         run: |
-          # Test runner in headless CI environment (without full agy binary)
-          python3 clearer-engineering/scripts/safety-gate.py --check "rm -rf /" | grep '"decision": "deny"'
-          python3 clearer-engineering/scripts/safety-gate.py --check "git reset --hard" | grep '"decision": "ask"'
-          python3 clearer-engineering/scripts/safety-gate.py --check "npm test" | grep '"decision": "allow"'
+          python3 clearer-engineering/tests/test_safety_matrix.py
+
+      - name: Run Adversarial Test Suite (Controlled Regressions & Evidence)
+        run: |
+          ./clearer-engineering/tests/run-adversarial-tests.sh
+
+      - name: Run Integration Scripts & Branch Topology Tests
+        run: |
+          # Test stack detector and environment awareness
           bash clearer-engineering/scripts/detect-project.sh .
+          
+          # Test auxiliary engineering scripts
           bash clearer-engineering/scripts/preflight.sh
           bash clearer-engineering/scripts/diff-audit.sh
           bash clearer-engineering/scripts/evidence-report.sh
+          bash clearer-engineering/scripts/ceh-help.sh
 
-      - name: Run Adversarial Test Suite
-        run: |
-          ./clearer-engineering/tests/run-adversarial-tests.sh
+          # Test branch topologies in isolated sandbox
+          TMP_ENT=$(mktemp -d)
+          git -C "$TMP_ENT" init -b main
+          git -C "$TMP_ENT" config user.name "CI"
+          git -C "$TMP_ENT" config user.email "ci@clearer.dev"
+          touch "$TMP_ENT/README.md"
+          git -C "$TMP_ENT" add README.md
+          git -C "$TMP_ENT" commit -m "init"
+          bash clearer-engineering/scripts/setup-branches.sh --enterprise "$TMP_ENT"
+          bash clearer-engineering/scripts/detect-project.sh "$TMP_ENT" | grep "MODO ENTERPRISE"
+          rm -rf "$TMP_ENT"
+
+          TMP_CLS=$(mktemp -d)
+          git -C "$TMP_CLS" init -b main
+          git -C "$TMP_CLS" config user.name "CI"
+          git -C "$TMP_CLS" config user.email "ci@clearer.dev"
+          touch "$TMP_CLS/README.md"
+          git -C "$TMP_CLS" add README.md
+          git -C "$TMP_CLS" commit -m "init"
+          bash clearer-engineering/scripts/setup-branches.sh --classic "$TMP_CLS"
+          bash clearer-engineering/scripts/detect-project.sh "$TMP_CLS" | grep "MODO CLÁSSICO"
+          rm -rf "$TMP_CLS"
