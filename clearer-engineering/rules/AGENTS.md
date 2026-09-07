@@ -84,14 +84,26 @@ Adapte a sobrecarga e o rigor ao custo do erro:
 
 ---
 
-## 6. Craftsmanship & Alto Nível de Engenharia
+## 6. Craftsmanship, Ponytail Mode & Alto Nível de Engenharia
 
-Toda codificação sob o CEH deve seguir os mais altos padrões de artesanato de software:
-1. **Código Limpo & Idiomático**: Seguir estritamente as convenções da linguagem e da stack do projeto.
-2. **Tipagem Estrita & Robustez**: Proibido uso de tipos soltos (`any`/`mixed`) sem validação de tipo. Tratamento defensivo de nulos, timeouts e exceções.
-3. **Blast Radius Mínimo & Cirúrgico**: Alterar apenas o estritamente necessário. Proibido ruído de formatação ou alterações cosméticas fora de escopo.
-4. **Testes Comportamentais & Determinísticos**: Cobrir o comportamento real e cenários de borda. Proibido "fake pass" ou testes frágeis.
-5. **Zero Regressão**: Toda alteração deve passar por auto-auditoria de diff (`scripts/diff-audit.sh`) antes da entrega.
+Toda codificação sob o CEH é regida pela filosofia **Ponytail Mode (Senior Minimalista)**: *entender muito, construir pouco e entregar certo*.
+
+### Princípios Inegociáveis do Ponytail Mode:
+1. **Escada de Decisão Ponytail (Anti-Over-Engineering)**: Antes de propor código ou adicionar classes/dependências, percorra obrigatoriamente a escada (interrompa no primeiro SIM):
+   - *Isso precisa mesmo existir?* Se não for estritamente necessário, rejeite imediatamente (YAGNI).
+   - *Já existe na base de código?* Se sim, reutilize componentes, helpers, traits e funções existentes.
+   - *A biblioteca padrão (stdlib) resolve?* Se sim, utilize a stdlib da linguagem. Proibido adicionar bibliotecas externas para tarefas triviais.
+   - *Existe API nativa da plataforma/runtime?* Priorize sempre os recursos nativos do framework/linguagem.
+   - *Uma intervenção cirúrgica resolve?* Escreva o menor diff funcional possível com clareza cristalina.
+2. **Parcimônia & Anti-Over-Orchestration**: Tarefas atômicas ou contidas (1 a 3 arquivos) com causa raiz mapeada devem ser resolvidas diretamente pelo agente em turno único com o menor diff funcional. É expressamente proibido instanciar múltiplos subagentes desnecessários para tarefas cirúrgicas.
+3. **AST First com Degradação Graciosa (Graceful Fallback)**:
+   - *Com Graphify*: Se o projeto contiver `graphify-out/graph.json` ou o MCP `graphify` disponível, o agente DEVE priorizar consultas relacionais (`graphify query/path/explain`) antes de ler arquivos brutos, economizando tokens e preservando contexto.
+   - *Sem Graphify (Fallback Nativo)*: Se o projeto não utilizar Graphify, o agente **não interrompe o fluxo nem exige instalação**. Ele aplica a inspeção cirúrgica nativa (`grep_search` e `view_file` fatiado com `StartLine`/`EndLine`), sendo expressamente proibido fazer dumps de arquivos inteiros sem necessidade.
+4. **Código Limpo & Idiomático**: Seguir estritamente as convenções da linguagem e da stack do projeto.
+5. **Tipagem Estrita & Robustez**: Proibido uso de tipos soltos (`any`/`mixed`) sem validação de tipo. Tratamento defensivo de nulos, timeouts e exceções.
+6. **Blast Radius Mínimo & Cirúrgico**: Alterar apenas o estritamente necessário. Proibido ruído de formatação, refatorações oportunistas ou alterações cosméticas fora de escopo.
+7. **Testes Comportamentais & Determinísticos**: Cobrir o comportamento real e cenários de borda. Proibido "fake pass" ou testes frágeis.
+8. **Zero Regressão**: Toda alteração deve passar por auto-auditoria de diff (`scripts/diff-audit.sh`) antes da entrega.
 
 ---
 
