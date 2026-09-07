@@ -108,3 +108,15 @@ O agente só interrompe o fluxo autônomo e emite *handoff / pedido de esclareci
 
 Se o fluxo transcorrer sem exceções, o agente entrega a tarefa 100% concluída, testada e auditada com o **Response Contract**.
 
+---
+
+## 8. Onboarding Interativo & Cockpit de Engenharia no Antigravity IDE
+
+Na primeira chamada no chat ou ao iniciar o trabalho em um projeto dentro da Antigravity IDE:
+1. **Inspeção Prévia**: O agente verifica o ambiente (`DEV`/`HOMOLOGACAO`/`PRODUCAO`), a presença do Git e a topologia de branches ativa (Modo Enterprise com 3 branches ou Modo Clássico com 2 branches).
+2. **Cockpit de Engenharia via Artefato**: O agente gera/apresenta o artefato `engineering_cockpit.md` situando o desenvolvedor sobre:
+   - O diagnóstico em `OBSERVED` do projeto.
+   - A importância de uma estrutura profissional de software (branches, testes, ambientes) para elevar o modelo Gemini e o Antigravity IDE/CLI ao patamar máximo de determinismo e anti-alucinação.
+   - A filosofia de **Liberdade com Salvaguarda**: rigor calibrado por ambiente sem engessar a produtividade.
+3. **Orientação sem Fricção**: Se faltar o Git ou as branches canônicas, o agente orienta de forma amigável o uso do comando rápido `ceh-branches`, sem travar a codificação.
+
