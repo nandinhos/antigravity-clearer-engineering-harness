@@ -77,6 +77,10 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
    - Se o projeto possuir Graphify (`graphify-out/graph.json` ou MCP), o agente prioriza consultas relacionais com custo zero de tokens.
    - Se não possuir Graphify, o agente aplica inspeção nativa cirúrgica (`grep_search` e leitura fatiada via `view_file`), sendo expressamente proibido fazer dumps de arquivos inteiros no contexto.
 
+> [!TIP]
+> **Aceleração de Contexto Recomendada**: Para turbinar o Antigravity com navegação relacional AST (**Graphify**) e sandbox de higiene de contexto (**context-mode**), recomendamos instalar o toolkit complementar:  
+> 🔗 [**Antigravity Harness Enhancements**](https://github.com/nandinhos/antigravity-harness-enhancements) — 100% interoperável e plug-and-play com o CEH.
+
 ---
 
 ## 📚 Documentação Técnica Completa (`docs/`)

@@ -61,5 +61,10 @@ echo -e "  ${BLUE}/clearer-audit${NC}    : Auditoria formal de claims (SUPPORTED
 echo -e "  ${BLUE}/clearer-map${NC}      : Mapeamento arquitetural read-only do repositório"
 
 echo ""
-echo -e "Documentação completa: ${BLUE}https://github.com/nandinhos/antigravity-clearer-engineering-harness${NC}"
+echo -e "${BOLD}${CYAN}▶ TOOLKIT COMPLEMENTAR DE ACELERAÇÃO (AST & CONTEXTO):${NC}"
+echo -e "  Para turbinar o Antigravity com Graphify (AST a custo zero) e context-mode:"
+echo -e "  ${BLUE}https://github.com/nandinhos/antigravity-harness-enhancements${NC}"
+
+echo ""
+echo -e "Documentação completa do CEH: ${BLUE}https://github.com/nandinhos/antigravity-clearer-engineering-harness${NC}"
 echo ""

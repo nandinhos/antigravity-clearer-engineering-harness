@@ -77,6 +77,10 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
    - If the project has Graphify (`graphify-out/graph.json` or MCP), the agent prioritizes zero-cost relational AST queries.
    - If Graphify is not present, the agent gracefully falls back to native surgical search (`grep_search` and sliced `view_file`), strictly prohibiting full file context dumps.
 
+> [!TIP]
+> **Recommended Context Acceleration**: To supercharge your Antigravity environment with relational AST navigation (**Graphify**) and context hygiene sandbox (**context-mode**), we recommend installing the companion toolkit:  
+> 🔗 [**Antigravity Harness Enhancements**](https://github.com/nandinhos/antigravity-harness-enhancements) — 100% interoperable and plug-and-play with CEH.
+
 ---
 
 ## 📚 Complete Technical Documentation (`docs/`)
