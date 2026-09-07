@@ -193,11 +193,13 @@ configure_shell_aliases() {
 alias agy-ceh='agy --agent clearer-harness'
 alias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'
 alias ceh='agy --agent clearer-harness'
+alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'
+alias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'
 "
 
     for rc_file in "$HOME/.bashrc" "$HOME/.zshrc"; do
         if [[ -f "$rc_file" ]]; then
-            if ! grep -q "alias agy-ceh=" "$rc_file"; then
+            if ! grep -q "alias ceh-env=" "$rc_file"; then
                 echo "$ALIAS_BLOCK" >> "$rc_file"
                 log_success "Aliases added to $rc_file"
             else
