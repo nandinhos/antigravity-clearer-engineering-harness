@@ -36,7 +36,7 @@ jobs:
           chmod +x clearer-engineering/tests/*
           chmod +x install.sh
 
-      - name: Run Safety Gate Unit Test Matrix (18 cases across DEV, STAGING, PROD)
+      - name: Run Safety Gate Unit Test Matrix (24 cases across DEV, STAGING, PROD & RTK)
         run: |
           python3 clearer-engineering/tests/test_safety_matrix.py
 
@@ -77,3 +77,8 @@ jobs:
           bash clearer-engineering/scripts/setup-branches.sh --classic "$TMP_CLS"
           bash clearer-engineering/scripts/detect-project.sh "$TMP_CLS" | grep "MODO CLÁSSICO"
           rm -rf "$TMP_CLS"
+
+      - name: Run Full E2E Simulation & Integration Lifecycle
+        run: |
+          ./clearer-engineering/tests/run-e2e-simulation.sh
+

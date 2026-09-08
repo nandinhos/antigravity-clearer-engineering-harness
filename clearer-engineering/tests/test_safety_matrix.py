@@ -168,6 +168,51 @@ TEST_CASES = [
         "expected_decision": "deny",
         "expected_use_case": "CATASTROPHIC"
     },
+
+    # RTK Token Proxy: Verification against security bypass / evasion
+    {
+        "name": "RTK database migrate fresh in production",
+        "cmd": b64("cnRrIHBocCBhcnRpc2FuIG1pZ3JhdGU6ZnJlc2g="),
+        "env": "production",
+        "expected_decision": "deny",
+        "expected_use_case": "DATABASE"
+    },
+    {
+        "name": "RTK proxy database migrate fresh in production",
+        "cmd": b64("cnRrIHByb3h5IHBocCBhcnRpc2FuIG1pZ3JhdGU6ZnJlc2g="),
+        "env": "production",
+        "expected_decision": "deny",
+        "expected_use_case": "DATABASE"
+    },
+    {
+        "name": "RTK git reset hard in staging",
+        "cmd": b64("cnRrIGdpdCByZXNldCAtLWhhcmQgSEVBRH4x"),
+        "env": "staging",
+        "expected_decision": "ask",
+        "expected_use_case": "GIT_HISTORY",
+        "must_have_alerts": ["ALERTA 1/2", "ALERTA 2/2"]
+    },
+    {
+        "name": "RTK git reset hard in production",
+        "cmd": b64("cnRrIGdpdCByZXNldCAtLWhhcmQgSEVBRH4x"),
+        "env": "production",
+        "expected_decision": "deny",
+        "expected_use_case": "GIT_HISTORY"
+    },
+    {
+        "name": "RTK catastrophic rm root in dev",
+        "cmd": b64("cnRrIHJtIC1yZiAv"),
+        "env": "development",
+        "expected_decision": "deny",
+        "expected_use_case": "CATASTROPHIC"
+    },
+    {
+        "name": "RTK safe git status in development",
+        "cmd": "rtk git status",
+        "env": "development",
+        "expected_decision": "allow",
+        "expected_use_case": "GENERAL"
+    },
 ]
 
 def run_tests():

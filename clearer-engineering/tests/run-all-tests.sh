@@ -61,7 +61,7 @@ run_test "Safety Gate: Staging tier asks for git clean -fdx (ASK)" \
 run_test "Safety Gate: Development tier permits destructive actions with rollback notice (ALLOW)" \
     "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git reset --hard HEAD~1' --env development | grep -q '\"decision\": \"allow\"'"
 
-run_test "Safety Gate: Comprehensive Safety Matrix Suite (18 test cases)" \
+run_test "Safety Gate: Comprehensive Safety Matrix Suite (24 test cases including RTK)" \
     "python3 '$PLUGIN_DIR/tests/test_safety_matrix.py' >/dev/null"
 
 run_test "Safety Gate: Allow safe command 'npm test' (ALLOW)" \
@@ -69,6 +69,18 @@ run_test "Safety Gate: Allow safe command 'npm test' (ALLOW)" \
 
 run_test "Safety Gate: Allow safe command 'git status' (ALLOW)" \
     "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git status' | grep -q '\"decision\": \"allow\"'"
+
+run_test "Safety Gate: Allow safe RTK command 'rtk git status' (ALLOW)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rtk git status' | grep -q '\"decision\": \"allow\"'"
+
+run_test "Safety Gate: Block destructive RTK command in production (DENY)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rtk php artisan migrate:fresh' --env production | grep -q '\"decision\": \"deny\"'"
+
+run_test "Safety Gate: Staging tier asks for RTK destructive command with 2 alerts (ASK)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rtk git reset --hard HEAD~1' --env staging | grep -q '\"decision\": \"ask\"' && python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rtk git reset --hard HEAD~1' --env staging | grep -q 'ALERTA 1/2' && python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rtk git reset --hard HEAD~1' --env staging | grep -q 'ALERTA 2/2'"
+
+run_test "Safety Gate: Hard block catastrophic RTK 'rtk rm -rf /' (DENY in any env)" \
+    "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rtk rm -rf /' | grep -q '\"decision\": \"deny\"'"
 
 run_test "Safety Gate: Allow safe scratch cleanup 'rm -rf scratch/temp' (ALLOW)" \
     "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'rm -rf scratch/temp' | grep -q '\"decision\": \"allow\"'"
