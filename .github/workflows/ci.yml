@@ -78,7 +78,12 @@ jobs:
           bash clearer-engineering/scripts/detect-project.sh "$TMP_CLS" | grep "MODO CLÁSSICO"
           rm -rf "$TMP_CLS"
 
+      - name: Test Global Installer (install.sh)
+        run: |
+          ./install.sh
+
       - name: Run Full E2E Simulation & Integration Lifecycle
         run: |
           ./clearer-engineering/tests/run-e2e-simulation.sh
+
 
