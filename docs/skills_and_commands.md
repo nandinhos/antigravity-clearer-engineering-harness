@@ -1,6 +1,6 @@
 # Manual de Skills e Comandos do CEH
 
-O CEH expõe 8 skills principais no Antigravity, cada uma projetada para um padrão operacional específico.
+O CEH expõe 9 skills principais no Antigravity, cada uma projetada para um padrão operacional específico.
 
 ---
 
@@ -24,9 +24,15 @@ O CEH expõe 8 skills principais no Antigravity, cada uma projetada para um padr
 
 ---
 
-## 3. `/clearer-bugfix` (Correção Root-Cause First)
-- **Quando usar**: Investigação e resolução de bugs, falhas ou exceções.
-- **Fluxo**: `SYMPTOM → REPRODUCTION → OBSERVATION → HYPOTHESIS → EVIDENCE → ROOT CAUSE → REGRESSION TEST → MINIMAL FIX → TEST → REVIEW`.
+## 3. `/clearer-bugfix` (Systematic Debugging v2.0 — 5 Gates Bloqueantes)
+- **Quando usar**: Investigação e resolução determinística de bugs, falhas ou exceções sem suposições.
+- **Motor**: Executa estritamente os 5 Gates Bloqueantes:
+  - **Gate 0: Triagem & Blast Radius**: Mapeamento do sintoma, stack trace e severidade (P0/P1/P2/P3).
+  - **Gate 1: Reprodução Red**: Teste automatizado ou script mínimo comprovando a falha antes de qualquer patch.
+  - **Gate 2: Matriz de Hipóteses Falsificáveis**: Mínimo 2 hipóteses concorrentes com critérios de refutação.
+  - **Gate 3: Causa Raiz**: Isolamento do mecanismo exato via 5 Whys, Ishikawa e 7 taxonomias de causa raiz.
+  - **Gate 4: Fix Mínimo & Prevenção em 3 Níveis**: Menor diff funcional transformando o teste em Green + Detector de regressão + Barreira arquitetural + Runbook.
+- **Conclusão**: Emite o Debug Report padronizado com prompt interativo para persistência imediata via `/learned-lesson`.
 - **Exemplo**:
   ```text
   /clearer-bugfix "Erro 500 ao tentar calcular frete para CEP com formato 00000-000 sem hífens"
@@ -80,4 +86,14 @@ O CEH expõe 8 skills principais no Antigravity, cada uma projetada para um padr
 - **Exemplo**:
   ```text
   /clearer-test
+  ```
+
+---
+
+## 9. `/learned-lesson` (Motor de Memória Técnica & Prevenção)
+- **Quando usar**: Após resolver um bug crítico (especialmente pós Gate 4 de `/clearer-bugfix`), descobrir comportamentos inesperados de runtime/stack ou consolidar boas práticas arquiteturais.
+- **Comportamento**: Extrai, padroniza e persiste a memória técnica com taxonomia formal (`error`, `lesson`, `best_practice`). Suporta nativamente o hub `dev-memory` (MCP) e operação local via `.agents/rules/` ou `.dev-memory/learned-lessons.jsonl`.
+- **Exemplo**:
+  ```text
+  /learned-lesson "Registrar causa raiz e prevenção para o deadlock de workers no Redis Sail"
   ```

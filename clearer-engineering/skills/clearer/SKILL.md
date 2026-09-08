@@ -40,12 +40,13 @@ Antes de qualquer ação, classifique o risco da tarefa com base no custo de uma
 Identifique o objetivo da tarefa e ative o workflow correspondente:
 
 - **Nova Funcionalidade / Melhoria**: Use a skill `clearer-feature`.
-- **Correção de Bug / Diagnóstico de Erro**: Use a skill `clearer-bugfix`.
+- **Correção de Bug / Diagnóstico de Erro**: Use a skill `clearer-bugfix` (Systematic Debugging v2.0 — 5 Gates Bloqueantes: Triagem, Reprodução Red, Matriz de Hipóteses, Causa Raiz e Fix Mínimo com Prevenção em 3 Níveis).
 - **Refatoração / Limpeza de Código**: Use a skill `clearer-refactor`.
 - **Revisão de Código / Diff Audit**: Use a skill `clearer-review`.
 - **Auditoria de Conclusão / Verificação de Claims**: Use a skill `clearer-audit`.
 - **Mapeamento de Codebase / Descoberta Técnica**: Use a skill `clearer-map`.
 - **Execução e Verificação de Testes**: Use a skill `clearer-test`.
+- **Persistência de Conhecimento / Memória Técnica**: Use a skill `learned-lesson` (Learned Lesson Engine v2.0 — Hub dev-memory ou persistência local).
 
 ---
 

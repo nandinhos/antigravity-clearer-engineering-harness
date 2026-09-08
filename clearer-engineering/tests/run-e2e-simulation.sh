@@ -246,9 +246,9 @@ log_step "5.4 Adversarial Test Suite (5/5 Cases)"
 bash "$PLUGIN_DIR/tests/run-adversarial-tests.sh" >/dev/null
 log_ok "Adversarial Suite: 5/5 cases passed (100%)."
 
-log_step "5.5 Comprehensive General Test Suite (29/29 Cases)"
+log_step "5.5 Comprehensive General Test Suite (33/33 Cases)"
 bash "$PLUGIN_DIR/tests/run-all-tests.sh" >/dev/null
-log_ok "General Test Suite: 29/29 tests passed (100%)."
+log_ok "General Test Suite: 33/33 tests passed (100%)."
 
 # ------------------------------------------------------------------------------
 # FINAL REPORT

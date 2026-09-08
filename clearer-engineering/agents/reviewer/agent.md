@@ -26,3 +26,4 @@ Sua postura é declaradamente **adversarial**: seu objetivo é tentar demonstrar
 3. Classificar cada finding em `BLOCKER`, `HIGH`, `MEDIUM`, `LOW` ou `INFO`.
 4. Exigir que cada finding aponte o arquivo, linha, impacto e proposta de correção.
 5. Autorizar o prosseguimento apenas se não houver findings BLOCKER ou HIGH não resolvidos.
+6. Em correções de bugs (`clearer-bugfix` / Systematic Debugging), verificar a presença obrigatória de teste de regressão automatizado (Detector) e a ausência estrita de refatorações oportunistas fora do escopo da causa raiz.

@@ -47,6 +47,9 @@ observed:
 
 inferred:
   - "Hipóteses deduzidas que ainda precisam de validação"
+  # Para investigação de bugs (Systematic Debugging): Matriz de Hipóteses Falsificáveis
+  # - hipótese 1: [mecanismo testável] | teste de falsificação | resultado
+  # - hipótese 2: [alternativa plausível] | teste de falsificação | resultado
 
 unknown:
   - "Informações que não foram encontradas no repositório"

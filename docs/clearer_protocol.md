@@ -117,3 +117,12 @@ INSPECT → PLAN → IMPLEMENT → TEST → ADVERSARIAL REVIEW → AUDIT → REP
 1. **Testes Reais**: Executar a suíte automatizada.
 2. **Revisão Adversarial**: Analisar o Git diff com a intenção ativa de encontrar falhas, vazamentos ou quebras de contrato.
 3. **Auditoria de Claims**: Validar se todas as alegações feitas no relatório são suportadas por evidências concretas.
+
+---
+
+## 8. Ciclo de Systematic Debugging & Retenção de Memória
+
+Para incidentes, bugs e exceções, o protocolo integra nativamente o motor **Systematic Debugging v2.0**:
+- **5 Gates Bloqueantes**: Não há salto para hipóteses sem antes reproduzir a falha (Gate 1 Red), nem patch de código sem antes comprovar a causa raiz em uma Matriz de Hipóteses Falsificáveis (Gate 2 & 3).
+- **Prevenção em 3 Níveis**: Toda correção exige um Detector (teste de regressão), uma Barreira (tipagem, lint ou arquitetura) e um Runbook/Documentação.
+- **Retenção de Memória Contínua**: Ao concluir o Gate 4, o engenheiro aciona a skill nativa `/learned-lesson` para transformar a resolução em ativo permanente de inteligência (dev-memory ou regras locais), eliminando a reincidência de erros.

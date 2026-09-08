@@ -132,6 +132,18 @@ run_test "Plugin Subagent 'ceh-implementer' has code editing tools" \
 run_test "Plugin Subagent 'ceh-test-engineer' has execution and editing tools" \
     "grep -q 'run_command' '$PLUGIN_DIR/agents/test-engineer/agent.md' && grep -q 'write_to_file' '$PLUGIN_DIR/agents/test-engineer/agent.md'"
 
+run_test "Skill: clearer-bugfix implements Systematic Debugging 5 Blocking Gates" \
+    "grep -q 'Gate 0 — TRIAGE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 1 — REPRODUCE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 2 — ISOLATE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 3 — ROOT CAUSE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 4 — FIX & HARDEN' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md'"
+
+run_test "Skill: native learned-lesson skill packaged with dev-memory support" \
+    "test -f '$PLUGIN_DIR/skills/learned-lesson/SKILL.md' && grep -q 'Learned Lesson Engine v2.0' '$PLUGIN_DIR/skills/learned-lesson/SKILL.md' && grep -q 'dev-memory' '$PLUGIN_DIR/skills/learned-lesson/SKILL.md'"
+
+run_test "Subagent: ceh-investigator includes Falsifiable Hypotheses Matrix guidance" \
+    "grep -q 'Matriz de Hipóteses Falsificáveis' '$PLUGIN_DIR/agents/investigator/agent.md'"
+
+run_test "Subagent: ceh-reviewer verifies regression detector and anti-opportunistic refactoring" \
+    "grep -q 'clearer-bugfix' '$PLUGIN_DIR/agents/reviewer/agent.md' && grep -q 'Detector' '$PLUGIN_DIR/agents/reviewer/agent.md'"
+
 # 7. Shell Aliases Configuration
 run_test "Shell alias 'agy-ceh' configured in ~/.bashrc and ~/.zshrc" \
     "grep -q 'alias agy-ceh=' ~/.bashrc && grep -q 'alias agy-ceh=' ~/.zshrc"
