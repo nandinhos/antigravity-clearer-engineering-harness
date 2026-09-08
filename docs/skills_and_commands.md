@@ -75,8 +75,8 @@ O CEH expõe 8 skills principais no Antigravity, cada uma projetada para um padr
 ---
 
 ## 8. `/clearer-test` (Execução Determinística de Testes)
-- **Quando usar**: Execução e captura de logs brutos de testes.
-- **Comportamento**: Executa o test runner da stack via `scripts/test-runner.sh` e formata a saída com COMMAND, EXIT CODE e contagem de testes.
+- **Quando usar**: Execução e captura de logs de testes sem ruído.
+- **Comportamento**: Executa o test runner da stack via `scripts/test-runner.sh`, envelopando automaticamente com `rtk` (quando disponível no `$PATH`) para condensar o log em até 80%, formatando a saída com COMMAND, EXIT CODE e contagem de testes.
 - **Exemplo**:
   ```text
   /clearer-test

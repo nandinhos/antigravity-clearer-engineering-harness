@@ -65,7 +65,7 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 
 ---
 
-## 🥋 Filosofia Ponytail Mode & AST First
+## 🥋 Filosofia Ponytail Mode & Tríade de Economia de Tokens
 
 1. **Escada de Decisão Ponytail**: Antes de propor código ou instalar dependências, pergunte:
    - *Isso precisa mesmo existir?* (YAGNI).
@@ -73,13 +73,22 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
    - *A biblioteca padrão (stdlib) resolve?* (Zero pacotes externos para tarefas triviais).
    - *Existe API nativa da plataforma/runtime?* (Priorize os recursos nativos).
    - *Uma intervenção cirúrgica resolve?* (Escreva o menor diff funcional possível).
-2. **AST First com Degradação Graciosa**:
+2. **AST First com Degradação Graciosa (Graphify)**:
    - Se o projeto possuir Graphify (`graphify-out/graph.json` ou MCP), o agente prioriza consultas relacionais com custo zero de tokens.
    - Se não possuir Graphify, o agente aplica inspeção nativa cirúrgica (`grep_search` e leitura fatiada via `view_file`), sendo expressamente proibido fazer dumps de arquivos inteiros no contexto.
+3. **Compressão de Shell com Degradação Graciosa (RTK - Rust Token Killer)**:
+   - Suporte nativo ao [**RTK**](https://github.com/rtk-ai/rtk): proxy CLI compilado em Rust que intercepta saídas de terminal (`git`, `npm test`, `pytest`, `cargo test`, `docker`, `ruff`) reduzindo o volume de bash lido pelo agente em 60-90%.
+   - **Automação no Runner**: O `test-runner.sh` envelopa automaticamente comandos de teste quando `rtk` está no `$PATH`.
+   - **Segurança Imune a Evasão**: O `safety-gate.py` desliga o prefixo `rtk` antes da avaliação de regras para barrar operações destrutivas em produção e homologação.
+   - **Escape Hatch**: Acesso a logs brutos via `rtk proxy <cmd>` ou flag `-vvv`. Se o RTK não estiver instalado, a esteira degrada graciosamente sem travas.
+4. **Higiene de Contexto & Sandbox (context-mode)**:
+   - Mantém dados brutos e histórico fora da janela direta de contexto via SQLite+FTS5, promovendo a mentalidade "think in code".
 
 > [!TIP]
-> **Aceleração de Contexto Recomendada**: Para turbinar o Antigravity com navegação relacional AST (**Graphify**) e sandbox de higiene de contexto (**context-mode**), recomendamos instalar o toolkit complementar:  
-> 🔗 [**Antigravity Harness Enhancements**](https://github.com/nandinhos/antigravity-harness-enhancements) — 100% interoperável e plug-and-play com o CEH.
+> **Aceleração Completa de Contexto**: O CEH opera em perfeita sintonia com a tríade de otimização de tokens:
+> - 🌐 **Navegação AST**: [**Graphify**](https://github.com/nandinhos/antigravity-harness-enhancements) (Tree-Sitter, zero tokens de LLM).
+> - ⚡ **Compressão de Terminal**: [**RTK**](https://github.com/rtk-ai/rtk) (Rust Token Killer, proxy estático <10ms).
+> - 🛡️ **Higiene de Sessão**: [**context-mode**](https://github.com/mksglu/context-mode) (Sandbox MCP).
 
 ---
 

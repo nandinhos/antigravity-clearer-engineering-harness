@@ -164,4 +164,33 @@ bash clearer-engineering/scripts/setup-branches.sh --classic
 bash clearer-engineering/scripts/setup-branches.sh --enterprise
 ```
 
+---
+
+## 6. A Tríade de Economia de Tokens & Integração do RTK
+
+O CEH foi projetado para evitar o inchaço e fadiga de contexto (*context rot*) em tarefas de média e longa duração. Para isso, atua de forma orquestrada em 3 camadas complementares:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 ARQUITETURA DA TRÍADE DE ECONOMIA DE TOKENS                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. CAMADA DE INTENÇÃO & NAVEGAÇÃO (AST) ──► Graphify (Tree-Sitter)          │
+│    Mapeia dependências e rotas antes de ler arquivos. Zero tokens de LLM.   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 2. CAMADA DE EXECUÇÃO SHELL (Runtime) ──► RTK (Rust Token Killer)          │
+│    Proxy estático (<10ms). Comprime de 60 a 90% do stdout/stderr de bash.   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 3. CAMADA DE SESSÃO & ISOLAMENTO (MCP) ──► context-mode (SQLite+FTS5)       │
+│    Sandbox de histórico e tool outputs pesados fora da janela de contexto.  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Papel do RTK (Rust Token Killer)
+1. **Intercepção de Saída de Terminal**: O RTK atua como proxy para comandos comuns (`git status`, `git diff`, `pytest`, `npm test`, `cargo test`, `docker ps`, `ruff check`). Em vez de o agente ler centenas de linhas de progresso ou testes aprovados, recebe apenas a síntese comportamental e falhas reais.
+2. **Preservação de Códigos de Saída (`Exit Codes`)**: O RTK preserva integralmente o status de saída (`$?`), garantindo que o `test-runner.sh` e o harness validem o sucesso ou falha determinística de suítes de teste.
+3. **Imunidade de Segurança no Safety Gate**: O `scripts/safety-gate.py` remove preventivamente os prefixos `rtk ` e `rtk proxy ` durante a fase `PreToolUse`. Comandos como `rtk php artisan migrate:fresh` ou `rtk git reset --hard` continuam disparando as travas inegociáveis de `DENY` em produção e `ASK` em homologação.
+4. **Degradação Graciosa (Graceful Degradation)**: Se o binário `rtk` não estiver presente no `$PATH`, o runner e os agentes operam diretamente com os comandos convencionais, sem falhas, erros ou avisos intrusivos.
+5. **Escape Hatch**: Caso uma depuração profunda exija o stream bruto de logs, o agente tem suporte documentado a `rtk proxy <cmd>` ou à flag de verbosidade máxima (`-vvv`).
+
+
 

@@ -65,21 +65,30 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 
 ---
 
-## 🥋 Ponytail Mode & AST First Philosophy
+## 🥋 Ponytail Mode & Token Economy Triad
 
 1. **Ponytail Decision Ladder**: Before proposing code or adding dependencies, ask:
    - *Does this strictly need to exist?* (YAGNI).
    - *Does it already exist in the codebase?* (Reuse existing traits, helpers, and components).
    - *Does the standard library (stdlib) solve it?* (Zero external packages for trivial tasks).
-   - *Does a native platform API exist?* (Prioritize framework and runtime native features).
+   - *Does a native platform API exist?* (Priorize framework and runtime native features).
    - *Does a surgical intervention suffice?* (Write the smallest functional diff possible).
-2. **AST First with Graceful Fallback**:
+2. **AST First with Graceful Fallback (Graphify)**:
    - If the project has Graphify (`graphify-out/graph.json` or MCP), the agent prioritizes zero-cost relational AST queries.
    - If Graphify is not present, the agent gracefully falls back to native surgical search (`grep_search` and sliced `view_file`), strictly prohibiting full file context dumps.
+3. **Shell Output Compression with Graceful Fallback (RTK - Rust Token Killer)**:
+   - Native integration with [**RTK**](https://github.com/rtk-ai/rtk): high-performance Rust proxy CLI that compresses bash output (`git`, `npm test`, `pytest`, `cargo test`, `docker`, `ruff`) by 60-90% before the agent reads it.
+   - **Runner Automation**: `test-runner.sh` automatically wraps detected test suites with `rtk` when present in `$PATH`.
+   - **Evasion-Immune Safety Gate**: `safety-gate.py` strips `rtk` prefixes before evaluating rules to enforce strict protection across production and staging.
+   - **Escape Hatch**: Full raw logs remain accessible via `rtk proxy <cmd>` or `-vvv`. If RTK is not installed, the harness gracefully executes standard commands without friction.
+4. **Context Hygiene & Sandbox (context-mode)**:
+   - Keeps heavy tool output and history out of the direct LLM context window via SQLite+FTS5, promoting a "think in code" approach.
 
 > [!TIP]
-> **Recommended Context Acceleration**: To supercharge your Antigravity environment with relational AST navigation (**Graphify**) and context hygiene sandbox (**context-mode**), we recommend installing the companion toolkit:  
-> 🔗 [**Antigravity Harness Enhancements**](https://github.com/nandinhos/antigravity-harness-enhancements) — 100% interoperable and plug-and-play with CEH.
+> **Complete Context Acceleration**: CEH operates seamlessly alongside the token optimization triad:
+> - 🌐 **AST Navigation**: [**Graphify**](https://github.com/nandinhos/antigravity-harness-enhancements) (Tree-Sitter, zero LLM tokens).
+> - ⚡ **Terminal Compression**: [**RTK**](https://github.com/rtk-ai/rtk) (Rust Token Killer, static proxy <10ms).
+> - 🛡️ **Session Hygiene**: [**context-mode**](https://github.com/mksglu/context-mode) (MCP Sandbox).
 
 ---
 

@@ -74,3 +74,25 @@ E retorna a resposta em JSON auditável consumida nativamente pelo Google Antigr
   "use_case": "DATABASE"
 }
 ```
+
+---
+
+## 5. Imunidade a Evasão & Neutralização de Proxies CLI (RTK)
+
+Para viabilizar a economia massiva de tokens de terminal via ferramentas como o **RTK (Rust Token Killer)** sem comprometer a segurança, o Safety Gate possui um mecanismo de normalização de prefixos:
+
+```python
+# Strip preventivo do proxy CLI para avaliar o comando real
+cmd_eval = re.sub(r"^\s*rtk(?:\s+proxy)?\s+", "", cmd_normalized)
+```
+
+### Garantias de Segurança:
+1. **Zero Bypass em Produção (`DENY`)**:
+   - Um comando como `rtk php artisan migrate:fresh` ou `rtk git reset --hard HEAD~1` é avaliado exatamente como `php artisan migrate:fresh` ou `git reset --hard HEAD~1`. Em ambiente de produção, ele é sumariamente bloqueado com decisão `DENY` ("fora de cogitação").
+2. **Confirmação em Dois Alertas em Homologação (`ASK`)**:
+   - Comandos destrutivos envelopados por `rtk` em `staging` continuam exigindo os dois alertas obrigatórios (Impacto HML + Salvaguardas de Backup/Rollback).
+3. **Bloqueio Catastrófico Universal**:
+   - Tentativas de evasão como `rtk rm -rf /` ou `rtk proxy rm -rf /` são interceptadas de forma imediata como `CATASTROPHIC BLOCK` em qualquer ambiente (inclusive `development`).
+4. **Validação Contínua via Testes Automatizados**:
+   - A suíte [`test_safety_matrix.py`](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/tests/test_safety_matrix.py) valida matematicamente todos os cenários envelopados por `rtk`, garantindo conformidade determinística e regressão zero.
+
