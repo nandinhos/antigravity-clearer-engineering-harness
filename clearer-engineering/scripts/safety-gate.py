@@ -180,21 +180,23 @@ def evaluate_command(cmd_line: str, explicit_env: str | None = None) -> tuple[st
         return "allow", "Empty command", "development", "GENERAL"
 
     cmd_normalized = cmd_line.strip()
-    env, env_evidence = detect_environment(explicit_env, cmd_normalized)
+    # Strip CLI proxy prefix (RTK / RTK proxy) to evaluate underlying command
+    cmd_eval = re.sub(r"^\s*rtk(?:\s+proxy)?\s+", "", cmd_normalized)
+    env, env_evidence = detect_environment(explicit_env, cmd_eval)
 
     # 1. Catastrophic Blocks: DENY has absolute priority in ANY environment
     for pattern, reason in CATASTROPHIC_PATTERNS:
-        if re.search(pattern, cmd_normalized, re.IGNORECASE):
+        if re.search(pattern, cmd_eval, re.IGNORECASE) or re.search(pattern, cmd_normalized, re.IGNORECASE):
             return "deny", f"[CEH CATASTROPHIC BLOCK] {reason}", env, "CATASTROPHIC"
 
     # 2. Safe Development Bypasses: allow cache/scratch cleanup and selective checkout
     for pattern in SAFE_DEV_PATTERNS:
-        if re.search(pattern, cmd_normalized, re.IGNORECASE):
+        if re.search(pattern, cmd_eval, re.IGNORECASE):
             return "allow", f"Safe development operation permitted ({env_evidence}).", env, "FILESYSTEM_SAFE"
 
     # 3. Evaluate Destructive Patterns by Use Case and Environment
     for pattern, desc, use_case_code, use_case_label in USE_CASE_DESTRUCTIVE_PATTERNS:
-        if re.search(pattern, cmd_normalized, re.IGNORECASE):
+        if re.search(pattern, cmd_eval, re.IGNORECASE) or re.search(pattern, cmd_normalized, re.IGNORECASE):
             # -------------------------------------------------------------
             # PRODUÇÃO: Fora de cogitação (DENY incondicional)
             # -------------------------------------------------------------

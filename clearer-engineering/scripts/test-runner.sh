@@ -55,6 +55,13 @@ if [[ -z "$TEST_CMD" ]]; then
     exit 1
 fi
 
+# Token economy proxy: if rtk is available, wrap test command to cut output by up to 80%
+if command -v rtk >/dev/null 2>&1; then
+    if [[ ! "$TEST_CMD" =~ ^[[:space:]]*rtk[[:space:]] ]]; then
+        TEST_CMD="rtk $TEST_CMD"
+    fi
+fi
+
 echo "=========================================="
 echo "COMMAND:   $TEST_CMD"
 echo "=========================================="

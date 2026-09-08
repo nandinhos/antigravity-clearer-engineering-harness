@@ -60,6 +60,13 @@ check_prerequisites() {
         log_warn "If Antigravity is installed in a non-standard location, ensure ~/.local/bin is in your PATH."
     fi
 
+    # Token economy advisory (RTK)
+    if command -v rtk >/dev/null 2>&1; then
+        log_success "'rtk' (Rust Token Killer) detected. Shell token economy active."
+    else
+        log_info "Optional: 'rtk' not found in PATH. Install RTK (https://github.com/rtk-ai/rtk) for 60-90% shell token savings."
+    fi
+
     if [[ "$missing" -eq 1 ]]; then
         log_error "Please install missing dependencies before proceeding."
         exit 1

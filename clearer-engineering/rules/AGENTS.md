@@ -99,11 +99,16 @@ Toda codificação sob o CEH é regida pela filosofia **Ponytail Mode (Senior Mi
 3. **AST First com Degradação Graciosa (Graceful Fallback)**:
    - *Com Graphify*: Se o projeto contiver `graphify-out/graph.json` ou o MCP `graphify` disponível, o agente DEVE priorizar consultas relacionais (`graphify query/path/explain`) antes de ler arquivos brutos, economizando tokens e preservando contexto.
    - *Sem Graphify (Fallback Nativo)*: Se o projeto não utilizar Graphify, o agente **não interrompe o fluxo nem exige instalação**. Ele aplica a inspeção cirúrgica nativa (`grep_search` e `view_file` fatiado com `StartLine`/`EndLine`), sendo expressamente proibido fazer dumps de arquivos inteiros sem necessidade.
-4. **Código Limpo & Idiomático**: Seguir estritamente as convenções da linguagem e da stack do projeto.
-5. **Tipagem Estrita & Robustez**: Proibido uso de tipos soltos (`any`/`mixed`) sem validação de tipo. Tratamento defensivo de nulos, timeouts e exceções.
-6. **Blast Radius Mínimo & Cirúrgico**: Alterar apenas o estritamente necessário. Proibido ruído de formatação, refatorações oportunistas ou alterações cosméticas fora de escopo.
-7. **Testes Comportamentais & Determinísticos**: Cobrir o comportamento real e cenários de borda. Proibido "fake pass" ou testes frágeis.
-8. **Zero Regressão**: Toda alteração deve passar por auto-auditoria de diff (`scripts/diff-audit.sh`) antes da entrega.
+4. **Otimização de Tokens de Shell (RTK) com Degradação Graciosa**:
+   - *A Tríade de Economia*: O harness adota três camadas sinérgicas: Navegação AST (Graphify), Compressão de Shell (RTK) e Higiene de Sessão (context-mode).
+   - *Uso Cirúrgico do RTK*: Quando o binário `rtk` estiver presente no PATH (`command -v rtk`), os agentes de implementação e teste devem priorizar prefixar comandos de terminal de alta verbosidade com `rtk` (ex: `rtk git status`, `rtk git diff --stat`, `rtk pytest`, `rtk npm test`, `rtk cargo test`, `rtk ruff check`), reduzindo a poluição de contexto em 60-90% com custo zero de tokens.
+   - *Escape Hatch & Diagnóstico Profundo*: Se a saída condensada pelo RTK ocultar detalhes críticos para resolução de um bug, o agente deve reexecutar o comando via `rtk proxy <cmd>` ou utilizar a verbosidade máxima (`-vvv`) para obter a saída bruta.
+   - *Fallback Nativo*: Se o RTK não estiver instalado, os comandos de terminal rodam convencionalmente sem o prefixo, sem travar nem solicitar instalação forçada.
+5. **Código Limpo & Idiomático**: Seguir estritamente as convenções da linguagem e da stack do projeto.
+6. **Tipagem Estrita & Robustez**: Proibido uso de tipos soltos (`any`/`mixed`) sem validação de tipo. Tratamento defensivo de nulos, timeouts e exceções.
+7. **Blast Radius Mínimo & Cirúrgico**: Alterar apenas o estritamente necessário. Proibido ruído de formatação, refatorações oportunistas ou alterações cosméticas fora de escopo.
+8. **Testes Comportamentais & Determinísticos**: Cobrir o comportamento real e cenários de borda. Proibido "fake pass" ou testes frágeis.
+9. **Zero Regressão**: Toda alteração deve passar por auto-auditoria de diff (`scripts/diff-audit.sh`) antes da entrega.
 
 ---
 
