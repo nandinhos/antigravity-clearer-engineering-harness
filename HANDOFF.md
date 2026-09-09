@@ -93,36 +93,22 @@ Para resolver a fricção entre autonomia e governança, a seguinte arquitetura 
 8. **Integração do RTK & Tríade de Economia de Tokens (2026-09-07)**: O harness foi integrado ao ecossistema do RTK (Rust Token Killer) para compressão de 60-90% de saídas de bash (`run_command`), consolidando a Tríade de Economia (Graphify AST + RTK Shell Proxy + context-mode MCP). O `safety-gate.py` desarma preventivamente o prefixo `rtk ` assegurando imunidade a evasão, o `test-runner.sh` envelopa testes automaticamente quando disponível no `$PATH` e o `AGENTS.md` assegura operação com degradação graciosa.
 9. **Integração do Systematic Debugging v2.0 & Empacotamento Nativo do Learned-Lesson (2026-09-07)**: O harness elevou o `/clearer-bugfix` incorporando o motor determinístico dos 5 Gates Bloqueantes (Triagem, Reprodução Red obrigatória, Matriz de Hipóteses Falsificáveis com >=2 alternativas, Causa Raiz comprovada com 7 taxonomias/Ishikawa e Fix Mínimo com Prevenção em 3 Níveis: Detector, Barreira e Runbook). Para tornar o CEH 100% autossuficiente e independente de skills globais avulsas, a skill `learned-lesson` v2.0 foi empacotada nativamente dentro do plugin (`skills/learned-lesson/`), conectada com o hub `dev-memory` e persistência local de conhecimento para eliminar a reincidência de erros. Subagentes (`ceh-investigator` e `ceh-reviewer`) e documentações foram sincronizados.
 10. **Avaliação da Metodologia Cognitiva `i-have-adhd` e Alinhamento Ponytail Mode (2026-09-09)**: Realizada auditoria arquitetural no repositório `ayghri/i-have-adhd`. Diagnosticado que a importação do repositório como código/submódulo configura *over-engineering* clássico (acúmulo de adaptadores irrelevantes para Pi, OMP, Kimi, Qwen, OpenCode). Em contrapartida, a **metodologia** (as 10 heurísticas cognitivas de formatação/comunicação de saída) foi avaliada como de **altíssimo valor agregado**, representando a tradução direta do *Ponytail Mode* para a camada de UX e interação do desenvolvedor. Aprovada a absorção cirúrgica sem dependências externas. Documentação completa registrada em `docs/adhd_methodology_analysis.md`.
+11. **Adaptação Nativa do Modo Hiperfoco & Ponytail UX (`clearer-adhd`) (2026-09-09)**: Concluída a implementação integral deliberada e aprovada pelo Comitê de Seniors: incorporação das 10 heurísticas cognitivas na Seção 6 de `clearer-engineering/rules/AGENTS.md` com cláusula pétrea de Break-Rules (prevalência dos Safety Gates), criação da skill `clearer-adhd`, atualização do Dispatcher `clearer`, novo teste determinístico na suíte `run-all-tests.sh` (34/34 aprovados) e documentação atualizada em `docs/skills_and_commands.md`, `README.md` e `README_PT.md`.
 
 ---
 
-## 5. Próxima Missão: Adaptação da Metodologia `i-have-adhd` no CEH (Retomada em Casa)
+## 5. Missão Concluída: Adaptação da Metodologia `i-have-adhd` no CEH
 
-> **Status na Saída do Trabalho:** Branch `dev`, repositório limpo, documentação de análise concluída e commitada.  
-> **Comando de Retomada em Casa:** `git pull origin dev && agy` (ou abrir a pasta no Antigravity IDE).
+> **Status:** `CONCLUÍDO & VALIDADO COM SUCESSO (100% TESTS PASSING)`  
+> **Branch:** `dev`  
+> **Garantia de Qualidade:** 34/34 testes passando na suíte `run-all-tests.sh` + 24/24 na `test_safety_matrix.py`.
 
-### A. O que foi decidido
-1. **Zero Over-Engineering de Código:** Não instalar pacotes, submódulos ou dependências do repositório `ayghri/i-have-adhd`.
-2. **Absorção Cirúrgica das 10 Heurísticas:**
-   - **Heurística 1 (Lead with action):** Ação imediata na primeira linha (sem preâmbulos vazios como "Com certeza!").
-   - **Heurística 2 (Numbered tasks):** Tarefas com múltiplos passos estritamente numeradas, sem passos recursivos/aninhados.
-   - **Heurística 3 (End with one next step):** Fechamento de turno com exatamente 1 ação prática < 2 minutos.
-   - **Heurística 4 (Suppress tangents):** Foco exclusivo na fronteira da tarefa atual; tarefas secundárias vão para backlog no final.
-   - **Heurística 5 (Restate state):** Explicitar o estado atual do ciclo em tarefas multi-turnos.
-   - **Heurística 6 (Specific estimates):** Estimar esforço em blast radius/tempo tangível.
-   - **Heurística 7 (Make wins visible):** Tornar visível o que funciona de forma concreta (`OBSERVED`).
-   - **Heurística 8 (Matter-of-fact errors):** Diagnósticos objetivos sem drama ("Ops!"), focando em causa raiz e fix.
-   - **Heurística 9 (Cap lists at 5):** Limitar blocos de escolha a no máximo 5 itens prioritários.
-   - **Heurística 10 (No preamble/closers):** Eliminar formalidades dispensáveis ("Espero ter ajudado", "Ótima pergunta").
+### A. O que foi executado
+1. **Zero Over-Engineering de Código:** Nenhuma dependência externa ou submódulo adicionado.
+2. **Absorção Cirúrgica das 10 Heurísticas:** Integradas como padrão de Ponytail UX na Seção 6 de `rules/AGENTS.md`.
+3. **Cláusula Pétrea de Break-Rules:** Confirmada a precedência inegociável dos Safety Gates (`ASK` em staging com 2 alertas e `DENY` em produção).
+4. **Skill Dedicada `clearer-adhd`:** Criada em `skills/clearer-adhd/SKILL.md` para acionamento sob demanda ou via `/clearer-adhd`.
+5. **Roteamento Central Atualizado:** Dispatcher `/clearer` atualizado com a nova skill.
+6. **Suíte de Testes Expandida:** Adicionado Test 34 em `tests/run-all-tests.sh` validando a integridade das regras e arquivos.
+7. **Documentações Sincronizadas:** `docs/skills_and_commands.md`, `README.md` e `README_PT.md` atualizados.
 
-### B. Plano de Execução Imediato ao Chegar em Casa
-1. **Passo 1: Incorporar nas Regras Globais do Harness (`clearer-engineering/rules/AGENTS.md`)**:
-   - Adicionar uma subseção dentro da Seção 6 (*Craftsmanship, Ponytail Mode & Alto Nível de Engenharia*) formalizando o **Protocolo de Comunicação Executiva & Ponytail UX (Diretrizes Cognitivas)**.
-2. **Passo 2: Criar a Skill Dedicada de Hiperfoco (`clearer-engineering/skills/clearer-adhd/SKILL.md`)**:
-   - Para permitir acionar o modo via `/clearer-adhd` ou habilitar em sessões que demandem extrema redução de fadiga cognitiva.
-3. **Passo 3: Atualizar Manuais e Documentações (`README.md`, `README_PT.md`, `docs/`)**:
-   - Atualizar a lista de skills e explicar o padrão de comunicação executiva.
-4. **Passo 4: Validação Determinística**:
-   - Executar suíte de testes `pytest tests/test_harness.py -v` e `scripts/diff-audit.sh` para garantir integridade estrutural.
-5. **Passo 5: Commit & Promoção**:
-   - Commitar na branch `dev`, testar fluxo e, quando validado, promover para `staging` / `main`.

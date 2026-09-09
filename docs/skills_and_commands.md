@@ -1,6 +1,6 @@
 # Manual de Skills e Comandos do CEH
 
-O CEH expõe 9 skills principais no Antigravity, cada uma projetada para um padrão operacional específico.
+O CEH expõe 10 skills principais no Antigravity, cada uma projetada para um padrão operacional específico.
 
 ---
 
@@ -96,4 +96,14 @@ O CEH expõe 9 skills principais no Antigravity, cada uma projetada para um padr
 - **Exemplo**:
   ```text
   /learned-lesson "Registrar causa raiz e prevenção para o deadlock de workers no Redis Sail"
+  ```
+
+---
+
+## 10. `/clearer-adhd` (Modo Hiperfoco & Ponytail UX)
+- **Quando usar**: Em momentos de sobrecarga mental, quando precisar de extrema brevidade, foco contínuo ou respostas operacionais diretas sem enrolação social.
+- **Comportamento**: Aplica as 10 heurísticas cognitivas inegociáveis: inicia diretamente com a ação (comando/diff), numera passos estritamente, fecha com exatamente 1 próximo passo < 2 min, suprime tangentes, explicita o estado atual, limita listas a 5 itens e elimina preâmbulos/saudações ocas.
+- **Exemplo**:
+  ```text
+  /clearer-adhd "Implementar validação de CPF sem preâmbulos"
   ```

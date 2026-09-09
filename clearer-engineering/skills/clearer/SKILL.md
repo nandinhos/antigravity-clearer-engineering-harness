@@ -47,6 +47,7 @@ Identifique o objetivo da tarefa e ative o workflow correspondente:
 - **Mapeamento de Codebase / Descoberta Técnica**: Use a skill `clearer-map`.
 - **Execução e Verificação de Testes**: Use a skill `clearer-test`.
 - **Persistência de Conhecimento / Memória Técnica**: Use a skill `learned-lesson` (Learned Lesson Engine v2.0 — Hub dev-memory ou persistência local).
+- **Modo Hiperfoco & Ponytail UX**: Use a skill `clearer-adhd` (Alta densidade técnica, 10 heurísticas cognitivas, zero preâmbulos e 1 ação imediata < 2 min).
 
 ---
 

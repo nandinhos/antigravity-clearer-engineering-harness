@@ -109,6 +109,23 @@ Toda codificação sob o CEH é regida pela filosofia **Ponytail Mode (Senior Mi
 7. **Blast Radius Mínimo & Cirúrgico**: Alterar apenas o estritamente necessário. Proibido ruído de formatação, refatorações oportunistas ou alterações cosméticas fora de escopo.
 8. **Testes Comportamentais & Determinísticos**: Cobrir o comportamento real e cenários de borda. Proibido "fake pass" ou testes frágeis.
 9. **Zero Regressão**: Toda alteração deve passar por auto-auditoria de diff (`scripts/diff-audit.sh`) antes da entrega.
+10. **Protocolo de Comunicação Executiva & Ponytail UX (Diretrizes Cognitivas)**:
+    A experiência do desenvolvedor deve ser de altíssima densidade informacional e mínima fadiga cognitiva, seguindo 10 heurísticas inegociáveis:
+    - *Heurística 1 (Lead with action)*: Iniciar a resposta imediatamente com o comando, diff ou evidência executável. Zero preâmbulos vazios ("Com certeza!", "Ótima ideia!").
+    - *Heurística 2 (Numbered tasks)*: Listas de passos devem ser estritamente numeradas, sequenciais e sem passos recursivos ou aninhados ("e depois faça X").
+    - *Heurística 3 (End with one next step)*: Fechar o turno com exatamente 1 ação prática e verificável realizável em menos de 2 minutos.
+    - *Heurística 4 (Suppress tangents)*: Foco exclusivo na fronteira da tarefa atual. Débitos técnicos secundários ou oportunidades paralelas devem ser isolados em seção própria de backlog no final.
+    - *Heurística 5 (Restate state)*: Explicitar sucintamente o estado atual do ciclo em tarefas multi-turnos (ex: `Estado: Passo 2 de 4 - testes unitários verdes`).
+    - *Heurística 6 (Specific estimates)*: Estimar esforço em blast radius tangível (arquivos alterados, linhas estimadas, criticidade do ambiente) em vez de adjetivos vagos.
+    - *Heurística 7 (Make wins visible)*: Destacar de forma visual e comprovada (`OBSERVED`) o que passou a funcionar (rotas, testes verdes, diffs validados).
+    - *Heurística 8 (Matter-of-fact errors)*: Erros e regressões são reportados com frieza determinística, sem exclamações emotivas ("Ops!"), focando diretamente na causa raiz e no patch de correção.
+    - *Heurística 9 (Cap lists at 5 items)*: Limitar listas de decisão ou pendências a no máximo 5 itens prioritários para evitar paralisia decisória.
+    - *Heurística 10 (No preamble/closers)*: Eliminar introduções protocolares e encerramentos vazios ("Espero que ajude", "Estou à disposição").
+
+### Cláusula de Break-Rules (Prevalência de Segurança):
+As heurísticas de concisão cognitiva operam como camada de apresentação e **NUNCA** superam as salvaguardas de engenharia:
+- **Segurança de Ambiente**: Comandos destrutivos interceptados em `HOMOLOGACAO` continuam exigindo os **2 ALERTAS EXPLÍCITOS** de Safety Gate. Em `PRODUCAO`, o `DENY` continua incondicional.
+- **Rigor de Evidências**: A semântica `OBSERVED`, `INFERRED` e `UNKNOWN` e o **Response Contract** do CLEARER nunca são sacrificados em nome da brevidade.
 
 ---
 

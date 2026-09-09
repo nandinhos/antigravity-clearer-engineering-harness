@@ -156,6 +156,9 @@ run_test "Subagent: ceh-investigator includes Falsifiable Hypotheses Matrix guid
 run_test "Subagent: ceh-reviewer verifies regression detector and anti-opportunistic refactoring" \
     "grep -q 'clearer-bugfix' '$PLUGIN_DIR/agents/reviewer/agent.md' && grep -q 'Detector' '$PLUGIN_DIR/agents/reviewer/agent.md'"
 
+run_test "Skill: clearer-adhd packaged with Ponytail UX 10 Heuristics & Break-Rules" \
+    "test -f '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Lead with Action' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Break-Rules' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Ponytail UX' '$PLUGIN_DIR/rules/AGENTS.md'"
+
 # 7. Shell Aliases Configuration
 run_test "Shell alias 'agy-ceh' configured in shell rc" \
     "(test -f ~/.bashrc && grep -q 'alias agy-ceh=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias agy-ceh=' ~/.zshrc)"
