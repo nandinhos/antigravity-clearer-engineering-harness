@@ -163,6 +163,10 @@ run_test "Skill: clearer-adhd packaged with Ponytail UX 10 Heuristics & Break-Ru
 run_test "Shell alias 'agy-ceh' configured in shell rc" \
     "(test -f ~/.bashrc && grep -q 'alias agy-ceh=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias agy-ceh=' ~/.zshrc)"
 
+# 8. Deterministic Smoke-Eval Suite
+run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
+    "bash '$PLUGIN_DIR/../evals/run.sh' >/dev/null"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"
