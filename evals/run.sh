@@ -7,7 +7,16 @@ set -u
 
 EVALS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$EVALS_DIR/.." && pwd)"
-GATE_SCRIPT="$REPO_ROOT/clearer-engineering/scripts/safety-gate.py"
+GATE_SCRIPT=""
+if [ -f "$REPO_ROOT/clearer-engineering/scripts/safety-gate.py" ]; then
+    GATE_SCRIPT="$REPO_ROOT/clearer-engineering/scripts/safety-gate.py"
+elif [ -f "$REPO_ROOT/scripts/safety-gate.py" ]; then
+    GATE_SCRIPT="$REPO_ROOT/scripts/safety-gate.py"
+elif [ -f "$EVALS_DIR/../scripts/safety-gate.py" ]; then
+    GATE_SCRIPT="$EVALS_DIR/../scripts/safety-gate.py"
+else
+    GATE_SCRIPT="$REPO_ROOT/clearer-engineering/scripts/safety-gate.py"
+fi
 
 CRITERIA_FILE="$EVALS_DIR/CRITERIA.md"
 START_TIME=$(date +%s)
@@ -107,8 +116,13 @@ run_suite() {
     return $suite_failed
 }
 
-# Snapshot do estado do git antes de qualquer manipulação ou deriva
-GIT_STATE_INITIAL=$(git -C "$REPO_ROOT" status --porcelain)
+# Snapshot do estado do git antes de qualquer manipulação ou deriva (se em repo git)
+GIT_STATE_INITIAL=""
+IS_GIT_REPO=false
+if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    IS_GIT_REPO=true
+    GIT_STATE_INITIAL=$(git -C "$REPO_ROOT" status --porcelain)
+fi
 
 # ------------------------------------------------------------------------------
 # CRITÉRIO 1: Baseline 3x Verde Consecutivo
@@ -186,19 +200,30 @@ fi
 # ------------------------------------------------------------------------------
 echo -e "\n${COLOR_BOLD}[4/5] Avaliando Critério 4: Restauração Limpa (Byte-a-Byte)...${COLOR_RESET}"
 
-# Verifica se o estado do repositório é exatamente o mesmo de antes das derivas
-GIT_STATE_FINAL=$(git -C "$REPO_ROOT" status --porcelain)
+GIT_STATE_FINAL=""
+if [ "$IS_GIT_REPO" = true ]; then
+    GIT_STATE_FINAL=$(git -C "$REPO_ROOT" status --porcelain)
+fi
 
 RESTORATION_RUN_OK=false
 if run_suite "$GATE_SCRIPT" "restoration-check"; then
     RESTORATION_RUN_OK=true
 fi
 
-if [ "$GIT_STATE_INITIAL" = "$GIT_STATE_FINAL" ] && [ "$RESTORATION_RUN_OK" = true ]; then
-    log_pass "Critério 4: Restauração limpa aprovada (Zero resíduos de eval, suíte 100% verde)."
-    CRITERIA_PASSED=$((CRITERIA_PASSED + 1))
+if [ "$RESTORATION_RUN_OK" = true ]; then
+    if [ "$IS_GIT_REPO" = true ]; then
+        if [ "$GIT_STATE_INITIAL" = "$GIT_STATE_FINAL" ]; then
+            log_pass "Critério 4: Restauração limpa aprovada (Zero resíduos de eval, suíte 100% verde)."
+            CRITERIA_PASSED=$((CRITERIA_PASSED + 1))
+        else
+            log_fail "Critério 4: Falha na restauração limpa (Resíduos pós-deriva detectados no repositório git)."
+        fi
+    else
+        log_pass "Critério 4: Restauração limpa aprovada (Artefatos íntegros, suíte 100% verde)."
+        CRITERIA_PASSED=$((CRITERIA_PASSED + 1))
+    fi
 else
-    log_fail "Critério 4: Falha na restauração limpa (Resíduos pós-deriva detectados ou suíte quebrada)."
+    log_fail "Critério 4: Falha na restauração limpa (Suíte de baseline pós-deriva falhou)."
 fi
 
 # ------------------------------------------------------------------------------

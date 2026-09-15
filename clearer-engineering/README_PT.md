@@ -165,15 +165,22 @@ O CEH apoia o desenvolvedor com **2 modos de topologia Git**, identificados proa
 
 ---
 
-## 🧪 Suíte de Testes Automatizada
+## 🧪 Suíte de Testes & Meta-Eval de Falsificabilidade
+
+O harness possui validação rigorosa de ponta a ponta, incluindo testes de mutação de infraestrutura:
 
 ```bash
-# 1. Executar testes de integração e componentes (19 testes)
+# 1. Executar suíte completa de componentes e integridade (35 testes)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Executar suíte de testes adversariais (5 cenários)
+# 2. Executar suíte de testes adversariais (bypass e injeção de comandos)
 ./clearer-engineering/tests/run-adversarial-tests.sh
+
+# 3. Executar Smoke-Eval de Falsificabilidade (Baseline 3x, Derivas A/B e Fail-Closed)
+./evals/run.sh
 ```
+
+Consulte [`evals/CRITERIA.md`](./evals/CRITERIA.md) para a matriz formal de 5 critérios (RFC 2119).
 
 ---
 

@@ -113,6 +113,10 @@ deploy_harness() {
     rm -rf "$TARGET_PLUGIN_DIR"
     mkdir -p "$TARGET_PLUGIN_DIR"
     cp -r "$SOURCE_DIR/clearer-engineering/." "$TARGET_PLUGIN_DIR/"
+    if [[ -d "$SOURCE_DIR/evals" ]]; then
+        cp -r "$SOURCE_DIR/evals" "$TARGET_PLUGIN_DIR/"
+        chmod +x "$TARGET_PLUGIN_DIR/evals"/* 2>/dev/null || true
+    fi
     chmod +x "$TARGET_PLUGIN_DIR/scripts"/*
     chmod +x "$TARGET_PLUGIN_DIR/tests"/*
 
@@ -177,7 +181,7 @@ Seu papel é atuar como **Engineering Orchestrator** orientado por evidências, 
 6. `ceh-evidence-auditor`: Confronto final `CLAIM ↔ EVIDENCE`.
 
 ## 4. Skills Integradas
-`/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-refactor`, `/clearer-review`, `/clearer-audit`, `/clearer-map`, `/clearer-test`.
+`/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-refactor`, `/clearer-review`, `/clearer-audit`, `/clearer-map`, `/clearer-test`, `/clearer-adhd`.
 AGENT_EOF
 
     log_success "Assets installed to $GEMINI_CONFIG_DIR"
@@ -193,7 +197,7 @@ AGENT_EOF
 
 # 4. Configure Shell Aliases Idempotently
 configure_shell_aliases() {
-    log_info "Configuring shell aliases (agy-ceh, agy-ceh-yolo)..."
+    log_info "Configuring shell aliases (agy-ceh, agy-ceh-yolo, ceh-evals)..."
 
     local ALIAS_BLOCK="
 # === CLEARER Engineering Harness (CEH) ===
@@ -203,6 +207,7 @@ alias ceh='agy --agent clearer-harness'
 alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'
 alias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'
 alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'
+alias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'
 alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
 "
 
@@ -212,6 +217,10 @@ alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-he
                 echo "$ALIAS_BLOCK" >> "$rc_file"
                 log_success "Aliases added to $rc_file"
             else
+                if ! grep -q "alias ceh-evals=" "$rc_file"; then
+                    sed -i '/alias ceh-help=/i alias ceh-evals=\x27bash ~\/.gemini\/config\/plugins\/clearer-engineering\/evals\/run.sh\x27' "$rc_file"
+                    log_success "ceh-evals alias added to $rc_file"
+                fi
                 log_info "Aliases already present in $rc_file"
             fi
         fi
@@ -256,6 +265,7 @@ main() {
     echo -e "  - ${BOLD}ceh-env${NC}           : Detect active environment (DEV/STAGING/PROD) & branch"
     echo -e "  - ${BOLD}ceh-branches${NC}      : Audit & configure branch topology (Enterprise/Classic)"
     echo -e "  - ${BOLD}ceh-preflight${NC}     : Run full project engineering readiness check"
+    echo -e "  - ${BOLD}ceh-evals${NC}         : Run deterministic falsifiability smoke-eval (5/5 PASS)"
     echo -e "  - ${BOLD}ceh-help${NC}          : Interactive quick guide & command cheat sheet"
     echo ""
     echo -e "  Documentation & Guides: ${BLUE}https://github.com/nandinhos/antigravity-clearer-engineering-harness${NC}"

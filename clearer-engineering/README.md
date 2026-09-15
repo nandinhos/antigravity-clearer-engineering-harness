@@ -165,15 +165,22 @@ CEH natively supports **2 Git topology modes**, proactively identified upon load
 
 ---
 
-## 🧪 Automated Testing & Verification
+## 🧪 Automated Testing & Falsifiability Meta-Eval
+
+CEH provides rigorous end-to-end verification, including infrastructure mutation testing:
 
 ```bash
-# 1. Run Component & Integration Suite (19 tests)
+# 1. Run Complete Component & Integrity Suite (35 tests)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Run Adversarial Verification Suite (5 cases)
+# 2. Run Adversarial Verification Suite (bypass & injection detection)
 ./clearer-engineering/tests/run-adversarial-tests.sh
+
+# 3. Run Falsifiability Smoke-Eval (Baseline 3x, Drifts A/B & Fail-Closed)
+./evals/run.sh
 ```
+
+See [`evals/CRITERIA.md`](./evals/CRITERIA.md) for the formal 5-criteria matrix (RFC 2119).
 
 ---
 
