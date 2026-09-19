@@ -208,6 +208,7 @@ alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-
 alias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'
 alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'
 alias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'
+alias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'
 alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
 "
 
@@ -220,6 +221,10 @@ alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-he
                 if ! grep -q "alias ceh-evals=" "$rc_file"; then
                     sed -i '/alias ceh-help=/i alias ceh-evals=\x27bash ~\/.gemini\/config\/plugins\/clearer-engineering\/evals\/run.sh\x27' "$rc_file"
                     log_success "ceh-evals alias added to $rc_file"
+                fi
+                if ! grep -q "alias ceh-monitor=" "$rc_file"; then
+                    sed -i '/alias ceh-help=/i alias ceh-monitor=\x27bash ~\/.gemini\/config\/plugins\/clearer-engineering\/scripts\/task-monitor.sh\x27' "$rc_file"
+                    log_success "ceh-monitor alias added to $rc_file"
                 fi
                 log_info "Aliases already present in $rc_file"
             fi
@@ -266,6 +271,7 @@ main() {
     echo -e "  - ${BOLD}ceh-branches${NC}      : Audit & configure branch topology (Enterprise/Classic)"
     echo -e "  - ${BOLD}ceh-preflight${NC}     : Run full project engineering readiness check"
     echo -e "  - ${BOLD}ceh-evals${NC}         : Run deterministic falsifiability smoke-eval (5/5 PASS)"
+    echo -e "  - ${BOLD}ceh-monitor${NC}       : Real-time background tasks & test monitor (25s cadence)"
     echo -e "  - ${BOLD}ceh-help${NC}          : Interactive quick guide & command cheat sheet"
     echo ""
     echo -e "  Documentation & Guides: ${BLUE}https://github.com/nandinhos/antigravity-clearer-engineering-harness${NC}"

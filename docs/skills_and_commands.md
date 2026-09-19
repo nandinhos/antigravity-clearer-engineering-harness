@@ -107,3 +107,20 @@ O CEH expõe 10 skills principais no Antigravity, cada uma projetada para um pad
   ```text
   /clearer-adhd "Implementar validação de CPF sem preâmbulos"
   ```
+
+---
+
+## 11. Comandos de Terminal & Telemetria em Background
+
+O CEH disponibiliza comandos de terminal integrados para auditoria rápida e transparência operacional:
+
+- **`ceh-monitor`**: Monitor de telemetria em tempo real para comandos assíncronos e testes em segundo plano (cadência calibrada de 25 segundos). Evita o efeito "caixa-preta" e a sensação de ociosidade na IDE.
+  - Snapshot rápido: `ceh-monitor`
+  - Loop contínuo a cada 25s: `ceh-monitor --live`
+  - Exportar para markdown: `ceh-monitor --export task_monitor.md`
+- **`ceh-evals`**: Executa a suíte de meta-eval de falsificabilidade determinística (5/5 PASS em < 60s).
+- **`ceh-env`**: Identifica e audita o ambiente ativo (`DEV`, `HOMOLOGACAO`, `PRODUCAO`) e branch.
+- **`ceh-branches`**: Audita e configura a topologia canônica de branches (Modo Enterprise com 3 branches ou Clássico com 2 branches).
+- **`ceh-preflight`**: Executa o diagnóstico completo de prontidão de engenharia do repositório.
+- **`ceh-help`**: Guia interativo rápido com todos os comandos e atalhos do harness.
+

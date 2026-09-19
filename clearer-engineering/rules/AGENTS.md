@@ -121,6 +121,10 @@ Toda codificação sob o CEH é regida pela filosofia **Ponytail Mode (Senior Mi
     - *Heurística 8 (Matter-of-fact errors)*: Erros e regressões são reportados com frieza determinística, sem exclamações emotivas ("Ops!"), focando diretamente na causa raiz e no patch de correção.
     - *Heurística 9 (Cap lists at 5 items)*: Limitar listas de decisão ou pendências a no máximo 5 itens prioritários para evitar paralisia decisória.
     - *Heurística 10 (No preamble/closers)*: Eliminar introduções protocolares e encerramentos vazios ("Espero que ajude", "Estou à disposição").
+    - *Heurística 11 (Heartbeat Proativo de Background - 25s)*: Em comandos assíncronos ou de segundo plano (background tasks, testes demorados, builds), é terminantemente proibido permanecer em silêncio absoluto ou gerar sensação de travamento/ociosidade. O agente DEVE:
+      1. Notificar no chat imediatamente no Marco Zero ($T=0\text{s}$) com o Task ID/PID e abrir/atualizar o artefato `task_monitor.md`.
+      2. Adotar cadência de **25 segundos** de heartbeat via `schedule` (`TimerCondition=<task-id>`) para reportar delta de progresso no chat e atualizar telemetria no artefato.
+      3. No término, acordar reativamente no milissegundo de conclusão e entregar o veredito final com o Response Contract.
 
 ### Cláusula de Break-Rules (Prevalência de Segurança):
 As heurísticas de concisão cognitiva operam como camada de apresentação e **NUNCA** superam as salvaguardas de engenharia:
