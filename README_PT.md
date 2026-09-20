@@ -114,6 +114,7 @@ Explore as diretrizes aprofundadas do CEH:
 | 🛡️ [**Guia do Safety Gate**](./docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos e valida o Pre-Push CI Gate. |
 | 🏛️ [**ADR 003: Epistemologia System One**](./docs/architecture/system-one-epistemology.md) | Abstração dos 7 invariantes da TypeSafe e operação "Like a Jev" para o Gemini. |
 | 🛑 [**ADR 004: Governança de CI Mandatória**](./docs/architecture/ci-governance-policy.md) | Política Zero-Tolerance Pipeline Red, Certificado de Voo e Pre-Push Gate. |
+| 🐳 [**ADR 005: Desacoplamento de Runtime & CI**](./docs/architecture/runtime-and-ci-adapters.md) | Detecção de Host Nativo vs. Docker/Sail e adaptação dinâmica de testes de CI. |
 | 💻 [**Instalação & Configuração**](./docs/installation.md) | Guia completo de instalação global, dependências e desinstalação. |
 | 💡 [**Exemplos Práticos**](./docs/examples.md) | Casos reais de uso em TypeScript/Next.js, PHP/Laravel e Python/FastAPI. |
 

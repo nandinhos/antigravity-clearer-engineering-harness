@@ -55,6 +55,47 @@ if [[ -z "$TEST_CMD" ]]; then
     exit 1
 fi
 
+# Runtime Adapter: Detect if test command needs container dispatch
+DOCKER_RUNNING=0
+ACTIVE_COMPOSE_SERVICES=()
+
+if command -v docker >/dev/null 2>&1; then
+    if docker info >/dev/null 2>&1; then
+        DOCKER_RUNNING=1
+        if [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
+            ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
+            if [[ -n "$ACTIVE_COMPOSE" ]]; then
+                while IFS= read -r s; do
+                    [[ -n "$s" ]] && ACTIVE_COMPOSE_SERVICES+=("$s")
+                done <<< "$ACTIVE_COMPOSE"
+            fi
+        fi
+    fi
+fi
+
+# If containers are actively running and the command is a bare host command, adapt it
+if [[ ${#ACTIVE_COMPOSE_SERVICES[@]} -gt 0 ]]; then
+    if [[ ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]]; then
+        if [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " =~ " laravel.test " ]]; then
+            if [[ -f "vendor/bin/sail" ]]; then
+                echo "[CEH RUNTIME ADAPTER] 🐳 Containers Laravel Sail ativos detectados. Despachando via Sail..."
+                TEST_CMD="./vendor/bin/sail test"
+            else
+                echo "[CEH RUNTIME ADAPTER] 🐳 Containers Compose ativos detectados. Despachando via 'laravel.test'..."
+                TEST_CMD="docker compose exec -T laravel.test $TEST_CMD"
+            fi
+        elif [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " =~ " app " ]]; then
+            echo "[CEH RUNTIME ADAPTER] 🐳 Container 'app' ativo detectado. Despachando via container..."
+            TEST_CMD="docker compose exec -T app $TEST_CMD"
+        fi
+    fi
+elif [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
+    if [[ ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]]; then
+        echo "[CEH RUNTIME ADAPTER] ℹ️ Projeto possui Docker configurado, mas os containers estão desligados."
+        echo "[CEH RUNTIME ADAPTER] Executando diretamente no Host Nativo..."
+    fi
+fi
+
 # Token economy proxy: if rtk is available, wrap test command to cut output by up to 80%
 if command -v rtk >/dev/null 2>&1; then
     if [[ ! "$TEST_CMD" =~ ^[[:space:]]*rtk[[:space:]] ]]; then

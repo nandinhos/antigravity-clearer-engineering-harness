@@ -255,6 +255,79 @@ if [[ -f "docker-compose.yml" ]] || [[ -f "docker-compose.yaml" ]] || [[ -f "com
 fi
 if [[ -d ".devcontainer" ]]; then INFRA+=("Devcontainer"); fi
 
+# 7. Runtime & Execution Context Awareness
+DOCKER_AVAILABLE=0
+DOCKER_RUNNING=0
+IN_CONTAINER=0
+DOCKER_SERVICES_RUNNING=()
+
+if [[ -f "/.dockerenv" ]] || grep -q 'docker\|containerd' /proc/1/cgroup 2>/dev/null; then
+    IN_CONTAINER=1
+fi
+
+if command -v docker >/dev/null 2>&1; then
+    DOCKER_AVAILABLE=1
+    if docker info >/dev/null 2>&1; then
+        DOCKER_RUNNING=1
+        if [[ -f "docker-compose.yml" ]] || [[ -f "docker-compose.yaml" ]] || [[ -f "compose.yaml" ]] || [[ -f "compose.yml" ]]; then
+            ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
+            if [[ -n "$ACTIVE_COMPOSE" ]]; then
+                while IFS= read -r s; do
+                    [[ -n "$s" ]] && DOCKER_SERVICES_RUNNING+=("$s")
+                done <<< "$ACTIVE_COMPOSE"
+            fi
+        fi
+    fi
+fi
+
+if [[ $IN_CONTAINER -eq 1 ]]; then
+    RUNTIME_MODE="IN_CONTAINER"
+    RUNTIME_DESC="Executando diretamente dentro de um container Docker"
+elif [[ ${#DOCKER_SERVICES_RUNNING[@]} -gt 0 ]]; then
+    RUNTIME_MODE="DOCKER_ACTIVE"
+    RUNTIME_DESC="Containers Docker ativos (${DOCKER_SERVICES_RUNNING[*]})"
+elif [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
+    RUNTIME_MODE="DOCKER_STOPPED"
+    RUNTIME_DESC="Docker Compose configurado, mas containers desligados ou daemon inativo"
+else
+    RUNTIME_MODE="NATIVE_HOST"
+    RUNTIME_DESC="Host Nativo (execução direta no sistema operacional sem Docker)"
+fi
+
+# 8. CI Workflow & Strategy Analysis
+CI_WORKFLOWS=()
+CI_TEST_COMMANDS=()
+CI_SERVICES_DETECTED=()
+CI_RUNNER_TYPE="Nenhum"
+
+if [[ -d ".github/workflows" ]]; then
+    for wf in .github/workflows/*.yml .github/workflows/*.yaml; do
+        if [[ -f "$wf" ]]; then
+            CI_WORKFLOWS+=("$(basename "$wf")")
+            for s in postgres mysql redis mariadb mongodb; do
+                if grep -qi "image:.*$s" "$wf" 2>/dev/null; then
+                    [[ ! " ${CI_SERVICES_DETECTED[*]:-} " =~ " ${s} " ]] && CI_SERVICES_DETECTED+=("$s")
+                fi
+            done
+            if grep -q "runs-on:" "$wf" 2>/dev/null; then
+                CI_RUNNER_TYPE="GitHub Actions Runner"
+            fi
+            RUN_LINES=$(grep -E '^[[:space:]]*run:[[:space:]]*.*(test|pest|phpunit|pytest)' "$wf" 2>/dev/null || true)
+            if [[ -n "$RUN_LINES" ]]; then
+                while IFS= read -r line; do
+                    CMD_CLEAN=$(echo "$line" | sed -e 's/^[[:space:]]*run:[[:space:]]*//' -e 's/["'\'' ]*$//' -e 's/^["'\'' ]*//')
+                    if [[ "$CMD_CLEAN" =~ (pest|phpunit|artisan[[:space:]]+test|npm[[:space:]]+test|pnpm[[:space:]]+test|yarn[[:space:]]+test|pytest|cargo[[:space:]]+test|go[[:space:]]+test) ]]; then
+                        [[ ! " ${CI_TEST_COMMANDS[*]:-} " =~ " ${CMD_CLEAN} " ]] && CI_TEST_COMMANDS+=("$CMD_CLEAN")
+                    fi
+                done <<< "$RUN_LINES"
+            fi
+        fi
+    done
+elif [[ -f ".gitlab-ci.yml" ]]; then
+    CI_WORKFLOWS+=(".gitlab-ci.yml")
+    CI_RUNNER_TYPE="GitLab Runner"
+fi
+
 # Format Output
 join_by() { local d=${1-} f=${2-}; if shift 2; then printf %s "$f" "${@/#/$d}"; fi; }
 
@@ -264,6 +337,40 @@ echo "Package Managers:  ${PACKAGE_MANAGERS[*]:-None detected}"
 echo "Test Runners:      ${TEST_RUNNERS[*]:-None detected}"
 echo "Linters/Checkers:  ${LINTERS[*]:-None detected}"
 echo "Infra/Containers:  ${INFRA[*]:-None detected}"
+echo ""
+
+DOCKER_STATUS_LABEL="Não instalado no host"
+if [[ $DOCKER_RUNNING -eq 1 ]]; then
+    DOCKER_STATUS_LABEL="Ativo (Disponível)"
+elif [[ $DOCKER_AVAILABLE -eq 1 ]]; then
+    DOCKER_STATUS_LABEL="Inativo / Parado"
+fi
+
+echo "--- Runtime & CI Strategy Awareness ---"
+echo "Runtime Mode:      $RUNTIME_MODE ($RUNTIME_DESC)"
+echo "Docker Daemon:     $DOCKER_STATUS_LABEL"
+if [[ ${#CI_WORKFLOWS[@]} -gt 0 ]]; then
+    echo "CI Pipelines:      ${CI_WORKFLOWS[*]} ($CI_RUNNER_TYPE)"
+    [[ ${#CI_SERVICES_DETECTED[@]} -gt 0 ]] && echo "CI Services:       ${CI_SERVICES_DETECTED[*]} (Declarados no workflow)"
+    [[ ${#CI_TEST_COMMANDS[@]} -gt 0 ]] && echo "CI Test Steps:     ${CI_TEST_COMMANDS[*]}"
+    
+    # Bridge recommendation
+    if [[ "$RUNTIME_MODE" == "DOCKER_ACTIVE" ]]; then
+        if [[ " ${DOCKER_SERVICES_RUNNING[*]} " =~ " laravel.test " ]]; then
+            echo "Local Execution:   Ambiente Docker ativo -> Use 'docker compose exec -T laravel.test <cmd>' ou './vendor/bin/sail test'"
+        else
+            echo "Local Execution:   Ambiente Docker ativo -> Use 'docker compose exec -T ${DOCKER_SERVICES_RUNNING[0]} <cmd>'"
+        fi
+    elif [[ "$RUNTIME_MODE" == "DOCKER_STOPPED" ]]; then
+        echo "Local Execution:   Containers desligados -> Inicie com 'docker compose up -d' ou execute no host nativo se dependências existirem"
+    elif [[ "$RUNTIME_MODE" == "IN_CONTAINER" ]]; then
+        echo "Local Execution:   Dentro do container -> Execute diretamente via binários do container"
+    else
+        echo "Local Execution:   Host Nativo puro -> Execute diretamente via ferramentas do host (ex: pest, npm test, pytest)"
+    fi
+else
+    echo "CI Pipelines:      Nenhuma esteira de CI detectada"
+fi
 echo ""
 
 # Git status & Canonical Topology Audit

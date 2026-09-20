@@ -114,6 +114,7 @@ Deep dive into CEH principles, architectures, and guidelines:
 | 🛡️ [**Safety Gate Guide**](./docs/safety_gate.md) | Hook `PreToolUse` architecture, destructive command tiers, and Pre-Push CI Gate. |
 | 🏛️ [**ADR 003: System One Epistemology**](./docs/architecture/system-one-epistemology.md) | Abstraction of TypeSafe 7 epistemological invariants & "Like a Jev" operation. |
 | 🛑 [**ADR 004: Mandatory CI Governance**](./docs/architecture/ci-governance-policy.md) | Zero-Tolerance Pipeline Red policy, Flight Certificate, and Pre-Push Gate. |
+| 🐳 [**ADR 005: Runtime & CI Strategy Decoupling**](./docs/architecture/runtime-and-ci-adapters.md) | Detection of Native Host vs. Docker/Sail and dynamic CI test adaptation. |
 | 💻 [**Installation & Configuration**](./docs/installation.md) | Complete global setup guide, dependencies, and clean uninstallation. |
 | 💡 [**Practical Examples**](./docs/examples.md) | Real-world blueprints across TypeScript/Next.js, PHP/Laravel, and Python/FastAPI. |
 

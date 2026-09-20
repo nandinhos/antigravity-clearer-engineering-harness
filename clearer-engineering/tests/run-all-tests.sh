@@ -107,6 +107,9 @@ run_test "Safety Gate: Pre-Push CI Gate blocks git push when flight certificate 
 run_test "Script: detect-project.sh execution & environment awareness" \
     "bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep 'CEH Stack & Environment Awareness Report' >/dev/null"
 
+run_test "Script: detect-project.sh detects Runtime Mode & CI Strategy Awareness" \
+    "bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep 'Runtime & CI Strategy Awareness' >/dev/null && bash '$PLUGIN_DIR/scripts/detect-project.sh' . | grep 'Runtime Mode:' >/dev/null"
+
 run_test "Script: detect-project.sh reports Canonical Branch Topology" \
     "bash -c 'TMP=\$(mktemp -d); git -C \"\$TMP\" init -b main >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; touch \"\$TMP/f\"; git -C \"\$TMP\" add f; git -C \"\$TMP\" commit -m i >/dev/null; bash \"$PLUGIN_DIR/scripts/detect-project.sh\" \"\$TMP\" | grep \"Canonical Branch Topology Audit\" >/dev/null && rm -rf \"\$TMP\"'"
 
@@ -132,6 +135,9 @@ run_test "Test Runner: Success scenario returns exit code 0" \
 
 run_test "Test Runner: Failing test correctly reports FAIL without masking" \
     "bash '$PLUGIN_DIR/scripts/test-runner.sh' 'false' | grep 'STATUS:    FAIL' >/dev/null"
+
+run_test "Test Runner: Runtime Adapter gracefully handles stopped containers on native host" \
+    "TMP=\$(mktemp -d); touch \"\$TMP/docker-compose.yml\"; (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep -q 'Executando diretamente no Host Nativo'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
 # 6. Global Agent Profile Availability & Tools Configuration
 if command -v agy >/dev/null 2>&1; then

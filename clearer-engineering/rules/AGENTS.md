@@ -45,7 +45,7 @@ O harness suporta nativamente dois modos de fluxo de trabalho:
 Toda tarefa de engenharia deve seguir rigorosamente as 7 etapas:
 
 - **C — Concrete Goal**: Definir objetivo claro, ambiente identificado (`DEV`/`HML`/`PRD`), critérios de aceitação objetivos, arquivos envolvidos, restrições e condição de parada.
-- **L — Load Context**: *Inspect before edit*. Identificar stack, ambiente, entrypoints, convenções, testes e dependências. Em projetos com esteira de CI, mapear obrigatoriamente os arquivos em `.github/workflows/` para identificar o comando canônico de qualidade. Nunca inferir o que o repositório pode responder.
+- **L — Load Context**: *Inspect before edit*. Identificar stack, ambiente (`DEV`/`HML`/`PRD`), runtime de execução (`NATIVE_HOST` vs `DOCKER_ACTIVE`/`SAIL`), entrypoints, convenções, testes e dependências. Em projetos com esteira de CI, mapear obrigatoriamente os arquivos em `.github/workflows/` para identificar o comando canônico e compatibilizá-lo com o runtime local disponível, evitando suposições cegas sobre a presença ou ausência de containers Docker. Nunca inferir o que o repositório pode responder.
 - **E — Explicit Boundaries**: Delimitar escopo rígido e blast radius mínimo. O que está dentro e o que está fora. Não fazer refatorações oportunistas não solicitadas.
 - **A — Anchors and Examples**: Usar como fonte da verdade o código existente, testes reais, schemas, tipos e convenções. Evidência concreta sempre prevalece sobre suposição.
 - **R — Response Contract**: Toda execução relevante deve produzir um contrato de saída auditável (Resultado, Ambiente, Alterações, Evidências, Testes, Validação, Pendências, Confiança).
