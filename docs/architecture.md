@@ -192,5 +192,15 @@ O CEH foi projetado para evitar o inchaço e fadiga de contexto (*context rot*) 
 4. **Degradação Graciosa (Graceful Degradation)**: Se o binário `rtk` não estiver presente no `$PATH`, o runner e os agentes operam diretamente com os comandos convencionais, sem falhas, erros ou avisos intrusivos.
 5. **Escape Hatch**: Caso uma depuração profunda exija o stream bruto de logs, o agente tem suporte documentado a `rtk proxy <cmd>` ou à flag de verbosidade máxima (`-vvv`).
 
+---
+
+## 7. Architecture Decision Records (ADRs)
+
+Para aprofundamento nos fundamentos de design e decisões arquiteturais do harness:
+
+- [ADR 003 — Epistemologia System One ("Like a Jev") e Avaliação Desacoplada](file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/system-one-epistemology.md)
+- [ADR 004 — Governança de CI Mandatória & Pre-Push Safety Gate (Zero-Tolerance Pipeline Red)](file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/ci-governance-policy.md)
+- [ADR 005 — Adaptador de Runtime e Estratégia de CI (`NATIVE_HOST` vs `DOCKER_ACTIVE`/`SAIL`)](file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/runtime-and-ci-adapters.md)
+
 
 

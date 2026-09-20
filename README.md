@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Tests-39%2F39%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Tests-41%2F41%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalist-blueviolet.svg)](#-ponytail-mode--ast-first-philosophy)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-the-risk-dial--execution-autonomy)
@@ -22,6 +22,7 @@ The **CLEARER Engineering Harness (CEH)** is a production-grade software enginee
 
 Rather than relying on vague prompts or unverified model assumptions, CEH operates under the highest standards of **Staff Software Engineering**:
 - **Mandatory CI Governance & Pre-Push Safety Gate (Zero-Tolerance Pipeline Red)**: Strict enforcement barring `git push` on repositories with active CI pipelines (`.github/workflows` or `.gitlab-ci.yml`) unless the full test suite passed with exit code 0 on the exact local commit hash via local Flight Certificate (`.ceh/last-ci-run.json`).
+- **Runtime & CI Strategy Adapter (`NATIVE_HOST` vs `DOCKER_ACTIVE`/`SAIL`)**: Deterministic dispatch of canonical test suites identifying whether Docker containers are active or native host execution should run directly without disruption.
 - **Environment Awareness & Granular Safety Gate**: Proactive safety policies tailored to `DEV` (freedom with local safety), `HOMOLOGACAO` (2-step explicit alerts), and `PRODUCAO` (destructive actions strictly denied).
 - **System One Epistemology ("Like a Jev")**: Strict decoupling between content and evaluation, closed-space univariate atomic judgments, and evidence-grounded certainty.
 - **Proactive Background Heartbeat (25s)**: 25-second telemetry heartbeat for long async commands and builds, real-time tracking via `ceh-monitor`, eliminating UI freeze perception.
@@ -227,7 +228,7 @@ CEH natively supports **2 Git topology modes**, proactively identified upon load
 CEH provides rigorous end-to-end verification, including infrastructure mutation testing:
 
 ```bash
-# 1. Run Complete Component & Integrity Suite (35 tests)
+# 1. Run Complete Component & Integrity Suite (41 tests)
 ./clearer-engineering/tests/run-all-tests.sh
 
 # 2. Run Adversarial Verification Suite (bypass & injection detection)
@@ -238,6 +239,14 @@ CEH provides rigorous end-to-end verification, including infrastructure mutation
 ```
 
 See [`evals/CRITERIA.md`](./evals/CRITERIA.md) for the formal 5-criteria matrix (RFC 2119).
+
+---
+
+## 🏛️ Architecture Decision Records (ADRs)
+
+- [ADR 003 — System One Epistemology ("Like a Jev")](./docs/architecture/system-one-epistemology.md)
+- [ADR 004 — Mandatory CI Governance & Pre-Push Safety Gate](./docs/architecture/ci-governance-policy.md)
+- [ADR 005 — Runtime Adapter & CI Testing Strategy](./docs/architecture/runtime-and-ci-adapters.md)
 
 ---
 
