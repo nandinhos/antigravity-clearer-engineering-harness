@@ -100,6 +100,95 @@ def get_git_branch() -> str | None:
         pass
     return None
 
+def find_repo_root(start_dir: Path) -> Path | None:
+    """Finds git repository root directory traversing upwards."""
+    current = start_dir.resolve()
+    for parent in [current] + list(current.parents):
+        if (parent / ".git").exists():
+            return parent
+    return None
+
+def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[str, str] | None:
+    """
+    Zero-Tolerance Pipeline Red Pre-Push Gate:
+    If repository has CI workflows (.github/workflows), enforces that the current HEAD
+    commit has a successful test clearance certificate in .ceh/last-ci-run.json.
+    """
+    if not re.search(r"\bgit\s+push\b", cmd):
+        return None
+
+    # Don't override force push destructive evaluations (let safety gate handle force push restrictions)
+    if re.search(r"\b--force\b|\s-f\b|\+", cmd):
+        return None
+
+    base_dir = target_dir or Path.cwd()
+    repo_root = find_repo_root(base_dir)
+    if not repo_root:
+        return None
+
+    # Check if repo has CI workflows
+    ci_workflows_dir = repo_root / ".github" / "workflows"
+    has_github_ci = ci_workflows_dir.is_dir() and any(
+        list(ci_workflows_dir.glob("*.yml")) + list(ci_workflows_dir.glob("*.yaml"))
+    )
+    has_gitlab_ci = (repo_root / ".gitlab-ci.yml").is_file()
+
+    if not (has_github_ci or has_gitlab_ci):
+        return None  # No CI pipeline defined; allow standard git push
+
+    # Repo has CI pipeline. Verify last-ci-run.json
+    cert_file = repo_root / ".ceh" / "last-ci-run.json"
+    if not cert_file.is_file():
+        reason = (
+            "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado!\n"
+            "O repositório possui esteira de CI ativa em '.github/workflows', mas NENHUMA execução "
+            "prévia da suíte de testes foi comprovada localmente.\n"
+            "Diretriz de Governança: É expressamente proibido subir código sem testar a suíte canônica integral.\n"
+            "Ação requerida: Execute 'bash scripts/test-runner.sh' ou a suíte de testes do projeto com exit code 0 antes de realizar o push."
+        )
+        return "deny", reason
+
+    try:
+        data = json.loads(cert_file.read_text(encoding="utf-8"))
+        exit_code = data.get("exit_code")
+        status = data.get("status", "FAIL")
+        cert_commit = data.get("commit_hash", "")
+
+        if exit_code != 0 or status != "PASS":
+            reason = (
+                f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado!\n"
+                f"A última execução da suíte de testes FALHOU (Exit Code: {exit_code}, Status: {status}).\n"
+                f"Comando executado: {data.get('command', 'test runner')}\n"
+                f"Diretriz de Governança: Proibido subir código com CI quebrado.\n"
+                f"Ação requerida: Corrija as falhas e execute a suíte de testes com 100% de aprovação antes do push."
+            )
+            return "deny", reason
+
+        # Check commit correspondence
+        head_res = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
+            capture_output=True, text=True, timeout=3
+        )
+        if head_res.returncode == 0:
+            current_head = head_res.stdout.strip()
+            if cert_commit and cert_commit != "untracked" and cert_commit != current_head:
+                reason = (
+                    f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado por desatualização de testes!\n"
+                    f"O commit atual ({current_head[:7]}) não foi testado após as alterações mais recentes.\n"
+                    f"O último certificado válido foi emitido para o commit {cert_commit[:7]}.\n"
+                    f"Ação requerida: Execute a suíte de testes integral novamente para revalidar o commit atual antes do push."
+                )
+                return "deny", reason
+
+    except Exception as e:
+        reason = (
+            f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado de CI ilegível ({str(e)}).\n"
+            f"Execute a suíte de testes novamente para regenerar o certificado."
+        )
+        return "deny", reason
+
+    return None
+
 def detect_environment(explicit_env: str | None = None, cmd_line: str = "") -> tuple[str, str]:
     """
     Detects the current target environment with verifiable evidence:
@@ -232,6 +321,12 @@ def evaluate_command(cmd_line: str, explicit_env: str | None = None) -> tuple[st
                 f"Assegure a disponibilidade de backup e rollback para fins de correção."
             )
             return "allow", reason, env, use_case_code
+
+    # 4. Pre-Push CI Clearance Gate: Block git push in repos with CI without test clearance
+    ci_gate_result = check_pre_push_ci_gate(cmd_eval)
+    if ci_gate_result is not None:
+        ci_decision, ci_reason = ci_gate_result
+        return ci_decision, ci_reason, env, "PRE_PUSH_CI"
 
     return "allow", f"Command complies with CEH safety policy (Env: {env.upper()}, Source: {env_evidence}).", env, "GENERAL"
 

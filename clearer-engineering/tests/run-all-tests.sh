@@ -93,6 +93,15 @@ run_test "Safety Gate: Allow safe scratch cleanup 'rm -rf scratch/temp' (ALLOW)"
 run_test "Safety Gate: Allow safe single file checkout 'git checkout app/Model.php' (ALLOW)" \
     "python3 '$PLUGIN_DIR/scripts/safety-gate.py' --check 'git checkout app/Model.php' | grep -q '\"decision\": \"allow\"'"
 
+run_test "Safety Gate: Pre-Push CI Gate blocks git push without CI flight certificate (DENY)" \
+    "TMP=\$(mktemp -d); git -C \"\$TMP\" init -b dev >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; mkdir -p \"\$TMP/.github/workflows\"; touch \"\$TMP/.github/workflows/ci.yml\" \"\$TMP/f\"; git -C \"\$TMP\" add .; git -C \"\$TMP\" commit -m init >/dev/null; (cd \"\$TMP\" && python3 \"$PLUGIN_DIR/scripts/safety-gate.py\" --check 'git push origin dev' --env development | grep -q '\"decision\": \"deny\"'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
+
+run_test "Safety Gate: Pre-Push CI Gate allows git push with valid matching flight certificate (ALLOW)" \
+    "TMP=\$(mktemp -d); git -C \"\$TMP\" init -b dev >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; mkdir -p \"\$TMP/.github/workflows\" \"\$TMP/.ceh\"; touch \"\$TMP/.github/workflows/ci.yml\" \"\$TMP/f\"; git -C \"\$TMP\" add .; git -C \"\$TMP\" commit -m init >/dev/null; HASH=\$(git -C \"\$TMP\" rev-parse HEAD); echo \"{\\\"commit_hash\\\": \\\"\$HASH\\\", \\\"status\\\": \\\"PASS\\\", \\\"exit_code\\\": 0}\" > \"\$TMP/.ceh/last-ci-run.json\"; (cd \"\$TMP\" && python3 \"$PLUGIN_DIR/scripts/safety-gate.py\" --check 'git push origin dev' --env development | grep -q '\"decision\": \"allow\"'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
+
+run_test "Safety Gate: Pre-Push CI Gate blocks git push when flight certificate is outdated (DENY)" \
+    "TMP=\$(mktemp -d); git -C \"\$TMP\" init -b dev >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; mkdir -p \"\$TMP/.github/workflows\" \"\$TMP/.ceh\"; touch \"\$TMP/.github/workflows/ci.yml\" \"\$TMP/f\"; git -C \"\$TMP\" add .; git -C \"\$TMP\" commit -m init >/dev/null; echo '{\"commit_hash\": \"outdated\", \"status\": \"PASS\", \"exit_code\": 0}' > \"\$TMP/.ceh/last-ci-run.json\"; (cd \"\$TMP\" && python3 \"$PLUGIN_DIR/scripts/safety-gate.py\" --check 'git push origin dev' --env development | grep -q '\"decision\": \"deny\"'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
+
 
 # 3. Preflight & Stack Awareness Scripts
 run_test "Script: detect-project.sh execution & environment awareness" \

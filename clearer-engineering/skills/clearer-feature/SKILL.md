@@ -52,10 +52,11 @@ Estruture mentalmente e valide os seguintes pontos:
 
 ### Passo 6: Criação e Execução de Testes (Test)
 - Crie ou atualize os testes comportamentais que cobrem a funcionalidade.
-- Execute a suíte de testes do projeto:
+- Se o projeto possuir esteira de CI (`.github/workflows/` ou `.gitlab-ci.yml`), identifique o comando exato executado no pipeline e execute-o integralmente (nunca apenas filtros parciais que omitam suítes completas):
   ```bash
   bash scripts/test-runner.sh
   ```
+- O runner gerará o certificado `.ceh/last-ci-run.json`. Confirme que o status é `PASS` e exit code 0.
 - Registre o `COMMAND`, `EXIT CODE` e `RESULT`.
 
 ### Passo 7: Revisão do Diff (Review)
@@ -64,6 +65,7 @@ Estruture mentalmente e valide os seguintes pontos:
   bash scripts/diff-audit.sh
   ```
 - Verifique se não foram introduzidas regressões, markers de conflito, console.logs soltos ou quebras de contrato.
+- Verifique se a adição de novos tipos/lookups não quebrou asserções de contagem em testes existentes ("testes congeladores").
 
 ### Passo 8: Relatório Final de Evidências (Audit & Report)
 Emita a entrega final com o Response Contract completo:

@@ -89,5 +89,25 @@ else
 fi
 echo "=========================================="
 
+# Emit Pre-Push CI Clearance Certificate
+CEH_DIR=".ceh"
+mkdir -p "$CEH_DIR" 2>/dev/null || true
+if [[ -d "$CEH_DIR" ]]; then
+    CURRENT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "untracked")
+    NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    STATUS_STR="FAIL"
+    [[ $EXIT_CODE -eq 0 ]] && STATUS_STR="PASS"
+
+    cat << EOF > "$CEH_DIR/last-ci-run.json"
+{
+  "commit_hash": "$CURRENT_COMMIT",
+  "timestamp": "$NOW_ISO",
+  "command": "$TEST_CMD",
+  "status": "$STATUS_STR",
+  "exit_code": $EXIT_CODE
+}
+EOF
+fi
+
 rm -f "$OUTPUT_FILE"
 exit $EXIT_CODE

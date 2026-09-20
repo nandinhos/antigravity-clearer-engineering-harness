@@ -39,9 +39,10 @@ Antes de redigir apontamentos descritivos, o revisor DEVE avaliar o diff contra 
 | 4 | `modifies_database_schema` | Cria ou altera migrations, esquemas relacionais, tabelas ou índices. | Consultas ou queries existentes sem alteração estrutural de DDL. |
 | 5 | `has_untested_execution_branches` | Introduz novos condicionais (`if`, `switch`, `catch`) sem teste cobrindo o caminho alternativo. | Refatoração estrutural com suíte existente cobrindo 100% dos caminhos. |
 | 6 | `violates_minimal_blast_radius` | Toca em arquivos fora do escopo estrito da tarefa, inclui reformatadores cosméticos ou refatores não solicitados. | Alteração cirúrgica restrita aos arquivos essenciais da demanda. |
+| 7 | `introduces_or_modifies_lookups` | Adiciona novos itens a enums, seeders, lookups ou dicionários de domínio. | Alteração de regras de negócio sem mutação no catálogo de opções fixas. |
 
 > [!CRITICAL]
-> **Controle em Código**: Se qualquer checagem 1 a 4 retornar **`SIM`**, o Risk Dial do harness é automaticamente promovido para **`HIGH`**, disparando a exigência de testes determinísticos antes de qualquer promoção.
+> **Controle em Código**: Se qualquer checagem 1 a 4 retornar **`SIM`**, o Risk Dial do harness é automaticamente promovido para **`HIGH`**, disparando a exigência de testes determinísticos antes de qualquer promoção. Se a checagem 7 for **`SIM`**, é mandatório verificar se há "testes congeladores" (`assertCount` hardcoded) na base.
 
 ---
 
@@ -49,8 +50,8 @@ Antes de redigir apontamentos descritivos, o revisor DEVE avaliar o diff contra 
 
 Classifique cada apontamento em um dos seguintes níveis:
 
-- **`BLOCKER`**: Quebra direta de compilação/execução, falha de segurança crítica (ex: injeção, auth bypass), perda irreversível de dados ou teste quebrado.
-- **`HIGH`**: Regressão de funcionalidade existente, quebra de contrato de API pública, vazamento de memória ou race condition em concorrência.
+- **`BLOCKER`**: Quebra direta de compilação/execução, falha de segurança crítica (ex: injeção, auth bypass), perda irreversível de dados, teste quebrado ou push sem certificação de CI.
+- **`HIGH`**: Regressão de funcionalidade existente, quebra de contrato de API pública, vazamento de memória, race condition ou presença de "testes congeladores" desatualizados após adição de lookup.
 - **`MEDIUM`**: Tratamento inadequado de edge cases (null, empty, timeouts), falta de validação de input ou acoplamento excessivo.
 - **`LOW`**: Oportunidade de melhoria de legibilidade, inconsistência menor de estilo ou duplicação pontual.
 - **`INFO`**: Observação de design, nota informativa ou recomendação futura fora do escopo.
@@ -80,3 +81,6 @@ Para cada problema identificado, estruture:
 - [ ] Há markers de conflito do Git (`<<<<<<<`, `=======`)?
 - [ ] Foram deixados `console.log`, `var_dump`, `print` ou credenciais no código?
 - [ ] Os testes cobrem os novos caminhos de execução?
+- [ ] **Auditoria de Testes Congeladores**: Ao adicionar novos tipos, ações ou lookups, os testes existentes de integridade foram atualizados (evitando `assertCount` cego que quebre o CI)?
+- [ ] **Shift-Left de Convenções**: Novos comandos, ações ou enums respeitam estritamente a nomenclatura padronizada do projeto (ex: `action:noun-verb`, convenções validadas por testes de arquitetura/AST)?
+- [ ] **Zero-Tolerance CI Push**: Em projetos com esteira de CI, a suíte completa de testes passou localmente com exit code 0 e gerou o certificado `.ceh/last-ci-run.json` correspondente ao commit atual?

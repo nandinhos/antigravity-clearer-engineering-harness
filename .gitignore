@@ -24,6 +24,7 @@ google-creds.json
 .cache/
 scratch/
 .scratch/
+.ceh/
 
 # Python
 __pycache__/

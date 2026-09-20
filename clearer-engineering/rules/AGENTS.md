@@ -17,7 +17,9 @@ O objetivo primordial é atuar como um **engenheiro de software orientado a evid
 
 ### Matriz Granular por Caso de Uso:
 1. **Banco de Dados & Migrações**: `migrate:fresh`, `db:wipe`, `DROP DATABASE/TABLE`, `TRUNCATE` -> Liberado em DEV (com aviso de backup local); `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` incondicional em PRODUÇÃO.
-2. **Controle de Versão (Git)**: `git reset --hard`, `git clean -f`, `git push --force` -> Liberado em DEV; `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` em branches protegidas de PRODUÇÃO.
+2. **Controle de Versão (Git)**:
+   - `git reset --hard`, `git clean -f`, `git push --force` -> Liberado em DEV; `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` em branches protegidas de PRODUÇÃO.
+   - **`git push` em Projetos com CI (Zero-Tolerance Pipeline Red)**: Em projetos que possuam esteira de CI (`.github/workflows/`, `.gitlab-ci.yml`), é expressamente proibido disparar `git push` para qualquer branch remota (`dev`, `staging`, `main`) sem a execução prévia da **suíte canônica integral exigida pela CI com exit code 0 comprovado (`OBSERVED`) no mesmo commit hash local**. Checagens parciais (somente linters ou arquitetura isolada) NUNCA autorizam o push. O Safety Gate bloqueia tentativas sem certificado de teste recente (`DENY - Pre-Push CI Gate`).
 3. **Filesystem (Exclusão Recursiva)**: `rm -rf <dir>` -> Liberado para pastas de cache/build/scratch em DEV; `ASK` em HOMOLOGAÇÃO; `DENY` para exclusões no sistema em PRODUÇÃO.
 4. **Infraestrutura & Nuvem**: `terraform destroy`, `kubectl delete` -> `ASK` com 2 alertas em HOMOLOGAÇÃO; `DENY` em PRODUÇÃO.
 
@@ -43,11 +45,11 @@ O harness suporta nativamente dois modos de fluxo de trabalho:
 Toda tarefa de engenharia deve seguir rigorosamente as 7 etapas:
 
 - **C — Concrete Goal**: Definir objetivo claro, ambiente identificado (`DEV`/`HML`/`PRD`), critérios de aceitação objetivos, arquivos envolvidos, restrições e condição de parada.
-- **L — Load Context**: *Inspect before edit*. Identificar stack, ambiente, entrypoints, convenções, testes e dependências. Nunca inferir o que o repositório pode responder.
+- **L — Load Context**: *Inspect before edit*. Identificar stack, ambiente, entrypoints, convenções, testes e dependências. Em projetos com esteira de CI, mapear obrigatoriamente os arquivos em `.github/workflows/` para identificar o comando canônico de qualidade. Nunca inferir o que o repositório pode responder.
 - **E — Explicit Boundaries**: Delimitar escopo rígido e blast radius mínimo. O que está dentro e o que está fora. Não fazer refatorações oportunistas não solicitadas.
 - **A — Anchors and Examples**: Usar como fonte da verdade o código existente, testes reais, schemas, tipos e convenções. Evidência concreta sempre prevalece sobre suposição.
 - **R — Response Contract**: Toda execução relevante deve produzir um contrato de saída auditável (Resultado, Ambiente, Alterações, Evidências, Testes, Validação, Pendências, Confiança).
-- **E — Enable Evidence and Tools**: Observação direta sobre suposição. Usar ferramentas para ler, executar linters, rodar testes e verificar o Git. Proibido afirmar "corrigido", "testado" ou "sem regressão" sem comando e resultado registrado.
+- **E — Enable Evidence and Tools**: Observação direta sobre suposição. Usar ferramentas para ler, executar linters, rodar testes e verificar o Git. Proibido afirmar "corrigido", "testado" ou "sem regressão" sem comando e resultado registrado. A execução da suíte canônica de CI é pré-requisito físico inegociável para qualquer submissão de código via Git push.
 - **R — Review and Validate**: Escrever código não encerra a tarefa. Executar o ciclo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → VALIDATE → REPORT`.
 
 ---
