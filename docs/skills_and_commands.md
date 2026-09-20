@@ -17,6 +17,7 @@ O CEH expõe 10 skills principais no Antigravity, cada uma projetada para um pad
 ## 2. `/clearer-feature` (Desenvolvimento de Features)
 - **Quando usar**: Implementação de novas funcionalidades ou melhorias de produto.
 - **Fluxo**: `INSPECT → REQUIREMENTS → IMPACT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT`.
+- **Governança de CI**: No Passo 6 (Testes), identifica e executa a suíte canônica integral da esteira de CI (`.github/workflows` ou `.gitlab-ci.yml`), gerando o Certificado de Voo obrigatório antes do handoff.
 - **Exemplo**:
   ```text
   /clearer-feature "Implementar endpoint POST /api/v1/payments/pix com geração de payload copia-e-cola e QRCode"
@@ -52,7 +53,7 @@ O CEH expõe 10 skills principais no Antigravity, cada uma projetada para um pad
 
 ## 5. `/clearer-review` (Revisão Adversarial de Diff)
 - **Quando usar**: Inspeção de alterações antes de abrir um PR ou comitar código.
-- **Comportamento**: Inspeciona `git diff`, executa `scripts/diff-audit.sh` e lista achados classificados em `BLOCKER`, `HIGH`, `MEDIUM`, `LOW`, `INFO`.
+- **Comportamento**: Inspeciona `git diff`, executa `scripts/diff-audit.sh`, avalia 7 verificações atômicas (System One), audita riscos de **"Testes Congeladores"** (`assertCount` cego em lookups) e lista achados classificados em `BLOCKER`, `HIGH`, `MEDIUM`, `LOW`, `INFO`.
 - **Exemplo**:
   ```text
   /clearer-review

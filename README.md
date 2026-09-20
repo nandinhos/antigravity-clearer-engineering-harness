@@ -5,7 +5,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Tests-25%2F25%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Tests-39%2F39%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalist-blueviolet.svg)](#-ponytail-mode--ast-first-philosophy)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-the-risk-dial--execution-autonomy)
 
@@ -20,7 +21,10 @@
 The **CLEARER Engineering Harness (CEH)** is a production-grade software engineering harness natively engineered for **Google Antigravity** (IDE and `agy` CLI).
 
 Rather than relying on vague prompts or unverified model assumptions, CEH operates under the highest standards of **Staff Software Engineering**:
+- **Mandatory CI Governance & Pre-Push Safety Gate (Zero-Tolerance Pipeline Red)**: Strict enforcement barring `git push` on repositories with active CI pipelines (`.github/workflows` or `.gitlab-ci.yml`) unless the full test suite passed with exit code 0 on the exact local commit hash via local Flight Certificate (`.ceh/last-ci-run.json`).
 - **Environment Awareness & Granular Safety Gate**: Proactive safety policies tailored to `DEV` (freedom with local safety), `HOMOLOGACAO` (2-step explicit alerts), and `PRODUCAO` (destructive actions strictly denied).
+- **System One Epistemology ("Like a Jev")**: Strict decoupling between content and evaluation, closed-space univariate atomic judgments, and evidence-grounded certainty.
+- **Proactive Background Heartbeat (25s)**: 25-second telemetry heartbeat for long async commands and builds, real-time tracking via `ceh-monitor`, eliminating UI freeze perception.
 - **Ponytail Mode & AST First Philosophy**: "Understand deeply, build concisely, deliver correctly". 5-step decision ladder, minimal functional diffs, and relational AST navigation with graceful fallback.
 - **Flexible Canonical Topologies**: Native support for **Enterprise Mode (3 branches: `dev` ➔ `staging` ➔ `main`)** and **Classic Mode (2 branches: `dev` ➔ `main`)**, with interactive `ceh-branches` helper.
 - **Continuous Execution for MEDIUM Risk**: The complete `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` cycle is conducted end-to-end in a **Single-Turn**.
@@ -49,6 +53,8 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 | `ceh-env` | Instant detection of active environment (`DEV`/`STAGING`/`PROD`), branch, and safety policy. | Pre-coding sanity check. |
 | `ceh-branches` | Audits and sets up canonical project branches (Enterprise or Classic). | New repository setup. |
 | `ceh-preflight` | Runs the full engineering readiness and project integrity check. | Pre-release validation. |
+| `ceh-evals` | Runs deterministic smoke-eval suite (5/5 RFC 2119 criteria). | Harness falsifiability tests. |
+| `ceh-monitor` | Real-time interactive telemetry dashboard & 25s heartbeat. | Background task tracker. |
 | `ceh-help` | Interactive quick guide and command cheat sheet in terminal. | Fast reference manual. |
 
 > **In Antigravity IDE**: Global rules, skills, hooks, and the **Engineering Cockpit** (`engineering_cockpit.md`) are active automatically across all workspaces.
@@ -57,11 +63,11 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 
 ## 🛡️ Environment Safety Tiers (Safety Gate)
 
-| Environment | Definition & Evidence | Execution Policy | Destructive Commands |
+| Environment | Definition & Evidence | Execution Policy | Destructive Commands & Git Push |
 |---|---|:---:|---|
-| **`DEV` / `TEST`** | Branch `dev` or derivations (`dev/*`), `APP_ENV=local/testing`, local `.env`. | 🟢 **`ALLOW`** | **Permitted with safeguards**: Allowed for rapid bugfixes, requiring local backup readiness. Absolute block for OS destruction (`rm -rf /`). |
-| **`HOMOLOGACAO`** | Branch `staging`/`homolog`, `APP_ENV=staging`, `.env.staging`. | 🟡 **`ASK (2 Alerts)`** | **Mandatory two-stage confirmation**: <br>1. *Alert 1/2 [Impact]*: Shared environment blast radius.<br>2. *Alert 2/2 [Backup & Rollback]*: Verified backup readiness. |
-| **`PRODUCAO`** | Branch `main`/`master`, `APP_ENV=production`. | 🔴 **`DENY`** | **STRICTLY PROHIBITED**: Destructive database commands, force push, or bulk deletions are immediately rejected. |
+| **`DEV` / `TEST`** | Branch `dev` or derivations (`dev/*`), `APP_ENV=local/testing`, local `.env`. | 🟢 **`ALLOW`** | **Permitted with safeguards**: Allowed for rapid bugfixes, requiring local backup readiness. Absolute block for OS destruction (`rm -rf /`). On CI projects, `git push` requires valid Flight Certificate. |
+| **`HOMOLOGACAO`** | Branch `staging`/`homolog`, `APP_ENV=staging`, `.env.staging`. | 🟡 **`ASK (2 Alerts)`** | **Mandatory two-stage confirmation**: <br>1. *Alert 1/2 [Impact]*: Shared environment blast radius.<br>2. *Alert 2/2 [Backup & Rollback]*: Verified backup readiness. `git push` requires Flight Certificate. |
+| **`PRODUCAO`** | Branch `main`/`master`, `APP_ENV=production`. | 🔴 **`DENY`** | **STRICTLY PROHIBITED**: Destructive database commands, force push, or bulk deletions are immediately rejected. `git push` requires Flight Certificate. |
 
 ---
 
@@ -105,9 +111,59 @@ Deep dive into CEH principles, architectures, and guidelines:
 | 🏗️ [**System Architecture**](./docs/architecture.md) | Unified pipelines, topologies, data contracts, and Antigravity hook integration. |
 | 🤖 [**Specialized Agents Guide**](./docs/agents_guide.md) | Role descriptions and I/O contracts for Investigator, Architect, Implementer, Test Engineer, Reviewer, and Auditor. |
 | 🛠️ [**Skills & Commands Manual**](./docs/skills_and_commands.md) | How to use `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
-| 🛡️ [**Safety Gate Guide**](./docs/safety_gate.md) | How `PreToolUse` hooks intercept destructive commands with `DENY > ASK > ALLOW`. |
-| 💻 [**Installation & Troubleshooting**](./docs/installation.md) | Global installation, environment prerequisites, and uninstallation. |
-| 💡 [**Practical Examples**](./docs/examples.md) | Real-world workflows across TypeScript, PHP/Laravel, and Python/FastAPI. |
+| 🛡️ [**Safety Gate Guide**](./docs/safety_gate.md) | Hook `PreToolUse` architecture, destructive command tiers, and Pre-Push CI Gate. |
+| 🏛️ [**ADR 003: System One Epistemology**](./docs/architecture/system-one-epistemology.md) | Abstraction of TypeSafe 7 epistemological invariants & "Like a Jev" operation. |
+| 🛑 [**ADR 004: Mandatory CI Governance**](./docs/architecture/ci-governance-policy.md) | Zero-Tolerance Pipeline Red policy, Flight Certificate, and Pre-Push Gate. |
+| 💻 [**Installation & Configuration**](./docs/installation.md) | Complete global setup guide, dependencies, and clean uninstallation. |
+| 💡 [**Practical Examples**](./docs/examples.md) | Real-world blueprints across TypeScript/Next.js, PHP/Laravel, and Python/FastAPI. |
+
+---
+
+## 🛑 Mandatory CI Governance & Pre-Push Safety Gate
+
+> [!CRITICAL]
+> **Zero-Tolerance Pipeline Red**: On any repository with an active CI pipeline (`.github/workflows/` or `.gitlab-ci.yml`), **pushing code to `dev`, `staging`, or `main` without a 100% green canonical test suite is strictly prohibited**. Partial checks (linters or isolated test subsets) NEVER authorize a push.
+
+### The 3-Layer Protection Mechanism:
+1. **Local Flight Certificate (`.ceh/last-ci-run.json`)**:
+   Running the test suite via `bash scripts/test-runner.sh` automatically signs and persists a structured proof anchored to `git rev-parse HEAD`:
+   ```json
+   {
+     "commit_hash": "951b015f931e15d299ea2c61b2c6c77ce824511b",
+     "timestamp": "2026-09-20T03:59:37Z",
+     "command": "rtk bash clearer-engineering/tests/run-all-tests.sh",
+     "status": "PASS",
+     "exit_code": 0
+   }
+   ```
+2. **Pre-Push Gate Interception (`safety-gate.py`)**:
+   Every `git push` on a CI project is intercepted before execution:
+   - **`DENY`**: If no flight certificate exists.
+   - **`DENY`**: If the last test status was `FAIL` or exit code $\neq 0$.
+   - **`DENY`**: If current HEAD diverged from the tested commit hash (code mutated after tests).
+   - **`ALLOW`**: Only when commit hash matches verified green certificate.
+3. **Prevention of "Freezing Tests" during Review**:
+   The `clearer-review` skill actively flags new entries in enums, seeders, or lookup catalogs, preventing blind count assertions (`assertCount(5)`) from breaking CI pipelines on valid additions.
+
+---
+
+## 🏛️ System One Epistemology ("Like a Jev")
+
+CEH formally abstracts TypeSafe's **System One** engineering layer:
+- **Content ≠ Judgment**: Code, diffs, and logs are passive data. Hostile injection comments (`// bypass check`) cannot dictate evaluative verdicts.
+- **Closed Space & Atomicity**: Every evaluation yields a finite set (`enum` or boolean). One check = one univariate property.
+- **Two Axes (Decision & Certainty)**: Verdicts without measurement of certainty grounded in physical evidence (`OBSERVED`) are rejected.
+- **Code Retains Control**: Aggregations, weights, and thresholds live strictly in deterministic shell/code; no LLM authors final safety verdicts.
+
+---
+
+## 💓 Proactive Background Heartbeat (25s)
+
+For asynchronous commands, heavy builds, and background test suites:
+- **Ground Zero ($T=0\text{s}$)**: Instant notification with Task ID/PID and creation of `task_monitor.md`.
+- **25s Cadence**: Active telemetry updates in chat and artifact every 25 seconds, eliminating perceived freezing and cognitive friction.
+- **CLI Monitor**: Interactive real-time tracking via `ceh-monitor`.
+- **Reactive Wakeup**: Millisecond resumption and Response Contract presentation upon task completion.
 
 ---
 

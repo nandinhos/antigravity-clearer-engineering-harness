@@ -22,15 +22,22 @@ Antes de avaliar qualquer comando destrutivo, o Safety Gate determina o ambiente
 | Caso de Uso | Exemplos de Comandos | Desenvolvimento (`DEV`) | Homologação (`STAGING`) | Produção (`PRODUÇÃO`) |
 |---|---|---|---|---|
 | **1. Banco de Dados / Migrações** | `migrate:fresh`, `db:wipe`, `DROP DATABASE`, `DROP TABLE`, `TRUNCATE`, `DELETE` sem `WHERE` | **ALLOW** (com aviso de backup/rollback local) | **ASK** (2 Alertas: Impacto HML + Backup/Rollback obrigatórios) | **DENY** (Fora de cogitação) |
-| **2. Controle de Versão (Git)** | `git reset --hard`, `git clean -fdx`, `git push --force`, `git branch -D` | **ALLOW** (descarte local liberado para correções/spikes) | **ASK** (2 Alertas: Impacto branch compartilhada + backup de branch) | **DENY** (Bloqueio em branches protegidas: `main`, `prod`) |
-| **3. Sistema de Arquivos (Filesystem)** | `rm -rf <dir>`, remoção em massa | **ALLOW** (para pastas do workspace, build, cache, scratch) | **ASK** (2 Alertas: impacto storage compartilhado) | **DENY** (Proibido apagar diretórios fora de temp/logs) |
-| **4. Infraestrutura & Nuvem** | `terraform destroy`, `kubectl delete ns`, `docker system prune -a` | **ALLOW** (para containers/volumes locais dev) | **ASK** (2 Alertas: impacto de infraestrutura compartilhada) | **DENY** (Fora de cogitação) |
-| **5. Execução Segura (Build/Test)** | `npm test`, `pest`, `phpunit`, `npm run build`, `git status` | **ALLOW** | **ALLOW** | **ALLOW** |
-| **6. Catastrófico de Sistema Operacional** | `rm -rf /`, `rm -rf ~`, `mkfs`, fork bombs, `gcloud projects delete` | **DENY** | **DENY** | **DENY** |
+| **2. Controle de Versão (Git Destrutivo)** | `git reset --hard`, `git clean -fdx`, `git push --force`, `git branch -D` | **ALLOW** (descarte local liberado para correções/spikes) | **ASK** (2 Alertas: Impacto branch compartilhada + backup de branch) | **DENY** (Bloqueio em branches protegidas: `main`, `prod`) |
+| **3. Governança de CI (Pre-Push Gate)** | `git push` (em projetos com `.github/workflows/` ou `.gitlab-ci.yml`) | **ALLOW com Certificado de Voo** (`.ceh/last-ci-run.json` válido no HEAD). **DENY** se não testado ou desatualizado. | **ALLOW com Certificado de Voo**. **DENY** se não testado ou desatualizado. | **ALLOW com Certificado de Voo**. **DENY** se não testado ou desatualizado. |
+| **4. Sistema de Arquivos (Filesystem)** | `rm -rf <dir>`, remoção em massa | **ALLOW** (para pastas do workspace, build, cache, scratch) | **ASK** (2 Alertas: impacto storage compartilhado) | **DENY** (Proibido apagar diretórios fora de temp/logs) |
+| **5. Infraestrutura & Nuvem** | `terraform destroy`, `kubectl delete ns`, `docker system prune -a` | **ALLOW** (para containers/volumes locais dev) | **ASK** (2 Alertas: impacto de infraestrutura compartilhada) | **DENY** (Fora de cogitação) |
+| **6. Execução Segura (Build/Test)** | `npm test`, `pest`, `phpunit`, `npm run build`, `git status` | **ALLOW** | **ALLOW** | **ALLOW** |
+| **7. Catastrófico de Sistema Operacional** | `rm -rf /`, `rm -rf ~`, `mkfs`, fork bombs, `gcloud projects delete` | **DENY** | **DENY** | **DENY** |
 
 ---
 
 ## 3. Comportamento Detalhado por Nível de Ambiente
+
+### Pre-Push CI Safety Gate (Tolerância Zero a Pipeline Vermelho)
+Em qualquer projeto onde for detectada infraestrutura de integração contínua:
+- O agente **NUNCA** pode executar `git push` com base apenas em testes parciais, linters ou checagens isoladas.
+- O Safety Gate valida fisicamente se `.ceh/last-ci-run.json` existe, se possui `status: "PASS"`, `exit_code: 0` e se o `commit_hash` registrado é rigorosamente idêntico ao commit hash atual do repositório (`git rev-parse HEAD`).
+- Se houver divergência ou falha, o gate bloqueia imediatamente com **`DENY`** e instrui a execução da suíte canônica de testes via `bash scripts/test-runner.sh`.
 
 ### A. Desenvolvimento & Teste (`DEV` / `TEST` / `LOCAL`)
 - **Regra**: Destrutivos de desenvolvimento são **PERMITIDOS (`ALLOW`)**.

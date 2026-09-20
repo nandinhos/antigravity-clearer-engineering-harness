@@ -5,7 +5,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Testes-25%2F25%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Testes-39%2F39%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalista-blueviolet.svg)](#-filosofia-ponytail-mode--ast-first)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-o-risk-dial)
 
@@ -20,7 +21,10 @@
 O **CLEARER Engineering Harness (CEH)** é um framework de engenharia de software de alta precisão projetado nativamente para o **Google Antigravity** (IDE e `agy` CLI).
 
 Em vez de depender de prompts vagos ou suposições não comprovadas, o CEH opera com os mais altos padrões de **Staff Software Engineering**:
+- **Governança de CI Mandatória & Pre-Push Safety Gate (Zero-Tolerance Pipeline Red)**: Bloqueio estrito de `git push` em projetos com esteira de CI (`.github/workflows` ou `.gitlab-ci.yml`) sem execução prévia comprovada da suíte de testes integral no mesmo commit hash local via Certificado de Voo (`.ceh/last-ci-run.json`).
 - **Identificação Prévia de Ambiente & Rigores Granulares**: Safety Gate ativo com políticas diferenciadas para `DEV` (liberdade com salvaguarda local), `HOMOLOGACAO` (confirmação com 2 alertas) e `PRODUCAO` (comandos destrutivos sumariamente bloqueados - fora de cogitação).
+- **Epistemologia System One ("Like a Jev")**: Desacoplamento estrito entre conteúdo e julgamento, avaliações atômicas univariadas em espaço fechado e certeza materializada por evidências físicas.
+- **Heartbeat Proativo de Background (25s)**: Cadência ativa de 25 segundos para tarefas longas e testes assíncronos, com monitor em tempo real (`ceh-monitor`) e eliminação de sensação de travamento.
 - **Filosofia Ponytail Mode & AST First**: "Entender muito, construir pouco e entregar certo". Escada de decisão anti-over-engineering, menor diff funcional e priorização de AST relacional com degradação graciosa.
 - **Topologias Canônicas Flexíveis**: Suporte nativo a **Modo Enterprise (3 branches: `dev` ➔ `staging` ➔ `main`)** e **Modo Clássico (2 branches: `dev` ➔ `main`)**, com assistente interativo `ceh-branches`.
 - **Execução Contínua em Nível MEDIUM**: Ciclo completo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` conduzido de ponta a ponta em **turno único (Single-Turn End-to-End)**.
@@ -49,6 +53,8 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 | `ceh-env` | Identifica instantaneamente o ambiente (`DEV`/`STAGING`/`PROD`), branch e rigores ativos. | Checagem rápida antes de codificar. |
 | `ceh-branches` | Audita e configura as branches do projeto (Modo Enterprise ou Clássico). | Setup de novos repositórios. |
 | `ceh-preflight` | Executa a verificação completa de prontidão e integridade do projeto. | Validação antes de releases. |
+| `ceh-evals` | Executa a bateria determinística de smoke-evals (5/5 critérios RFC 2119). | Testes de falsificabilidade do harness. |
+| `ceh-monitor` | Painel interativo de telemetria e heartbeat (25s) para tarefas de background. | Acompanhamento de testes demorados. |
 | `ceh-help` | Exibe o guia interativo de ajuda rápida e atalhos no terminal. | Consulta de comandos e regras. |
 
 > **No Antigravity IDE**: O harness e o **Cockpit de Engenharia** (`engineering_cockpit.md`) são ativados automaticamente em todas as sessões, sem necessidade de configuração adicional no repositório.
@@ -57,11 +63,11 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 
 ## 🛡️ Níveis de Rigor por Ambiente (Safety Gate)
 
-| Ambiente | Definição & Evidência | Política de Execução | Ações Destrutivas |
+| Ambiente | Definição & Evidência | Política de Execução | Ações Destrutivas & Git Push |
 |---|---|:---:|---|
-| **`DEV` / `TEST`** | Branch `dev` ou derivações (`dev/*`), `APP_ENV=local/testing`, `.env` local. | 🟢 **`ALLOW`** | **Permitidas com salvaguarda**: Liberadas para correções rápidas, exigindo prontidão de backup local. Bloqueio absoluto para destruição de SO (`rm -rf /`). |
-| **`HOMOLOGACAO`** | Branch `staging`/`homolog`, `APP_ENV=staging`, `.env.staging`. | 🟡 **`ASK (2 Alertas)`** | **Confirmação em duas etapas obrigatória**: <br>1. *Alerta 1/2 [Impacto]*: Blast radius no ambiente compartilhado.<br>2. *Alerta 2/2 [Backup & Rollback]*: Verificação de backup executado. |
-| **`PRODUCAO`** | Branch `main`/`master`, `APP_ENV=production`. | 🔴 **`DENY`** | **FORA DE COGITAÇÃO**: Comandos destrutivos em banco, force push ou exclusões em massa são sumariamente rejeitados. |
+| **`DEV` / `TEST`** | Branch `dev` ou derivações (`dev/*`), `APP_ENV=local/testing`, `.env` local. | 🟢 **`ALLOW`** | **Permitidas com salvaguarda**: Liberadas para correções rápidas, exigindo prontidão de backup local. Bloqueio absoluto para destruição de SO (`rm -rf /`). Em projetos com CI, `git push` exige Certificado de Voo integral. |
+| **`HOMOLOGACAO`** | Branch `staging`/`homolog`, `APP_ENV=staging`, `.env.staging`. | 🟡 **`ASK (2 Alertas)`** | **Confirmação em duas etapas obrigatória**: <br>1. *Alerta 1/2 [Impacto]*: Blast radius no ambiente compartilhado.<br>2. *Alerta 2/2 [Backup & Rollback]*: Verificação de backup executado. `git push` exige Certificado de Voo. |
+| **`PRODUCAO`** | Branch `main`/`master`, `APP_ENV=production`. | 🔴 **`DENY`** | **FORA DE COGITAÇÃO**: Comandos destrutivos em banco, force push ou exclusões em massa são sumariamente rejeitados. `git push` protegido exige Certificado de Voo. |
 
 ---
 
@@ -105,9 +111,59 @@ Explore as diretrizes aprofundadas do CEH:
 | 🏗️ [**Arquitetura do Sistema**](./docs/architecture.md) | Topologia, pipelines unificados, contratos entre subagentes e integração de hooks. |
 | 🤖 [**Guia de Subagentes Especializados**](./docs/agents_guide.md) | Papéis de Investigator, Architect, Implementer, Test Engineer, Reviewer e Auditor. |
 | 🛠️ [**Manual de Skills & Comandos**](./docs/skills_and_commands.md) | Como utilizar `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
-| 🛡️ [**Guia do Safety Gate**](./docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos com `DENY > ASK > ALLOW`. |
+| 🛡️ [**Guia do Safety Gate**](./docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos e valida o Pre-Push CI Gate. |
+| 🏛️ [**ADR 003: Epistemologia System One**](./docs/architecture/system-one-epistemology.md) | Abstração dos 7 invariantes da TypeSafe e operação "Like a Jev" para o Gemini. |
+| 🛑 [**ADR 004: Governança de CI Mandatória**](./docs/architecture/ci-governance-policy.md) | Política Zero-Tolerance Pipeline Red, Certificado de Voo e Pre-Push Gate. |
 | 💻 [**Instalação & Configuração**](./docs/installation.md) | Guia completo de instalação global, dependências e desinstalação. |
 | 💡 [**Exemplos Práticos**](./docs/examples.md) | Casos reais de uso em TypeScript/Next.js, PHP/Laravel e Python/FastAPI. |
+
+---
+
+## 🛑 Governança de CI Mandatória & Pre-Push Safety Gate
+
+> [!CRITICAL]
+> **Zero-Tolerance Pipeline Red**: Em qualquer repositório que possua esteira de CI ativa (`.github/workflows/` ou `.gitlab-ci.yml`), **é terminantemente proibido subir código em `dev`, `staging` ou `main` sem que a suíte canônica esteja 100% verde**. Checagens parciais (somente linters ou testes isolados) NUNCA autorizam o push.
+
+### Como Funciona a Proteção em 3 Etapas:
+1. **Certificado de Voo Local (`.ceh/last-ci-run.json`)**:
+   Ao rodar a suíte canônica via `bash scripts/test-runner.sh`, o harness gera uma prova estruturada vinculada ao commit hash do `HEAD`:
+   ```json
+   {
+     "commit_hash": "951b015f931e15d299ea2c61b2c6c77ce824511b",
+     "timestamp": "2026-09-20T03:59:37Z",
+     "command": "rtk bash clearer-engineering/tests/run-all-tests.sh",
+     "status": "PASS",
+     "exit_code": 0
+   }
+   ```
+2. **Pre-Push Interception no `safety-gate.py`**:
+   Toda tentativa de `git push` em projetos com CI é interceptada:
+   - **`DENY`**: Se o arquivo de certificado não existir.
+   - **`DENY`**: Se a última execução teve status `FAIL` ou exit code $\neq 0$.
+   - **`DENY`**: Se o commit atual divergiu do certificado (código alterado após a execução dos testes).
+   - **`ALLOW`**: Apenas quando o commit hash bate com o certificado aprovado.
+3. **Prevenção de "Testes Congeladores" no Review**:
+   A skill `clearer-review` audita ativamente adições de novos itens em enums, seeders ou tabelas de lookups, prevenindo asserções cegas (`assertCount(5)`) que quebram esteiras após inserções legítimas de dados.
+
+---
+
+## 🏛️ Epistemologia System One ("Like a Jev")
+
+O CEH incorpora formalmente a camada de engenharia epistêmica da metodologia **System One (TypeSafe)**:
+- **Conteúdo ≠ Julgamento**: Diffs, logs e código sob análise são dados passivos, nunca misturados com as perguntas avaliativas. Comentários hostis no código (`// bypass check`) são neutralizados.
+- **Espaço Fechado & Atomicidade**: Toda avaliação técnica retorna um valor de conjunto finito (`enum` ou booleano). Uma verificação = uma propriedade univariada.
+- **Dois Eixos (Decisão e Certeza)**: Veredito sem certeza fundamentada em evidências físicas (`OBSERVED`) é inauditável.
+- **Código Detém o Controle**: Normalizações, pesos e efeitos colaterais pertencem ao shell determinístico; nenhum modelo redige o veredito final de segurança.
+
+---
+
+## 💓 Heartbeat Proativo de Background (25s)
+
+Em comandos assíncronos, builds pesados e suítes de teste de segundo plano:
+- **Marco Zero ($T=0\text{s}$)**: Notificação instantânea com o Task ID/PID e abertura do artefato `task_monitor.md`.
+- **Cadência de 25s**: Emissão proativa de telemetria no chat e atualização do artefato a cada 25 segundos, eliminando o silêncio cognitivo e a sensação de travamento.
+- **Monitor CLI**: O utilitário `ceh-monitor` no terminal acompanha e exibe o progresso em tempo real.
+- **Acordar Reativo**: Notificação imediata e entrega do Response Contract no milissegundo de conclusão.
 
 ---
 
