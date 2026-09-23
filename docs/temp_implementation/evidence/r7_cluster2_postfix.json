@@ -1,0 +1,13 @@
+{
+  "achado": "R7 - erro de sintaxe ou mutação vazia contava como captura de deriva",
+  "regressoes": [
+    "sintaxe inválida gerada pelo sed resulta em INFRA-FAIL e eval não aprovado",
+    "sed sem alteração resulta em INFRA-FAIL e eval não aprovado",
+    "mutação válida exige diff, py_compile, controle original deny/production/exit 2 e mutante allow/development/exit 0"
+  ],
+  "execucoes_observadas": {
+    "comando": "python3 clearer-engineering/tests/cluster2_acceptance.py",
+    "resultado": "3 testes aprovados, incluindo R7",
+    "smoke_em_fixture_git_limpa": "5/5 PASS, exit 0"
+  }
+}

@@ -134,7 +134,7 @@ run_test "Test Runner: Success scenario returns exit code 0" \
     "bash '$PLUGIN_DIR/scripts/test-runner.sh' 'true' | grep 'STATUS:    PASS' >/dev/null"
 
 run_test "Test Runner: Failing test correctly reports FAIL without masking" \
-    "bash '$PLUGIN_DIR/scripts/test-runner.sh' 'false' | grep 'STATUS:    FAIL' >/dev/null"
+    "RUNNER_OUTPUT=\$(bash '$PLUGIN_DIR/scripts/test-runner.sh' 'false' 2>&1); RUNNER_EXIT=\$?; [[ \$RUNNER_EXIT -ne 0 && \"\$RUNNER_OUTPUT\" == *'STATUS:    FAIL'* ]]"
 
 run_test "Test Runner: Runtime Adapter gracefully handles stopped containers on native host" \
     "TMP=\$(mktemp -d); touch \"\$TMP/docker-compose.yml\"; (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep -q 'Executando diretamente no Host Nativo'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
@@ -183,11 +183,15 @@ run_test "Shell alias 'ceh-evals' configured in shell rc" \
 
 # 8. Deterministic Smoke-Eval Suite
 run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
-    "if [ -f '$PLUGIN_DIR/../evals/run.sh' ]; then bash '$PLUGIN_DIR/../evals/run.sh' >/dev/null; elif [ -f '$PLUGIN_DIR/evals/run.sh' ]; then bash '$PLUGIN_DIR/evals/run.sh' >/dev/null; else false; fi"
+    "python3 '$PLUGIN_DIR/tests/cluster2_acceptance.py' --clean-eval-smoke >/dev/null"
 
 # 9. Cluster 1 Acceptance Suite (R1, R2, R5) and CI contract tests (T1-T6)
 run_test "Cluster 1 Acceptance: R1, R2, R5 e contratos T1-T6 (38 cenários)" \
     "python3 '$PLUGIN_DIR/tests/cluster1_acceptance.py' >/dev/null"
+
+# 10. Cluster 2 Contract Tests (R6-R8)
+run_test "Cluster 2 Acceptance: contratos R6-R8" \
+    "python3 '$PLUGIN_DIR/tests/cluster2_acceptance.py' >/dev/null"
 
 echo ""
 echo "============================================================"

@@ -1,0 +1,15 @@
+{
+  "achado": "R6 - pipeline ocultava falha do test-runner",
+  "pre_fix_observed": {
+    "runner_exit": 1,
+    "grep_exit": 0,
+    "resultado_run_test": "PASS"
+  },
+  "pos_fix": {
+    "regressao": "test_r6_run_test_checks_exit_and_failure_text",
+    "controle_runner_real": "PASS",
+    "mutante_imprime_FAIL_com_exit_zero": "rejeitado",
+    "comando_suite": "bash clearer-engineering/tests/run-all-tests.sh",
+    "resultado_suite": "43/43 PASS"
+  }
+}

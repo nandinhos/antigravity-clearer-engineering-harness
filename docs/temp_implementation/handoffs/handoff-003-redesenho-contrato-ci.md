@@ -152,3 +152,15 @@ Os testes T1–T5 foram escritos antes da correção (RED); T6 foi adicionado co
 - usar links `file:///`.
 
 Um bypass novo passa primeiro pela regra de parada da seção 3.1.
+
+> **Atualização de escopo:** a proibição de tocar no Cluster 2 acima foi supersedida pela autorização posterior do owner para executar o plano R6–R8. Essa autorização não abrange R3, R4, R9, R10, commit ou push.
+
+## 11. Continuação autorizada — Cluster 2 (R6–R8)
+
+Em 2026-09-23, o owner autorizou a execução do plano completo do Cluster 2. As alterações locais são limitadas ao contrato do teste de falha em `run-all-tests.sh`, à mutação/limpeza de baseline em `evals/run.sh`, à suíte `tests/cluster2_acceptance.py`, à integração Teste 43 e aos artefatos de evidência/documentação associados.
+
+- **R6:** o teste só passa quando `test-runner.sh 'false'` retorna não-zero e emite o marcador `STATUS: FAIL`; a regressão também prova que um runner mutante que imprime o marcador e sai zero é rejeitado.
+- **R7:** Deriva B exige mutação efetiva (`cmp`), sintaxe Python válida (`py_compile`), controle original `deny/production/exit 2` e resultado mutante `allow/development/exit 0`. Mutação sem alteração e sintaxe inválida são `INFRA-FAIL`, nunca evidência positiva.
+- **R8:** `evals/run.sh` recusa antes do Critério 1 qualquer baseline Git com alteração rastreada ou arquivo untracked. O caso limpo roda em fixture Git temporária.
+- **Evidência:** `cluster2_acceptance.py` cobre os três contratos; Teste 43 a executa na suíte geral. Os detalhes pós-correção estão nos artefatos `r6_cluster2_postfix.json`, `r7_cluster2_postfix.json` e `r8_cluster2_postfix.json`.
+- **Limite da autorização:** sem commit, sem push e sem alteração de R3, R4, R9 ou R10. O smoke-eval direto no checkout de trabalho sujo falha por desenho; a aprovação 5/5 é observada em fixture limpa.

@@ -1,0 +1,15 @@
+{
+  "achado": "R8 - eval podia aprovar com baseline Git previamente suja",
+  "regressoes": {
+    "baseline_limpa": "eval conclui 5/5 PASS",
+    "arquivo_rastreado_modificado": "INFRA-FAIL antes do Critério 1, exit não-zero",
+    "arquivo_untracked": "INFRA-FAIL antes do Critério 1, exit não-zero",
+    "status_git": "inalterado pelas tentativas com baseline suja"
+  },
+  "execucao_direta_no_checkout_de_trabalho": {
+    "comando": "bash evals/run.sh",
+    "resultado": "INFRA-FAIL: baseline Git não está limpa",
+    "exit_code": 1,
+    "interpretacao": "esperado; avalia-se em fixture/checkout limpo"
+  }
+}

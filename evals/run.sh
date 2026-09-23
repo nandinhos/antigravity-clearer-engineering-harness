@@ -45,6 +45,13 @@ if [ ! -f "$CRITERIA_FILE" ]; then
     exit 1
 fi
 
+if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if [ -n "$(git -C "$REPO_ROOT" status --porcelain --untracked-files=all)" ]; then
+        log_fail "INFRA-FAIL: baseline Git não está limpa; execute evals/run.sh em um checkout limpo."
+        exit 1
+    fi
+fi
+
 echo "======================================================================"
 echo -e "${COLOR_BOLD}   CLEARER Engineering Harness (CEH) — Smoke-Eval Runner${COLOR_RESET}"
 echo "======================================================================"
@@ -63,6 +70,7 @@ execute_fixture() {
     local command_str="$3"
     local expected_decision="$4"
     local expected_exit="$5"
+    local expected_environment="${6:-}"
 
     if [ ! -f "$target_script" ]; then
         echo "INFRA-FAIL: Script alvo ausente: $target_script"
@@ -76,8 +84,12 @@ execute_fixture() {
 
     local decision
     decision=$(echo "$output" | grep -o '"decision": "[^"]*"' | head -n 1 | cut -d'"' -f4 || true)
+    local actual_environment=""
+    if [ -n "$expected_environment" ]; then
+        actual_environment=$(printf '%s' "$output" | python3 -c 'import json, sys; print(json.load(sys.stdin).get("environment", ""))' 2>/dev/null) || return 1
+    fi
 
-    if [ "$decision" = "$expected_decision" ] && [ "$status" -eq "$expected_exit" ]; then
+    if [ "$decision" = "$expected_decision" ] && [ "$status" -eq "$expected_exit" ] && { [ -z "$expected_environment" ] || [ "$actual_environment" = "$expected_environment" ]; }; then
         return 0
     else
         return 1
@@ -176,19 +188,30 @@ MUTANT_SCRIPT="$MUTANT_TMP_DIR/safety-gate-mutant.py"
 
 # Criar mutação cirúrgica: remover o reconhecimento de 'prod' e 'production' no normalize_env
 # Substitui '["prod", "production", "prd", "live"]' por '["live_only_token"]'
-sed 's/\["prod", "production", "prd", "live"\]/\["live_only_token"\]/g' "$GATE_SCRIPT" > "$MUTANT_SCRIPT"
-
-# A fixture de produção (php artisan migrate:fresh com env=production) deve falhar na checagem
-# pois o mutante não a classifica mais como produção e degrada para development (allow/exit 0)
 DERIVA_B_CAPTURED=false
-if ! execute_fixture "$MUTANT_SCRIPT" "production" "php artisan migrate:fresh" "deny" 2; then
+DERIVA_B_INFRA_OK=true
+if ! sed 's/\["prod", "production", "prd", "live"\]/\["live_only_token"\]/g' "$GATE_SCRIPT" > "$MUTANT_SCRIPT"; then
+    log_fail "INFRA-FAIL: Deriva B não conseguiu gerar a cópia mutante."
+    DERIVA_B_INFRA_OK=false
+elif cmp -s "$GATE_SCRIPT" "$MUTANT_SCRIPT"; then
+    log_fail "INFRA-FAIL: Deriva B não alterou o Safety Gate; mutação vazia."
+    DERIVA_B_INFRA_OK=false
+elif ! python3 -m py_compile "$MUTANT_SCRIPT" >/dev/null 2>&1; then
+    log_fail "INFRA-FAIL: Deriva B gerou Python inválido; mutação não pode contar como captura."
+    DERIVA_B_INFRA_OK=false
+elif ! execute_fixture "$GATE_SCRIPT" "production" "php artisan migrate:fresh" "deny" 2 "production"; then
+    log_fail "INFRA-FAIL: Deriva B falhou no controle de produção do Safety Gate original."
+    DERIVA_B_INFRA_OK=false
+elif execute_fixture "$MUTANT_SCRIPT" "production" "php artisan migrate:fresh" "allow" 0 "development"; then
     DERIVA_B_CAPTURED=true
+else
+    log_fail "Deriva B não produziu a divergência semântica esperada (allow/development/exit 0)."
 fi
 
 # Limpar o mutante temporário
 rm -rf "$MUTANT_TMP_DIR"
 
-if [ "$DERIVA_B_CAPTURED" = true ]; then
+if [ "$DERIVA_B_CAPTURED" = true ] && [ "$DERIVA_B_INFRA_OK" = true ]; then
     log_pass "Critério 3: Deriva B aprovada (Erosão de regra capturada pelo runner sem crash)."
     CRITERIA_PASSED=$((CRITERIA_PASSED + 1))
 else
