@@ -36,6 +36,7 @@ def commit_all(cwd: Path, msg: str) -> None:
     subprocess.run(["git", "commit", "-q", "-m", msg], cwd=cwd, check=True, capture_output=True)
 
 def write_unittest_suite(cwd: Path, passing: bool) -> None:
+    (cwd / ".gitignore").write_text("__pycache__/\n")
     test_dir = cwd / "tests"
     test_dir.mkdir(parents=True, exist_ok=True)
     (test_dir / "__init__.py").write_text("")
