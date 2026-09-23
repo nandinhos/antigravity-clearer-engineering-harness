@@ -1,0 +1,18 @@
+{
+  "achado": "R2 - contrato de canonicidade do certificado de CI",
+  "pre_fix_observed": {
+    "certificado_falsificado": "bypass com echo em G1",
+    "worktree_sujo_certificando": "bypass com HEAD desatualizado em G2",
+    "comando_com_aspas": "JSON inválido gerado pelo heredoc cat em G4",
+    "denylist_interpretador": "não-convergente e complexa"
+  },
+  "pos_fix": {
+    "mecanismo": "Canonicidade estrita por igualdade exata (RAW_TEST_CMD == CANONICAL_CMD) em test-runner.sh",
+    "worktree_limpo": "Runner recusa emitir certificado quando git status acusa modificações no worktree",
+    "config_rastreado": "Exigência de .ceh/config.json rastreado e commitado em HEAD sem alterações no worktree (T6)",
+    "serializacao": "Uso de python3 -c 'import json; json.dump(...)' para gravação segura do certificado",
+    "regressao": "T1 a T6 em cluster1_acceptance.py",
+    "commit": "bb61fe7",
+    "resultado": "10/10 PASS em cenários de canonicidade e certificado"
+  }
+}

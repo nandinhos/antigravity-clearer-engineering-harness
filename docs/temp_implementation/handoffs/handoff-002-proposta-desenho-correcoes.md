@@ -7,7 +7,7 @@
 **Status**: Proposta Aprovada em R1, R2 e R5 (Validada em 58 Cenários de Aceitação)  
 **Autor**: Engenheiro Sênior (CEH)  
 **Destinatário**: Conselho de Seniores / Antigravity Harness  
-**Norma de Governança Integrada:** [`docs/architecture/ci-governance-policy.md`](file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/ci-governance-policy.md)  
+**Norma de Governança Integrada:** [`docs/architecture.md`](../../architecture.md)
 
 ---
 

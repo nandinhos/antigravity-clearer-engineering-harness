@@ -46,7 +46,7 @@ content = pattern.sub('', content)
 
 # 2. Remove legacy header and all known CEH aliases (including orphans)
 content = re.sub(r'# === CLEARER Engineering Harness \(CEH\) ===\n?', '', content)
-for a in ['agy-ceh', 'agy-ceh-yolo', 'ceh', 'ceh-env', 'ceh-branches', 'ceh-preflight', 'ceh-evals', 'ceh-monitor', 'ceh-help']:
+for a in ['agy-ceh', 'agy-ceh-yolo', 'ceh', 'ceh-env', 'ceh-branches', 'ceh-preflight', 'ceh-evals', 'ceh-monitor', 'ceh-doc-audit', 'ceh-help']:
     content = re.sub(rf'alias {a}=.*?\n', '', content)
 
 # 3. Normalize whitespace

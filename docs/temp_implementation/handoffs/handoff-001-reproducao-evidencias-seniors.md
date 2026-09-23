@@ -36,7 +36,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
     {"command": "printf x | rm -rf scratch/cache; php artisan migrate:fresh --env=production", "decision": "allow", "environment": "production", "use_case": "FILESYSTEM_SAFE", "exit_code": 0}
   ]
   ```
-* **Artefato observado**: [`docs/temp_implementation/evidence/r1_compound_commands_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r1_compound_commands_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r1_compound_commands_evidence.json`](../evidence/r1_compound_commands_evidence.json)
 * **Esperado vs observado**: Esperado `deny` com código 2 em produção; observado `allow` com código 0 sob rótulo `FILESYSTEM_SAFE`.
 * **Conclusão e limitações**: `SAFE_DEV_PATTERNS` avalia antes de `USE_CASE_DESTRUCTIVE_PATTERNS` sem decomposição lexical.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -55,7 +55,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Saída observada**:
   * Certificado gerado em `.ceh/last-ci-run.json`: `{"commit_hash": "065b3ba...", "status": "PASS", "exit_code": 0, "command": "true"}`
   * Gate Output: `{"decision": "allow", "reason": "Pre-Push CI Gate validado...", "environment": "development"}`
-* **Artefato observado**: [`docs/temp_implementation/evidence/r2_ci_certificate_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r2_ci_certificate_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r2_ci_certificate_evidence.json`](../evidence/r2_ci_certificate_evidence.json)
 * **Esperado vs observado**: Esperado que `true` não gerasse certificado canônico e o push fosse bloqueado (`deny`); observado `allow`.
 * **Conclusão e limitações**: Qualquer comando que retorne 0 emite certificado indistinguível de uma suíte real de CI.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -74,7 +74,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Saída observada**:
   * Diretórios de plugin e agente foram excluídos com sucesso.
   * 6 aliases permaneceram no `.bashrc`: `ceh-env`, `ceh-branches`, `ceh-preflight`, `ceh-evals`, `ceh-monitor`, `ceh-help`.
-* **Artefato observado**: [`docs/temp_implementation/evidence/r3_uninstall_aliases_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r3_uninstall_aliases_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r3_uninstall_aliases_evidence.json`](../evidence/r3_uninstall_aliases_evidence.json)
 * **Esperado vs observado**: Esperado que nenhum alias do CEH restasse; observado 6 aliases órfãos apontando para paths removidos.
 * **Conclusão e limitações**: O script `uninstall.sh` remove apenas 3 aliases explicitamente e trunca apenas as primeiras 3 linhas do bloco de comentários.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -91,7 +91,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Comando exato**: `git diff HEAD~1..HEAD 2>/dev/null || git diff`
 * **Exit code(s)**: `0`
 * **Saída observada**: A saída contém exclusivamente o diff do commit 2 (`second commit`). Não contém as alterações em `staged.txt` nem em `unstaged.txt`.
-* **Artefato observado**: [`docs/temp_implementation/evidence/r4_review_diff_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r4_review_diff_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r4_review_diff_evidence.json`](../evidence/r4_review_diff_evidence.json)
 * **Esperado vs observado**: Esperado apresentar as modificações pendentes locais que o usuário deseja revisar; observado omissão total da working tree e staging.
 * **Conclusão e limitações**: Como `git diff HEAD~1..HEAD` sempre tem exit code 0 em repositórios com pelo menos 2 commits, o fallback `|| git diff` nunca é executado.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -110,7 +110,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Saída observada**:
   * `git push origin dev` -> `Exit: 2 | Decision: deny`
   * `git -C <dir> push origin dev` -> `Exit: 0 | Decision: allow`
-* **Artefato observado**: [`docs/temp_implementation/evidence/r5_git_c_flag_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r5_git_c_flag_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r5_git_c_flag_evidence.json`](../evidence/r5_git_c_flag_evidence.json)
 * **Esperado vs observado**: Esperado `deny` em ambas as invocações; observado `allow` na presença da flag `-C`.
 * **Conclusão e limitações**: Regex `\bgit\s+push\b` não cobre flags globais entre o binário `git` e o subcomando `push`.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -127,7 +127,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Comando exato**: Subshell Bash capturando `${PIPESTATUS[@]}` e avaliando em `run_test`
 * **Exit code(s)**: Pipeline exit `0` (`PIPESTATUS_RUNNER=1`, `PIPESTATUS_GREP=0`)
 * **Saída observada**: `EVAL_RESULT=PASS`
-* **Artefato observado**: [`docs/temp_implementation/evidence/r6_pipeline_exit_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r6_pipeline_exit_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r6_pipeline_exit_evidence.json`](../evidence/r6_pipeline_exit_evidence.json)
 * **Esperado vs observado**: O teste pretendia verificar que um comando falho produz erro não-zero; a asserção avaliou apenas o exit code do `grep` e emitiu `PASS`.
 * **Conclusão e limitações**: Falta de `set -o pipefail` ou asserção explícita de `${PIPESTATUS[0]}`.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -144,7 +144,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Comando exato**: `bash evals/run.sh`
 * **Exit code(s)**: `0`
 * **Saída observada**: `Critério 3: Deriva B aprovada (Erosão de regra capturada pelo runner sem crash).`
-* **Artefato observado**: [`docs/temp_implementation/evidence/r7_eval_deriva_b_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r7_eval_deriva_b_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r7_eval_deriva_b_evidence.json`](../evidence/r7_eval_deriva_b_evidence.json)
 * **Esperado vs observado**: Esperado reprovação do Critério 3 ou aborto por erro de infraestrutura; observado aprovação do critério como se a degradação semântica tivesse sido capturada.
 * **Conclusão e limitações**: `evals/run.sh` considera qualquer falha da fixture como sucesso da Deriva B, inclusive erros de sintaxe do Python.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -161,7 +161,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Comando exato**: `bash evals/run.sh`
 * **Exit code(s)**: `0`
 * **Saída observada**: `Critério 4: Restauração limpa aprovada (Zero resíduos de eval, suíte 100% verde).`
-* **Artefato observado**: [`docs/temp_implementation/evidence/r8_eval_dirty_repo_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r8_eval_dirty_repo_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r8_eval_dirty_repo_evidence.json`](../evidence/r8_eval_dirty_repo_evidence.json)
 * **Esperado vs observado**: Critério normativo em `evals/CRITERIA.md` exige `git status --porcelain` estritamente vazio; observado aprovação com repositório sujo porque o script compara apenas `INITIAL == FINAL`.
 * **Conclusão e limitações**: Divergência entre o texto normativo do critério e a implementação do teste.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -178,7 +178,7 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Comando exato**: `python3 docs/temp_implementation/scripts/validate_r9.py`
 * **Exit code(s)**: `0`
 * **Saída observada**: Comprovada a presença de chamadas `sed -i '...'` em `install.sh:222,226` e `uninstall.sh:30-33`.
-* **Artefato observado**: [`docs/temp_implementation/evidence/r9_sed_portability_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r9_sed_portability_evidence.json)
+* **Artefato observado**: [`docs/temp_implementation/evidence/r9_sed_portability_evidence.json`](../evidence/r9_sed_portability_evidence.json)
 * **Esperado vs observado**: No Linux/GNU, o comando executa; no BSD sed (macOS), falha com erro de sintaxe por ausência do argumento de extensão vazia `''`.
 * **Conclusão e limitações**: Marcado formalmente como `Inconclusivo` conforme as regras de validação do plano v0.2.0, com recomendação de substituição por helper agnóstico em Python inline.
 * **Revisor que conferiu**: Conselho de Seniores.
@@ -194,8 +194,8 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Pré-condições observadas**: Inspeção de `docs/safety_gate.md`
 * **Comando exato**: `python3 docs/temp_implementation/scripts/validate_r10.py`
 * **Exit code(s)**: `0`
-* **Saída observada**: Linha 61: `[`scripts/safety-gate.py`](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/scripts/safety-gate.py)`
-* **Artefato observado**: [`docs/temp_implementation/evidence/r10_doc_link_evidence.json`](file:///home/nandodev/projects/clearer-engineering-harness/docs/temp_implementation/evidence/r10_doc_link_evidence.json)
+* **Saída observada**: Linha 61: `[`scripts/safety-gate.py`](../../../clearer-engineering/scripts/safety-gate.py)`
+* **Artefato observado**: [`docs/temp_implementation/evidence/r10_doc_link_evidence.json`](../evidence/r10_doc_link_evidence.json)
 * **Esperado vs observado**: Esperado link relativo; observado caminho absoluto contendo `/home/nandodev/...`.
 * **Conclusão e limitações**: Quebra a navegação em qualquer máquina ou clone que não utilize esse path exato.
 * **Revisor que conferiu**: Conselho de Seniores.

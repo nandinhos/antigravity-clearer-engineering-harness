@@ -1,0 +1,15 @@
+{
+  "achado": "R5 - resolução cumulativa de git -C e gate de CI em force push",
+  "pre_fix_observed": {
+    "git_c_cumulativo": "falha na resolução de múltiplos -C e diretórios com espaço",
+    "git_c_subdiretorio": "falha na localização da raiz do repositório",
+    "force_push_bypass": "gate de CI ignorado em push com flag de força (G3)"
+  },
+  "pos_fix": {
+    "mecanismo": "resolve_git_invocation() com resolução cumulativa de -C e find_repo_root() em safety-gate.py",
+    "remocao_isencao_forca": "Gate de CI compulsório em todo push, incluindo -f, --force e +ref em development",
+    "regressao": "R5.1 a R5.8 e T3 em cluster1_acceptance.py",
+    "commit": "bb61fe7",
+    "resultado": "8/8 PASS em cenários de resolução de git -C e force push"
+  }
+}

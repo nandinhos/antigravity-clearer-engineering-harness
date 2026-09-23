@@ -210,6 +210,7 @@ alias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/se
 alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'
 alias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'
 alias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'
+alias ceh-doc-audit='bash ~/.gemini/config/plugins/clearer-engineering/scripts/doc-audit.sh'
 alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
 $END_MARKER"
 

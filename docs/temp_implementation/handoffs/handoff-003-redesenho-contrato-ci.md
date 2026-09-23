@@ -162,5 +162,13 @@ Em 2026-09-23, o owner autorizou a execução do plano completo do Cluster 2. As
 - **R6:** o teste só passa quando `test-runner.sh 'false'` retorna não-zero e emite o marcador `STATUS: FAIL`; a regressão também prova que um runner mutante que imprime o marcador e sai zero é rejeitado.
 - **R7:** Deriva B exige mutação efetiva (`cmp`), sintaxe Python válida (`py_compile`), controle original `deny/production/exit 2` e resultado mutante `allow/development/exit 0`. Mutação sem alteração e sintaxe inválida são `INFRA-FAIL`, nunca evidência positiva.
 - **R8:** `evals/run.sh` recusa antes do Critério 1 qualquer baseline Git com alteração rastreada ou arquivo untracked. O caso limpo roda em fixture Git temporária.
-- **Evidência:** `cluster2_acceptance.py` cobre os três contratos; Teste 43 a executa na suíte geral. Os detalhes pós-correção estão nos artefatos `r6_cluster2_postfix.json`, `r7_cluster2_postfix.json` e `r8_cluster2_postfix.json`.
-- **Limite da autorização:** sem commit, sem push e sem alteração de R3, R4, R9 ou R10. O smoke-eval direto no checkout de trabalho sujo falha por desenho; a aprovação 5/5 é observada em fixture limpa.
+- **Limite da autorização inicial:** sem commit, sem push e sem alteração de R3, R4, R9 ou R10 na fase de prova.
+
+## 12. Consolidação e Commits Autorizados — Clusters 1, 2 e 3
+
+Com a validação técnica de todos os contratos, o owner autorizou sequencialmente a consolidação e os commits locais na branch `fix/cluster1-contrato-ci`:
+
+1. **Cluster 1 (R1, R2, R5):** Consolidado no commit `bb61fe7` (38/38 cenários de aceitação em `cluster1_acceptance.py`).
+2. **Cluster 2 (R6, R7, R8):** Autorizado para commit em 2026-09-23 e consolidado no commit `1c9a0d2` (3/3 em `cluster2_acceptance.py`, suíte geral 43/43 e smoke-eval limpo 5/5).
+3. **Cluster 3 (R3, R4, R9, R10):** Autorizado para execução e commit em 2026-09-23 e consolidado no commit `b7df47d` (3/3 em `cluster3_acceptance.py`, suíte geral 44/44 e smoke-eval limpo 5/5).
+4. **Política Git Push:** Zero `git push` executado para branches remotas, em total conformidade com os safety gates do CEH.

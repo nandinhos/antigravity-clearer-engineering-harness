@@ -56,7 +56,7 @@ class Cluster3Acceptance(unittest.TestCase):
 
             expected_aliases = [
                 "agy-ceh", "agy-ceh-yolo", "ceh", "ceh-env", "ceh-branches",
-                "ceh-preflight", "ceh-evals", "ceh-monitor", "ceh-help"
+                "ceh-preflight", "ceh-evals", "ceh-monitor", "ceh-doc-audit", "ceh-help"
             ]
 
             for rc in (bashrc, zshrc):

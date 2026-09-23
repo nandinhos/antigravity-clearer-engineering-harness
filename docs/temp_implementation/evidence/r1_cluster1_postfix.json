@@ -1,0 +1,17 @@
+{
+  "achado": "R1 - decomposição léxica de comandos compostos",
+  "pre_fix_observed": {
+    "operador_e_comercial_isolado": "bypass",
+    "quote_removal_ofuscacao": "bypass com ph''p",
+    "subshells_e_ansi_c": "bypass",
+    "precedencia_operadores": "inconsistente"
+  },
+  "pos_fix": {
+    "mecanismo": "Lexer FSM caractere a caractere com quote removal e normalização em safety-gate.py",
+    "fail_closed": "ANSI-C quoting ($'...'), $(), backticks e subshells bloqueados como PARSER_FAIL_CLOSED",
+    "precedencia": "DENY > ASK > ALLOW rigorosamente avaliada",
+    "regressao": "R1.1 a R1.20 em cluster1_acceptance.py",
+    "commit": "bb61fe7",
+    "resultado": "20/20 PASS em cenários de decomposição léxica"
+  }
+}
