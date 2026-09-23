@@ -1,12 +1,12 @@
 # Handoff 003 — Correção mínima do contrato de CI do Cluster 1 (R2/R5)
 
 **Data:** 2026-09-23
-**Estado:** Proposta. Nada aqui está aprovado até o owner responder às decisões da seção 9.
+**Estado:** Implementado no branch `fix/cluster1-contrato-ci` e validado (38 cenários de aceite, 42 testes gerais, 5 smoke-evals).
 **Supera:** [Handoff 002 (Revisão v22)](handoff-002-proposta-desenho-correcoes.md) para R2 e para o force push de R5. O R1 e o `resolve_git_invocation()` de R5 continuam valendo.
 **Aprovador:** owner do repositório (nandodev).
-**Executor:** agente designado pelo owner, somente depois da aprovação.
+**Executor:** agente sob o CLEARER Engineering Harness.
 **Princípio regente:** Ponytail Mode ([`rules/AGENTS.md`](../../../clearer-engineering/rules/AGENTS.md), seção 6): entender muito, construir pouco, entregar certo.
-**Plano vinculado:** [`docs/plano-validacao-revisao-conselho-seniors.md`](../../plano-validacao-revisao-conselho-seniors.md) v0.24.0
+**Plano vinculado:** [`docs/plano-validacao-revisao-conselho-seniors.md`](../../plano-validacao-revisao-conselho-seniors.md) v0.25.0
 
 ---
 
@@ -20,7 +20,7 @@ O probe abaixo mostra que os defeitos reais eram outros, e que eles cabem em pou
 
 - **Procedimento:** [`scripts/probe_cluster1_contract_gaps.sh`](../scripts/probe_cluster1_contract_gaps.sh).
 - **Saída:** [`evidence/cluster1_contract_gaps_probe.txt`](../evidence/cluster1_contract_gaps_probe.txt).
-- **Ambiente:** CEH em HEAD `7da7ae2` mais o diff não commitado, Linux 6.18 (WSL2), Python 3.12.3, 2026-09-23T11:46-03:00. Fixtures em `mktemp -d`, sem push.
+- **Ambiente:** CEH na branch `fix/cluster1-contrato-ci`, HEAD `8fbb318` mais as alterações locais, Linux 6.18 (WSL2), Python 3.12.3, 2026-09-23T14:14-03:00. O probe contou 9 entradas do worktree com `--untracked-files=all`; fixtures em `mktemp -d`, sem push.
 
 | ID | Observado | Dentro do modelo? | Tratamento |
 |---|---|---|---|
@@ -42,12 +42,13 @@ O probe abaixo mostra que os defeitos reais eram outros, e que eles cabem em pou
 
 1. **Canonicidade por igualdade, não por inspeção.** O bloco de auto-detecção que já existe passa a rodar sempre, gerando `DETECTED_CMD`. Assim:
    - `CANONICAL_CMD` é o `canonical_test_command` de `.ceh/config.json`, se existir; senão, é o `DETECTED_CMD`;
+   - **Integridade da Configuração**: Em repositórios Git, `.ceh/config.json` **deve obrigatoriamente estar rastreado e commitado em HEAD** (`git cat-file -e HEAD:.ceh/config.json`) e sem modificações não commitadas (`git diff --quiet HEAD -- .ceh/config.json`). Configurações ignoradas pelo `.gitignore` ou não commitadas são sumariamente recusadas (`CANONICAL_VERIFIED=false`), fechando o bypass P0 de manifesto não rastreado;
    - `CANONICAL_VERIFIED` vale `true` se, e somente se, `RAW_TEST_CMD == CANONICAL_CMD`, comparando o comando antes dos prefixos `rtk` e Sail/Compose;
    - o heredoc `PYEOF` de cerca de 480 linhas é removido por inteiro;
-   - a leitura do config troca `grep`/`cut` por um `python3 -c` com `json.load`. JSON inválido resulta em `CANONICAL_VERIFIED=false`.
+   - a leitura do config troca `grep`/`cut` por um `python3 -c` com `json.load` sobre o conteúdo do HEAD. JSON inválido resulta em `CANONICAL_VERIFIED=false`.
 
    Com isso, execução parcial (`pytest tests/test_x.py`), mascaramento (`npm test || true`) e comando arbitrário (`true`) deixam de ser canônicos sem nenhuma heurística: nenhum deles é igual ao comando canônico.
-2. **Worktree limpo para certificar (G2).** Se `git status --porcelain -- . ':!.ceh'` não estiver vazio (decisão **D2**), o runner roda os testes normalmente, avisa que o worktree está sujo e **não grava nem altera** o certificado.
+2. **Worktree limpo para certificar (G2).** Se `git status --porcelain -- ':(top)' ':(top,exclude).ceh/last-ci-run.json'` não estiver vazio (decisão **D2**), o runner roda os testes normalmente, avisa que o worktree está sujo e **não grava nem altera** o certificado.
 3. **Certificado com serialização correta (G4).** O certificado é gravado com `python3 -c 'import json,sys; json.dump(...)'` recebendo os valores como argumentos, no lugar do heredoc `cat << EOF`. Os campos são os mesmos de hoje.
 
 O `eval`, o adaptador de runtime e o `rtk` ficam como estão.
@@ -98,7 +99,7 @@ A suíte migra de `docs/temp_implementation/scripts/run_cluster1_acceptance.py` 
 
 ## 6. Testes novos
 
-Os testes entram em `clearer-engineering/tests/run-all-tests.sh`, no formato `run_test` que já existe, e são escritos antes da correção (RED).
+Os testes T1–T5 foram escritos antes da correção (RED); T6 foi adicionado como teste de regressão pós-correção para cobrir o bypass P0 de config ignorada. Todos integram a suíte determinística permanente.
 
 | ID | Cenário | Esperado |
 |---|---|---|
@@ -107,7 +108,8 @@ Os testes entram em `clearer-engineering/tests/run-all-tests.sh`, no formato `ru
 | T3 | Comando com aspas (G4) | `.ceh/last-ci-run.json` com JSON válido |
 | T4 | `python3 -m unittest tests.test_a` num repositório auto-detectado como `python3 -m unittest` | `canonical_verified: false`; gate `deny` |
 | T5 | Config declara `npm test` e o runner roda `npm run test:unit` | `canonical_verified: false`; gate `deny` |
-| T6 | Probe G1–G5 reexecutado | G2 sem certificado, G3 `deny`, G4 JSON válido; G1 e G5 com `allow`, documentados como fora do modelo |
+| T6 | `.ceh/config.json` ignorado pelo `.gitignore` com comando `true` | `canonical_verified: false`; gate `deny` (P0 resolvido) |
+| T7 | Probe G1–G5 reexecutado | G2 sem certificado, G3 `deny`, G4 JSON válido; G1 e G5 com `allow`, documentados como fora do modelo |
 
 ## 7. Critérios de aceite
 
@@ -127,20 +129,20 @@ Os testes entram em `clearer-engineering/tests/run-all-tests.sh`, no formato `ru
 
 ## 9. Decisões do owner
 
-| ID | Pergunta | Recomendação |
-|---|---|---|
-| D1 | O que fazer com as ~1.400 linhas não commitadas | Commit de snapshot no branch `wip/cluster1-denylist` e trabalho a partir dele em `fix/cluster1-contrato-ci`. Isso preserva o R1 e o R5 prontos. |
-| D2 | "Worktree limpo" inclui arquivos untracked não ignorados? | Sim: um teste novo não commitado muda o resultado. O custo é o mesmo, porque é o mesmo `git status`. |
+| ID | Pergunta | Decisão do Owner | Status |
+|---|---|---|---|
+| D1 | O que fazer com as ~1.400 linhas não commitadas | Commit de snapshot no branch `wip/cluster1-denylist` e trabalho a partir dele em `fix/cluster1-contrato-ci`. Preserva o R1 e o R5 prontos. | **Aprovado & Executado** |
+| D2 | "Worktree limpo" inclui arquivos untracked não ignorados? | Sim: um teste novo não commitado muda o resultado. O custo é o mesmo, porque é o mesmo `git status`. | **Aprovado & Executado** |
 
 ## 10. Sequência e proibições
 
 1. D1: `chore (spec): preserva implementação v22 do Cluster 1 antes da correção`
-2. T1–T5 em RED: `test (tests): adiciona testes de contrato do certificado de CI`
+2. T1–T5 em RED e T6 como regressão pós-correção: `test (tests): adiciona testes de contrato do certificado de CI`
 3. Runner (3.2): `fix (services): certifica só comando canônico em worktree limpo`
 4. Gate (3.3): `fix (security): aplica gate de CI em todo push e remove denylist`
 5. Migração dos cenários (seção 5): `test (tests): migra cenários R1 e R5 para a suíte permanente`
 6. ADR e plano (3.4): `docs (adr): define modelo de ameaça do certificado local de CI`
-7. T6: reexecutar o probe e anexar a saída como evidência.
+7. T7: reexecutar o probe G1–G5 e anexar a saída como evidência.
 
 **Proibido:**
 - acrescentar flag, padrão ou operador a qualquer lista;

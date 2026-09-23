@@ -46,8 +46,18 @@ fi
 # Canonical command declared by the project overrides auto-detection
 CONFIG_CMD=""
 CONFIG_OK=1
-if [[ -f ".ceh/config.json" ]]; then
-    CONFIG_CMD=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("canonical_test_command", ""))' .ceh/config.json 2>/dev/null) || CONFIG_OK=0
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if [[ -f ".ceh/config.json" ]]; then
+        if git cat-file -e "HEAD:.ceh/config.json" 2>/dev/null && git diff --quiet HEAD -- .ceh/config.json 2>/dev/null; then
+            CONFIG_CMD=$(git show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("canonical_test_command",""))' 2>/dev/null) || CONFIG_OK=0
+        else
+            CONFIG_OK=0
+        fi
+    elif git cat-file -e "HEAD:.ceh/config.json" 2>/dev/null; then
+        CONFIG_OK=0
+    fi
+elif [[ -f ".ceh/config.json" ]]; then
+    CONFIG_CMD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("canonical_test_command",""))' .ceh/config.json 2>/dev/null) || CONFIG_OK=0
 fi
 
 if [[ $# -gt 0 ]]; then
@@ -95,42 +105,32 @@ fi
 # Runtime Adapter: Detect if test command needs container dispatch
 DOCKER_RUNNING=0
 ACTIVE_COMPOSE_SERVICES=()
-
-if command -v docker >/dev/null 2>&1; then
-    if docker info >/dev/null 2>&1; then
-        DOCKER_RUNNING=1
-        if [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
-            ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
-            if [[ -n "$ACTIVE_COMPOSE" ]]; then
-                while IFS= read -r s; do
-                    [[ -n "$s" ]] && ACTIVE_COMPOSE_SERVICES+=("$s")
-                done <<< "$ACTIVE_COMPOSE"
-            fi
-        fi
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+    DOCKER_RUNNING=1
+    if [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
+        ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
+        while IFS= read -r s; do
+            [[ -n "$s" ]] && ACTIVE_COMPOSE_SERVICES+=("$s")
+        done <<< "$ACTIVE_COMPOSE"
     fi
 fi
 
 # If containers are actively running and the command is a bare host command, adapt it
-if [[ ${#ACTIVE_COMPOSE_SERVICES[@]} -gt 0 ]]; then
-    if [[ ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]]; then
-        if [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " =~ " laravel.test " ]]; then
-            if [[ -f "vendor/bin/sail" ]]; then
-                echo "[CEH RUNTIME ADAPTER] 🐳 Containers Laravel Sail ativos detectados. Despachando via Sail..."
-                TEST_CMD="./vendor/bin/sail test"
-            else
-                echo "[CEH RUNTIME ADAPTER] 🐳 Containers Compose ativos detectados. Despachando via 'laravel.test'..."
-                TEST_CMD="docker compose exec -T laravel.test $TEST_CMD"
-            fi
-        elif [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " =~ " app " ]]; then
-            echo "[CEH RUNTIME ADAPTER] 🐳 Container 'app' ativo detectado. Despachando via container..."
-            TEST_CMD="docker compose exec -T app $TEST_CMD"
+if [[ ${#ACTIVE_COMPOSE_SERVICES[@]} -gt 0 && ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]]; then
+    if [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " =~ " laravel.test " ]]; then
+        if [[ -f "vendor/bin/sail" ]]; then
+            echo "[CEH RUNTIME ADAPTER] 🐳 Containers Laravel Sail ativos detectados. Despachando via Sail..."
+            TEST_CMD="./vendor/bin/sail test"
+        else
+            echo "[CEH RUNTIME ADAPTER] 🐳 Containers Compose ativos detectados. Despachando via 'laravel.test'..."
+            TEST_CMD="docker compose exec -T laravel.test $TEST_CMD"
         fi
+    elif [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " =~ " app " ]]; then
+        echo "[CEH RUNTIME ADAPTER] 🐳 Container 'app' ativo detectado. Despachando via container..."
+        TEST_CMD="docker compose exec -T app $TEST_CMD"
     fi
 elif [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
-    if [[ ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]]; then
-        echo "[CEH RUNTIME ADAPTER] ℹ️ Projeto possui Docker configurado, mas os containers estão desligados."
-        echo "[CEH RUNTIME ADAPTER] Executando diretamente no Host Nativo..."
-    fi
+    [[ ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]] && echo "[CEH RUNTIME ADAPTER] ℹ️ Containers desligados. Executando diretamente no Host Nativo..."
 fi
 
 # Token economy proxy: if rtk is available, wrap test command to cut output by up to 80%
@@ -179,19 +179,10 @@ if [[ $WORKTREE_DIRTY -eq 0 ]]; then
 
         python3 -c '
 import json, os, sys
-path, commit, ts, cmd, raw, verified, status, code = sys.argv[1:]
-tmp = path + ".tmp"
-with open(tmp, "w", encoding="utf-8") as f:
-    json.dump({
-        "commit_hash": commit,
-        "timestamp": ts,
-        "command": cmd,
-        "normalized_runner": raw,
-        "canonical_verified": verified == "true",
-        "status": status,
-        "exit_code": int(code),
-    }, f, indent=2, ensure_ascii=False)
-os.replace(tmp, path)
+p, c, t, cmd, raw, v, s, code = sys.argv[1:]
+with open(p + ".tmp", "w", encoding="utf-8") as f:
+    json.dump({"commit_hash": c, "timestamp": t, "command": cmd, "normalized_runner": raw, "canonical_verified": v == "true", "status": s, "exit_code": int(code)}, f, indent=2, ensure_ascii=False)
+os.replace(p + ".tmp", p)
 ' "$CEH_DIR/last-ci-run.json" "$CURRENT_COMMIT" "$NOW_ISO" "$TEST_CMD" "$RAW_TEST_CMD" "$CANONICAL_VERIFIED" "$STATUS_STR" "$EXIT_CODE"
     fi
 fi

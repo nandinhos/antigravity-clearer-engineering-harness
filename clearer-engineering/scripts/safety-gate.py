@@ -193,70 +193,30 @@ def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[st
     # Repo has CI pipeline. Verify last-ci-run.json
     cert_file = repo_root / ".ceh" / "last-ci-run.json"
     if not cert_file.is_file():
-        reason = (
-            "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado!\n"
-            "O repositório possui esteira de CI ativa em '.github/workflows', mas NENHUMA execução "
-            "da suíte de testes foi registrada localmente para validar o código.\n"
-            "Diretriz de Governança: Zero-Tolerance Pipeline Red (Regra 2 - Git & CI).\n"
-            "Ação requerida: Execute a suíte de testes com 'bash clearer-engineering/scripts/test-runner.sh' "
-            "e obtenha exit code 0 antes de realizar o push."
-        )
-        return "deny", reason
+        return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: NENHUMA execução prévia comprovada em '.github/workflows'."
 
     try:
         data = json.loads(cert_file.read_text(encoding="utf-8"))
-        exit_code = data.get("exit_code")
-        status = data.get("status", "FAIL")
-        cert_commit = data.get("commit_hash", "")
+        exit_code, status, cert_commit = data.get("exit_code"), data.get("status", "FAIL"), data.get("commit_hash", "")
         cmd_executed = str(data.get("command", "")).strip()
 
         if not cert_commit or cert_commit == "untracked":
-            reason = (
-                "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado inválido (commit_hash ausente ou não rastreado).\n"
-                "Ação requerida: Execute a suíte de testes em um commit Git válido antes do push."
-            )
-            return "deny", reason
+            return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado inválido (commit_hash ausente ou não rastreado)."
 
         if exit_code != 0 or status != "PASS":
-            reason = (
-                f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado!\n"
-                f"A última execução da suíte de testes FALHOU (Exit Code: {exit_code}, Status: {status}).\n"
-                f"Comando executado: {cmd_executed}\n"
-                f"Diretriz de Governança: Proibido subir código com CI quebrado.\n"
-                f"Ação requerida: Corrija as falhas e execute a suíte de testes com 100% de aprovação antes do push."
-            )
-            return "deny", reason
+            return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: suíte FALHOU (Exit Code: {exit_code}, Status: {status}). Comando: {cmd_executed}"
 
         if data.get("canonical_verified") is not True:
-            reason = (
-                f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: O certificado não comprova execução da suíte canônica.\n"
-                f"Comando registrado: '{cmd_executed}'. Apenas o comando declarado em .ceh/config.json "
-                f"(ou o auto-detectado, sem config) concede certificado.\n"
-                f"Ação requerida: Execute 'bash clearer-engineering/scripts/test-runner.sh' sem argumentos."
-            )
-            return "deny", reason
+            return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: O certificado não comprova execução da suíte canônica. Comando: '{cmd_executed}'"
 
-        head_res = subprocess.run(
-            ["git", "-C", str(repo_root), "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=3
-        )
+        head_res = subprocess.run(["git", "-C", str(repo_root), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=3)
         if head_res.returncode == 0:
             current_head = head_res.stdout.strip()
             if cert_commit != current_head:
-                reason = (
-                    f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado por desatualização de testes!\n"
-                    f"O commit atual ({current_head[:7]}) não foi testado após as alterações mais recentes.\n"
-                    f"O último certificado válido foi emitido para o commit {cert_commit[:7]}.\n"
-                    f"Ação requerida: Execute a suíte de testes integral novamente para revalidar o commit atual antes do push."
-                )
-                return "deny", reason
+                return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado por desatualização de testes: HEAD ({current_head[:7]}) != Cert ({cert_commit[:7]})."
 
     except Exception as e:
-        reason = (
-            f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado de CI ilegível ({str(e)}).\n"
-            f"Ação requerida: Execute a suíte de testes novamente para gerar um novo certificado válido."
-        )
-        return "deny", reason
+        return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado de CI ilegível ({str(e)})."
 
     return "allow", "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual."
 

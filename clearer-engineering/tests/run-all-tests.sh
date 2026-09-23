@@ -185,8 +185,8 @@ run_test "Shell alias 'ceh-evals' configured in shell rc" \
 run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
     "if [ -f '$PLUGIN_DIR/../evals/run.sh' ]; then bash '$PLUGIN_DIR/../evals/run.sh' >/dev/null; elif [ -f '$PLUGIN_DIR/evals/run.sh' ]; then bash '$PLUGIN_DIR/evals/run.sh' >/dev/null; else false; fi"
 
-# 9. Cluster 1 Acceptance Suite (R1, R2, R5) and CI contract tests (T1-T5)
-run_test "Cluster 1 Acceptance: R1, R2, R5 e contratos T1-T5 (37 cenários)" \
+# 9. Cluster 1 Acceptance Suite (R1, R2, R5) and CI contract tests (T1-T6)
+run_test "Cluster 1 Acceptance: R1, R2, R5 e contratos T1-T6 (38 cenários)" \
     "python3 '$PLUGIN_DIR/tests/cluster1_acceptance.py' >/dev/null"
 
 echo ""

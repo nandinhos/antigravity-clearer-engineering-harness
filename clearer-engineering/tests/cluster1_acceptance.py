@@ -296,6 +296,21 @@ def main():
     passed = (run_auto.returncode == 0 and cert_a.get("canonical_verified") is True and ret == 0 and out.get("decision") == "allow")
     results.append(("T5", "Comando auto-detectado certifica", passed, ret, out.get("decision")))
 
+    # T6: .ceh/ ignorado pelo git com config "true" não rastreado não certifica e gate dá deny
+    fix_t6, head_t6 = create_git_fixture(with_ci=True)
+    ceh_t6 = fix_t6 / ".ceh"
+    ceh_t6.mkdir(exist_ok=True)
+    (fix_t6 / ".gitignore").write_text(".ceh/\n__pycache__/\n")
+    subprocess.run(["git", "add", ".gitignore"], cwd=fix_t6, check=True, capture_output=True)
+    subprocess.run(["git", "commit", "-qm", "adiciona .ceh no gitignore"], cwd=fix_t6, check=True, capture_output=True)
+    (ceh_t6 / "config.json").write_text(json.dumps({"canonical_test_command": "true"}))
+    run_ignored = run_runner(fix_t6, "true")
+    cert_ignored = read_cert(fix_t6)
+    ret_ign, out_ign = run_gate("git push origin dev", env="development", cwd=fix_t6)
+    passed_t6 = (cert_ignored.get("canonical_verified") is False and ret_ign == 2 and out_ign.get("decision") == "deny")
+    results.append(("T6", "Config em .ceh ignorado pelo git não certifica e gate dá deny", passed_t6, ret_ign, out_ign.get("decision")))
+    shutil.rmtree(fix_t6.parent)
+
     # R2.8: Push bloqueado por suíte parcial em CI multi-job
     shutil.rmtree(fix_dir.parent)
     fix_mj, head_mj = create_git_fixture(with_ci=True, multi_job=True)
@@ -432,7 +447,7 @@ def main():
     print(f"TOTAL: {total_passed}/{len(results)} PASSARAM")
     print("=" * 60)
 
-    EXPECTED_TOTAL_SCENARIOS = 37
+    EXPECTED_TOTAL_SCENARIOS = 38
 
     assert len(results) == EXPECTED_TOTAL_SCENARIOS, f"Matriz deve conter exatamente {EXPECTED_TOTAL_SCENARIOS} cenários, mas contém {len(results)}."
     assert total_passed == EXPECTED_TOTAL_SCENARIOS, f"Esperado {EXPECTED_TOTAL_SCENARIOS} aprovados, mas obtido {total_passed}."

@@ -59,15 +59,21 @@ O mecanismo de interceptação de comandos do harness passa a validar comandos `
 - **Auditoria de Lookups**: A skill `clearer-review` passa a conter verificação atômica para modificações em catálogos de domínio (enums, seeders, lookups), alertando sobre asserções de contagem cega (`assertCount(5)`) que provocam assertion drift.
 - **Shift-Left de Convenções**: Convenções de nomenclatura e contratos de domínio devem ser validados via testes de arquitetura estática (AST / ArchUnit / Pest Architecture), garantindo que nomes inválidos sejam interceptados na máquina do desenvolvedor.
 
-### 5. Delimitação Formal do Modelo de Ameaça (Pre-Push & CI Analysis)
-- **Desempacotamento de Wrappers e Variáveis de Ambiente**: Steps de workflows que utilizam prefixos de utilitários de shell (`env`, `exec`, `nohup`, `command`) ou atribuições inline de variáveis de ambiente (`CI=1`, `NODE_ENV=test`) têm seus prefixos consumidos iterativamente para identificar os invocadores reais dos scripts (`npm run <job>`, `composer run-script <job>`).
-- **Composite Actions Locais vs Ações Remotas**:
-  - *Locais (`uses: ./(...)`)*: Mapeadas e analisadas recursivamente através da inspeção de `action.yml` / `action.yaml` locais, garantindo que steps `run:` declarados em actions internas componham os requisitos canônicos de teste da esteira.
-  - *Remotas (`uses: owner/repo@v...`)*: Delimitadas fora do escopo de inspeção estática local de manifesto, sendo tratadas como dependências de infraestrutura de CI gerenciadas pelo provider upstream.
-- **Veto Absoluto a Execução Opaca Inline e No-Op / Fake-Pass (`check_trivial_or_fake_pass`)**:
-  - Scripts com avaliação de código arbitrário inline (`node -e`, `node --eval`, `node -p`, `node --print`, `python -c`, `php -r`, `ruby -e`, `perl -e`, `perl -E`, formas anexadas e agrupadas `-pE`) e utilitários triviais sem asserções (`true`, `:`, `cat`, `echo`, `touch`) têm certificação canônica terminantemente recusada (`canonical_verified: false`) e são bloqueados sumariamente pelo Safety Gate com `deny` (exit 2).
-  - *Fundamento Teórico e Anti-Bypass (Teorema de Rice)*: A determinação estática de propriedades comportamentais não-triviais em strings de código arbitrário é indecidível e vulnerável a contornos de heurísticas rasas (ex: `node -e 'const assert=1'`, `node -e 'process.exit(0), require("assert").fail("unreachable")'`, `node -p 'process.exit(0)'`, `perl -E 'exit 0'`).
-  - *Padrão Homologado*: Suítes canônicas válidas devem invocar arquivos de teste dedicados (`node test.js`, `python test.py`, `perl test.t`) ou test runners e frameworks oficiais (`node --test`, `pytest`, `phpunit`, `jest`, `vitest`, `prove`).
+### 5. Delimitação Formal do Modelo de Ameaça e Regra de Parada
+
+- **Modelo de Ameaça Local**:
+  O certificado local protege contra **erro e atalho de um agente cooperativo**: rodar só parte da suíte, mascarar uma falha com `|| true`, testar um worktree diferente do commit, esquecer de rodar. Contra fraude ativa ou agente hostil que deliberadamente forje certificados locais, a autoridade de release é o **CI remoto na nuvem**. Esse controle remoto (branch protection e status checks obrigatórios) é uma **dependência operacional externa necessária**, classificada formalmente como `UNKNOWN` no escopo local do harness (não verificada diretamente pelo checkout local), cabendo à governança do repositório mantê-la ativa no provedor Git.
+- **Regra de Parada**:
+  Um bypass só vira código se um agente apressado puder produzi-lo sem intenção de burlar. Casos que exijam intenção deliberada de fraude ou inspeção profunda de conteúdo de código inline são classificados em "Fora do modelo" e não geram heurísticas nem denylists.
+- **Fora do Modelo**:
+  - Certificado forjado à mão (`.ceh/last-ci-run.json`).
+  - Código inline de interpretador (família `-e`, `-c`, `-p`, `-E`).
+  - Conteúdo interno dos scripts de teste declarados em manifestos.
+  - Cobertura dos jobs da CI pelo comando canônico (responsabilidade humana na esteira).
+  - Refspec cuja origem não é o HEAD.
+  - Testes que alteram arquivos durante a execução.
+- **Regra de Uso e Canonicidade**:
+  O comando canônico é o que o humano declara em `.ceh/config.json` (`canonical_test_command`), ou o comando auto-detectado pelo repositório. Para garantir a integridade da configuração e impedir adulterações por arquivos ignorados ou desatualizados, `.ceh/config.json` **deve obrigatoriamente estar rastreado e commitado em HEAD**, sem modificações no worktree. Se a CI possuir múltiplos jobs, o humano declara uma suíte agregadora que os execute de ponta a ponta.
 
 ---
 
