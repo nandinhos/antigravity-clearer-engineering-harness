@@ -1,0 +1,13 @@
+{
+  "achado": "R9 - dependência de sed -i com sintaxe específica de plataforma (GNU vs BSD)",
+  "pre_fix_observed": {
+    "sed_syntax_incompativel": "uninstall.sh usava sed -i '/.../,+3d' (GNU extension) e install.sh usava sed -i sem extensão",
+    "impacto": "Falha de sintaxe em ambientes macOS / BSD"
+  },
+  "pos_fix": {
+    "solucao": "Substituição completa de chamadas sed -i em install.sh e uninstall.sh por manipulação em Python inline padrão",
+    "portabilidade": "Agnóstico de sistema operacional (Linux, macOS, BSD, WSL)",
+    "regressao": "test_r3_and_r9_atomic_aliases_install_and_uninstall em cluster3_acceptance.py",
+    "sed_check": "Zero ocorrências de sed -i em uninstall.sh"
+  }
+}

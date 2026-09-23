@@ -58,7 +58,7 @@ Em qualquer projeto onde for detectada infraestrutura de integração contínua:
 
 ## 4. Como Funciona a Interceptação
 
-O script [`scripts/safety-gate.py`](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/scripts/safety-gate.py) recebe a chamada da ferramenta em formato JSON via hook `PreToolUse`:
+O script [`scripts/safety-gate.py`](../clearer-engineering/scripts/safety-gate.py) recebe a chamada da ferramenta em formato JSON via hook `PreToolUse`:
 
 ```json
 {
@@ -101,5 +101,5 @@ cmd_eval = re.sub(r"^\s*rtk(?:\s+proxy)?\s+", "", cmd_normalized)
 3. **Bloqueio Catastrófico Universal**:
    - Tentativas de evasão como `rtk rm -rf /` ou `rtk proxy rm -rf /` são interceptadas de forma imediata como `CATASTROPHIC BLOCK` em qualquer ambiente (inclusive `development`).
 4. **Validação Contínua via Testes Automatizados**:
-   - A suíte [`test_safety_matrix.py`](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/tests/test_safety_matrix.py) valida matematicamente todos os cenários envelopados por `rtk`, garantindo conformidade determinística e regressão zero.
+   - A suíte [`test_safety_matrix.py`](../clearer-engineering/tests/test_safety_matrix.py) valida matematicamente todos os cenários envelopados por `rtk`, garantindo conformidade determinística e regressão zero.
 

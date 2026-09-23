@@ -193,6 +193,10 @@ run_test "Cluster 1 Acceptance: R1, R2, R5 e contratos T1-T6 (38 cenários)" \
 run_test "Cluster 2 Acceptance: contratos R6-R8" \
     "python3 '$PLUGIN_DIR/tests/cluster2_acceptance.py' >/dev/null"
 
+# 11. Cluster 3 Acceptance Suite (R3, R4, R9, R10)
+run_test "Cluster 3 Acceptance: contratos R3, R4, R9, R10" \
+    "python3 '$PLUGIN_DIR/tests/cluster3_acceptance.py' >/dev/null"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"

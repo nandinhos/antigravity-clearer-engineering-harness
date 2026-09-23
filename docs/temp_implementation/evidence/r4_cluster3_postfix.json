@@ -1,0 +1,16 @@
+{
+  "achado": "R4 - skill de review omitia working tree e staging na obtenção de diff",
+  "pre_fix_observed": {
+    "comando_anterior": "git diff HEAD~1..HEAD 2>/dev/null || git diff",
+    "falha": "HEAD~1..HEAD sempre retorna exit code 0 em repositórios com >= 2 commits, nunca acionando o fallback e omitindo working tree e staging"
+  },
+  "pos_fix": {
+    "contrato_novo": "Tripé de Inspeção formalizado na seção 1 de clearer-review/SKILL.md",
+    "tripe_inspecao": [
+      "Working Tree: git diff (modificações não commitadas)",
+      "Staging: git diff --cached (modificações preparadas)",
+      "Commit Base: git diff HEAD~1..HEAD ou git diff @{upstream}..HEAD"
+    ],
+    "regressao": "test_r4_review_diff_tripod_contract em cluster3_acceptance.py"
+  }
+}

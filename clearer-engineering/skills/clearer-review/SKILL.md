@@ -14,13 +14,24 @@ Esta skill realiza uma revisão técnica minuciosa e adversarial, tendo o Git di
 
 ---
 
-## 1. Obtenção do Diff
+## 1. Obtenção do Diff (O Tripé de Inspeção)
 
-Obtenha o diff do repositório:
-```bash
-git diff HEAD~1..HEAD 2>/dev/null || git diff
-```
-Ou execute a ferramenta de auditoria:
+O revisor DEVE inspecionar exaustivamente as três fontes de alteração (o tripé de diff):
+
+1. **Working Tree (Modificações locais não commitadas / unstaged)**:
+   ```bash
+   git diff
+   ```
+2. **Staging (Modificações preparadas para commit / staged)**:
+   ```bash
+   git diff --cached
+   ```
+3. **Commit Base / Upstream (Modificações no branch recente ou último commit)**:
+   ```bash
+   git diff HEAD~1..HEAD 2>/dev/null || git diff @{upstream}..HEAD 2>/dev/null || true
+   ```
+
+Ou execute a ferramenta integrada de auditoria do harness que consolida o tripé:
 ```bash
 bash scripts/diff-audit.sh
 ```

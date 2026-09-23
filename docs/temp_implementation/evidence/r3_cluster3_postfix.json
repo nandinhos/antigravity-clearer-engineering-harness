@@ -1,0 +1,15 @@
+{
+  "achado": "R3 - aliases órfãos permaneciam após desinstalação",
+  "pre_fix_observed": {
+    "aliases_instalados": 9,
+    "aliases_removidos_uninstall": 3,
+    "aliases_orfãos_restantes": 6,
+    "aliases_orfãos": ["ceh-env", "ceh-branches", "ceh-preflight", "ceh-evals", "ceh-monitor", "ceh-help"]
+  },
+  "pos_fix": {
+    "bloco_canônico": "# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES ... # END CLEARER ENGINEERING HARNESS (CEH) ALIASES",
+    "gerenciamento": "Python inline atômico e idempotente em install.sh e uninstall.sh",
+    "regressao": "test_r3_and_r9_atomic_aliases_install_and_uninstall em cluster3_acceptance.py",
+    "resultado_uninstall": "0 aliases e 0 delimitadores restantes em .bashrc e .zshrc"
+  }
+}

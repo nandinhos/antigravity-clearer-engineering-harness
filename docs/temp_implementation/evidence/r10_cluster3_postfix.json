@@ -1,0 +1,16 @@
+{
+  "achado": "R10 - caminhos absolutos locais hardcoded na documentação",
+  "pre_fix_observed": {
+    "caminhos_hardcoded": [
+      "docs/safety_gate.md: file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/scripts/safety-gate.py",
+      "docs/safety_gate.md: file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/tests/test_safety_matrix.py",
+      "docs/architecture.md: file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/scripts/setup-branches.sh",
+      "docs/architecture.md: file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/..."
+    ]
+  },
+  "pos_fix": {
+    "solucao": "Substituição de todos os links absolutos por links relativos portáveis",
+    "regressao": "test_r10_documentation_links_portability em cluster3_acceptance.py",
+    "resultado_scan": "0 ocorrências de file:///home/nandodev na documentação ativa"
+  }
+}

@@ -199,8 +199,9 @@ AGENT_EOF
 configure_shell_aliases() {
     log_info "Configuring shell aliases (agy-ceh, agy-ceh-yolo, ceh-evals)..."
 
-    local ALIAS_BLOCK="
-# === CLEARER Engineering Harness (CEH) ===
+    local START_MARKER="# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES"
+    local END_MARKER="# END CLEARER ENGINEERING HARNESS (CEH) ALIASES"
+    local ALIAS_BLOCK="$START_MARKER
 alias agy-ceh='agy --agent clearer-harness'
 alias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'
 alias ceh='agy --agent clearer-harness'
@@ -210,24 +211,39 @@ alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/p
 alias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'
 alias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'
 alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
-"
+$END_MARKER"
 
     for rc_file in "$HOME/.bashrc" "$HOME/.zshrc"; do
         if [[ -f "$rc_file" ]]; then
-            if ! grep -q "alias ceh-help=" "$rc_file"; then
-                echo "$ALIAS_BLOCK" >> "$rc_file"
-                log_success "Aliases added to $rc_file"
-            else
-                if ! grep -q "alias ceh-evals=" "$rc_file"; then
-                    sed -i '/alias ceh-help=/i alias ceh-evals=\x27bash ~\/.gemini\/config\/plugins\/clearer-engineering\/evals\/run.sh\x27' "$rc_file"
-                    log_success "ceh-evals alias added to $rc_file"
-                fi
-                if ! grep -q "alias ceh-monitor=" "$rc_file"; then
-                    sed -i '/alias ceh-help=/i alias ceh-monitor=\x27bash ~\/.gemini\/config\/plugins\/clearer-engineering\/scripts\/task-monitor.sh\x27' "$rc_file"
-                    log_success "ceh-monitor alias added to $rc_file"
-                fi
-                log_info "Aliases already present in $rc_file"
-            fi
+            python3 -c "
+import sys, re
+
+rc_path = sys.argv[1]
+new_block = sys.argv[2].strip()
+start_m = '# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES'
+end_m = '# END CLEARER ENGINEERING HARNESS (CEH) ALIASES'
+
+try:
+    with open(rc_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+except Exception:
+    sys.exit(0)
+
+# Remove legacy/orphan CEH comment and lines if present
+content = re.sub(r'# === CLEARER Engineering Harness \(CEH\) ===\n?', '', content)
+
+pattern = re.compile(rf'{re.escape(start_m)}.*?{re.escape(end_m)}\n?', re.DOTALL)
+if pattern.search(content):
+    updated = pattern.sub(new_block + '\n', content)
+else:
+    for a in ['agy-ceh', 'agy-ceh-yolo', 'ceh', 'ceh-env', 'ceh-branches', 'ceh-preflight', 'ceh-evals', 'ceh-monitor', 'ceh-help']:
+        content = re.sub(rf'alias {a}=.*?\n', '', content)
+    updated = content.rstrip() + '\n\n' + new_block + '\n'
+
+with open(rc_path, 'w', encoding='utf-8') as f:
+    f.write(updated)
+" "$rc_file" "$ALIAS_BLOCK"
+            log_success "Aliases configured in $rc_file"
         fi
     done
 }
@@ -278,4 +294,6 @@ main() {
     echo ""
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

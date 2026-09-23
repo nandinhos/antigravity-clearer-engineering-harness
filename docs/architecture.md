@@ -155,7 +155,7 @@ Projetado para MVPs, startups, pequenos times e desenvolvedores ágeis:
 Em ambos os modos, features e correções derivam sempre da branch `dev` (`dev-[slug]-referencia` ou `dev/[slug]`), preservando a estabilidade da árvore principal.
 
 ### D. Assistente Automatizado (`setup-branches.sh`)
-O script [`scripts/setup-branches.sh`](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/scripts/setup-branches.sh) inspeciona o repositório e configura automaticamente a topologia desejada:
+O script [`scripts/setup-branches.sh`](../clearer-engineering/scripts/setup-branches.sh) inspeciona o repositório e configura automaticamente a topologia desejada:
 ```bash
 # Modo Clássico (2 branches)
 bash clearer-engineering/scripts/setup-branches.sh --classic
@@ -198,9 +198,9 @@ O CEH foi projetado para evitar o inchaço e fadiga de contexto (*context rot*) 
 
 Para aprofundamento nos fundamentos de design e decisões arquiteturais do harness:
 
-- [ADR 003 — Epistemologia System One ("Like a Jev") e Avaliação Desacoplada](file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/system-one-epistemology.md)
-- [ADR 004 — Governança de CI Mandatória & Pre-Push Safety Gate (Zero-Tolerance Pipeline Red)](file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/ci-governance-policy.md)
-- [ADR 005 — Adaptador de Runtime e Estratégia de CI (`NATIVE_HOST` vs `DOCKER_ACTIVE`/`SAIL`)](file:///home/nandodev/projects/clearer-engineering-harness/docs/architecture/runtime-and-ci-adapters.md)
+- [ADR 003 — Epistemologia System One ("Like a Jev") e Avaliação Desacoplada](architecture/system-one-epistemology.md)
+- [ADR 004 — Governança de CI Mandatória & Pre-Push Safety Gate (Zero-Tolerance Pipeline Red)](architecture/ci-governance-policy.md)
+- [ADR 005 — Adaptador de Runtime e Estratégia de CI (`NATIVE_HOST` vs `DOCKER_ACTIVE`/`SAIL`)](architecture/runtime-and-ci-adapters.md)
 
 
 

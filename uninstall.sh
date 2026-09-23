@@ -27,10 +27,34 @@ rm -rf "$HOME/.gemini/config/agents/clearer-harness"
 echo -e "${BLUE}[INFO]${NC} Cleaning up shell aliases..."
 for rc_file in "$HOME/.bashrc" "$HOME/.zshrc"; do
     if [[ -f "$rc_file" ]]; then
-        sed -i '/# === CLEARER Engineering Harness (CEH) ===/,+3d' "$rc_file" 2>/dev/null || true
-        sed -i '/alias agy-ceh=/d' "$rc_file" 2>/dev/null || true
-        sed -i '/alias agy-ceh-yolo=/d' "$rc_file" 2>/dev/null || true
-        sed -i '/alias ceh=/d' "$rc_file" 2>/dev/null || true
+        python3 -c "
+import sys, re
+
+rc_path = sys.argv[1]
+start_m = '# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES'
+end_m = '# END CLEARER ENGINEERING HARNESS (CEH) ALIASES'
+
+try:
+    with open(rc_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+except Exception:
+    sys.exit(0)
+
+# 1. Remove delimited CEH block
+pattern = re.compile(rf'{re.escape(start_m)}.*?{re.escape(end_m)}\n?', re.DOTALL)
+content = pattern.sub('', content)
+
+# 2. Remove legacy header and all known CEH aliases (including orphans)
+content = re.sub(r'# === CLEARER Engineering Harness \(CEH\) ===\n?', '', content)
+for a in ['agy-ceh', 'agy-ceh-yolo', 'ceh', 'ceh-env', 'ceh-branches', 'ceh-preflight', 'ceh-evals', 'ceh-monitor', 'ceh-help']:
+    content = re.sub(rf'alias {a}=.*?\n', '', content)
+
+# 3. Normalize whitespace
+content = re.sub(r'\n{3,}', '\n\n', content)
+
+with open(rc_path, 'w', encoding='utf-8') as f:
+    f.write(content)
+" "$rc_file" 2>/dev/null || true
     fi
 done
 
