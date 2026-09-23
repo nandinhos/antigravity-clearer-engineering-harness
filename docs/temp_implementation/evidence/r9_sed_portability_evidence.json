@@ -1,0 +1,16 @@
+{
+  "system_os": "Linux",
+  "sed_version": "sed (GNU sed) 4.9",
+  "install_sed_invocations": [
+    "line 222: sed -i '/alias ceh-help=/i alias ceh-evals=...' \"$rc_file\"",
+    "line 226: sed -i '/alias ceh-help=/i alias ceh-monitor=...' \"$rc_file\""
+  ],
+  "uninstall_sed_invocations": [
+    "line 30: sed -i '/# === CLEARER Engineering Harness (CEH) ===/,+3d' \"$rc_file\"",
+    "line 31: sed -i '/alias agy-ceh=/d' \"$rc_file\"",
+    "line 32: sed -i '/alias agy-ceh-yolo=/d' \"$rc_file\"",
+    "line 33: sed -i '/alias ceh=/d' \"$rc_file\""
+  ],
+  "analysis": "No Linux com GNU sed, sed -i sem sufixo funciona. No macOS/BSD, sed -i sem extens\u00e3o requer obrigatoriamente um argumento extra vazio ('') como sufixo de backup (ex: sed -i '' '...'). Sem esse argumento, o BSD sed interpreta o comando sed como a extens\u00e3o do arquivo de backup e falha com erro de sintaxe. No ambiente local Linux (Ubuntu), a execu\u00e7\u00e3o do GNU sed \u00e9 suportada, tornando a reprodu\u00e7\u00e3o direta de falha em runtime inconclusiva localmente sem um host macOS/FreeBSD, mas a incompatibilidade est\u00e1tica do GNU sed vs BSD sed \u00e9 universalmente conhecida.",
+  "status": "Inconclusivo (Requer host macOS/BSD para reprodu\u00e7\u00e3o f\u00edsica de falha em tempo de execu\u00e7\u00e3o)"
+}

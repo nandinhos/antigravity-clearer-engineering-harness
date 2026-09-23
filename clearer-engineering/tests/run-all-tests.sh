@@ -97,7 +97,7 @@ run_test "Safety Gate: Pre-Push CI Gate blocks git push without CI flight certif
     "TMP=\$(mktemp -d); git -C \"\$TMP\" init -b dev >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; mkdir -p \"\$TMP/.github/workflows\"; touch \"\$TMP/.github/workflows/ci.yml\" \"\$TMP/f\"; git -C \"\$TMP\" add .; git -C \"\$TMP\" commit -m init >/dev/null; (cd \"\$TMP\" && python3 \"$PLUGIN_DIR/scripts/safety-gate.py\" --check 'git push origin dev' --env development | grep -q '\"decision\": \"deny\"'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
 run_test "Safety Gate: Pre-Push CI Gate allows git push with valid matching flight certificate (ALLOW)" \
-    "TMP=\$(mktemp -d); git -C \"\$TMP\" init -b dev >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; mkdir -p \"\$TMP/.github/workflows\" \"\$TMP/.ceh\"; touch \"\$TMP/.github/workflows/ci.yml\" \"\$TMP/f\"; git -C \"\$TMP\" add .; git -C \"\$TMP\" commit -m init >/dev/null; HASH=\$(git -C \"\$TMP\" rev-parse HEAD); echo \"{\\\"commit_hash\\\": \\\"\$HASH\\\", \\\"status\\\": \\\"PASS\\\", \\\"exit_code\\\": 0}\" > \"\$TMP/.ceh/last-ci-run.json\"; (cd \"\$TMP\" && python3 \"$PLUGIN_DIR/scripts/safety-gate.py\" --check 'git push origin dev' --env development | grep -q '\"decision\": \"allow\"'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
+    "TMP=\$(mktemp -d); git -C \"\$TMP\" init -b dev >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; mkdir -p \"\$TMP/.github/workflows\" \"\$TMP/.ceh\"; touch \"\$TMP/.github/workflows/ci.yml\" \"\$TMP/f\"; git -C \"\$TMP\" add .; git -C \"\$TMP\" commit -m init >/dev/null; HASH=\$(git -C \"\$TMP\" rev-parse HEAD); echo \"{\\\"commit_hash\\\": \\\"\$HASH\\\", \\\"status\\\": \\\"PASS\\\", \\\"exit_code\\\": 0, \\\"canonical_verified\\\": true, \\\"command\\\": \\\"npm test\\\"}\" > \"\$TMP/.ceh/last-ci-run.json\"; (cd \"\$TMP\" && python3 \"$PLUGIN_DIR/scripts/safety-gate.py\" --check 'git push origin dev' --env development | grep -q '\"decision\": \"allow\"'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
 run_test "Safety Gate: Pre-Push CI Gate blocks git push when flight certificate is outdated (DENY)" \
     "TMP=\$(mktemp -d); git -C \"\$TMP\" init -b dev >/dev/null; git -C \"\$TMP\" config user.name T; git -C \"\$TMP\" config user.email t@t.l; mkdir -p \"\$TMP/.github/workflows\" \"\$TMP/.ceh\"; touch \"\$TMP/.github/workflows/ci.yml\" \"\$TMP/f\"; git -C \"\$TMP\" add .; git -C \"\$TMP\" commit -m init >/dev/null; echo '{\"commit_hash\": \"outdated\", \"status\": \"PASS\", \"exit_code\": 0}' > \"\$TMP/.ceh/last-ci-run.json\"; (cd \"\$TMP\" && python3 \"$PLUGIN_DIR/scripts/safety-gate.py\" --check 'git push origin dev' --env development | grep -q '\"decision\": \"deny\"'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
@@ -184,6 +184,10 @@ run_test "Shell alias 'ceh-evals' configured in shell rc" \
 # 8. Deterministic Smoke-Eval Suite
 run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
     "if [ -f '$PLUGIN_DIR/../evals/run.sh' ]; then bash '$PLUGIN_DIR/../evals/run.sh' >/dev/null; elif [ -f '$PLUGIN_DIR/evals/run.sh' ]; then bash '$PLUGIN_DIR/evals/run.sh' >/dev/null; else false; fi"
+
+# 9. Cluster 1 Acceptance Suite (R1, R2, R5)
+run_test "Cluster 1 Acceptance: 58 dry-runs determinísticos (R1, R2, R5)" \
+    "if [ -f '$PLUGIN_DIR/../docs/temp_implementation/scripts/run_cluster1_acceptance.py' ]; then python3 '$PLUGIN_DIR/../docs/temp_implementation/scripts/run_cluster1_acceptance.py' >/dev/null; else false; fi"
 
 echo ""
 echo "============================================================"

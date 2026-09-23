@@ -1,0 +1,5 @@
+# Comandos de teste para R1 (um por linha)
+rm -rf scratch/cache; php artisan migrate:fresh --env=production
+rm -rf scratch/cache && php artisan migrate:fresh --env=production
+false || rm -rf scratch/cache; php artisan migrate:fresh --env=production
+printf x | rm -rf scratch/cache; php artisan migrate:fresh --env=production

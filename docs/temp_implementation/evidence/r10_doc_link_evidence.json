@@ -1,0 +1,8 @@
+{
+  "file": "/home/nandodev/projects/clearer-engineering-harness/docs/safety_gate.md",
+  "line_number": 61,
+  "line_content": "O script [`scripts/safety-gate.py`](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/scripts/safety-gate.py) recebe a chamada da ferramenta em formato JSON via hook `PreToolUse`:",
+  "has_absolute_user_path": true,
+  "hardcoded_user": "/home/nandodev",
+  "status": "Reproduzido"
+}

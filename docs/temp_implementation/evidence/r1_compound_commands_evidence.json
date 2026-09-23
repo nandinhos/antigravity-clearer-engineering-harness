@@ -1,0 +1,26 @@
+[
+  {
+    "command": "rm -rf scratch/cache; php artisan migrate:fresh --env=production",
+    "exit_code": 2,
+    "stdout": "{\n  \"decision\": \"deny\",\n  \"reason\": \"[CEH PRODUCTION LOCK] Comandos destrutivos s\u00e3o TERMINANTEMENTE PROIBIDOS em PRODU\u00c7\u00c3O (Caso de Uso: Banco de Dados): Destructive Laravel migration (migrate:fresh / migrate:reset).\\nAmbiente detectado: PRODUCTION (Evid\u00eancia: Command context explicitly references production target).\\nExecu\u00e7\u00e3o bloqueada para prevenir perda de dados e indisponibilidade.\",\n  \"environment\": \"production\",\n  \"use_case\": \"DATABASE\",\n  \"command\": \"rm -rf scratch/cache; php artisan migrate:fresh --env=production\"\n}",
+    "stderr": ""
+  },
+  {
+    "command": "rm -rf scratch/cache && php artisan migrate:fresh --env=production",
+    "exit_code": 2,
+    "stdout": "{\n  \"decision\": \"deny\",\n  \"reason\": \"[CEH PRODUCTION LOCK] Comandos destrutivos s\u00e3o TERMINANTEMENTE PROIBIDOS em PRODU\u00c7\u00c3O (Caso de Uso: Banco de Dados): Destructive Laravel migration (migrate:fresh / migrate:reset).\\nAmbiente detectado: PRODUCTION (Evid\u00eancia: Command context explicitly references production target).\\nExecu\u00e7\u00e3o bloqueada para prevenir perda de dados e indisponibilidade.\",\n  \"environment\": \"production\",\n  \"use_case\": \"DATABASE\",\n  \"command\": \"rm -rf scratch/cache && php artisan migrate:fresh --env=production\"\n}",
+    "stderr": ""
+  },
+  {
+    "command": "false || rm -rf scratch/cache; php artisan migrate:fresh --env=production",
+    "exit_code": 2,
+    "stdout": "{\n  \"decision\": \"deny\",\n  \"reason\": \"[CEH PRODUCTION LOCK] Comandos destrutivos s\u00e3o TERMINANTEMENTE PROIBIDOS em PRODU\u00c7\u00c3O (Caso de Uso: Banco de Dados): Destructive Laravel migration (migrate:fresh / migrate:reset).\\nAmbiente detectado: PRODUCTION (Evid\u00eancia: Command context explicitly references production target).\\nExecu\u00e7\u00e3o bloqueada para prevenir perda de dados e indisponibilidade.\",\n  \"environment\": \"production\",\n  \"use_case\": \"DATABASE\",\n  \"command\": \"false || rm -rf scratch/cache; php artisan migrate:fresh --env=production\"\n}",
+    "stderr": ""
+  },
+  {
+    "command": "printf x | rm -rf scratch/cache; php artisan migrate:fresh --env=production",
+    "exit_code": 2,
+    "stdout": "{\n  \"decision\": \"deny\",\n  \"reason\": \"[CEH PRODUCTION LOCK] Comandos destrutivos s\u00e3o TERMINANTEMENTE PROIBIDOS em PRODU\u00c7\u00c3O (Caso de Uso: Banco de Dados): Destructive Laravel migration (migrate:fresh / migrate:reset).\\nAmbiente detectado: PRODUCTION (Evid\u00eancia: Command context explicitly references production target).\\nExecu\u00e7\u00e3o bloqueada para prevenir perda de dados e indisponibilidade.\",\n  \"environment\": \"production\",\n  \"use_case\": \"DATABASE\",\n  \"command\": \"printf x | rm -rf scratch/cache; php artisan migrate:fresh --env=production\"\n}",
+    "stderr": ""
+  }
+]

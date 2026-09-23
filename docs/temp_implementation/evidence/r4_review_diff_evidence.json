@@ -1,0 +1,9 @@
+{
+  "skill_command": "git diff HEAD~1..HEAD 2>/dev/null || git diff",
+  "skill_output": "diff --git a/base.txt b/base.txt\nindex df967b9..2a40292 100644\n--- a/base.txt\n+++ b/base.txt\n@@ -1 +1,2 @@\n base\n+second commit\n",
+  "diff_head_to_head_minus_1": "diff --git a/base.txt b/base.txt\nindex df967b9..2a40292 100644\n--- a/base.txt\n+++ b/base.txt\n@@ -1 +1,2 @@\n base\n+second commit\n",
+  "diff_unstaged": "diff --git a/unstaged.txt b/unstaged.txt\nindex e79c5e8..40e29ef 100644\n--- a/unstaged.txt\n+++ b/unstaged.txt\n@@ -1 +1,2 @@\n initial\n+unstaged change\n",
+  "diff_staged": "diff --git a/staged.txt b/staged.txt\nnew file mode 100644\nindex 0000000..07d44e5\n--- /dev/null\n+++ b/staged.txt\n@@ -0,0 +1 @@\n+staged change\n",
+  "unstaged_present_in_skill_output": false,
+  "staged_present_in_skill_output": false
+}

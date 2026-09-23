@@ -59,6 +59,16 @@ O mecanismo de interceptação de comandos do harness passa a validar comandos `
 - **Auditoria de Lookups**: A skill `clearer-review` passa a conter verificação atômica para modificações em catálogos de domínio (enums, seeders, lookups), alertando sobre asserções de contagem cega (`assertCount(5)`) que provocam assertion drift.
 - **Shift-Left de Convenções**: Convenções de nomenclatura e contratos de domínio devem ser validados via testes de arquitetura estática (AST / ArchUnit / Pest Architecture), garantindo que nomes inválidos sejam interceptados na máquina do desenvolvedor.
 
+### 5. Delimitação Formal do Modelo de Ameaça (Pre-Push & CI Analysis)
+- **Desempacotamento de Wrappers e Variáveis de Ambiente**: Steps de workflows que utilizam prefixos de utilitários de shell (`env`, `exec`, `nohup`, `command`) ou atribuições inline de variáveis de ambiente (`CI=1`, `NODE_ENV=test`) têm seus prefixos consumidos iterativamente para identificar os invocadores reais dos scripts (`npm run <job>`, `composer run-script <job>`).
+- **Composite Actions Locais vs Ações Remotas**:
+  - *Locais (`uses: ./(...)`)*: Mapeadas e analisadas recursivamente através da inspeção de `action.yml` / `action.yaml` locais, garantindo que steps `run:` declarados em actions internas componham os requisitos canônicos de teste da esteira.
+  - *Remotas (`uses: owner/repo@v...`)*: Delimitadas fora do escopo de inspeção estática local de manifesto, sendo tratadas como dependências de infraestrutura de CI gerenciadas pelo provider upstream.
+- **Veto Absoluto a Execução Opaca Inline e No-Op / Fake-Pass (`check_trivial_or_fake_pass`)**:
+  - Scripts com avaliação de código arbitrário inline (`node -e`, `node --eval`, `node -p`, `node --print`, `python -c`, `php -r`, `ruby -e`, `perl -e`, `perl -E`, formas anexadas e agrupadas `-pE`) e utilitários triviais sem asserções (`true`, `:`, `cat`, `echo`, `touch`) têm certificação canônica terminantemente recusada (`canonical_verified: false`) e são bloqueados sumariamente pelo Safety Gate com `deny` (exit 2).
+  - *Fundamento Teórico e Anti-Bypass (Teorema de Rice)*: A determinação estática de propriedades comportamentais não-triviais em strings de código arbitrário é indecidível e vulnerável a contornos de heurísticas rasas (ex: `node -e 'const assert=1'`, `node -e 'process.exit(0), require("assert").fail("unreachable")'`, `node -p 'process.exit(0)'`, `perl -E 'exit 0'`).
+  - *Padrão Homologado*: Suítes canônicas válidas devem invocar arquivos de teste dedicados (`node test.js`, `python test.py`, `perl test.t`) ou test runners e frameworks oficiais (`node --test`, `pytest`, `phpunit`, `jest`, `vitest`, `prove`).
+
 ---
 
 ## Consequências e Princípio Ponytail (Zero Overengineering)

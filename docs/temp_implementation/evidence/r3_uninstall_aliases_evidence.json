@@ -1,0 +1,17 @@
+{
+  "exit_code": 0,
+  "stdout": "\u001b[0;31m\u001b[1mUninstalling CLEARER Engineering Harness (CEH)...\u001b[0m\n\u001b[0;34m[INFO]\u001b[0m Unregistering plugin from Antigravity CLI...\n\u001b[0;34m[INFO]\u001b[0m Removing files from ~/.gemini/config/...\n\u001b[0;34m[INFO]\u001b[0m Cleaning up shell aliases...\n\u001b[0;32m\u001b[1m\u2714 CLEARER Engineering Harness uninstalled successfully.\u001b[0m\n",
+  "stderr": "",
+  "bashrc_before": "# === CLEARER Engineering Harness (CEH) ===\nalias agy-ceh='agy --agent clearer-harness'\nalias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'\nalias ceh='agy --agent clearer-harness'\nalias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'\nalias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'\nalias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'\nalias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'\nalias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'\nalias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'\n\"\n",
+  "bashrc_after": "alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'\nalias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'\nalias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'\nalias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'\nalias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'\nalias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'\n\"\n",
+  "plugin_dir_exists": false,
+  "agent_dir_exists": false,
+  "remaining_aliases": [
+    "alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'",
+    "alias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'",
+    "alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'",
+    "alias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'",
+    "alias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'",
+    "alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'"
+  ]
+}

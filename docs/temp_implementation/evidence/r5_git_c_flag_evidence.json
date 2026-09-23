@@ -1,0 +1,57 @@
+{
+  "fixture_dir": "/tmp/ceh_r5_fixture_8cm31lkv/ci",
+  "runs": [
+    {
+      "label": "standard_dev",
+      "command": "git push origin dev",
+      "env": "development",
+      "exit_code": 2,
+      "output": {
+        "decision": "deny",
+        "reason": "[CEH PRE-PUSH CI GATE] \u26d4 Push bloqueado!\nO reposit\u00f3rio possui esteira de CI ativa em '.github/workflows', mas NENHUMA execu\u00e7\u00e3o da su\u00edte de testes foi registrada localmente para validar o c\u00f3digo.\nDiretriz de Governan\u00e7a: Zero-Tolerance Pipeline Red (Regra 2 - Git & CI).\nA\u00e7\u00e3o requerida: Execute a su\u00edte de testes com 'bash clearer-engineering/scripts/test-runner.sh' e obtenha exit code 0 antes de realizar o push.",
+        "environment": "development",
+        "use_case": "PRE_PUSH_CI",
+        "command": "git push origin dev"
+      }
+    },
+    {
+      "label": "custom_c_dev",
+      "command": "git -C /tmp/ceh_r5_fixture_8cm31lkv/ci push origin dev",
+      "env": "development",
+      "exit_code": 2,
+      "output": {
+        "decision": "deny",
+        "reason": "[CEH PRE-PUSH CI GATE] \u26d4 Push bloqueado!\nO reposit\u00f3rio possui esteira de CI ativa em '.github/workflows', mas NENHUMA execu\u00e7\u00e3o da su\u00edte de testes foi registrada localmente para validar o c\u00f3digo.\nDiretriz de Governan\u00e7a: Zero-Tolerance Pipeline Red (Regra 2 - Git & CI).\nA\u00e7\u00e3o requerida: Execute a su\u00edte de testes com 'bash clearer-engineering/scripts/test-runner.sh' e obtenha exit code 0 antes de realizar o push.",
+        "environment": "development",
+        "use_case": "PRE_PUSH_CI",
+        "command": "git -C /tmp/ceh_r5_fixture_8cm31lkv/ci push origin dev"
+      }
+    },
+    {
+      "label": "standard_prod",
+      "command": "git push origin dev",
+      "env": "production",
+      "exit_code": 2,
+      "output": {
+        "decision": "deny",
+        "reason": "[CEH PRE-PUSH CI GATE] \u26d4 Push bloqueado!\nO reposit\u00f3rio possui esteira de CI ativa em '.github/workflows', mas NENHUMA execu\u00e7\u00e3o da su\u00edte de testes foi registrada localmente para validar o c\u00f3digo.\nDiretriz de Governan\u00e7a: Zero-Tolerance Pipeline Red (Regra 2 - Git & CI).\nA\u00e7\u00e3o requerida: Execute a su\u00edte de testes com 'bash clearer-engineering/scripts/test-runner.sh' e obtenha exit code 0 antes de realizar o push.",
+        "environment": "production",
+        "use_case": "PRE_PUSH_CI",
+        "command": "git push origin dev"
+      }
+    },
+    {
+      "label": "custom_c_prod",
+      "command": "git -C /tmp/ceh_r5_fixture_8cm31lkv/ci push origin dev",
+      "env": "production",
+      "exit_code": 2,
+      "output": {
+        "decision": "deny",
+        "reason": "[CEH PRE-PUSH CI GATE] \u26d4 Push bloqueado!\nO reposit\u00f3rio possui esteira de CI ativa em '.github/workflows', mas NENHUMA execu\u00e7\u00e3o da su\u00edte de testes foi registrada localmente para validar o c\u00f3digo.\nDiretriz de Governan\u00e7a: Zero-Tolerance Pipeline Red (Regra 2 - Git & CI).\nA\u00e7\u00e3o requerida: Execute a su\u00edte de testes com 'bash clearer-engineering/scripts/test-runner.sh' e obtenha exit code 0 antes de realizar o push.",
+        "environment": "production",
+        "use_case": "PRE_PUSH_CI",
+        "command": "git -C /tmp/ceh_r5_fixture_8cm31lkv/ci push origin dev"
+      }
+    }
+  ]
+}
