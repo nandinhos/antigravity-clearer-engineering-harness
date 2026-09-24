@@ -1,0 +1,3 @@
+{
+  "canonical_test_command": "bash clearer-engineering/tests/run-all-tests.sh"
+}

@@ -23,8 +23,8 @@ google-creds.json
 /tmp/
 .cache/
 scratch/
-.scratch/
-.ceh/
+.ceh/*
+!.ceh/config.json
 
 # Python
 __pycache__/
