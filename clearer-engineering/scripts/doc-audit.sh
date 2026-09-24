@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# doc-audit.sh - Documentation Consistency & Normative Audit for CEH
+# doc-audit.sh - Bounded Structural Documentation Checks for CEH
 # ==============================================================================
 set -euo pipefail
 

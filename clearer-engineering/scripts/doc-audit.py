@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-CLEARER Engineering Harness (CEH) — Document Consistency & Audit Tool
-Verifica determinísticamente a integridade, coerência semântica e portabilidade da documentação:
+CLEARER Engineering Harness (CEH) — Document Structure Audit Tool
+Verifica deterministicamente propriedades estruturais delimitadas da documentação:
 1. Conformidade de estados normativos em docs/plano-validacao-revisao-conselho-seniors.md
-2. Consistência entre cabeçalho/claims de conclusão e a tabela de achados (R1 a R10)
+2. Estados normativos, cabeçalhos da tabela R1 a R10 e contagem publicada da suíte geral
 3. Existência física de todos os artefatos de evidência citados em markdown
 4. Ausência de caminhos absolutos locais vazados (file:///home/ ou /home/<user>/)
 5. Existência dos commits citados no histórico local do Git
 6. Ausência de contradições de autorização de commit em handoffs
 7. Orçamento de linhas de código do harness
+
+Não avalia coerência semântica integral, validade do conteúdo das evidências ou aprovação formal do conselho.
 """
 import sys
 import re
@@ -22,7 +24,7 @@ def main():
     handoffs_dir = docs_dir / "temp_implementation" / "handoffs"
     evidence_dir = docs_dir / "temp_implementation" / "evidence"
 
-    print("=== [CEH Document Consistency & Audit] ===")
+    print("=== [CEH Bounded Document Structure Audit] ===")
     print(f"Repositório: {repo_root}")
     print(f"Alvo principal: {plano_file.relative_to(repo_root)}")
     print("-" * 50)
@@ -52,24 +54,70 @@ def main():
                 estados_permitidos.add(raw_state)
 
     print(f"  • Estados permitidos normativos identificados: {sorted(list(estados_permitidos))}")
+    if estados_permitidos:
+        checks_passed += 1
+    elif estados_block:
+        errors.append("A seção de estados permitidos não contém estados reconhecíveis.")
 
     # ---------------------------------------------------------
     # 2. Tabela de achados (R1 a R10)
     # ---------------------------------------------------------
     print("[2/7] Verificando consistência da tabela de achados (R1 a R10)...")
-    tabela_match = re.search(r"## Registro vivo do conselho.*?\| ID \| Estado atual \|.*?\n\|[-|\s]+\n(.*?)(?=\n\n|\n###)", plano_text, re.DOTALL)
+    tabela_match = re.search(
+        r"## Registro vivo do conselho.*?\n(\|[^\n]*\|)\n\|[-| ]+\|\n(.*?)(?=\n\n|\n###)",
+        plano_text,
+        re.DOTALL,
+    )
     if not tabela_match:
         errors.append("Tabela '## Registro vivo do conselho' não encontrada no plano.")
     else:
+        expected_columns = [
+            "ID", "Estado atual", "Evidência conferida", "Critério/decisão registrado",
+            "Severidade/prioridade registrada", "Implementação consolidada", "Commit de implementação",
+        ]
+        actual_columns = [c.strip() for c in tabela_match.group(1).strip().strip("|").split("|")]
+        if actual_columns != expected_columns:
+            errors.append(
+                "Cabeçalhos do registro R1–R10 divergentes. "
+                f"Esperado: {expected_columns}; encontrado: {actual_columns}."
+            )
+
+        suite_script = repo_root / "clearer-engineering/tests/run-all-tests.sh"
+        suite_text = suite_script.read_text(encoding="utf-8")
+        declared_runs = len(re.findall(r"^\s*run_test\s+", suite_text, re.MULTILINE))
+        # The suite contains two mutually exclusive if/else pairs; only one test
+        # from each pair is counted at runtime.
+        suite_total = declared_runs - 2
+        plan_header = "\n".join(plano_text.splitlines()[:8])
+        expected_count_claim = f"{suite_total}/{suite_total} testes aprovados"
+        if expected_count_claim not in plan_header:
+            errors.append(
+                "A contagem atual da suíte geral não está sincronizada no cabeçalho do plano: "
+                f"esperado '{expected_count_claim}'."
+            )
+
         achados = {}
-        for line in tabela_match.group(1).strip().splitlines():
-            cols = [c.strip() for c in line.split("|") if c]
+        for line in tabela_match.group(2).strip().splitlines():
+            cols = [c.strip() for c in line.strip().strip("|").split("|")]
             if len(cols) >= 3 and re.match(r"^R\d+$", cols[0]):
                 r_id = cols[0]
                 estado = cols[1]
                 evidencias = cols[2]
-                responsavel = cols[6] if len(cols) >= 7 else ""
-                achados[r_id] = {"estado": estado, "evidencias": evidencias, "responsavel": responsavel}
+                if len(cols) != len(expected_columns):
+                    errors.append(f"Achado {r_id} possui {len(cols)} colunas; esperado: {len(expected_columns)}.")
+                    continue
+                commit_hash = cols[6].strip("`")
+                if not re.fullmatch(r"[0-9a-f]{7,40}", commit_hash):
+                    errors.append(f"Achado {r_id} não possui hash de commit válido na coluna de implementação.")
+                else:
+                    commit_check = subprocess.run(
+                        ["git", "rev-parse", "--verify", f"{commit_hash}^{{commit}}"],
+                        cwd=repo_root,
+                        capture_output=True,
+                    )
+                    if commit_check.returncode != 0:
+                        errors.append(f"Commit da tabela do achado {r_id} não existe no histórico local: {commit_hash}.")
+                achados[r_id] = {"estado": estado, "evidencias": evidencias}
 
         expected_ids = [f"R{i}" for i in range(1, 11)]
         for r_id in expected_ids:
@@ -196,8 +244,8 @@ def main():
         print("Auditoria documental REJEITADA.")
         sys.exit(1)
     else:
-        print("SUCESSO: Documentação 100% íntegra, consistente e aderente aos padrões normativos.")
-        print("Auditoria documental APROVADA.")
+        print(f"SUCESSO: {checks_passed}/7 checagens estruturais documentais passaram.")
+        print("Auditoria estrutural documental APROVADA; coerência semântica integral não avaliada.")
         sys.exit(0)
 
 if __name__ == "__main__":

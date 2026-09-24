@@ -197,8 +197,8 @@ run_test "Cluster 2 Acceptance: contratos R6-R8" \
 run_test "Cluster 3 Acceptance: contratos R3, R4, R9, R10" \
     "python3 '$PLUGIN_DIR/tests/cluster3_acceptance.py' >/dev/null"
 
-# 12. Documentation Consistency & Normative Audit
-run_test "Documentation Audit: Consistência normativa de estados, links e claims" \
+# 12. Bounded structural documentation checks
+run_test "Documentation Audit: 7 checagens estruturais de estados, cabeçalhos, links, commits e contagem" \
     "bash '$PLUGIN_DIR/scripts/doc-audit.sh' >/dev/null"
 
 echo ""
