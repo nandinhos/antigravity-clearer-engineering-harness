@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Tests-41%2F41%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Tests-45%2F45%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalist-blueviolet.svg)](#-ponytail-mode--ast-first-philosophy)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-the-risk-dial--execution-autonomy)
@@ -29,6 +29,7 @@ Rather than relying on vague prompts or unverified model assumptions, CEH operat
 - **Ponytail Mode & AST First Philosophy**: "Understand deeply, build concisely, deliver correctly". 5-step decision ladder, minimal functional diffs, and relational AST navigation with graceful fallback.
 - **Flexible Canonical Topologies**: Native support for **Enterprise Mode (3 branches: `dev` ➔ `staging` ➔ `main`)** and **Classic Mode (2 branches: `dev` ➔ `main`)**, with interactive `ceh-branches` helper.
 - **Continuous Execution for MEDIUM Risk**: The complete `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` cycle is conducted end-to-end in a **Single-Turn**.
+- **Multi-Model Deliberation (Conselho de Seniores Add-on)**: Dynamic multi-agent review council dispatching headless checks to available frontier CLIs (`claude`, `codex`, `muse`, `hermes`, `agy`, `agent`) for 360º decision support.
 - **Zero Hallucination & Zero Fake Pass**: Prohibits speculative code creation and guarantees every claim is backed by real execution logs in `OBSERVED`.
 
 ---
@@ -55,6 +56,8 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 | `ceh-branches` | Audits and sets up canonical project branches (Enterprise or Classic). | New repository setup. |
 | `ceh-preflight` | Runs the full engineering readiness and project integrity check. | Pre-release validation. |
 | `ceh-evals` | Runs deterministic smoke-eval suite (5/5 RFC 2119 criteria). | Harness falsifiability tests. |
+| `ceh-doc-audit` | Audits documentation structure, allowed states, and link portability. | Pre-release documentation hygiene. |
+| `ceh-conselho` | Invokes the dynamic multi-model Council of Seniors (optional add-on). | 360º multi-agent deliberation. |
 | `ceh-monitor` | Real-time interactive telemetry dashboard & 25s heartbeat. | Background task tracker. |
 | `ceh-help` | Interactive quick guide and command cheat sheet in terminal. | Fast reference manual. |
 
@@ -228,7 +231,7 @@ CEH natively supports **2 Git topology modes**, proactively identified upon load
 CEH provides rigorous end-to-end verification, including infrastructure mutation testing:
 
 ```bash
-# 1. Run Complete Component & Integrity Suite (41 tests)
+# 1. Run Complete Component & Integrity Suite (45 tests)
 ./clearer-engineering/tests/run-all-tests.sh
 
 # 2. Run Adversarial Verification Suite (bypass & injection detection)

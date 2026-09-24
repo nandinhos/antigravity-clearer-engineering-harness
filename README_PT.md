@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Testes-41%2F41%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Testes-45%2F45%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalista-blueviolet.svg)](#-filosofia-ponytail-mode--ast-first)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-o-risk-dial)
@@ -29,6 +29,7 @@ Em vez de depender de prompts vagos ou suposições não comprovadas, o CEH oper
 - **Filosofia Ponytail Mode & AST First**: "Entender muito, construir pouco e entregar certo". Escada de decisão anti-over-engineering, menor diff funcional e priorização de AST relacional com degradação graciosa.
 - **Topologias Canônicas Flexíveis**: Suporte nativo a **Modo Enterprise (3 branches: `dev` ➔ `staging` ➔ `main`)** e **Modo Clássico (2 branches: `dev` ➔ `main`)**, com assistente interativo `ceh-branches`.
 - **Execução Contínua em Nível MEDIUM**: Ciclo completo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` conduzido de ponta a ponta em **turno único (Single-Turn End-to-End)**.
+- **Deliberação Multi-Modelo (Add-on Conselho de Seniores)**: Banca multi-agente dinâmica que despacha consultas não-interativas para os CLIs de fronteira disponíveis (`claude`, `codex`, `muse`, `hermes`, `agy`, `agent`) fornecendo apoio analítico 360º.
 - **Zero Hallucination & Zero Fake Pass**: Proíbe a criação de código especulativo e garante que toda alegação de sucesso seja sustentada por comandos reais e logs executados em `OBSERVED`.
 
 ---
@@ -55,6 +56,8 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 | `ceh-branches` | Audita e configura as branches do projeto (Modo Enterprise ou Clássico). | Setup de novos repositórios. |
 | `ceh-preflight` | Executa a verificação completa de prontidão e integridade do projeto. | Validação antes de releases. |
 | `ceh-evals` | Executa a bateria determinística de smoke-evals (5/5 critérios RFC 2119). | Testes de falsificabilidade do harness. |
+| `ceh-doc-audit` | Audita a estrutura documental, estados permitidos e portabilidade de links. | Higiene documental antes de releases. |
+| `ceh-conselho` | Convoca a banca multi-modelo do Conselho de Seniores (add-on opcional). | Deliberação e visão analítica 360º. |
 | `ceh-monitor` | Painel interativo de telemetria e heartbeat (25s) para tarefas de background. | Acompanhamento de testes demorados. |
 | `ceh-help` | Exibe o guia interativo de ajuda rápida e atalhos no terminal. | Consulta de comandos e regras. |
 
@@ -228,7 +231,7 @@ O CEH apoia o desenvolvedor com **2 modos de topologia Git**, identificados proa
 O harness possui validação rigorosa de ponta a ponta, incluindo testes de mutação de infraestrutura:
 
 ```bash
-# 1. Executar suíte completa de componentes e integridade (41 testes)
+# 1. Executar suíte completa de componentes e integridade (45 testes)
 ./clearer-engineering/tests/run-all-tests.sh
 
 # 2. Executar suíte de testes adversariais (bypass e injeção de comandos)
