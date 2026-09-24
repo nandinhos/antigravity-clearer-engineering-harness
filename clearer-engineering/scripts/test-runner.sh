@@ -46,18 +46,19 @@ fi
 # Canonical command declared by the project overrides auto-detection
 CONFIG_CMD=""
 CONFIG_OK=1
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    if [[ -f ".ceh/config.json" ]]; then
-        if git cat-file -e "HEAD:.ceh/config.json" 2>/dev/null && git diff --quiet HEAD -- .ceh/config.json 2>/dev/null; then
-            CONFIG_CMD=$(git show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("canonical_test_command",""))' 2>/dev/null) || CONFIG_OK=0
+    if [[ -f "$REPO_ROOT/.ceh/config.json" ]]; then
+        if git cat-file -e "HEAD:.ceh/config.json" 2>/dev/null && git -C "$REPO_ROOT" diff --quiet HEAD -- .ceh/config.json 2>/dev/null; then
+            CONFIG_CMD=$(git -C "$REPO_ROOT" show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("canonical_test_command",""))' 2>/dev/null) || CONFIG_OK=0
         else
             CONFIG_OK=0
         fi
     elif git cat-file -e "HEAD:.ceh/config.json" 2>/dev/null; then
         CONFIG_OK=0
     fi
-elif [[ -f ".ceh/config.json" ]]; then
-    CONFIG_CMD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("canonical_test_command",""))' .ceh/config.json 2>/dev/null) || CONFIG_OK=0
+elif [[ -f "$REPO_ROOT/.ceh/config.json" ]]; then
+    CONFIG_CMD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("canonical_test_command",""))' "$REPO_ROOT/.ceh/config.json" 2>/dev/null) || CONFIG_OK=0
 fi
 
 if [[ $# -gt 0 ]]; then
@@ -93,7 +94,7 @@ fi
 # A certificate must describe the commit, so the worktree must match HEAD
 WORKTREE_DIRTY=0
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    DIRTY_FILES=$(git status --porcelain -- ':(top)' ':(top,exclude).ceh/last-ci-run.json' 2>/dev/null)
+    DIRTY_FILES=$(git -C "$REPO_ROOT" status --porcelain -- ':(top)' ':(top,exclude).ceh/last-ci-run.json' 2>/dev/null)
     if [[ -n "$DIRTY_FILES" ]]; then
         WORKTREE_DIRTY=1
         echo "[CEH WARNING] ⚠️ Worktree com alterações não commitadas. Os testes rodam, mas o certificado NÃO será emitido."
@@ -168,11 +169,11 @@ fi
 echo "=========================================="
 
 # Emit Pre-Push CI Clearance Certificate
-CEH_DIR=".ceh"
+CEH_DIR="$REPO_ROOT/.ceh"
 if [[ $WORKTREE_DIRTY -eq 0 ]]; then
     mkdir -p "$CEH_DIR" 2>/dev/null || true
     if [[ -d "$CEH_DIR" ]]; then
-        CURRENT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "untracked")
+        CURRENT_COMMIT=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "untracked")
         NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         STATUS_STR="FAIL"
         [[ $EXIT_CODE -eq 0 ]] && STATUS_STR="PASS"
