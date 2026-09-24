@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# CLEARER Engineering Harness (CEH) — Conselho de Seniores Orchestrator
+# CLEARER Engineering Harness (CEH) — Conselho de Seniores (Add-on Opcional)
 # ==============================================================================
-# Orquestra a banca multi-agente de modelos CLI para validação, auditoria
-# adversarial e homologação técnica de soluções sob o protocolo CLEARER.
+# Orquestrador dinâmico multi-modelo para apoiar a deliberação técnica,
+# auditoria adversarial e homologação através de CLIs de IA instalados.
 #
-# Membros Suportados:
+# NOTA DE ESCOPO:
+#   Este script é um ADD-ON OPCIONAL DE PRODUTIVIDADE DO DESENVOLVEDOR.
+#   Não é requisito obrigatório para a conformidade do harness CEH.
+#   O quórum é formado dinamicamente a partir dos CLIs que estiverem
+#   efetivamente presentes e configurados na máquina do desenvolvedor.
+#
+# Modelos Candidatos Suportados:
 #   - claude (Anthropic)    -> Ponytail Lead & Análise Semântica
 #   - codex  (OpenAI)       -> Lógica Formal, Algoritmos & Concorrência
 #   - muse   (Meta)         -> POSIX, Sistemas & Portabilidade de Runtime
@@ -21,7 +27,7 @@ REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || (cd "
 
 # Configurações padrão
 TIMEOUT_SECS=90
-TARGET_AGENTS=()
+REQUESTED_AGENTS=()
 USER_PROMPT=""
 PROMPT_FILE=""
 USE_DIFF=false
@@ -31,24 +37,28 @@ OUTPUT_DIR=""
 # Paleta ANSI
 BOLD='\033[1m'
 GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
+YELLOW='\033[1;33m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
 
+# Todos os modelos conhecidos pelo add-on
+ALL_KNOWN_AGENTS=("claude" "codex" "muse" "hermes" "agy" "agent")
+
 usage() {
   cat <<EOF
-${BOLD}CLEARER Engineering Harness — Conselho de Seniores${RESET}
+${BOLD}CLEARER Engineering Harness — Conselho de Seniores (Add-on Opcional)${RESET}
 
 Uso:
   $0 [opções]
 
 Opções de Agentes:
-  --all                 Convoca todos os conselheiros disponíveis (padrão)
+  --all                 Convoca todos os conselheiros ativos detectados (padrão)
   --agent <nome>        Convoca apenas o agente especificado:
                         (claude | codex | muse | hermes | agy | agent)
                         Pode ser repetido: --agent claude --agent codex
+  --list-available      Lista quais CLIs de conselheiros estão instalados e prontos
 
 Opções de Contexto:
   --diff                Extrai e anexa o tripé de Git diff (unstaged, staged e HEAD~1)
@@ -61,17 +71,43 @@ Opções de Contexto:
 
 Exemplos:
   $0 --all --diff
-  $0 --agent claude --agent codex --diff --prompt "Auditar conformidade do Safety Gate"
-  $0 --all --file docs/plano-validacao.md
+  $0 --agent claude --agent agy --diff --prompt "Auditar rigorosamente o FSM Lexer"
+  $0 --list-available
 EOF
   exit 0
+}
+
+# Auto-descoberta de CLIs disponíveis no sistema
+detect_available_agents() {
+  local -n out_arr=$1
+  out_arr=()
+  for cand in "${ALL_KNOWN_AGENTS[@]}"; do
+    if command -v "$cand" >/dev/null 2>&1; then
+      out_arr+=("$cand")
+    fi
+  done
 }
 
 # Parsing de argumentos
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --list-available)
+      declare -a installed=()
+      detect_available_agents installed
+      echo -e "${BOLD}Status dos CLIs do Conselho de Seniores nesta máquina:${RESET}"
+      for cand in "${ALL_KNOWN_AGENTS[@]}"; do
+        if command -v "$cand" >/dev/null 2>&1; then
+          echo -e "  ${GREEN}● $cand${RESET} -> $(command -v "$cand")"
+        else
+          echo -e "  ${YELLOW}○ $cand${RESET} -> não encontrado no PATH (opcional)"
+        fi
+      done
+      echo -e "\n${BOLD}Quórum disponível:${RESET} ${#installed[@]} de ${#ALL_KNOWN_AGENTS[@]} modelos ativos."
+      exit 0
+      ;;
     --all)
-      TARGET_AGENTS=("claude" "codex" "muse" "hermes" "agy" "agent")
+      # Será populado dinamicamente pelos instalados
+      REQUESTED_AGENTS=()
       shift
       ;;
     --agent)
@@ -79,7 +115,7 @@ while [[ $# -gt 0 ]]; do
         echo -e "${RED}Erro: --agent requer um nome de agente.${RESET}" >&2
         exit 1
       fi
-      TARGET_AGENTS+=("$2")
+      REQUESTED_AGENTS+=("$2")
       shift 2
       ;;
     --diff)
@@ -124,9 +160,37 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Se nenhum agente foi especificado, adota todos
+# 1. Detecção dinâmica de quórum
+declare -a DETECTED_AGENTS=()
+detect_available_agents DETECTED_AGENTS
+
+if [[ ${#DETECTED_AGENTS[@]} -eq 0 ]]; then
+  echo -e "${YELLOW}Aviso: Nenhum dos 6 CLIs do Conselho (${ALL_KNOWN_AGENTS[*]}) foi encontrado no PATH.${RESET}"
+  echo -e "O Conselho de Seniores é um add-on opcional de visão ampliada do desenvolvedor."
+  echo -e "O harness CEH continua operando normalmente com suas verificações nativas e linters."
+  exit 0
+fi
+
+# Formação da bancada ativa
+TARGET_AGENTS=()
+if [[ ${#REQUESTED_AGENTS[@]} -eq 0 ]]; then
+  # Modo padrão: usa todos os que estiverem disponíveis na máquina
+  TARGET_AGENTS=("${DETECTED_AGENTS[@]}")
+else
+  # O usuário pediu agentes específicos: valida se estão instalados
+  for req in "${REQUESTED_AGENTS[@]}"; do
+    if command -v "$req" >/dev/null 2>&1; then
+      TARGET_AGENTS+=("$req")
+    else
+      echo -e "${YELLOW}Aviso: Agente solicitado '$req' não está instalado nesta máquina. Pulando.${RESET}"
+    fi
+  done
+fi
+
 if [[ ${#TARGET_AGENTS[@]} -eq 0 ]]; then
-  TARGET_AGENTS=("claude" "codex" "muse" "hermes" "agy" "agent")
+  echo -e "${RED}Erro: Nenhum dos agentes solicitados está disponível no PATH.${RESET}"
+  echo -e "Modelos ativos nesta máquina: ${GREEN}${DETECTED_AGENTS[*]}${RESET}"
+  exit 1
 fi
 
 # Diretório de saída padrão
@@ -145,7 +209,7 @@ if [[ -n "$PROMPT_FILE" ]]; then
 fi
 
 if [[ -n "$USER_PROMPT" ]]; then
-  CONTEXT_PAYLOAD+="=== INSTRUÇÃO ESPECÍFICA DO OWNER ===\n"
+  CONTEXT_PAYLOAD+="=== INSTRUÇÃO ESPECÍFICA DO DEVELOPER ===\n"
   CONTEXT_PAYLOAD+="$USER_PROMPT\n\n"
 fi
 
@@ -171,12 +235,10 @@ if [[ "$USE_DIFF" == true ]]; then
   fi
 fi
 
-# Se não foi fornecido contexto algum, aplica instrução padrão de auditoria
 if [[ -z "$CONTEXT_PAYLOAD" ]]; then
   CONTEXT_PAYLOAD="Avaliar o estado atual da branch $(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'desconhecida') e o último commit $(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'desconhecido')."
 fi
 
-# Função de perfil e delegação de cada conselheiro
 get_agent_role() {
   local agent="$1"
   case "$agent" in
@@ -204,7 +266,6 @@ get_agent_role() {
   esac
 }
 
-# Template de prompt do System One para o conselheiro
 build_agent_prompt() {
   local agent="$1"
   local role="$2"
@@ -237,19 +298,18 @@ EOF
 
 echo -e "${BOLD}${CYAN}======================================================================${RESET}"
 echo -e "${BOLD}${CYAN}   CLEARER ENGINEERING HARNESS — CONSELHO DE SENIORES                 ${RESET}"
+echo -e "${BOLD}${CYAN}   (Add-on Opcional de Apoio à Decisão Multi-Modelo)                  ${RESET}"
 echo -e "${BOLD}${CYAN}======================================================================${RESET}"
-echo -e "Data/Hora:     $(date -Iseconds)"
-echo -e "Repositório:   $REPO_ROOT"
-echo -e "Branch:        $(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')"
-echo -e "Commit:        $(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
-echo -e "Ata de Saída:  $OUTPUT_DIR/ata_conselho.md"
-echo -e "Conselheiros:  ${TARGET_AGENTS[*]}"
+echo -e "Data/Hora:       $(date -Iseconds)"
+echo -e "Repositório:     $(basename "$REPO_ROOT")"
+echo -e "Branch:          $(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')"
+echo -e "Commit:          $(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
+echo -e "Quórum Ativo:    ${GREEN}${#TARGET_AGENTS[@]} de ${#ALL_KNOWN_AGENTS[@]} modelos disponíveis${RESET} (${TARGET_AGENTS[*]})"
+echo -e "Ata de Saída:    $OUTPUT_DIR/ata_conselho.md"
 echo -e "${CYAN}----------------------------------------------------------------------${RESET}"
 
-# Salva o contexto base
 printf "%b" "$CONTEXT_PAYLOAD" > "$OUTPUT_DIR/contexto_avaliado.txt"
 
-# Loop pelos agentes
 declare -A AGENT_VERDICTS
 declare -A AGENT_CONFIDENCE
 declare -A AGENT_STATUS
@@ -262,18 +322,8 @@ for agent in "${TARGET_AGENTS[@]}"; do
   
   printf "%s\n" "$prompt" > "$prompt_file"
 
-  echo -e "\n${BOLD}[CONSELHEIRO] $agent${RESET}"
+  echo -e "\n${BOLD}[CONSELHEIRO ATIVO] $agent${RESET}"
   echo -e "Delegação: $role"
-
-  # Checagem de disponibilidade do binário
-  cli_bin="$(command -v "$agent" || true)"
-  if [[ -z "$cli_bin" ]]; then
-    echo -e "${YELLOW}Aviso: Binário CLI '$agent' não encontrado no PATH. Pulando.${RESET}"
-    AGENT_STATUS["$agent"]="NÃO_INSTALADO"
-    AGENT_VERDICTS["$agent"]="N/A"
-    AGENT_CONFIDENCE["$agent"]="0.0"
-    continue
-  fi
 
   if [[ "$DRY_RUN" == true ]]; then
     echo -e "${BLUE}[DRY-RUN] Comando que seria executado para $agent:${RESET}"
@@ -338,12 +388,10 @@ for agent in "${TARGET_AGENTS[@]}"; do
     AGENT_VERDICTS["$agent"]="INCONCLUSIVO"
     AGENT_CONFIDENCE["$agent"]="0.0"
   else
-    # Extração de veredito e certeza
     verd="$(grep -E '^VEREDITO:' "$resp_file" | head -n1 | sed -E 's/VEREDITO:[[:space:]]*//' | tr -d '\r' || true)"
     cert="$(grep -E '^CERTEZA:' "$resp_file" | head -n1 | sed -E 's/CERTEZA:[[:space:]]*//' | tr -d '\r' || true)"
 
     if [[ -z "$verd" ]]; then
-      # Fallback por busca de palavras-chave
       if grep -qi "HOMOLOGADO" "$resp_file"; then verd="HOMOLOGADO";
       elif grep -qi "RESSALVAS" "$resp_file"; then verd="RESSALVAS";
       elif grep -qi "REJEITADO" "$resp_file"; then verd="REJEITADO";
@@ -358,17 +406,17 @@ for agent in "${TARGET_AGENTS[@]}"; do
   fi
 done
 
-# Geração da Ata Consolidada do Conselho
 ATA_FILE="$OUTPUT_DIR/ata_conselho.md"
 
 cat <<EOF > "$ATA_FILE"
 # Ata de Deliberação do Conselho de Seniores (CEH)
+> *Add-on Opcional de Apoio à Decisão Multi-Modelo*
 
 **Data/Hora:** $(date -Iseconds)  
 **Repositório:** \`$(basename "$REPO_ROOT")\`  
 **Branch:** \`$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')\`  
 **Commit:** \`$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'N/A')\`  
-**Instância:** Banca Multi-Agente de Modelos CLI
+**Quórum Ativo da Sessão:** ${#TARGET_AGENTS[@]} membro(s) (${TARGET_AGENTS[*]})
 
 ---
 
@@ -398,7 +446,6 @@ for agent in "${TARGET_AGENTS[@]}"; do
   echo "| **\`$agent\`** | $role | \`$status\` | **$verdict** | $cert | [Ver Parecer](parecer_${agent}.md) |" >> "$ATA_FILE"
 done
 
-# Veredito Final da Banca
 VEREDITO_COLETIVO="HOMOLOGADO"
 if [[ $TOTAL_REJEITADO -gt 0 ]]; then
   VEREDITO_COLETIVO="REJEITADO"
@@ -422,9 +469,9 @@ cat <<EOF >> "$ATA_FILE"
 
 ---
 
-## 3. Próximos Passos e Despacho do Owner
+## 3. Despacho Soberano do Desenvolvedor
 
-O veredito acima reflete a deliberação dos agentes especialistas do Conselho. A palavra final e o desembargo de decisões cabem soberanamente ao Owner do Repositório (\`nandodev\`).
+Esta ata consolida pareceres técnicos de apoio para oferecer uma perspectiva 360º de alto nível. A decisão final, aprovação de handoffs e direção da arquitetura pertencem exclusivamente ao Desenvolvedor (\`nandodev\`).
 EOF
 
 echo -e "\n${BOLD}${GREEN}======================================================================${RESET}"

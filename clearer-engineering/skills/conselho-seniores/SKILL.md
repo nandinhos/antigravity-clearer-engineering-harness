@@ -1,73 +1,77 @@
 ---
 name: conselho-seniores
 description: >-
-  Convoca a banca multi-agente do Conselho de Seniores (claude, codex, muse, hermes, agy, agent)
-  para deliberação técnica, auditoria adversarial, análise de diffs e homologação sob o protocolo CLEARER.
+  Add-on opcional do desenvolvedor: convoca a banca multi-agente do Conselho de Seniores
+  (auto-descoberta dinâmica de CLIs como claude, codex, muse, hermes, agy, agent)
+  para oferecer visão analítica 360º e apoio à decisão sob o protocolo CLEARER.
 ---
 
-# Conselho de Seniores (Banca Multi-Agente CEH)
+# Conselho de Seniores (Banca Multi-Modelo — Add-on Opcional)
 
-O **Conselho de Seniores** é a instância máxima de revisão técnica, auditoria adversarial e homologação do CLEARER Engineering Harness (CEH).
-Ele é composto por 6 modelos de fronteira operando via CLI com delegações especializadas, sob a autoridade final do Owner (`nandodev`).
+> [!NOTE]
+> **Add-on Opcional do Desenvolvedor (Visão Ampliada 360º)**:
+> O Conselho de Seniores **NÃO é um requisito obrigatório** para o funcionamento ou conformidade do CLEARER Engineering Harness (CEH).
+> Trata-se de uma dinâmica avançada de uso pessoal do desenvolvedor para colher pareceres especializados de diferentes modelos CLI de fronteira, elevando o nível de análise e subsidiando decisões complexas.
 
 ---
 
-## 1. Composição e Delegações da Banca
+## 1. Princípio do Quórum Dinâmico & Degradação Graciosa
 
-| Membro / CLI | Provedor / Ecossistema | Delegação Especializada | Foco de Avaliação |
+Nem todo desenvolvedor ou ambiente dispõe de todos os modelos instalados. O Conselho opera com **detecção automática de quórum**:
+- Ao ser acionado, o comando inspeciona o `PATH` do sistema e identifica quais CLIs estão realmente presentes e configurados.
+- Se houver apenas 1 ou 2 CLIs (ex: `claude` e `agy`), o Conselho é formado exclusivamente por eles.
+- Se todos estiverem disponíveis, a banca é plenária.
+- Se nenhum CLI externo for detectado, o comando encerra graciosamente sem emitir erros e sem bloquear o harness.
+
+---
+
+## 2. Modelos Candidatos e Suas Perspectivas
+
+| Membro / CLI | Provedor / Ecossistema | Perspectiva Analítica | Foco de Avaliação |
 |---|---|---|---|
-| **`claude`** | Anthropic (Claude Code) | **Audit & Ponytail Lead** | Minimalismo (*anti-overengineering*), verificação factual de claims contra evidências (`OBSERVED`), conformidade semântica e detecção de edge cases. |
-| **`codex`** | OpenAI (Codex CLI) | **Lógica Formal & Algoritmos** | Raciocínio lógico dedutivo profundo, invariantes matemáticos, estruturas de dados, tipagem estrita e concorrência/deadlocks. |
-| **`muse`** | Meta (Muse Code) | **Sistemas & Portabilidade** | Arquitetura de sistemas POSIX, portabilidade Linux/macOS/BSD, segurança de runtime de shell e performance de baixo nível. |
-| **`hermes`** | Hermes Agent | **Tooling & Confiabilidade** | Integração com MCPs, confiabilidade de gateways e conectores, automação de tarefas e isolamento de dependências. |
+| **`claude`** | Anthropic (Claude Code) | **Audit & Ponytail Lead** | Minimalismo (*anti-overengineering*), verificação de claims contra evidências (`OBSERVED`), clareza semântica e caça de edge cases. |
+| **`codex`** | OpenAI (Codex CLI) | **Lógica Formal & Algoritmos** | Raciocínio lógico dedutivo profundo, invariantes matemáticos, estruturas de dados, tipagem estrita e concorrência. |
+| **`muse`** | Meta (Muse Code) | **Sistemas & Portabilidade** | Arquitetura POSIX, portabilidade Linux/macOS/BSD, segurança de shell e performance de baixo nível. |
+| **`hermes`** | Hermes Agent | **Tooling & Agentes** | Conectores MCP, gateways, confiabilidade de ferramentas externas e isolamento de dependências. |
 | **`agy`** | Google Antigravity | **Harness & Safety Gate** | Integridade das regras do CEH, governança de ambientes (`DEV`/`HML`/`PRD`), blast radius mínimo e bloqueio de comandos destrutivos. |
-| **`agent`** | Cursor Agent | **Diff Review Cirúrgico & DX** | Higiene de Git diff, ergonomia de código, impacto na IDE e consistência com os padrões existentes da base de código. |
+| **`agent`** | Cursor Agent | **Diff Review Cirúrgico & DX** | Higiene de Git diff, ergonomia de código na IDE e consistência com os padrões existentes. |
 
 ---
 
-## 2. Como Acionar o Conselho
+## 3. Formas de Acionamento
 
-A convocação do Conselho pode ser realizada diretamente via terminal através do script orquestrador:
-
-### Convocação Plenária (Todos os 6 Conselheiros) com Inspeção de Diff:
+### Diagnóstico de CLIs Disponíveis:
 ```bash
-bash clearer-engineering/scripts/conselho-seniores.sh --all --diff
+ceh-conselho --list-available
+```
+
+### Convocação Dinâmica com Inspeção de Git Diff:
+Convoca automaticamente todos os CLIs ativos na máquina:
+```bash
+ceh-conselho --all --diff
 ```
 
 ### Convocação Focada por Especialidade:
+Convoca apenas modelos específicos para uma dúvida pontual:
 ```bash
-# Apenas Claude e Codex para avaliar lógica e conformidade de contrato:
-bash clearer-engineering/scripts/conselho-seniores.sh --agent claude --agent codex --diff --prompt "Auditar rigorosamente o FSM Lexer do Safety Gate"
-
-# Avaliar um plano, documento ou especificação prévia:
-bash clearer-engineering/scripts/conselho-seniores.sh --all --file docs/plano-validacao.md
+# Consultar apenas Claude e Codex para validar uma regra crítica:
+ceh-conselho --agent claude --agent codex --diff --prompt "Avaliar se a FSM cobre todos os delimitadores POSIX"
 ```
 
 ### Simulação Prévia (Dry-Run):
 ```bash
-bash clearer-engineering/scripts/conselho-seniores.sh --all --diff --dry-run
+ceh-conselho --all --diff --dry-run
 ```
 
 ---
 
-## 3. Contrato de Resposta do System One
+## 4. Contrato de Saída e Despacho Soberano
 
-Cada conselheiro emite seu parecer preenchendo obrigatoriamente um contrato discreto e auditável:
+Cada membro emite sua deliberação sob o contrato padronizado:
+- **`VEREDITO`**: `HOMOLOGADO` | `RESSALVAS` | `REJEITADO`
+- **`CERTEZA`**: Nível quantitativo (`0.0` a `1.0`) amparado em evidências
+- **`ANALISE_ESPECIALIZADA`**: Diagnóstico sob a perspectiva do modelo
+- **`RISCOS_IDENTIFICADOS`**: Pontos cegos detectados
 
-```yaml
-VEREDITO: [HOMOLOGADO | RESSALVAS | REJEITADO]
-CERTEZA: [0.0 a 1.0 com base em evidência física OBSERVED]
-ANALISE_ESPECIALIZADA: <análise cirúrgica sob a ótica da delegação>
-RISCOS_IDENTIFICADOS: <lista de riscos reais ou 'Nenhum risco observado'>
-RECOMENDACAO_FINAL: <ação direta e verificável>
-```
-
----
-
-## 4. Geração de Atas e Despacho Soberano
-
-Ao término da deliberação:
-1. O orquestrador salva os pareceres individuais em `docs/temp_implementation/conselho/<TIMESTAMP>/parecer_<agente>.md`.
-2. Compila a **Ata de Deliberação Consolidada** em `docs/temp_implementation/conselho/<TIMESTAMP>/ata_conselho.md`.
-3. O agente mediador apresenta o resumo executivo no chat, destacando os vereditos, divergências e certezas.
-4. **Despacho Final**: O Owner do Repositório (`nandodev`) detém o poder inegociável de desempate, autorização de promoção ou exigência de correções.
+A **Ata Consolidada** é gerada em `docs/temp_implementation/conselho/<TIMESTAMP>/ata_conselho.md`.  
+A soberania técnica e a palavra final pertencem sempre ao **Desenvolvedor** no comando.
