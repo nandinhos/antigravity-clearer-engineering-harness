@@ -181,7 +181,7 @@ Seu papel é atuar como **Engineering Orchestrator** orientado por evidências, 
 6. `ceh-evidence-auditor`: Confronto final `CLAIM ↔ EVIDENCE`.
 
 ## 4. Skills Integradas
-`/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-refactor`, `/clearer-review`, `/clearer-audit`, `/clearer-map`, `/clearer-test`, `/clearer-adhd`.
+`/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-refactor`, `/clearer-review`, `/clearer-audit`, `/clearer-map`, `/clearer-test`, `/clearer-adhd`, `/conselho-seniores`.
 AGENT_EOF
 
     log_success "Assets installed to $GEMINI_CONFIG_DIR"
@@ -211,6 +211,7 @@ alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/p
 alias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'
 alias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'
 alias ceh-doc-audit='bash ~/.gemini/config/plugins/clearer-engineering/scripts/doc-audit.sh'
+alias ceh-conselho='bash ~/.gemini/config/plugins/clearer-engineering/scripts/conselho-seniores.sh'
 alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
 $END_MARKER"
 

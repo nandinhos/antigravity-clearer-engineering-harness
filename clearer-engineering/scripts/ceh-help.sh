@@ -28,6 +28,7 @@ echo -e "  ${GREEN}ceh-env${NC}         : Identificar o ambiente atual (DEV/HOMO
 echo -e "  ${GREEN}ceh-branches${NC}    : Auditar e configurar topologia de branches (Modo Enterprise ou Clássico)"
 echo -e "  ${GREEN}ceh-preflight${NC}   : Executar diagnóstico de prontidão e integridade do projeto"
 echo -e "  ${GREEN}ceh-evals${NC}       : Executar smoke-eval determinístico de robustez e falsificabilidade (5/5 PASS)"
+echo -e "  ${GREEN}ceh-conselho${NC}    : Convocar a banca multi-agente do Conselho de Seniores (6 modelos CLI)"
 echo -e "  ${GREEN}ceh-help${NC}        : Exibir este guia rápido"
 
 echo ""
@@ -61,6 +62,7 @@ echo -e "  ${BLUE}/clearer-test${NC}     : Execução determinística de testes 
 echo -e "  ${BLUE}/clearer-audit${NC}    : Auditoria formal de claims (SUPPORTED / PARTIALLY / UNSUPPORTED)"
 echo -e "  ${BLUE}/clearer-map${NC}      : Mapeamento arquitetural read-only do repositório"
 echo -e "  ${BLUE}/clearer-adhd${NC}     : Comunicação executiva Ponytail UX e clareza cognitiva (Lead with Action)"
+echo -e "  ${BLUE}/conselho-seniores${NC}: Convocação da banca multi-agente do Conselho de Seniores"
 
 echo ""
 echo -e "${BOLD}${CYAN}▶ TOOLKIT COMPLEMENTAR DE ACELERAÇÃO (AST & CONTEXTO):${NC}"
