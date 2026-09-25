@@ -212,3 +212,15 @@ B64:cm0gLXJmIC8uLw==
 B64:cm0gLXJmIC4uLy4u
 B64:cm0gLXJmIC4vKg==
 B64:cm0gLXJmIH5yb290
+# PR-04c Proteção S1 (Caminhos Absolutos Bloqueados em Produção)
+B64:cm0gLXJmIC92YXIvd3d3L3NpdGUvZGlzdA==
+B64:cm0gLXJmIC9zcnYvYXBwL2J1aWxk
+B64:cm0gLXJmIC9vcHQvcHJvZC9hcHAvZGlzdC8=
+B64:cm0gLXJmIC9ldGMvbmdpbngvY292ZXJhZ2Uv
+B64:cm0gLXJmIC4uLy4uL3Byb2QtcmVsZWFzZS9kaXN0
+# PR-04c Controles Seguros S1
+B64:cm0gLXJmIC90bXAvY2VoLXg=
+# PR-04c Variantes de Variáveis S2
+B64:cm0gLXJmICRQV0Q=
+B64:cm0gLXJmICIkUFdEIi8q
+B64:cm0gLXJmICRPTERQV0Q=

@@ -1,14 +1,5 @@
 """
-rm.py - Análise léxica e avaliação de segurança de comandos 'rm' do CEH (G1, G4 e PR-04b).
-Aplica tokenização via shlex e normalização canônica de caminhos:
-- G4 / PR-04b: Bloqueio incondicional (DENY CATASTROPHIC) de:
-  - Raiz '/' (incluindo variantes //, /./, /*)
-  - Exatamente um diretório de sistema de primeiro nível (SYSTEM_ROOTS) ou seu glob direto
-  - Exatamente /home/<nome>, o HOME resolvido ou ~root
-  - O próprio diretório de trabalho ou seus ancestrais (., .., ../.., ./*, *)
-  Descendentes NÃO são catastróficos e seguem as regras de FILESYSTEM do ambiente.
-- G1 (Opção A): Atalho de limpeza segura só é concedido se TODOS os alvos forem seguros.
-- R3: A razão utiliza a evidência de ambiente real (env_evidence).
+rm.py - Análise léxica e avaliação de segurança de comandos 'rm' do CEH (G1, G4, PR-04b, PR-04c).
 """
 from __future__ import annotations
 
@@ -31,22 +22,14 @@ SAFE_DIR_PREFIXES = (
 
 
 def parse_rm_tokens(tokens: list[str]) -> tuple[bool, bool, list[str]]:
-    """
-    Decompõe argumentos do comando rm:
-    Retorna (is_recursive, is_force, targets).
-    Reconhece flags curtas (-r, -f, -rf, -fr, -R, etc.), longas (--recursive, --force, etc.)
-    e o terminador de opções '--'.
-    """
-    is_recursive = False
-    is_force = False
-    targets = []
+    """Decompõe argumentos do comando rm em (is_recursive, is_force, targets)."""
+    is_recursive, is_force, targets = False, False, []
     parsing_options = True
 
     for token in tokens[1:]:
         if parsing_options and token == "--":
             parsing_options = False
             continue
-
         if parsing_options and token.startswith("-") and len(token) > 1:
             if token.startswith("--"):
                 flag_name = token[2:].split("=", 1)[0]
@@ -61,36 +44,31 @@ def parse_rm_tokens(tokens: list[str]) -> tuple[bool, bool, list[str]]:
                 if "f" in chars or "F" in chars:
                     is_force = True
             continue
-
         targets.append(token)
 
     return is_recursive, is_force, targets
 
 
+def has_unresolved_env_var(target: str) -> bool:
+    """Verifica se o alvo contém variáveis de ambiente não resolvíveis com segurança."""
+    t_clean = target.replace("${PWD}", "").replace("$PWD", "").replace("${HOME}", "").replace("$HOME", "")
+    return bool(re.search(r"\$[a-zA-Z_]\w*|\$\{[a-zA-Z_]\w*\}", t_clean))
+
+
 def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[bool, str]:
-    """
-    Verifica se um alvo é catastrófico (bloqueado em qualquer ambiente).
-    Aplica normalização estrita de caminho (PR-04b):
-    1. Expansão de ~ e $HOME
-    2. Separação de globs (* ou /*)
-    3. Colapso de barras repetidas e normpath
-    4. Resolução de caminhos relativos contra o diretório de trabalho
-    """
-    if cwd is None:
-        cwd_path = Path.cwd().resolve()
-    else:
-        cwd_path = Path(cwd).resolve()
+    """Verifica se um alvo é catastrófico (bloqueado incondicionalmente em qualquer ambiente)."""
+    cwd_path = Path.cwd().resolve() if cwd is None else Path(cwd).resolve()
     cwd_str = str(cwd_path)
 
-    t = target.strip().strip("'\"")
+    t = target.replace('"', "").replace("'", "").strip()
     if not t:
         return False, ""
 
-    # 1. Expansão de variáveis $HOME e ${HOME}
+    # S2: $PWD e ${PWD} resolvem para o cwd da avaliação, NUNCA os.environ['PWD']
+    t = t.replace("${PWD}", cwd_str).replace("$PWD", cwd_str)
     home_dir = os.environ.get("HOME", "/home/user")
     t = t.replace("${HOME}", home_dir).replace("$HOME", home_dir)
 
-    # 2. Expansão de tilde (~ e ~usuario)
     if t.startswith("~"):
         if t in ("~", "~/") or t.startswith("~/"):
             t = home_dir + t[1:]
@@ -99,53 +77,36 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
         else:
             t = os.path.expanduser(t)
 
-    # 3. Tratamento de glob (* ou /*)
     is_glob = False
     if t in ("*", "./*"):
-        is_glob = True
-        base = "."
+        is_glob, base = True, "."
     elif t.endswith("/*"):
-        is_glob = True
-        base = t[:-2]
-        if not base:
-            base = "/"
+        is_glob, base = True, (t[:-2] or "/")
     elif "/*" in t:
-        is_glob = True
-        base = t[:t.rfind("/*")]
-        if not base:
-            base = "/"
+        is_glob, base = True, (t[:t.rfind("/*")] or "/")
     else:
         base = t
 
-    # 4. Colapso de barras repetidas e resolução para caminho absoluto normalizado
     base = re.sub(r"/+", "/", base)
-    if os.path.isabs(base):
-        norm = os.path.normpath(base)
-    else:
-        norm = os.path.normpath(os.path.join(cwd_str, base))
+    norm = os.path.normpath(base) if os.path.isabs(base) else os.path.normpath(os.path.join(cwd_str, base))
 
-    # 5. Avaliação das 4 categorias de Catastrófico (Handoff 014):
     # (a) Raiz /
     if norm == "/":
         return True, "Attempting recursive deletion of root directory '/'."
-
     # (b) Exatamente um diretório de sistema de primeiro nível (SYSTEM_ROOTS)
     if norm in SYSTEM_ROOTS:
         return True, f"Attempting recursive deletion of protected directory '{target}'."
-
     # (c) Exatamente /home/<nome> ou o HOME resolvido
     resolved_home = os.path.normpath(home_dir)
     if norm == resolved_home:
         return True, "Attempting recursive deletion of home directory '~'."
     if norm.startswith("/home/") and norm.count("/") == 2:
         return True, f"Attempting recursive deletion of protected directory '{target}'."
-
     # (d) Um ancestral ou o próprio diretório de trabalho
     if norm == cwd_str:
-        if is_glob or target in ("*", "./*"):
+        if is_glob or target in ("*", "./*") or target.endswith("/*"):
             return True, "Attempting recursive deletion of wildcard '*'."
         return True, f"Attempting recursive deletion of protected directory '{target}'."
-
     if cwd_str.startswith(norm + "/"):
         if target in ("..", "../"):
             return True, "Attempting recursive deletion of parent directory '..'."
@@ -155,35 +116,39 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
 
 
 def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None) -> bool:
-    """Verifica se um alvo é considerado inequivocamente seguro para deleção/limpeza."""
-    is_cat, _ = is_target_catastrophic(target, cwd)
-    if is_cat:
+    """S1: Atalho seguro restrito a diretórios no cwd, arquivo único ou /tmp/."""
+    cwd_path = Path.cwd().resolve() if cwd is None else Path(cwd).resolve()
+    cwd_str = str(cwd_path)
+
+    if has_unresolved_env_var(target) or is_target_catastrophic(target, cwd_path)[0]:
         return False
 
-    t = target.strip().strip("'\"")
-    t = re.sub(r"/+", "/", t)
-    if t.startswith("./"):
-        t = t[2:]
+    t = target.replace('"', "").replace("'", "").strip()
+    t = re.sub(r"/+", "/", t.replace("${PWD}", cwd_str).replace("$PWD", cwd_str))
 
-    # Diretórios seguros canônicos de build/dist
-    if t in ("build", "build/", "dist", "dist/"):
+    # (c) Está sob /tmp/ (único prefixo absoluto seguro)
+    if t == "/tmp" or t == "/tmp/" or t.startswith("/tmp/"):
+        return True
+    if os.path.isabs(t):
+        return False
+
+    norm_full = os.path.normpath(os.path.join(cwd_str, t))
+    if norm_full != cwd_str and not norm_full.startswith(cwd_str + "/"):
+        return False
+
+    t_clean = t[2:] if t.startswith("./") else t
+    first_seg = t_clean.split("/")[0]
+
+    if first_seg in {"tmp", ".tmp", "scratch", ".cache", "dist", "build", "coverage"}:
+        return False if t_clean == ".cache" else True
+    if t_clean.startswith("storage/framework/cache/"):
+        return True
+    if t_clean.startswith("node_modules/.cache") or t_clean == "node_modules/.cache":
         return True
 
-    if any(t.startswith(p) for p in SAFE_DIR_PREFIXES):
-        return True
-
-    # Se for caminho absoluto ou relativo que termina em diretório seguro legítimo
-    parts = t.rstrip("/").split("/")
-    if parts:
-        last_seg = parts[-1]
-        if last_seg in ("build", "dist", "coverage", "scratch"):
-            return True
-        if len(parts) >= 2 and parts[-2] == "node_modules" and last_seg == ".cache":
-            return True
-
-    # Arquivo único com extensão e flag -f
-    if is_force and not t.endswith("/"):
-        parts = t.split("/")
+    # (b) Arquivo único com extensão dentro do cwd
+    if is_force and not t_clean.endswith("/"):
+        parts = t_clean.split("/")
         first, last = parts[0], parts[-1]
         norm_first = "/" + first.lstrip("/")
         if "." in last and not last.startswith(".") and "*" not in last and norm_first not in SYSTEM_ROOTS:
@@ -198,10 +163,7 @@ def evaluate_rm_command(
     env_evidence: str = "",
     base_cwd: Path | str | None = None
 ) -> tuple[str, str, str, str] | None:
-    """
-    Avalia a segurança de comandos 'rm' por tokens:
-    Retorna (decision, reason, detected_env, use_case) ou None se não for comando rm.
-    """
+    """Avalia a segurança de comandos 'rm' por tokens."""
     try:
         tokens = shlex.split(cmd_line, posix=True)
     except Exception:
@@ -212,53 +174,59 @@ def evaluate_rm_command(
 
     is_recursive, is_force, targets = parse_rm_tokens(tokens)
 
-    # 1. G4 / PR-04b: Bloqueio Catastrófico incondicional (qualquer ambiente)
+    # 1. G4 / PR-04b / PR-04c: Bloqueio Catastrófico incondicional
     for target in targets:
         is_cat, desc = is_target_catastrophic(target, base_cwd)
         if is_cat:
-            reason = f"[CEH CATASTROPHIC BLOCK] Hard block: {desc}"
-            return "deny", reason, env, "CATASTROPHIC"
+            return "deny", f"[CEH CATASTROPHIC BLOCK] Hard block: {desc}", env, "CATASTROPHIC"
 
-    # Se não há alvos especificados, deixa o gate padrão
     if not targets:
         return None
 
-    # Se não é recursivo nem forçado, é remoção simples sem flag de risco (ex: rm app/test.txt)
+    # S2: Variáveis não resolvíveis tornam o alvo incerto (Invariante 7)
+    unresolved_targets = [t for t in targets if has_unresolved_env_var(t)]
+    if unresolved_targets:
+        if env == "production":
+            reason = f"[CEH PRODUCTION LOCK] Alvo incerto com variável não resolvida: '{unresolved_targets[0]}'."
+            return "deny", reason, env, "FILESYSTEM"
+        if env == "staging":
+            reason = f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE]\n⚠️ ALERTA 1/2: Alvo incerto '{unresolved_targets[0]}'.\n⚠️ ALERTA 2/2: Confirmar rollback."
+            return "ask", reason, env, "FILESYSTEM"
+        reason = f"[CEH UNCERTAIN TARGET] Variável de ambiente não resolvida no alvo ('{unresolved_targets[0]}')."
+        return "ask", reason, env, "FILESYSTEM"
+
     if not is_recursive and not is_force:
         return "allow", "Comando geral seguro.", env, "GENERAL"
 
-    # 2. G1 (Opção A): Atalho de limpeza segura em qualquer ambiente
-    # Só concede se TODOS os alvos forem seguros
-    is_all_safe = all(is_target_safe(t, is_force, base_cwd) for t in targets)
-    if is_all_safe:
+    # 2. G1 / S1: Atalho de limpeza segura
+    if all(is_target_safe(t, is_force, base_cwd) for t in targets):
         return "allow", f"Safe development operation permitted ({env_evidence}).", env, "FILESYSTEM_SAFE"
 
-    # 3. Se nem todos os alvos são seguros e é exclusão recursiva ou forçada:
+    # 3. Exclusão recursiva ou forçada fora do atalho seguro
     if is_recursive or is_force:
         if env == "production":
             reason = (
-                f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
-                f"(Caso de Uso: Sistema de Arquivos): Recursive or forced file deletion (rm -rf).\n"
-                f"Ambiente detectado: PRODUCTION.\n"
-                f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
+                "[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
+                "(Caso de Uso: Sistema de Arquivos): Recursive or forced file deletion (rm -rf).\n"
+                "Ambiente detectado: PRODUCTION.\n"
+                "Execução bloqueada para prevenir perda de dados e indisponibilidade."
             )
             return "deny", reason, env, "FILESYSTEM"
 
         if env == "staging":
             reason = (
-                f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: Sistema de Arquivos]\n"
-                f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural (Recursive or forced file deletion (rm -rf)).\n"
+                "[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: Sistema de Arquivos]\n"
+                "⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural (Recursive or forced file deletion (rm -rf)).\n"
                 f"   Ambiente detectado: STAGING.\n"
-                f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
-                f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
-                f"Confirma a execução com rollback assegurado?"
+                "⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
+                "foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
+                "Confirma a execução com rollback assegurado?"
             )
             return "ask", reason, env, "FILESYSTEM"
 
-        # Development
         reason = (
-            f"[CEH DEV PERMITTED - Caso de Uso: Sistema de Arquivos] Comando destrutivo liberado para ambiente de "
-            f"desenvolvimento/teste, condicionado à prontidão de backup e estratégia de rollback."
+            "[CEH DEV PERMITTED - Caso de Uso: Sistema de Arquivos] Comando destrutivo liberado para ambiente de "
+            "desenvolvimento/teste, condicionado à prontidão de backup e estratégia de rollback."
         )
         return "allow", reason, env, "FILESYSTEM"
 

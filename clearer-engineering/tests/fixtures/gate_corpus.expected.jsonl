@@ -584,9 +584,9 @@
 {"host": "claude", "id": "HOOK-199-claude", "response": {}, "type": "hook"}
 {"command": "git push origin dev:main", "decision": "allow", "id": "INT-G7_CONTROL", "name": "G7_CONTROL", "type": "integration", "use_case": "PRE_PUSH_CI"}
 {"command": "git push origin outro:main", "decision": "allow", "id": "INT-G7_RED", "name": "G7_RED", "type": "integration", "use_case": "PRE_PUSH_CI"}
-{"command": "rm -rf /home/user/projeto/build", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-202-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf /home/user/projeto/build", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-202-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf /home/user/projeto/build", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-202-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf /home/user/projeto/build", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-202-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /home/user/projeto/build", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-202-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /home/user/projeto/build", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-202-pro", "type": "command", "use_case": "FILESYSTEM"}
 {"command": "rm -rf /home/user/projeto/src/old", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-203-dev", "type": "command", "use_case": "FILESYSTEM"}
 {"command": "rm -rf /home/user/projeto/src/old", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-203-sta", "type": "command", "use_case": "FILESYSTEM"}
 {"command": "rm -rf /home/user/projeto/src/old", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-203-pro", "type": "command", "use_case": "FILESYSTEM"}
@@ -614,3 +614,30 @@
 {"command": "rm -rf ~root", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-211-dev", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ~root", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-211-sta", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ~root", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-211-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /var/www/site/dist", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-212-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /var/www/site/dist", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-212-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /var/www/site/dist", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-212-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /srv/app/build", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-213-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /srv/app/build", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-213-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /srv/app/build", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-213-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /opt/prod/app/dist/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-214-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /opt/prod/app/dist/", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-214-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /opt/prod/app/dist/", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-214-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /etc/nginx/coverage/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-215-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /etc/nginx/coverage/", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-215-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /etc/nginx/coverage/", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-215-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf ../../prod-release/dist", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-216-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf ../../prod-release/dist", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-216-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf ../../prod-release/dist", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-216-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /tmp/ceh-x", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-217-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf /tmp/ceh-x", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-217-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf /tmp/ceh-x", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-217-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf $PWD", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-218-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf $PWD", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-218-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf $PWD", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-218-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf \"$PWD\"/*", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-219-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf \"$PWD\"/*", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-219-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf \"$PWD\"/*", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-219-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf $OLDPWD", "decision": "ask", "env": "development", "has_alerts": false, "id": "CMD-220-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf $OLDPWD", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-220-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf $OLDPWD", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-220-pro", "type": "command", "use_case": "FILESYSTEM"}
