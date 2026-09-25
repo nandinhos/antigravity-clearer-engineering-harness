@@ -36,6 +36,7 @@ from ceh_core.environment import (
     get_git_branch,
     find_repo_root,
 )
+from ceh_core.rm import evaluate_rm_command
 
 
 def resolve_git_invocation(cmd_line: str, base_cwd: Path) -> tuple[bool, Path | None, str, str | None]:
@@ -158,6 +159,11 @@ def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, 
     # Strip CLI proxy prefix (RTK / RTK proxy)
     sub_eval = re.sub(r"^\s*rtk(?:\s+proxy)?\s+", "", sub_raw)
     sub_norm = normalize_command_for_evaluation(sub_eval)
+
+    # 0. Avaliação Estrita de 'rm' por tokens (G1 + G4)
+    rm_res = evaluate_rm_command(sub_norm, env)
+    if rm_res is not None:
+        return rm_res
 
     # 1. Catastrophic Blocks: DENY has absolute priority in ANY environment
     for pattern, reason in CATASTROPHIC_PATTERNS:

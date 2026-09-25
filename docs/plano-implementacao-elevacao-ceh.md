@@ -395,6 +395,7 @@ A branch `claude/code-review-technical-analysis-kfwcdl` é a fonte única de con
 | Q2 | **Antigravity continua como alvo primário** (o CEH foi modelado para ele), e o Claude como 2º host; ambos com contrato gravado. | Alta | Payloads `OBSERVED` dos dois hosts | — |
 | Q3 | **Manter `temp_implementation/`** (diff zero). | Alta | `conselho-seniores.sh:199`, `SKILL.md:76`, `doc-audit.py` | — |
 | Q4 | **Piso Python 3.9** com `from __future__ import annotations`. | Alta | 3.8/3.9 = 24/24 com a linha; sem ela, `TypeError`; `agy` usa o `python3` do PATH | — |
+| Q5 | **Opção A no PR-04 (G1):** O atalho de limpeza segura (`FILESYSTEM_SAFE`) exige que **todos** os alvos sejam seguros em qualquer ambiente, mantendo `rm -rf dist/` liberado na `main`. | Alta | Decisão soberana do usuário no Handoff 013; menor diff funcional sem regressão para fluxos que atuam na branch principal. | — |
 | P0 | **Gate fail-closed em qualquer falha** (PR-00b) e **alvo real no hook** (PR-00). | Alta | Claude fail-open `OBSERVED`; `agy` fail-closed `INFERRED`; seção 0.3 `Reproduzido` | — |
 
 ## 10. Métricas de sucesso

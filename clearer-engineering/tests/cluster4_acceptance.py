@@ -33,16 +33,14 @@ class Cluster4Acceptance(unittest.TestCase):
     """
 
     # --------------------------------------------------------------------------
-    # G1: Filesystem Scope / Multi-target bypasses
+    # G1: Filesystem Scope / Multi-target bypasses (CORRIGIDO PR-04)
     # --------------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_g1_multitarget_build_and_src_production(self):
         """G1: rm -rf build/ src/ in production must be denied (today: allow)"""
         cmd = b64("cm0gLXJmIGJ1aWxkLyBzcmMv") # rm -rf build/ src/
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g1_multitarget_safe_and_system_dir_production(self):
         """G1: rm -rf a.txt /var/lib/postgresql in production must be denied (today: allow)"""
         cmd = b64("cm0gLXJmIGEudHh0IC92YXIvbGliL3Bvc3RncmVzcWw=") # rm -rf a.txt /var/lib/postgresql
@@ -91,35 +89,58 @@ class Cluster4Acceptance(unittest.TestCase):
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
     # --------------------------------------------------------------------------
-    # G4: Catastrophic Root & Home Directory Deletions
+    # G4: Catastrophic Root & Home Directory Deletions (CORRIGIDO PR-04)
     # --------------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_g4_rm_split_flags_root_development(self):
         """G4: rm -r -f / in development must be denied (catastrophic) (today: allow)"""
         cmd = b64("cm0gLXIgLWYgLw==") # rm -r -f /
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="development")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g4_rm_wildcard_root_development(self):
         """G4: rm -rf /* in development must be denied (catastrophic) (today: allow)"""
         cmd = b64("cm0gLXJmIC8q") # rm -rf /*
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="development")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g4_rm_home_env_var_development(self):
         """G4: rm -rf $HOME in development must be denied (catastrophic) (today: allow)"""
         cmd = b64("cm0gLXJmICRIT01F") # rm -rf $HOME
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="development")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g4_rm_long_flags_root_production(self):
         """G4: rm --recursive --force / in production must be denied (today: allow)"""
         cmd = b64("cm0gLS1yZWN1cnNpdmUgLS1mb3JjZSAv") # rm --recursive --force /
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
+
+    # --------------------------------------------------------------------------
+    # CONTROLES G1/G4: Limpezas legítimas seguras preservadas (Opção A)
+    # --------------------------------------------------------------------------
+    def test_control_rm_rf_dist_production(self):
+        """Controle: rm -rf dist/ deve permanecer permitido em produção/main"""
+        decision, reason, env, use_case = evaluate_command("rm -rf dist/", explicit_env="production")
+        self.assertEqual(decision, "allow")
+        self.assertEqual(use_case, "FILESYSTEM_SAFE")
+
+    def test_control_rm_rf_node_modules_cache_production(self):
+        """Controle: rm -rf node_modules/.cache deve permanecer permitido em produção/main"""
+        decision, reason, env, use_case = evaluate_command("rm -rf node_modules/.cache", explicit_env="production")
+        self.assertEqual(decision, "allow")
+        self.assertEqual(use_case, "FILESYSTEM_SAFE")
+
+    def test_control_rm_f_a_txt_production(self):
+        """Controle: rm -f a.txt deve permanecer permitido em produção/main"""
+        decision, reason, env, use_case = evaluate_command("rm -f a.txt", explicit_env="production")
+        self.assertEqual(decision, "allow")
+        self.assertEqual(use_case, "FILESYSTEM_SAFE")
+
+    def test_control_rm_rf_dot_build_production(self):
+        """Controle: rm -rf ./build deve permanecer permitido em produção/main"""
+        decision, reason, env, use_case = evaluate_command("rm -rf ./build", explicit_env="production")
+        self.assertEqual(decision, "allow")
+        self.assertEqual(use_case, "FILESYSTEM_SAFE")
 
     # --------------------------------------------------------------------------
     # G5: Alternative Deletion Tools (find, python shutil)

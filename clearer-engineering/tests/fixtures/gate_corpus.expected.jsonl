@@ -247,51 +247,51 @@
 {"command": "rm -rf /", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-082-dev", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf /", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-082-sta", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-082-pro", "type": "command", "use_case": "CATASTROPHIC"}
-{"command": "rm -rf /*", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-083-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /*", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-083-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /*", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-083-pro", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -r -f /", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-084-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -r -f /", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-084-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -r -f /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-084-pro", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm --recursive --force /", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-085-dev", "type": "command", "use_case": "GENERAL"}
-{"command": "rm --recursive --force /", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-085-sta", "type": "command", "use_case": "GENERAL"}
-{"command": "rm --recursive --force /", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-085-pro", "type": "command", "use_case": "GENERAL"}
-{"command": "rm -rf $HOME", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-086-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf $HOME", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-086-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf $HOME", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-086-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /*", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-083-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /*", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-083-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /*", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-083-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -r -f /", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-084-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -r -f /", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-084-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -r -f /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-084-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm --recursive --force /", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-085-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm --recursive --force /", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-085-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm --recursive --force /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-085-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf $HOME", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-086-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf $HOME", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-086-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf $HOME", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-086-pro", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ~", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-087-dev", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ~", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-087-sta", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ~", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-087-pro", "type": "command", "use_case": "CATASTROPHIC"}
-{"command": "rm -rf /etc", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-088-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /etc", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-088-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /etc", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-088-pro", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /usr", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-089-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /usr", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-089-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /usr", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-089-pro", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /var", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-090-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /var", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-090-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /var", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-090-pro", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /bin", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-091-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /bin", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-091-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /bin", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-091-pro", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-092-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf .", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-092-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf .", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-092-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /etc", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-088-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /etc", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-088-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /etc", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-088-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /usr", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-089-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /usr", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-089-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /usr", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-089-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /var", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-090-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /var", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-090-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /var", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-090-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /bin", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-091-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /bin", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-091-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /bin", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-091-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf .", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-092-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf .", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-092-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf .", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-092-pro", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ..", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-093-dev", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ..", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-093-sta", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf ..", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-093-pro", "type": "command", "use_case": "CATASTROPHIC"}
-{"command": "rm -rf build/ src/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-094-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf build/ src/", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-094-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf build/ src/", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-094-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-095-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-095-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-095-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
-{"command": "rm -rf /srv", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-096-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /srv", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-096-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /srv", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-096-pro", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /opt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-097-dev", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /opt", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-097-sta", "type": "command", "use_case": "FILESYSTEM"}
-{"command": "rm -rf /opt", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-097-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf build/ src/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-094-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf build/ src/", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-094-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf build/ src/", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-094-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-095-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-095-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-095-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /srv", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-096-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /srv", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-096-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /srv", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-096-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /opt", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-097-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /opt", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-097-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /opt", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-097-pro", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "find / -delete", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-098-dev", "type": "command", "use_case": "GENERAL"}
 {"command": "find / -delete", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-098-sta", "type": "command", "use_case": "GENERAL"}
 {"command": "find / -delete", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-098-pro", "type": "command", "use_case": "GENERAL"}
