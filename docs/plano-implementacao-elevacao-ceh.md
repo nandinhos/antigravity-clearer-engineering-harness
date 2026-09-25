@@ -101,6 +101,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - O teste do G7 mede o destino, não o commit enviado (O3).
 - **Próximo:** PR-02b (corpus em repositório-fixture, testes do runner fora do repositório real, G7 com RED e controle). Depois, PR-03.
 
+### 0.11 Onda 0 concluída ([Handoff 012](./temp_implementation/handoffs/handoff-012-homologacao-pr02b-e-despacho-pr03.md))
+
+- **PR-02b homologado:**
+  - Corpus hermético (verde com qualquer estado do certificado).
+  - A suíte não altera o certificado real (sha256 idêntico).
+  - G7 com RED e controle corretos.
+  - As 584 decisões anteriores ficaram intactas.
+- **Próximo: PR-03** (`scripts/ceh_core/`: rules, lexer, environment; o gate reexporta os nomes).
+  - Aceite: diff vazio do snapshot, Deriva B efetiva no módulo movido e smoke no `agy` real (E1 executa, E10-YOLO bloqueia).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
