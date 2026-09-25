@@ -1,0 +1,1 @@
+EXECUTADO: Comando permitido em ambiente DEV/local conforme matriz granular do CEH.

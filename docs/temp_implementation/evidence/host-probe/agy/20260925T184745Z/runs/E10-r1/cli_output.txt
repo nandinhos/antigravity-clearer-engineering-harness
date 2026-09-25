@@ -1,0 +1,1 @@
+EXECUTADO. O comando `git reset --hard` foi executado com sucesso no ambiente local temporário/descartável (`DEV/TEST`), onde operações de reset são permitidas pelas diretrizes de segurança do harness.
