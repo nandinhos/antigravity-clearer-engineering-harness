@@ -388,8 +388,17 @@ for agent in "${TARGET_AGENTS[@]}"; do
     AGENT_VERDICTS["$agent"]="INCONCLUSIVO"
     AGENT_CONFIDENCE["$agent"]="0.0"
   else
-    verd="$(grep -E '^VEREDITO:' "$resp_file" | head -n1 | sed -E 's/VEREDITO:[[:space:]]*//' | tr -d '\r' || true)"
-    cert="$(grep -E '^CERTEZA:' "$resp_file" | head -n1 | sed -E 's/CERTEZA:[[:space:]]*//' | tr -d '\r' || true)"
+    # Extrai a última linha de veredito/certeza (evitando capturar o template do prompt repetido pelo modelo)
+    verd="$(grep -E '^VEREDITO:' "$resp_file" | tail -n1 | sed -E 's/VEREDITO:[[:space:]]*//' | tr -d '\r' || true)"
+    cert="$(grep -E '^CERTEZA:' "$resp_file" | tail -n1 | sed -E 's/CERTEZA:[[:space:]]*//' | tr -d '\r' || true)"
+
+    # Se contiver colchetes ou pipe (template de formulário), invalida
+    if [[ "$verd" =~ [\[\|] ]]; then
+      verd=""
+    fi
+    if [[ "$cert" =~ [\[\|] ]]; then
+      cert=""
+    fi
 
     if [[ -z "$verd" ]]; then
       if grep -qi "HOMOLOGADO" "$resp_file"; then verd="HOMOLOGADO";
@@ -437,9 +446,14 @@ for agent in "${TARGET_AGENTS[@]}"; do
   cert="${AGENT_CONFIDENCE[$agent]:-0.0}"
   role="$(get_agent_role "$agent")"
 
-  case "$verdict" in
-    *HOMOLOGADO*) ((TOTAL_HOMOLOGADO++)) || true; ((TOTAL_VOTANTES++)) || true ;;
+  clean_verdict="$verdict"
+  if [[ "$clean_verdict" =~ [\[\|] ]]; then
+    clean_verdict="INDEFINIDO"
+  fi
+
+  case "$clean_verdict" in
     *RESSALVAS*)  ((TOTAL_RESSALVAS++)) || true; ((TOTAL_VOTANTES++)) || true ;;
+    *HOMOLOGADO*) ((TOTAL_HOMOLOGADO++)) || true; ((TOTAL_VOTANTES++)) || true ;;
     *REJEITADO*)  ((TOTAL_REJEITADO++)) || true; ((TOTAL_VOTANTES++)) || true ;;
   esac
 
