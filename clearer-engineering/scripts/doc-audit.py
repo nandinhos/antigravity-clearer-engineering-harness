@@ -238,7 +238,19 @@ def main():
     if runner_lines > 200:
         errors.append(f"test-runner.sh excedeu o orçamento: {runner_lines} > 200 linhas")
 
-    if not (gate_lines > 650 or runner_lines > 200):
+    core_dir = repo_root / "clearer-engineering/scripts/ceh_core"
+    core_ok = True
+    if core_dir.is_dir():
+        for mod in sorted(core_dir.glob("*.py")):
+            if mod.name == "__init__.py":
+                continue
+            mod_lines = len(mod.read_text(encoding="utf-8").splitlines())
+            print(f"  • ceh_core/{mod.name}: {mod_lines} linhas (Teto: 300)")
+            if mod_lines > 300:
+                errors.append(f"ceh_core/{mod.name} excedeu o orçamento: {mod_lines} > 300 linhas")
+                core_ok = False
+
+    if not (gate_lines > 650 or runner_lines > 200 or not core_ok):
         checks_passed += 1
 
     print("-" * 50)

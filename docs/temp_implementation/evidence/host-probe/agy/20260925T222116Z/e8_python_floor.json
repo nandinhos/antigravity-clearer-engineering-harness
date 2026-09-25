@@ -1,0 +1,26 @@
+[
+  {
+    "python": "3.8",
+    "status": "NAO_DISPONIVEL"
+  },
+  {
+    "python": "3.9",
+    "status": "NAO_DISPONIVEL"
+  },
+  {
+    "python": "3.10",
+    "status": "NAO_DISPONIVEL"
+  },
+  {
+    "python": "3.11",
+    "exit_code": 0,
+    "status": "OK",
+    "stderr_tail": ""
+  },
+  {
+    "python": "3.12",
+    "exit_code": 0,
+    "status": "OK",
+    "stderr_tail": ""
+  }
+]

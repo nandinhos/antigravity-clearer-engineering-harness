@@ -184,25 +184,38 @@ fi
 # ------------------------------------------------------------------------------
 echo -e "\n${COLOR_BOLD}[3/5] Avaliando Critério 3: Deriva B (Detecção de Mutação Semântica)...${COLOR_RESET}"
 MUTANT_TMP_DIR=$(mktemp -d /tmp/ceh-eval-mutant-XXXXXX)
-MUTANT_SCRIPT="$MUTANT_TMP_DIR/safety-gate-mutant.py"
+GATE_DIR="$(dirname "$GATE_SCRIPT")"
+cp -r "$GATE_DIR" "$MUTANT_TMP_DIR/scripts"
+MUTANT_SCRIPT="$MUTANT_TMP_DIR/scripts/$(basename "$GATE_SCRIPT")"
+MUTANT_ENV_FILE="$MUTANT_TMP_DIR/scripts/ceh_core/environment.py"
+ORIGINAL_ENV_FILE="$GATE_DIR/ceh_core/environment.py"
 
 # Criar mutação cirúrgica: remover o reconhecimento de 'prod' e 'production' no normalize_env
 # Substitui '["prod", "production", "prd", "live"]' por '["live_only_token"]'
 DERIVA_B_CAPTURED=false
 DERIVA_B_INFRA_OK=true
-if ! sed 's/\["prod", "production", "prd", "live"\]/\["live_only_token"\]/g' "$GATE_SCRIPT" > "$MUTANT_SCRIPT"; then
+if [ -f "$MUTANT_ENV_FILE" ]; then
+    TARGET_MUTATION_FILE="$MUTANT_ENV_FILE"
+    SOURCE_MUTATION_FILE="$ORIGINAL_ENV_FILE"
+else
+    TARGET_MUTATION_FILE="$MUTANT_SCRIPT"
+    SOURCE_MUTATION_FILE="$GATE_SCRIPT"
+fi
+
+if ! sed 's/\["prod", "production", "prd", "live"\]/\["live_only_token"\]/g' "$SOURCE_MUTATION_FILE" > "$TARGET_MUTATION_FILE"; then
     log_fail "INFRA-FAIL: Deriva B não conseguiu gerar a cópia mutante."
     DERIVA_B_INFRA_OK=false
-elif cmp -s "$GATE_SCRIPT" "$MUTANT_SCRIPT"; then
+elif cmp -s "$SOURCE_MUTATION_FILE" "$TARGET_MUTATION_FILE"; then
     log_fail "INFRA-FAIL: Deriva B não alterou o Safety Gate; mutação vazia."
     DERIVA_B_INFRA_OK=false
-elif ! python3 -m py_compile "$MUTANT_SCRIPT" >/dev/null 2>&1; then
+elif ! python3 -m py_compile "$TARGET_MUTATION_FILE" >/dev/null 2>&1 || ! python3 -m py_compile "$MUTANT_SCRIPT" >/dev/null 2>&1; then
     log_fail "INFRA-FAIL: Deriva B gerou Python inválido; mutação não pode contar como captura."
     DERIVA_B_INFRA_OK=false
 elif ! execute_fixture "$GATE_SCRIPT" "production" "php artisan migrate:fresh" "deny" 2 "production"; then
     log_fail "INFRA-FAIL: Deriva B falhou no controle de produção do Safety Gate original."
     DERIVA_B_INFRA_OK=false
 elif execute_fixture "$MUTANT_SCRIPT" "production" "php artisan migrate:fresh" "allow" 0 "development"; then
+    echo "  • Mutação aplicada com sucesso em ceh_core/environment.py"
     DERIVA_B_CAPTURED=true
 else
     log_fail "Deriva B não produziu a divergência semântica esperada (allow/development/exit 0)."

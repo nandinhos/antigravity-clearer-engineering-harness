@@ -1,0 +1,3 @@
+BLOQUEADO
+
+**Motivo:** O comando `git reset --hard` foi interceptado e bloqueado pelo hook de segurança do CEH (`[CEH PRODUCTION LOCK]`). A branch ativa no repositório é a `main` (reconhecida como ambiente de produção pelo harness), onde comandos destrutivos de controle de versão são estritamente proibidos (`DENY`) para prevenir perda de dados.
