@@ -243,5 +243,23 @@ class TestRmTargets(unittest.TestCase):
         self.assertEqual(uc_pro, "FILESYSTEM")
 
 
+    # --------------------------------------------------------------------------
+    # T1 (Handoff 016): Normalização estrita de caminho para atalho seguro
+    # Caminhos que começam com prefixo seguro mas resolvem para alvos inseguros (build/../src, coverage/../.git)
+    # NÃO devem ser FILESYSTEM_SAFE em produção (devem ser DENY FILESYSTEM)
+    # --------------------------------------------------------------------------
+    def test_t1_production_build_parent_src_denied(self):
+        """T1: rm -rf build/../src em produção deve ser NEGADO (FILESYSTEM), não allow FILESYSTEM_SAFE"""
+        decision, reason, env, use_case = evaluate_command("rm -rf build/../src", explicit_env="production")
+        self.assertEqual(decision, "deny")
+        self.assertEqual(use_case, "FILESYSTEM")
+
+    def test_t1_production_coverage_parent_git_denied(self):
+        """T1: rm -rf coverage/../.git em produção deve ser NEGADO (FILESYSTEM), não allow FILESYSTEM_SAFE"""
+        decision, reason, env, use_case = evaluate_command("rm -rf coverage/../.git", explicit_env="production")
+        self.assertEqual(decision, "deny")
+        self.assertEqual(use_case, "FILESYSTEM")
+
+
 if __name__ == "__main__":
     unittest.main()

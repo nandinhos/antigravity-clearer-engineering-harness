@@ -641,3 +641,15 @@
 {"command": "rm -rf $OLDPWD", "decision": "ask", "env": "development", "has_alerts": false, "id": "CMD-220-dev", "type": "command", "use_case": "FILESYSTEM"}
 {"command": "rm -rf $OLDPWD", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-220-sta", "type": "command", "use_case": "FILESYSTEM"}
 {"command": "rm -rf $OLDPWD", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-220-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf build/../src", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-221-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf build/../src", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-221-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf build/../src", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-221-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf coverage/../.git", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-222-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf coverage/../.git", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-222-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf coverage/../.git", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-222-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /home/user/..", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-223-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /home/user/..", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-223-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /home/user/..", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-223-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /usr/local/../..", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-224-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /usr/local/../..", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-224-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /usr/local/../..", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-224-pro", "type": "command", "use_case": "CATASTROPHIC"}

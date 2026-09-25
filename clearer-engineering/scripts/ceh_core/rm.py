@@ -82,8 +82,8 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
         is_glob, base = True, "."
     elif t.endswith("/*"):
         is_glob, base = True, (t[:-2] or "/")
-    elif "/*" in t:
-        is_glob, base = True, (t[:t.rfind("/*")] or "/")
+    elif t.endswith("/*/"):
+        is_glob, base = True, (t[:-3] or "/")
     else:
         base = t
 
@@ -126,29 +126,29 @@ def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None) -
     t = target.replace('"', "").replace("'", "").strip()
     t = re.sub(r"/+", "/", t.replace("${PWD}", cwd_str).replace("$PWD", cwd_str))
 
-    # (c) Está sob /tmp/ (único prefixo absoluto seguro)
-    if t == "/tmp" or t == "/tmp/" or t.startswith("/tmp/"):
-        return True
+    norm_full = os.path.normpath(t if os.path.isabs(t) else os.path.join(cwd_str, t))
+
+    # (c) Caminhos absolutos: apenas sob /tmp/ normalizado é permitido como atalho seguro
     if os.path.isabs(t):
+        if norm_full == "/tmp" or norm_full.startswith("/tmp/"):
+            return True
         return False
 
-    norm_full = os.path.normpath(os.path.join(cwd_str, t))
-    if norm_full != cwd_str and not norm_full.startswith(cwd_str + "/"):
+    rel = os.path.relpath(norm_full, cwd_str)
+    if rel.startswith("..") or rel == ".":
         return False
 
-    t_clean = t[2:] if t.startswith("./") else t
-    first_seg = t_clean.split("/")[0]
-
+    first_seg = rel.split(os.sep)[0]
     if first_seg in {"tmp", ".tmp", "scratch", ".cache", "dist", "build", "coverage"}:
-        return False if t_clean == ".cache" else True
-    if t_clean.startswith("storage/framework/cache/"):
+        return False if rel == ".cache" else True
+    if rel.startswith("storage/framework/cache/"):
         return True
-    if t_clean.startswith("node_modules/.cache") or t_clean == "node_modules/.cache":
+    if rel.startswith("node_modules/.cache") or rel == "node_modules/.cache":
         return True
 
     # (b) Arquivo único com extensão dentro do cwd
-    if is_force and not t_clean.endswith("/"):
-        parts = t_clean.split("/")
+    if is_force and not rel.endswith("/"):
+        parts = rel.split(os.sep)
         first, last = parts[0], parts[-1]
         norm_first = "/" + first.lstrip("/")
         if "." in last and not last.startswith(".") and "*" not in last and norm_first not in SYSTEM_ROOTS:

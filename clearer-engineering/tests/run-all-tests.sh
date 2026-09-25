@@ -210,9 +210,13 @@ run_test "Golden Corpus: Snapshot de decisões do Safety Gate (diff vazio)" \
 run_test "Cluster 4 Acceptance: linha de base G1-G5 e G7 em RED (15 expected failures)" \
     "python3 '$PLUGIN_DIR/tests/cluster4_acceptance.py' >/dev/null"
 
-# 17. PR-04b/c RM Target Normalization & Anti-Regression Suite
-run_test "RM Targets: Normalização estrita de caminhos e controles de falsos positivos (PR-04b/c)" \
+# 17. PR-04b/c/d RM Target Normalization & Anti-Regression Suite
+run_test "RM Targets: Normalização estrita de caminhos e controles de falsos positivos (PR-04b/c/d)" \
     "python3 '$PLUGIN_DIR/tests/test_rm_targets.py' >/dev/null"
+
+# 18. PR-04d RM Path Fuzzing Property Test (Invariantes 1 e 2)
+run_test "RM Fuzz: Teste de propriedade com fuzzing determinístico (≥ 2000 casos, Invariantes 1 e 2)" \
+    "python3 '$PLUGIN_DIR/tests/test_rm_fuzz.py' >/dev/null"
 
 echo ""
 echo "============================================================"
