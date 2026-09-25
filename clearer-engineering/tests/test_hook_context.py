@@ -298,6 +298,52 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(res["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertIn("CEH PRODUCTION LOCK", res["hookSpecificOutput"]["permissionDecisionReason"])
 
+    def test_case_14_pr00e_claude_allow_returns_empty_dict(self):
+        """PR-00e: On Claude, allow decision must return {} to preserve native permission flow."""
+        repo = self._init_repo("repo_claude_allow", branch="dev")
+        payload = {
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "cwd": str(repo),
+            "tool_input": {
+                "command": "echo ok",
+            },
+        }
+        res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
+        self.assertEqual(res, {})
+        self.assertNotIn("permissionDecision", str(res))
+
+    def test_case_15_pr00e_claude_stdin_allow_returns_empty_json(self):
+        """PR-00e: On Claude, allow via stdin outputs empty JSON object {} with exit 0."""
+        repo = self._init_repo("repo_claude_stdin_allow", branch="dev")
+        payload = json.dumps({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "cwd": str(repo),
+            "tool_input": {
+                "command": "touch file.txt",
+            },
+        })
+        code, res = self._run_gate_hook(payload)
+        self.assertEqual(code, 0)
+        self.assertEqual(res, {})
+
+    def test_case_16_pr00e_agy_allow_preserves_decision_allow(self):
+        """PR-00e: On Antigravity (agy), allow decision preserves {'decision': 'allow'}."""
+        repo = self._init_repo("repo_agy_allow", branch="dev")
+        payload = {
+            "toolCall": {
+                "name": "run_command",
+                "args": {
+                    "CommandLine": "echo ok",
+                    "Cwd": str(repo),
+                },
+            },
+            "workspacePaths": [str(repo)],
+        }
+        res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
+        self.assertEqual(res.get("decision"), "allow")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -103,6 +103,11 @@ def is_git_push_command(cmd_line: str) -> bool:
 def format_host_response(payload: dict[str, Any], decision: str, reason: str = "") -> dict[str, Any]:
     """Formats decision response according to host contract (Antigravity or Claude Code)."""
     if "tool_input" in payload or "tool_name" in payload or payload.get("hook_event_name") == "PreToolUse":
+        # PR-00e: No Claude Code, o gate nunca aprova — só nega ou pede confirmação (F6).
+        # Retornar objeto vazio para allow devolve o fluxo normal de permissões ao Claude.
+        if decision == "allow":
+            return {}
+
         res: dict[str, Any] = {
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
