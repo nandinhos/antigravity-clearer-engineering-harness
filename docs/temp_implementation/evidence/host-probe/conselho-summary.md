@@ -1,6 +1,6 @@
 # Inventário de Capacidade de Hooks — Conselho de Seniores (Handoff 005)
 
-**Data da Coleta:** 2026-09-25T04:20:00Z  
+**Data da Coleta:** 2026-09-25T05:43:00Z  
 **Branch:** `claude/code-review-technical-analysis-kfwcdl`  
 **Ambiente:** Host Linux / WSL2 (Ubuntu) — Usuário não-root  
 
@@ -8,16 +8,18 @@
 
 ## 1. Matriz de Suporte a Hooks em Tempo de Execução (`OBSERVED`)
 
-| CLI | Versão Detectada | Suporte a Hooks / Plugins | Mecanismo de Interceptação Identificado | Veredito de Adaptabilidade |
+| CLI do Agente | Versão Detectada | Suporte a Hooks / Plugins | Mecanismo de Interceptação Identificado | Veredito de Adaptabilidade |
 |---|---|---|---|---|
 | **`agy`** (Antigravity CLI) | `1.2.9` | **SIM (NATIVO)** | `PreToolUse` hook via `hooks.json` no plugin. | **ALVO PRIMÁRIO (100% Medido & Fail-Closed)** |
 | **`claude`** (Claude Code) | `2.1.281` | **SIM (NATIVO)** | `PreToolUse` hook via `.claude/settings.json` ou plugins. | **ALVO SECUNDÁRIO (100% Medido & Fail-Open)** |
+| **`agent`** (Cursor Agent CLI) | `2026.09.15` | **SIM (NATIVO)** | `--plugin-dir <path>` e gerenciador de plugins (`agent plugin`). | **ADAPTÁVEL (Via Plugin / Hook do Cursor Agent)** |
 | **`codex`** (Codex CLI) | `0.156.1` | **SIM** | Sistema de plugins com `--dangerously-bypass-hook-trust`. | **ADAPTÁVEL (Via Plugin Hook)** |
-| **`gemini`** (Gemini CLI) | `0.50.0` | **SIM** | `gemini hooks` / gerenciamento de hooks nativos. | **ADAPTÁVEL (Via Gemini Hook)** |
+| **`gemini`** (Gemini CLI) | `0.50.0` | **SIM** | Subcomando nativo `gemini hooks`. | **ADAPTÁVEL (Via Gemini Hook)** |
 | **`hermes`** (Hermes Agent) | `v0.21.0` | **SIM** | Shell-script hooks (`hermes hooks`, `--accept-hooks`). | **ADAPTÁVEL (Via Shell Hook)** |
 | **`muse`** (Muse Code) | `1.3.0` | **SIM** | Sistema de plugins e bundles (`muse plugins`). | **ADAPTÁVEL (Via Plugin Hook)** |
-| **`agent`** | `2026.09.15` | **SIM** | `--plugin-dir <path>` e `agent plugin`. | **ADAPTÁVEL (Via Plugin Hook)** |
-| **`cursor`** | Server build | **NÃO (CLI HEADLESS)** | Não expõe comando CLI de hook; depende de extensões VSCode. | **SEM HOOK (Exige Branch Protection / IDE)** |
+
+> **Nota Técnica sobre o Cursor:** O agente autônomo do Cursor no terminal é acionado oficialmente pelo binário **`agent`** (`Start the Cursor Agent`). O binário auxiliar `cursor` refere-se ao editor/servidor desktop. O `agent` suporta nativamente `--plugin-dir <path>`, execução não-interativa `-p / --print`, modo YOLO (`--yolo / -f`), seleção de workspace (`--workspace`) e o comando `agent plugin`.
+> **Veredito Geral:** **100% dos 7 CLIs do Conselho de Seniores** possuem mecanismos de extensibilidade por plugin e/ou hooks, garantindo a viabilidade total da estratégia de um núcleo único de engenharia portável.
 
 ---
 
