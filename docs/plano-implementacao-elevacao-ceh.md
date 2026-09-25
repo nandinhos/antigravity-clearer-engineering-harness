@@ -97,7 +97,7 @@ Fora de escopo: reescrever skills e agentes, trocar Python/Bash por outra stack,
 | H1 | `ask` não bloqueia no `agy` headless: E6-r2 executou o comando, e as 4 narrações de E6/E6Y confirmam. A "homologação com 2 alertas" não é barreira no Antigravity CLI. Fator de confusão: plugin do CEH co-instalado. | `Reproduzido` (1 amostra) | E6-r2 do Handoff 005 |
 | H2 | Defeito da sonda v1: sentinela procurada no cwd do projeto, mas o `agy` executa no `Cwd` que o agente escolhe, o que invalidou o controle E1/E2. | `Reproduzido` | seção 0.1 |
 | C1 | `safety-gate.py` tem 645 linhas para um teto de 650 no `doc-audit`, o que não deixa espaço para nenhuma correção sem extrair módulos antes. | `Reproduzido` | `doc-audit.py` check 7/7 |
-| T1 | A suíte não é hermética: depende dos aliases no `~/.bashrc`, de `agy` e de `~/.gemini`. Em container limpo o resultado foi 42/44. | `Reproduzido` | `run-all-tests.sh:178-182` |
+| T1 | A suíte não é hermética: os testes de alias dependiam do `~/.bashrc` do host (42/44 em container limpo, com o Pre-Push Gate negando o push). **Corrigido na parte de aliases:** sem o plugin instalado, verifica o template do `install.sh`. `agy`/`~/.gemini` seguem condicionais (PR-01). | `Reproduzido e corrigido` (aliases) | `89b0058`, `ee169ca`; 44/44 com certificado PASS |
 | T2 | As contagens estão escritas à mão e divergem entre si: README "45/45", e2e "33/33", step do CI "24 cases". | `Inspeção estática` | `run-e2e-simulation.sh:250`; `ci.yml` |
 | T3 | Parte dos testes só verifica a presença de texto em Markdown, sem medir comportamento. | `Inspeção estática` | `run-all-tests.sh:162-175` |
 | T4 | O CI não roda `run-all-tests.sh` como step próprio; ele só roda dentro do `install.sh`, que rebaixa falha para WARNING, e do e2e. | `Inspeção estática` | `ci.yml` |
@@ -298,6 +298,23 @@ O PR-00 pode começar em paralelo ao Handoff 006, porque a fixture real do E6-r2
 - [ ] Nenhuma contagem escrita à mão em README, CI ou mensagens.
 - [ ] Documentação e ADR atualizadas quando o contrato muda.
 - [ ] Evidência (`OBSERVED`) na descrição do PR: comando, exit code e artefato.
+
+### 7.1 Protocolo de continuidade pela branch
+
+A branch `claude/code-review-technical-analysis-kfwcdl` é a fonte única de continuidade: o próximo passo está sempre no **handoff mais recente** e na **seção 0** deste plano.
+
+**Ao entrar (qualquer sessão, humana ou agente):**
+1. `git fetch origin && git checkout claude/code-review-technical-analysis-kfwcdl && git pull --ff-only`.
+2. `git status --short` precisa vir vazio; se não vier, pare e entenda antes de editar.
+3. Leia o handoff de número mais alto em `docs/temp_implementation/handoffs/` e a seção 0 deste plano.
+
+**Ao sair (a branch só é considerada "limpa" com os 4 itens):**
+1. Worktree limpo: tudo commitado, sem sentinelas ou arquivos temporários (`git status --short` vazio).
+2. `bash clearer-engineering/scripts/test-runner.sh` com `STATUS: PASS` e certificado `.ceh/last-ci-run.json` no `HEAD`.
+3. `python3 clearer-engineering/scripts/safety-gate.py --check "git push origin <branch>"` resultando em `allow`, e **só então** o push.
+4. Evidências novas passam pela checagem de vazamento da seção 4.5 do Handoff 005, e o próximo passo fica registrado no handoff ou na seção 0.
+
+> O CI do GitHub só roda em `main`/`staging`/`dev` e em PRs para elas. Nesta branch, o certificado local é a única verificação até existir um PR.
 
 ## 8. Riscos e mitigação
 
