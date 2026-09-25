@@ -78,6 +78,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - PR-00 **homologado**; PR-00c homologado com ressalva; D4 com ressalvas.
 - Próximos: **PR-00b** (erro do hook → `deny`/exit 2; hoje sai `ask`, que executa no `agy`), **PR-00d** (responder no formato do Claude, que ignora `{"decision"}`, `OBSERVED`) e **D4b** (sem fallback por palavra e sem certeza inventada).
 
+### 0.8 Resultado de PR-00b, PR-00d e D4b (revisado no [Handoff 009](./temp_implementation/handoffs/handoff-009-revisao-pr00b-pr00d-d4b.md))
+
+- PR-00b e D4b **homologados**. PR-00d **homologado com ressalva crítica**:
+  - No Claude, `permissionDecision: "allow"` **aprova automaticamente** (`OBSERVED` com controle: sem hook, o `touch` pede aprovação; com o CEH, roda).
+  - O aceite de ponta a ponta do agente não tinha controle: sem hook, o próprio modelo já recusava.
+- Próximo: **PR-00e** (no Claude, o gate só nega; `allow` não emite decisão). Depois dele, a fila P0 fecha e segue a **Onda 0**.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
