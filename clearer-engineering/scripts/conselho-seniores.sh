@@ -400,14 +400,14 @@ for agent in "${TARGET_AGENTS[@]}"; do
       cert=""
     fi
 
-    if [[ -z "$verd" ]]; then
-      if grep -qi "HOMOLOGADO" "$resp_file"; then verd="HOMOLOGADO";
-      elif grep -qi "RESSALVAS" "$resp_file"; then verd="RESSALVAS";
-      elif grep -qi "REJEITADO" "$resp_file"; then verd="REJEITADO";
-      else verd="INDEFINIDO"; fi
-    fi
+    # Validação estrita de veredito (D4b): sem fallback por grep em arquivo solto
+    case "$verd" in
+      "HOMOLOGADO"|"RESSALVAS"|"REJEITADO") ;;
+      *) verd="INDEFINIDO" ;;
+    esac
 
-    [[ -z "$cert" ]] && cert="0.80"
+    # Certeza (D4b): sem valor padrão inventado (ex: 0.80)
+    [[ -z "$cert" ]] && cert="N/D"
 
     AGENT_VERDICTS["$agent"]="$verd"
     AGENT_CONFIDENCE["$agent"]="$cert"

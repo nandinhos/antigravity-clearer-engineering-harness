@@ -209,7 +209,11 @@ run_test "Cluster 3 Acceptance: contratos R3, R4, R9, R10" \
 run_test "Hook Context: Resolução de diretório alvo e isolamento de plugin (6/6 cenários)" \
     "python3 '$PLUGIN_DIR/tests/test_hook_context.py' >/dev/null"
 
-# 13. Bounded structural documentation checks
+# 13. Conselho de Seniores extraction fixtures
+run_test "Conselho de Seniores: Extração de veredito e certeza sem fallback espúrio (3/3 fixtures)" \
+    "python3 '$PLUGIN_DIR/tests/test_conselho_extraction.py' >/dev/null"
+
+# 14. Bounded structural documentation checks
 run_test "Documentation Audit: 7 checagens estruturais de estados, cabeçalhos, links, commits e contagem" \
     "bash '$PLUGIN_DIR/scripts/doc-audit.sh' >/dev/null"
 
