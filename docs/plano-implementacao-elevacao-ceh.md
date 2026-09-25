@@ -91,6 +91,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **P0 fechado:** G6, fail-closed, H1, formato por host, Q4, D3 e D4.
 - **Próximo: Onda 0.** PR-01 (suíte hermética, sem contagens fixas, `doc-audit` com contagem derivada) e PR-02 (corpus dourado + 14 casos G1–G5 em RED).
 
+### 0.10 Onda 0 revisada ([Handoff 011](./temp_implementation/handoffs/handoff-011-revisao-onda-0.md))
+
+- **PR-01 homologado.** Suíte 48/48 idêntica com e sem `agy`; verificação de instalação sem tocar o `HOME` real.
+- **PR-02 homologado com ressalvas:**
+  - Os 14 RED falham pela asserção certa.
+  - O corpus depende do certificado real do repositório (O1).
+  - A suíte sobrescreve esse certificado no meio da execução (O2).
+  - O teste do G7 mede o destino, não o commit enviado (O3).
+- **Próximo:** PR-02b (corpus em repositório-fixture, testes do runner fora do repositório real, G7 com RED e controle). Depois, PR-03.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
