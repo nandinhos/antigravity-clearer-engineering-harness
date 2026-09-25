@@ -1,7 +1,7 @@
 # Plano de validação e handoff da revisão do CEH
 
 **Versão:** 0.28.0
-**Estado:** Etapa 3 concluída com sucesso: todos os 10 achados da auditoria (R1 a R10) resolvidos e validados. Cluster 1 preservado no commit `bb61fe7`; Cluster 2 no commit `1c9a0d2`; Cluster 3 (R3, R4, R9, R10) implementado e validado. A suíte geral atual contém 45/45 testes aprovados, incluindo a auditoria documental estrutural.
+**Estado:** Etapa 3 concluída com sucesso: todos os 10 achados da auditoria (R1 a R10) resolvidos e validados. Cluster 1 preservado no commit `bb61fe7`; Cluster 2 no commit `1c9a0d2`; Cluster 3 (R3, R4, R9, R10) implementado e validado. A suíte geral atual contém 46/46 testes aprovados, incluindo a auditoria documental estrutural.
 **Atualizado em:** 2026-09-23
 **Escopo:** validar os achados estáticos da revisão do CLEARER Engineering Harness, chegar a decisões técnicas explícitas e preparar um plano de correção verificável.
 

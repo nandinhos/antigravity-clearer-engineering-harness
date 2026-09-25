@@ -585,31 +585,17 @@ def evaluate_command(cmd_line: str, explicit_env: str | None = None) -> tuple[st
     return evaluations[0]
 
 def handle_hook():
-    """Processes Antigravity PreToolUse hook JSON from stdin."""
+    """Processes PreToolUse hook JSON from stdin."""
     try:
         raw_input = sys.stdin.read()
         if not raw_input.strip():
             print(json.dumps({"decision": "allow"}))
             return
 
-        payload = json.loads(raw_input)
-        tool_call = payload.get("toolCall", {})
-        tool_name = tool_call.get("name", "")
-        args = tool_call.get("args", {})
-
-        if tool_name == "run_command":
-            cmd_line = args.get("CommandLine", "")
-            decision, reason, env, use_case = evaluate_command(cmd_line)
-            output = {
-                "decision": decision,
-                "reason": reason
-            }
-            print(json.dumps(output, ensure_ascii=False))
-            return
-
-        # Default for non-command tools
-        print(json.dumps({"decision": "allow"}))
-
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from hook_context import evaluate_hook_payload
+        result = evaluate_hook_payload(json.loads(raw_input), evaluate_command)
+        print(json.dumps(result, ensure_ascii=False))
     except Exception as e:
         print(json.dumps({
             "decision": "ask",
