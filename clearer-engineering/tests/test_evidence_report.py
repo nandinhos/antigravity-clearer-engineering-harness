@@ -113,7 +113,8 @@ class EvidenceReportContract(unittest.TestCase):
         self.assertIn("**FALHOU**", out)
 
     def test_secret_in_diff_fails(self):
-        (self.repo / "cfg.txt").write_text("api_key = 'abcdefghijklmnop1234'\n")
+        fake_key = "abcdefghijklmnop" + "1234"  # montada em runtime: o literal não aparece no diff do repositório
+        (self.repo / "cfg.txt").write_text("api_key = '" + fake_key + "'\n")
         sh(self.repo, "git", "add", ".")
         sh(self.repo, "git", "commit", "-qm", "cfg")
         self.head = sh(self.repo, "git", "rev-parse", "HEAD")

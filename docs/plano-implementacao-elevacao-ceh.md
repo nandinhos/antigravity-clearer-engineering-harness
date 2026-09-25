@@ -309,11 +309,12 @@ A branch `claude/code-review-technical-analysis-kfwcdl` é a fonte única de con
 2. `git status --short` precisa vir vazio; se não vier, pare e entenda antes de editar.
 3. Leia o handoff de número mais alto em `docs/temp_implementation/handoffs/` e a seção 0 deste plano.
 
-**Ao sair (a branch só é considerada "limpa" com os 4 itens):**
+**Ao sair (a branch só é considerada "limpa" com os 5 itens):**
 1. Worktree limpo: tudo commitado, sem sentinelas ou arquivos temporários (`git status --short` vazio).
 2. `bash clearer-engineering/scripts/test-runner.sh` com `STATUS: PASS` e certificado `.ceh/last-ci-run.json` no `HEAD`.
 3. `python3 clearer-engineering/scripts/safety-gate.py --check "git push origin <branch>"` resultando em `allow`, e **só então** o push.
 4. Evidências novas passam pela checagem de vazamento da seção 4.5 do Handoff 005, e o próximo passo fica registrado no handoff ou na seção 0.
+5. `bash clearer-engineering/scripts/evidence-report.sh --base <commit de entrada> --strict [--claim …]` com exit 0 (`VERIFICADO`). O gate só confere o certificado de testes; é o relatório que pega segredo no diff, prova ausente e BLOCKER declarado.
 
 > O CI do GitHub só roda em `main`/`staging`/`dev` e em PRs para elas. Nesta branch, o certificado local é a única verificação até existir um PR.
 
