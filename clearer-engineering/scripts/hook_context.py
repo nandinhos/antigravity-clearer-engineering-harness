@@ -100,10 +100,29 @@ def is_git_push_command(cmd_line: str) -> bool:
     return bool(re.search(r"\bgit\s+push\b", cmd_line))
 
 
+def format_host_response(payload: dict[str, Any], decision: str, reason: str = "") -> dict[str, Any]:
+    """Formats decision response according to host contract (Antigravity or Claude Code)."""
+    if "tool_input" in payload or "tool_name" in payload or payload.get("hook_event_name") == "PreToolUse":
+        res: dict[str, Any] = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": decision,
+            }
+        }
+        if reason:
+            res["hookSpecificOutput"]["permissionDecisionReason"] = reason
+        return res
+
+    res: dict[str, Any] = {"decision": decision}
+    if reason:
+        res["reason"] = reason
+    return res
+
+
 def evaluate_hook_payload(
     payload: dict[str, Any],
     evaluate_command_fn: Callable[[str, str | None], tuple[str, str, str, str]],
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """
     Processes PreToolUse hook payload, safely resolving target directory before evaluation.
     """
@@ -112,7 +131,7 @@ def evaluate_hook_payload(
 
     tool_name, cmd_line = extract_hook_command(payload)
     if tool_name not in ("run_command", "Bash") or not cmd_line.strip():
-        return {"decision": "allow"}
+        return format_host_response(payload, "allow")
 
     target_dir, explicit_env, force_deny_push = resolve_hook_target(payload)
     original_cwd = os.getcwd()
@@ -122,10 +141,11 @@ def evaluate_hook_payload(
             os.chdir(target_dir)
 
         if force_deny_push and is_git_push_command(cmd_line):
-            return {
-                "decision": "deny",
-                "reason": "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: repositório de destino não resolvido a partir do hook.",
-            }
+            return format_host_response(
+                payload,
+                "deny",
+                "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: repositório de destino não resolvido a partir do hook.",
+            )
 
         decision, reason, _, _ = evaluate_command_fn(cmd_line, explicit_env)
         # PR-00c: No host agy (toolCall presente), ask falha aberto (fail-open / H1); converter compulsoriamente para deny
@@ -133,7 +153,7 @@ def evaluate_hook_payload(
             decision = "deny"
             reason = f"{reason}\n[CEH CONTEXT LOCK] Decisão 'ask' convertida para 'deny': ask não suspende a execução neste host (H1, Handoff 006)."
 
-        return {"decision": decision, "reason": reason}
+        return format_host_response(payload, decision, reason)
     finally:
         try:
             os.chdir(original_cwd)

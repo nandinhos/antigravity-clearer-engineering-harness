@@ -188,7 +188,7 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(res["decision"], "allow")
 
     def test_case_6_claude_payload_with_cwd(self):
-        """Case 6: Claude payload with cwd: resolves and evaluates in cwd."""
+        """Case 6: Claude payload with cwd: resolves, evaluates in cwd and returns Claude format."""
         repo = self._init_repo("repo_claude", branch="main")
         payload = {
             "hook_event_name": "PreToolUse",
@@ -199,8 +199,11 @@ class TestHookContext(unittest.TestCase):
             },
         }
         res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
-        self.assertEqual(res["decision"], "deny")
-        self.assertIn("CEH PRODUCTION LOCK", res["reason"])
+        self.assertIn("hookSpecificOutput", res)
+        hook_out = res["hookSpecificOutput"]
+        self.assertEqual(hook_out["hookEventName"], "PreToolUse")
+        self.assertEqual(hook_out["permissionDecision"], "deny")
+        self.assertIn("CEH PRODUCTION LOCK", hook_out["permissionDecisionReason"])
 
     def test_case_7_pr00c_agy_payload_converts_ask_to_deny_on_staging(self):
         """PR-00c: On staging, destructive command in agy payload converts 'ask' to 'deny'."""
@@ -220,7 +223,7 @@ class TestHookContext(unittest.TestCase):
         self.assertIn("Decisão 'ask' convertida para 'deny'", res["reason"])
 
     def test_case_8_pr00c_claude_payload_preserves_ask_on_staging(self):
-        """PR-00c: On staging, destructive command in Claude payload preserves 'ask'."""
+        """PR-00c: On staging, destructive command in Claude payload preserves 'ask' in Claude format."""
         repo = self._init_repo("repo_staging_claude", branch="staging")
         payload = {
             "hook_event_name": "PreToolUse",
@@ -231,8 +234,11 @@ class TestHookContext(unittest.TestCase):
             },
         }
         res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
-        self.assertEqual(res["decision"], "ask")
-        self.assertIn("CEH HOMOLOGAÇÃO / STAGING SAFETY GATE", res["reason"])
+        self.assertIn("hookSpecificOutput", res)
+        hook_out = res["hookSpecificOutput"]
+        self.assertEqual(hook_out["hookEventName"], "PreToolUse")
+        self.assertEqual(hook_out["permissionDecision"], "ask")
+        self.assertIn("CEH HOMOLOGAÇÃO / STAGING SAFETY GATE", hook_out["permissionDecisionReason"])
 
     def _run_gate_hook(self, stdin_payload: str) -> tuple[int, dict[str, Any]]:
         proc = subprocess.run(
@@ -274,6 +280,23 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("[CEH SAFETY GATE ERROR] Hook execution failed:", res.get("reason", ""))
+
+    def test_case_13_pr00d_claude_stdin_returns_claude_format(self):
+        """PR-00d: Claude payload via stdin returns hookSpecificOutput JSON format."""
+        repo = self._init_repo("repo_claude_stdin", branch="main")
+        payload = json.dumps({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "cwd": str(repo),
+            "tool_input": {
+                "command": "git reset --hard",
+            },
+        })
+        code, res = self._run_gate_hook(payload)
+        self.assertEqual(code, 0)
+        self.assertIn("hookSpecificOutput", res)
+        self.assertEqual(res["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertIn("CEH PRODUCTION LOCK", res["hookSpecificOutput"]["permissionDecisionReason"])
 
 
 if __name__ == "__main__":
