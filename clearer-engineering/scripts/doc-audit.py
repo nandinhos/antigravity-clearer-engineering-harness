@@ -85,9 +85,10 @@ def main():
         suite_script = repo_root / "clearer-engineering/tests/run-all-tests.sh"
         suite_text = suite_script.read_text(encoding="utf-8")
         declared_runs = len(re.findall(r"^\s*run_test\s+", suite_text, re.MULTILINE))
-        # The suite contains two mutually exclusive if/else pairs; only one test
-        # from each pair is counted at runtime.
-        suite_total = declared_runs - 2
+        # The suite contains mutually exclusive if/else branches; only one branch
+        # runs: agent profile (1+1) and shell aliases (2+2) discount 1 + 2 + the
+        # manifest-validation pair (1+1) discounts 1.
+        suite_total = declared_runs - 4
         plan_header = "\n".join(plano_text.splitlines()[:8])
         expected_count_claim = f"{suite_total}/{suite_total} testes aprovados"
         if expected_count_claim not in plan_header:
