@@ -39,21 +39,25 @@ from ceh_core.environment import (
 from ceh_core.rm import evaluate_rm_command
 
 
-def resolve_git_invocation(cmd_line: str, base_cwd: Path) -> tuple[bool, Path | None, str, str | None]:
+def resolve_git_invocation(
+    cmd_line: str,
+    base_cwd: Path | str | None = None
+) -> tuple[bool, str | None, list[str], Path | None, str, str | None]:
     """
-    Analisa a invocação do Git:
-    1. Identifica se é comando git.
-    2. Acumula iterativamente flags -C <path> e -C<path>, resolvendo espaços.
-    3. Rejeita em Fail-Closed opções não homologadas que alterem o repositório (--git-dir, --work-tree).
-    4. Localiza a raiz do repositório via find_repo_root().
-    5. Reconstrói o comando de forma canônica: 'git push <args restantes>'.
-    Retorna: (is_git_push, target_repo_root, canonical_cmd, error_reason)
+    Analisa e canonicaliza a invocação do Git para qualquer subcomando (G3 / R5):
+    1. Identifica se é comando git (com suporte opcional a prefixos rtk / proxy).
+    2. Acumula iterativamente flags -C <path> e -C<path>, resolvendo caminhos.
+    3. Remove opções globais inócuas (--no-pager, -p, --paginate, --no-replace-objects, --literal-pathspecs, --bare).
+    4. Rejeita em Fail-Closed opções não homologadas (--git-dir, --work-tree, -c e variantes).
+    5. Localiza a raiz do repositório via find_repo_root() a partir do diretório resultante de -C.
+    6. Reconstrói o comando de forma canônica: 'git <subcomando> <args restantes>'.
+    Retorna: (is_git, subcommand, remaining_args, target_repo_root, canonical_cmd, error_reason)
     """
     import shlex
     try:
         tokens = shlex.split(cmd_line, posix=True)
     except Exception as e:
-        return False, None, cmd_line, f"Erro de parsing na linha git: {e}"
+        return False, None, [], None, cmd_line, f"Erro de parsing na linha git: {e}"
 
     # Remove prefixo de RTK se presente
     if tokens and tokens[0] == "rtk":
@@ -62,12 +66,17 @@ def resolve_git_invocation(cmd_line: str, base_cwd: Path) -> tuple[bool, Path | 
         tokens = tokens[1:]
 
     if not tokens or tokens[0] != "git":
-        return False, None, cmd_line, None
+        return False, None, [], None, cmd_line, None
 
-    current_dir = base_cwd
+    current_dir = Path.cwd().resolve() if base_cwd is None else Path(base_cwd).resolve()
     subcommand = None
     remaining_args = []
     i = 1
+
+    INNOCUOUS_GLOBAL_FLAGS = {
+        "--no-pager", "-p", "--paginate",
+        "--no-replace-objects", "--literal-pathspecs", "--bare"
+    }
 
     while i < len(tokens):
         token = tokens[i]
@@ -80,23 +89,25 @@ def resolve_git_invocation(cmd_line: str, base_cwd: Path) -> tuple[bool, Path | 
             current_dir = (current_dir / path_part).resolve()
             i += 1
             continue
-        elif token.startswith("--git-dir") or token.startswith("--work-tree") or token == "-c":
-            return False, None, cmd_line, f"Opção global do Git não homologada no Safety Gate ({token})"
-        elif token.startswith("-"):
-            # Outras opções globais inócuas para diretório
+        elif token.startswith("--git-dir") or token.startswith("--work-tree") or token == "-c" or token.startswith("-c="):
+            return True, None, [], None, cmd_line, f"Opção global do Git não homologada no Safety Gate ({token})"
+        elif token in INNOCUOUS_GLOBAL_FLAGS:
             i += 1
             continue
+        elif token.startswith("-"):
+            # Qualquer outra opção global não explicitamente homologada gera fail-closed
+            return True, None, [], None, cmd_line, f"Opção global do Git não homologada no Safety Gate ({token})"
         else:
             subcommand = token
             remaining_args = tokens[i+1:]
             break
 
-    if subcommand != "push":
-        return False, None, cmd_line, None
+    repo_root = find_repo_root(current_dir) if current_dir.exists() else current_dir
+    if subcommand is None:
+        return True, None, [], repo_root, "git", None
 
-    repo_root = find_repo_root(current_dir) if current_dir.exists() else None
-    canonical_cmd = "git push" + (" " + " ".join(remaining_args) if remaining_args else "")
-    return True, repo_root, canonical_cmd, None
+    canonical_cmd = "git " + subcommand + (" " + " ".join(remaining_args) if remaining_args else "")
+    return True, subcommand, remaining_args, repo_root, canonical_cmd, None
 
 def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[str, str] | None:
     """
@@ -150,7 +161,13 @@ def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[st
 
     return "allow", "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual."
 
-def evaluate_subcommand(subcmd: str, env: str, env_evidence: str, base_cwd: Path | str | None = None) -> tuple[str, str, str, str]:
+def evaluate_subcommand(
+    subcmd: str,
+    env: str,
+    env_evidence: str,
+    base_cwd: Path | str | None = None,
+    explicit_env: str | None = None,
+) -> tuple[str, str, str, str]:
     """
     Avalia um subcomando atômico contra as políticas de segurança do CEH.
     Retorna (decision, reason, detected_env, use_case).
@@ -174,14 +191,22 @@ def evaluate_subcommand(subcmd: str, env: str, env_evidence: str, base_cwd: Path
         ):
             return "deny", f"[CEH CATASTROPHIC BLOCK] {reason}", env, "CATASTROPHIC"
 
-    # 2. Resolução Canônica de Git (R5)
-    is_git_push, target_repo, canonical_cmd, git_err = resolve_git_invocation(sub_eval, Path.cwd())
+    # 2. Resolução Canônica de Git (R5 + G3)
+    is_git, git_subcmd, git_args, target_repo, canonical_cmd, git_err = resolve_git_invocation(sub_eval, base_cwd)
     if git_err:
         return "deny", f"[CEH SAFETY GATE - GIT] ⛔ {git_err}", env, "GIT_DESTRUCTIVE"
 
-    if is_git_push:
+    is_git_push = (is_git and git_subcmd == "push")
+    if is_git:
         sub_eval = canonical_cmd
         sub_norm = normalize_command_for_evaluation(canonical_cmd)
+
+        # G3: Se -C apontou para outro repositório e explicit_env não foi fixado,
+        # detecta o ambiente no repositório de destino de -C
+        if target_repo and explicit_env is None:
+            sub_env, sub_env_evidence = detect_environment(explicit_env=None, target_dir=target_repo)
+            env = sub_env
+            env_evidence = sub_env_evidence
 
     # 3. Safe Development Bypasses: allow cache/scratch cleanup and selective checkout (sem outros padrões destrutivos)
     is_safe_dev = False
@@ -284,7 +309,7 @@ def evaluate_command(
 
     evaluations = []
     for sub in subcommands:
-        evaluations.append(evaluate_subcommand(sub, env, env_evidence, base_cwd=base_cwd))
+        evaluations.append(evaluate_subcommand(sub, env, env_evidence, base_cwd=base_cwd, explicit_env=explicit_env))
 
     # Precedência estrita: DENY > ASK > ALLOW
     denies = [e for e in evaluations if e[0] == "deny"]

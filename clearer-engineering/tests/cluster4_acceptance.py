@@ -48,23 +48,20 @@ class Cluster4Acceptance(unittest.TestCase):
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
     # --------------------------------------------------------------------------
-    # G2: Git Working Tree Discard bypasses
+    # G2: Git Working Tree Discard bypasses (CORRIGIDO PR-05)
     # --------------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_g2_git_checkout_dot_production(self):
         """G2: git checkout . in production must be denied (today: allow)"""
         cmd = b64("Z2l0IGNoZWNrb3V0IC4=") # git checkout .
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g2_git_restore_dot_production(self):
         """G2: git restore . in production must be denied (today: allow)"""
         cmd = b64("Z2l0IHJlc3RvcmUgLg==") # git restore .
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g2_git_checkout_dashdash_dot_production(self):
         """G2: git checkout -- . in production must be denied (today: allow)"""
         cmd = b64("Z2l0IGNoZWNrb3V0IC0tIC4=") # git checkout -- .
@@ -72,16 +69,14 @@ class Cluster4Acceptance(unittest.TestCase):
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
     # --------------------------------------------------------------------------
-    # G3: Git Flags & Options Preceding Subcommand
+    # G3: Git Flags & Options Preceding Subcommand (CORRIGIDO PR-05)
     # --------------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_g3_git_C_reset_hard_production(self):
         """G3: git -C . reset --hard in production must be denied (today: allow)"""
         cmd = b64("Z2l0IC1DIC4gcmVzZXQgLS1oYXJk") # git -C . reset --hard
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g3_git_no_pager_reset_hard_production(self):
         """G3: git --no-pager reset --hard in production must be denied (today: allow)"""
         cmd = b64("Z2l0IC0tbm8tcGFnZXIgcmVzZXQgLS1oYXJk") # git --no-pager reset --hard

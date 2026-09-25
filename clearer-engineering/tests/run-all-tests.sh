@@ -207,7 +207,7 @@ run_test "Golden Corpus: Snapshot de decisões do Safety Gate (diff vazio)" \
     "python3 '$PLUGIN_DIR/tests/tools/snapshot_gate.py' --check >/dev/null"
 
 # 16. Cluster 4 Acceptance Suite (G1-G5, G7 baseline em RED)
-run_test "Cluster 4 Acceptance: linha de base G1-G5 e G7 em RED (15 expected failures)" \
+run_test "Cluster 4 Acceptance: linha de base G1-G5 e G7 em RED (4 expected failures)" \
     "python3 '$PLUGIN_DIR/tests/cluster4_acceptance.py' >/dev/null"
 
 # 17. PR-04b/c/d RM Target Normalization & Anti-Regression Suite
@@ -217,6 +217,10 @@ run_test "RM Targets: Normalização estrita de caminhos e controles de falsos p
 # 18. PR-04d RM Path Fuzzing Property Test (Invariantes 1 e 2)
 run_test "RM Fuzz: Teste de propriedade com fuzzing determinístico (≥ 2000 casos, Invariantes 1 e 2)" \
     "python3 '$PLUGIN_DIR/tests/test_rm_fuzz.py' >/dev/null"
+
+# 19. PR-05 Git Canonicalization Suite (G2 + G3)
+run_test "Git Canonicalization: Generalização de opções globais e bloqueio de pathspec amplo (G2/G3)" \
+    "python3 '$PLUGIN_DIR/tests/test_git_canonicalization.py' >/dev/null"
 
 echo ""
 echo "============================================================"

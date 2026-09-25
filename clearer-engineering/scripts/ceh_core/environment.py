@@ -23,11 +23,14 @@ def normalize_env(val: str) -> str:
     return "development"
 
 
-def get_git_branch() -> str | None:
-    """Attempts to get current git branch name."""
+def get_git_branch(target_dir: Path | str | None = None) -> str | None:
+    """Attempts to get current git branch name, optionally in target_dir."""
     try:
+        cmd = ["git", "branch", "--show-current"]
+        cwd = Path(target_dir).resolve() if target_dir else None
         res = subprocess.run(
-            ["git", "branch", "--show-current"],
+            cmd,
+            cwd=cwd,
             capture_output=True,
             text=True,
             timeout=2
@@ -48,14 +51,18 @@ def find_repo_root(start_dir: Path) -> Path | None:
     return None
 
 
-def detect_environment(explicit_env: str | None = None, cmd_line: str = "") -> tuple[str, str]:
+def detect_environment(
+    explicit_env: str | None = None,
+    cmd_line: str = "",
+    target_dir: Path | str | None = None,
+) -> tuple[str, str]:
     """
     Detects the current target environment with verifiable evidence:
     1. Explicit parameter / CLI argument (--env).
     2. Explicit target indicators inside the command string itself.
     3. Shell environment variables (CEH_ENV, APP_ENV, NODE_ENV, ENVIRONMENT, ENV, STAGE).
-    4. Project .env / .env.production / .env.staging inspection.
-    5. Active Git branch (main/master/production -> safety escalation).
+    4. Project .env / .env.production / .env.staging inspection (optionally in target_dir).
+    5. Active Git branch (main/master/production -> safety escalation) (optionally in target_dir).
     Returns (environment, evidence_source).
     """
     # 1. Explicit override
@@ -78,7 +85,7 @@ def detect_environment(explicit_env: str | None = None, cmd_line: str = "") -> t
 
     # 4. Project .env inspection
     try:
-        current = Path.cwd()
+        current = Path(target_dir).resolve() if target_dir else Path.cwd()
         for directory in [current, *current.parents]:
             # Priority to specific env files
             if (directory / ".env.production").is_file():
@@ -104,7 +111,7 @@ def detect_environment(explicit_env: str | None = None, cmd_line: str = "") -> t
         pass
 
     # 5. Git branch inspection (preventive escalation & canonical flow)
-    branch = get_git_branch()
+    branch = get_git_branch(target_dir)
     if branch:
         branch_lower = branch.lower()
         if branch_lower in ["main", "master", "production", "prod"]:
