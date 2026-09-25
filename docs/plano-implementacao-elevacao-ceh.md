@@ -117,6 +117,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Próximo: PR-04** (G1 + G4, `ceh_core/rm.py`).
 - **Decisão pendente:** atalho seguro "todos os alvos seguros em qualquer ambiente" (A, recomendada) × "só em DEV" (B).
 
+### 0.13 PR-04 com ressalvas bloqueantes ([Handoff 014](./temp_implementation/handoffs/handoff-014-revisao-pr04-e-despacho-pr04b.md))
+
+- G1/G4 corrigidos nos casos do RED, e a opção A (Q5) foi respeitada.
+- A bateria independente encontrou três problemas:
+  - **R1:** descendentes de `/home`, `/opt`, `/var` e `/usr` negados como CATASTROPHIC em DEV (regressão de uso).
+  - **R2:** `//`, `/./`, `../..`, `./*` e `~root` escapam.
+  - **R3:** o motivo do atalho seguro declara `--env development` fixo, mesmo em produção.
+- **Próximo: PR-04b** (normalizar os alvos; catastrófico só o próprio diretório; motivo com a evidência real). Depois, PR-05.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
