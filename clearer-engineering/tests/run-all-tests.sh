@@ -175,11 +175,19 @@ run_test "Skill: clearer-adhd packaged with Ponytail UX 10 Heuristics & Break-Ru
     "test -f '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Lead with Action' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Break-Rules' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Ponytail UX' '$PLUGIN_DIR/rules/AGENTS.md'"
 
 # 7. Shell Aliases Configuration
-run_test "Shell alias 'agy-ceh' configured in shell rc" \
-    "(test -f ~/.bashrc && grep -q 'alias agy-ceh=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias agy-ceh=' ~/.zshrc)"
+if [[ -d "$HOME/.gemini/config/plugins/clearer-engineering" ]]; then
+    run_test "Shell alias 'agy-ceh' configured in shell rc" \
+        "(test -f ~/.bashrc && grep -q 'alias agy-ceh=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias agy-ceh=' ~/.zshrc)"
 
-run_test "Shell alias 'ceh-evals' configured in shell rc" \
-    "(test -f ~/.bashrc && grep -q 'alias ceh-evals=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias ceh-evals=' ~/.zshrc)"
+    run_test "Shell alias 'ceh-evals' configured in shell rc" \
+        "(test -f ~/.bashrc && grep -q 'alias ceh-evals=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias ceh-evals=' ~/.zshrc)"
+else
+    run_test "Shell alias template in install.sh declares 'agy-ceh'" \
+        "grep -q \"^alias agy-ceh='agy --agent clearer-harness'\" '$PLUGIN_DIR/../install.sh'"
+
+    run_test "Shell alias template in install.sh declares 'ceh-evals'" \
+        "grep -q '^alias ceh-evals=' '$PLUGIN_DIR/../install.sh'"
+fi
 
 # 8. Deterministic Smoke-Eval Suite
 run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
