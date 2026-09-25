@@ -6,6 +6,7 @@ Enforces environment-aware safety policy across 3 tiers:
 - Homologação / Staging: Confirmation required (ASK) with 2 explicit alerts + backup & rollback mandate.
 - Produção: Destructive commands strictly prohibited (DENY - fora de cogitação).
 """
+from __future__ import annotations
 
 import sys
 import os
@@ -592,15 +593,24 @@ def handle_hook():
             print(json.dumps({"decision": "allow"}))
             return
 
+        payload = json.loads(raw_input)
+        if not isinstance(payload, dict):
+            print(json.dumps({
+                "decision": "deny",
+                "reason": "[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object."
+            }, ensure_ascii=False))
+            sys.exit(2)
+
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         from hook_context import evaluate_hook_payload
-        result = evaluate_hook_payload(json.loads(raw_input), evaluate_command)
+        result = evaluate_hook_payload(payload, evaluate_command)
         print(json.dumps(result, ensure_ascii=False))
     except Exception as e:
         print(json.dumps({
-            "decision": "ask",
-            "reason": f"[CEH SAFETY GATE ERROR] Failed to parse hook payload: {str(e)}"
+            "decision": "deny",
+            "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: {str(e)}"
         }, ensure_ascii=False))
+        sys.exit(2)
 
 def main():
     parser = argparse.ArgumentParser(description="CEH Safety Gate Command Checker")

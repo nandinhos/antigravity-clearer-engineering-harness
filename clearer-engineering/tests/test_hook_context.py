@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 # Add scripts directory to sys.path
 import sys
@@ -232,6 +233,47 @@ class TestHookContext(unittest.TestCase):
         res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
         self.assertEqual(res["decision"], "ask")
         self.assertIn("CEH HOMOLOGAÇÃO / STAGING SAFETY GATE", res["reason"])
+
+    def _run_gate_hook(self, stdin_payload: str) -> tuple[int, dict[str, Any]]:
+        proc = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "safety-gate.py")],
+            input=stdin_payload,
+            capture_output=True,
+            text=True,
+        )
+        try:
+            data = json.loads(proc.stdout)
+        except Exception:
+            data = {}
+        return proc.returncode, data
+
+    def test_case_9_pr00b_malformed_toolcall_fails_closed(self):
+        """PR-00b: Malformed toolCall ('x') must exit 2 with deny."""
+        code, res = self._run_gate_hook('{"toolCall": "x"}')
+        self.assertEqual(code, 2)
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("[CEH SAFETY GATE ERROR]", res.get("reason", ""))
+
+    def test_case_10_pr00b_list_payload_fails_closed(self):
+        """PR-00b: Non-object JSON payload ([]) must exit 2 with deny."""
+        code, res = self._run_gate_hook("[]")
+        self.assertEqual(code, 2)
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object.", res.get("reason", ""))
+
+    def test_case_11_pr00b_string_payload_fails_closed(self):
+        """PR-00b: Non-object string JSON payload (\"texto\") must exit 2 with deny."""
+        code, res = self._run_gate_hook('"texto"')
+        self.assertEqual(code, 2)
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object.", res.get("reason", ""))
+
+    def test_case_12_pr00b_invalid_json_text_fails_closed(self):
+        """PR-00b: Invalid JSON text (raw text) must exit 2 with deny."""
+        code, res = self._run_gate_hook("texto_invalido_sem_aspas")
+        self.assertEqual(code, 2)
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("[CEH SAFETY GATE ERROR] Hook execution failed:", res.get("reason", ""))
 
 
 if __name__ == "__main__":

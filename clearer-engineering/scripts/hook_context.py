@@ -37,11 +37,20 @@ def resolve_hook_target(payload: dict[str, Any]) -> tuple[Path | None, str | Non
             ws_root = Path(first_ws).resolve()
 
     if "toolCall" in payload:
-        args = (payload.get("toolCall") or {}).get("args") or {}
+        tc = payload.get("toolCall")
+        if not isinstance(tc, dict):
+            raise ValueError("Invalid toolCall format: expected JSON object.")
+        args = tc.get("args")
+        if args is not None and not isinstance(args, dict):
+            raise ValueError("Invalid toolCall.args format: expected JSON object.")
+        args = args or {}
         raw_cwd = args.get("Cwd")
         if raw_cwd is None and ws_root is not None:
             raw_cwd = str(ws_root)
     elif "tool_input" in payload or "cwd" in payload:
+        ti = payload.get("tool_input")
+        if ti is not None and not isinstance(ti, dict):
+            raise ValueError("Invalid tool_input format: expected JSON object.")
         raw_cwd = payload.get("cwd")
 
     if not raw_cwd:
@@ -68,11 +77,20 @@ def extract_hook_command(payload: dict[str, Any]) -> tuple[str, str]:
     Extracts (tool_name, command_line) from Antigravity or Claude hook payloads.
     """
     if "toolCall" in payload:
-        tc = payload.get("toolCall") or {}
-        return str(tc.get("name", "")), str((tc.get("args") or {}).get("CommandLine", ""))
+        tc = payload.get("toolCall")
+        if not isinstance(tc, dict):
+            raise ValueError("Invalid toolCall format: expected JSON object.")
+        args = tc.get("args")
+        if args is not None and not isinstance(args, dict):
+            raise ValueError("Invalid toolCall.args format: expected JSON object.")
+        args = args or {}
+        return str(tc.get("name", "")), str(args.get("CommandLine", ""))
     if "tool_input" in payload or "tool_name" in payload:
         tool_name = str(payload.get("tool_name", ""))
-        cmd = str((payload.get("tool_input") or {}).get("command", ""))
+        ti = payload.get("tool_input")
+        if ti is not None and not isinstance(ti, dict):
+            raise ValueError("Invalid tool_input format: expected JSON object.")
+        cmd = str((ti or {}).get("command", ""))
         return tool_name, cmd
     return "", ""
 
@@ -89,6 +107,9 @@ def evaluate_hook_payload(
     """
     Processes PreToolUse hook payload, safely resolving target directory before evaluation.
     """
+    if not isinstance(payload, dict):
+        raise ValueError("Invalid hook payload: expected JSON object.")
+
     tool_name, cmd_line = extract_hook_command(payload)
     if tool_name not in ("run_command", "Bash") or not cmd_line.strip():
         return {"decision": "allow"}

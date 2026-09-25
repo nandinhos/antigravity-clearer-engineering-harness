@@ -55,6 +55,13 @@ check_prerequisites() {
         fi
     done
 
+    if command -v python3 >/dev/null 2>&1; then
+        if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
+            log_error "Python 3.9+ is required. Found: $(python3 -V 2>&1)"
+            missing=1
+        fi
+    fi
+
     if ! command -v agy >/dev/null 2>&1; then
         log_warn "'agy' (Antigravity CLI) was not found in PATH."
         log_warn "If Antigravity is installed in a non-standard location, ensure ~/.local/bin is in your PATH."
