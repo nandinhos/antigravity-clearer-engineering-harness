@@ -135,6 +135,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **S2:** `$PWD` escapa do catastrófico.
 - **Próximo: PR-04c.** Toda bateria adversarial usada em revisão passa a entrar no corpus.
 
+### 0.15 PR-04c com ressalva T1 ([Handoff 016](./temp_implementation/handoffs/handoff-016-revisao-pr04c-despacho-pr04d-e-pr05.md))
+
+- S1 e S2 resolvidos; corpus 643/643 portável.
+- **T1:** o atalho seguro usa o caminho cru. Em produção, `rm -rf build/../src` e `rm -rf coverage/../.git` saem `allow`.
+- **Próximos:** PR-04d (normalização + fuzz com invariantes, ≥ 2000 casos) e, na sequência, PR-05 (G2 + G3).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
