@@ -126,8 +126,8 @@ run_test "Script: preflight.sh execution" \
 run_test "Script: diff-audit.sh execution" \
     "bash '$PLUGIN_DIR/scripts/diff-audit.sh' | grep 'CEH Diff & Blast Radius Audit' >/dev/null"
 
-run_test "Script: evidence-report.sh output format" \
-    "bash '$PLUGIN_DIR/scripts/evidence-report.sh' | grep '## RESULT' >/dev/null && bash '$PLUGIN_DIR/scripts/evidence-report.sh' | grep '## CONFIDENCE' >/dev/null"
+run_test "Script: evidence-report canônico (seções do Response Contract e veredito calculado por evidência)" \
+    "python3 '$PLUGIN_DIR/tests/test_evidence_report.py' >/dev/null 2>&1"
 
 # 5. Deterministic Test Runner & Non-Masking Tests
 run_test "Test Runner: Success scenario returns exit code 0" \

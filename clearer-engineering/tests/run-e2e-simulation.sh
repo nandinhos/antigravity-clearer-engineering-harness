@@ -215,11 +215,16 @@ echo "$DIFF_AUDIT_OUT" | grep -q "No conflict markers found"
 log_ok "Diff audit verified modified file and absence of conflict markers."
 
 log_step "4.2 Testing evidence-report.sh output contract"
-EVIDENCE_OUT=$(cd "$SANDBOX_DIR" && bash "$PLUGIN_DIR/scripts/evidence-report.sh" "COMPLETED" "HIGH")
+EVIDENCE_OUT=$(cd "$SANDBOX_DIR" && bash "$PLUGIN_DIR/scripts/evidence-report.sh")
 echo "$EVIDENCE_OUT" | grep -q "## RESULT"
 echo "$EVIDENCE_OUT" | grep -q "## EVIDENCE"
 echo "$EVIDENCE_OUT" | grep -q "## ACCEPTANCE"
-echo "$EVIDENCE_OUT" | grep -q "HIGH"
+echo "$EVIDENCE_OUT" | grep -q "## CONFIDENCE"
+# Sem certificado de testes no sandbox, o relatório não pode declarar sucesso
+echo "$EVIDENCE_OUT" | grep -q "NAO_VERIFICADO"
+if echo "$EVIDENCE_OUT" | grep -q "\*\*ALTA\*\*"; then
+    echo "evidence-report declarou confiança ALTA sem evidência de testes"; exit 1
+fi
 log_ok "Evidence Report formatted and validated structured output contract."
 
 # ------------------------------------------------------------------------------

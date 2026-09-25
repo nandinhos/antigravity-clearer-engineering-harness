@@ -94,7 +94,7 @@ fi
 # A certificate must describe the commit, so the worktree must match HEAD
 WORKTREE_DIRTY=0
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    DIRTY_FILES=$(git -C "$REPO_ROOT" status --porcelain -- ':(top)' ':(top,exclude).ceh/last-ci-run.json' 2>/dev/null)
+    DIRTY_FILES=$(git -C "$REPO_ROOT" status --porcelain -- ':(top)' ':(top,exclude).ceh/last-ci-run.json' ':(top,exclude).ceh/last-ci-run.log' 2>/dev/null)
     if [[ -n "$DIRTY_FILES" ]]; then
         WORKTREE_DIRTY=1
         echo "[CEH WARNING] ⚠️ Worktree com alterações não commitadas. Os testes rodam, mas o certificado NÃO será emitido."
@@ -185,6 +185,7 @@ with open(p + ".tmp", "w", encoding="utf-8") as f:
     json.dump({"commit_hash": c, "timestamp": t, "command": cmd, "normalized_runner": raw, "canonical_verified": v == "true", "status": s, "exit_code": int(code)}, f, indent=2, ensure_ascii=False)
 os.replace(p + ".tmp", p)
 ' "$CEH_DIR/last-ci-run.json" "$CURRENT_COMMIT" "$NOW_ISO" "$TEST_CMD" "$RAW_TEST_CMD" "$CANONICAL_VERIFIED" "$STATUS_STR" "$EXIT_CODE"
+        cp "$OUTPUT_FILE" "$CEH_DIR/last-ci-run.log"  # saída bruta citada pelo evidence-report
     fi
 fi
 

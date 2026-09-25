@@ -68,15 +68,16 @@ Estruture mentalmente e valide os seguintes pontos:
 - Verifique se a adição de novos tipos/lookups não quebrou asserções de contagem em testes existentes ("testes congeladores").
 
 ### Passo 8: Relatório Final de Evidências (Audit & Report)
-Emita a entrega final com o Response Contract completo:
-```text
-## RESULT
-## CHANGES
-## EVIDENCE
-## TESTS
-## REVIEW
-## ACCEPTANCE
-## REMAINING RISKS
-## CONFIDENCE
+Gere a entrega final com o relatório canônico. Ele calcula `RESULT` e `CONFIDENCE` a partir do git, do certificado da suíte canônica e das provas; nada é aceito por declaração:
+```bash
+bash scripts/test-runner.sh          # suíte canônica: certificado + log bruto em .ceh/
+bash scripts/evidence-report.sh \
+  --claim "O endpoint X valida Y" tests/test_x.py \
+  --criterion "Critério de aceite 1" commit:<sha> \
+  --finding MEDIUM "Achado do diff-audit/review" \
+  --risk "Risco residual conhecido"
 ```
+- Cada `--claim`/`--criterion` exige prova: arquivo versionado (fixado por sha256) ou `commit:<sha>` na história do HEAD. Sem prova, o item vira `UNSUPPORTED` e o `RESULT` não é `VERIFICADO`.
+- Seções emitidas: `RESULT`, `ENVIRONMENT`, `CHANGES`, `EVIDENCE`, `TESTS`, `REVIEW`, `ACCEPTANCE`, `REMAINING RISKS`, `CONFIDENCE`.
+- Use `--strict` quando a entrega não puder seguir sem `VERIFICADO` (exit 1).
 
