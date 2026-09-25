@@ -111,6 +111,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Próximo: PR-03** (`scripts/ceh_core/`: rules, lexer, environment; o gate reexporta os nomes).
   - Aceite: diff vazio do snapshot, Deriva B efetiva no módulo movido e smoke no `agy` real (E1 executa, E10-YOLO bloqueia).
 
+### 0.12 PR-03 homologado ([Handoff 013](./temp_implementation/handoffs/handoff-013-homologacao-pr03-e-despacho-pr04.md))
+
+- Movimentação pura (AST 14/15 idêntica; 1 import redundante removido); snapshot 586/586; Deriva B efetiva no módulo movido; E1 e E10 no `agy` real.
+- **Próximo: PR-04** (G1 + G4, `ceh_core/rm.py`).
+- **Decisão pendente:** atalho seguro "todos os alvos seguros em qualquer ambiente" (A, recomendada) × "só em DEV" (B).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
