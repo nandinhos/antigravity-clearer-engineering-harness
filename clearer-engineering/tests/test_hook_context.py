@@ -201,6 +201,38 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(res["decision"], "deny")
         self.assertIn("CEH PRODUCTION LOCK", res["reason"])
 
+    def test_case_7_pr00c_agy_payload_converts_ask_to_deny_on_staging(self):
+        """PR-00c: On staging, destructive command in agy payload converts 'ask' to 'deny'."""
+        repo = self._init_repo("repo_staging_agy", branch="staging")
+        payload = {
+            "toolCall": {
+                "name": "run_command",
+                "args": {
+                    "CommandLine": "git reset --hard",
+                    "Cwd": str(repo),
+                },
+            },
+            "workspacePaths": [str(repo)],
+        }
+        res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
+        self.assertEqual(res["decision"], "deny")
+        self.assertIn("Decisão 'ask' convertida para 'deny'", res["reason"])
+
+    def test_case_8_pr00c_claude_payload_preserves_ask_on_staging(self):
+        """PR-00c: On staging, destructive command in Claude payload preserves 'ask'."""
+        repo = self._init_repo("repo_staging_claude", branch="staging")
+        payload = {
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "cwd": str(repo),
+            "tool_input": {
+                "command": "git reset --hard",
+            },
+        }
+        res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
+        self.assertEqual(res["decision"], "ask")
+        self.assertIn("CEH HOMOLOGAÇÃO / STAGING SAFETY GATE", res["reason"])
+
 
 if __name__ == "__main__":
     unittest.main()

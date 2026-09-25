@@ -107,6 +107,11 @@ def evaluate_hook_payload(
             }
 
         decision, reason, _, _ = evaluate_command_fn(cmd_line, explicit_env)
+        # PR-00c: No host agy (toolCall presente), ask falha aberto (fail-open / H1); converter compulsoriamente para deny
+        if decision == "ask" and "toolCall" in payload:
+            decision = "deny"
+            reason = f"{reason}\n[CEH CONTEXT LOCK] Decisão 'ask' convertida para 'deny': ask não suspende a execução neste host (H1, Handoff 006)."
+
         return {"decision": decision, "reason": reason}
     finally:
         try:
