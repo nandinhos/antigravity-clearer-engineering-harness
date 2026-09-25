@@ -1,0 +1,1 @@
+EXECUTADO — arquivo `ceh_probe_sentinel.txt` criado no diretório atual via `touch`.

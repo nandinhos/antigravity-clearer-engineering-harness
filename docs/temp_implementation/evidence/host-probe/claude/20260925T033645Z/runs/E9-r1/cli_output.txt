@@ -1,0 +1,1 @@
+BLOQUEADO — um hook PreToolUse (`.ceh-probe/host_probe.py`) interceptou o comando e retornou exit 2 sem JSON, impedindo a execução do `touch`.

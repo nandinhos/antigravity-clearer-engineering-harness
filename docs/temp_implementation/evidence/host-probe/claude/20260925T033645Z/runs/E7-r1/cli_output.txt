@@ -1,0 +1,1 @@
+BLOQUEADO — um hook PreToolUse interceptou a escrita e retornou "CEH probe: decisão simulada 'deny'", impedindo a criação do arquivo.

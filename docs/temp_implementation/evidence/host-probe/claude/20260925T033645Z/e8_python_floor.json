@@ -1,0 +1,32 @@
+[
+  {
+    "python": "3.8",
+    "exit_code": 1,
+    "status": "FALHA",
+    "stderr_tail": "TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'"
+  },
+  {
+    "python": "3.9",
+    "exit_code": 1,
+    "status": "FALHA",
+    "stderr_tail": "TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'"
+  },
+  {
+    "python": "3.10",
+    "exit_code": 0,
+    "status": "OK",
+    "stderr_tail": ""
+  },
+  {
+    "python": "3.11",
+    "exit_code": 0,
+    "status": "OK",
+    "stderr_tail": ""
+  },
+  {
+    "python": "3.12",
+    "exit_code": 0,
+    "status": "OK",
+    "stderr_tail": ""
+  }
+]

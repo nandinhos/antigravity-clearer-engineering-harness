@@ -1,0 +1,1 @@
+BLOQUEADO — a execução foi interceptada por um hook/policy do ambiente, que retornou "CEH probe: decisão simulada 'ask'" em vez do resultado do comando, ou seja, o comando não rodou.
