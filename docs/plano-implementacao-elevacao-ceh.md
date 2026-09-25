@@ -126,6 +126,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - **R3:** o motivo do atalho seguro declara `--env development` fixo, mesmo em produção.
 - **Próximo: PR-04b** (normalizar os alvos; catastrófico só o próprio diretório; motivo com a evidência real). Depois, PR-05.
 
+### 0.14 PR-04b com ressalva bloqueante ([Handoff 015](./temp_implementation/handoffs/handoff-015-revisao-pr04b-e-despacho-pr04c.md))
+
+- R1, R2 e R3 resolvidos e verificados; o corpus é portável.
+- **S1 (HIGH):**
+  - O atalho seguro passou a aceitar qualquer caminho terminado em `build`/`dist`/`coverage`/`scratch`.
+  - `rm -rf /var/www/site/dist` em **produção** foi de `deny` para `allow`.
+- **S2:** `$PWD` escapa do catastrófico.
+- **Próximo: PR-04c.** Toda bateria adversarial usada em revisão passa a entrar no corpus.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
