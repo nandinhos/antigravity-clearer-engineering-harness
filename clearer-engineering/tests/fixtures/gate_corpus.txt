@@ -1,0 +1,200 @@
+RAW:git status
+RAW:git status -s
+RAW:git log -n 10
+RAW:git log --oneline -n 5
+RAW:git diff
+RAW:git diff --stat
+RAW:git diff HEAD~1
+RAW:git branch
+RAW:git branch -a
+RAW:git branch --show-current
+RAW:git checkout dev
+RAW:git checkout -b feature/auth-system
+RAW:git checkout main
+RAW:git checkout staging
+RAW:git checkout app/Models/User.php
+RAW:git checkout config/app.php
+RAW:git restore app/Services/PaymentService.php
+RAW:git restore --staged README.md
+RAW:git add .
+RAW:git add README.md
+RAW:git add -A
+RAW:git commit -m "feat: implement safety gate"
+RAW:git commit -m "fix: resolve edge case"
+RAW:git show HEAD
+RAW:git show --stat
+RAW:git rev-parse HEAD
+RAW:git rev-parse --abbrev-ref HEAD
+RAW:git remote -v
+RAW:git fetch origin
+RAW:git pull origin dev
+RAW:git tag v1.0.0
+RAW:git stash
+RAW:git stash pop
+RAW:git stash list
+B64:Z2l0IHJlc2V0IC0taGFyZA==
+B64:Z2l0IHJlc2V0IC0taGFyZCBIRUFEfjE=
+B64:Z2l0IHJlc2V0IC0taGFyZCBvcmlnaW4vbWFpbg==
+B64:Z2l0IHJlc2V0IC0taGFyZCBIRUFE
+B64:Z2l0IHJlc2V0IC0taGFyZCBkZXY=
+B64:Z2l0IGNsZWFuIC1m
+B64:Z2l0IGNsZWFuIC1mZA==
+B64:Z2l0IGNsZWFuIC1mZHg=
+B64:Z2l0IGNsZWFuIC1meA==
+B64:Z2l0IHB1c2ggb3JpZ2luIG1haW4gLS1mb3JjZQ==
+B64:Z2l0IHB1c2ggLWYgb3JpZ2luIG1haW4=
+B64:Z2l0IHB1c2ggb3JpZ2luIG1haW4gLS1mb3JjZS13aXRoLWxlYXNl
+B64:Z2l0IHB1c2ggb3JpZ2luIGRldiAtLWZvcmNl
+B64:Z2l0IHB1c2ggb3JpZ2luIHN0YWdpbmcgLS1mb3JjZQ==
+B64:Z2l0IHB1c2ggb3JpZ2luICtkZXY=
+B64:Z2l0IHB1c2ggb3JpZ2luIGRldg==
+B64:Z2l0IGNoZWNrb3V0IC4=
+B64:Z2l0IHJlc3RvcmUgLg==
+B64:Z2l0IGNoZWNrb3V0IC0tIC4=
+B64:Z2l0IC1DIC4gcmVzZXQgLS1oYXJk
+B64:Z2l0IC0tbm8tcGFnZXIgcmVzZXQgLS1oYXJk
+B64:Z2l0IGJyYW5jaCAtRCBmZWF0dXJlL29sZA==
+B64:Z2l0IHB1c2ggb3JpZ2luIC0tZGVsZXRlIGZlYXR1cmUvb2xk
+RAW:ls -la
+RAW:pwd
+RAW:mkdir -p storage/logs
+RAW:mkdir -p build/tmp
+RAW:touch app/test.txt
+RAW:cat package.json
+RAW:grep -r "test" src/
+RAW:find . -name "*.py"
+RAW:find src -type f
+RAW:rm app/test.txt
+RAW:rm -f temp.log
+RAW:rm -rf scratch/temp
+RAW:rm -rf .cache
+RAW:rm -rf tmp/cache
+RAW:rm -rf storage/framework/cache
+RAW:cp -r src/ dst/
+RAW:mv old.txt new.txt
+RAW:head -n 20 file.txt
+RAW:tail -n 20 file.txt
+RAW:wc -l file.txt
+RAW:df -h
+RAW:du -sh .
+RAW:chmod +x script.sh
+RAW:echo "hello" > log.txt
+RAW:whoami
+B64:cm0gLXJmIC8=
+B64:cm0gLXJmIC8q
+B64:cm0gLXIgLWYgLw==
+B64:cm0gLS1yZWN1cnNpdmUgLS1mb3JjZSAv
+B64:cm0gLXJmICRIT01F
+B64:cm0gLXJmIH4=
+B64:cm0gLXJmIC9ldGM=
+B64:cm0gLXJmIC91c3I=
+B64:cm0gLXJmIC92YXI=
+B64:cm0gLXJmIC9iaW4=
+B64:cm0gLXJmIC4=
+B64:cm0gLXJmIC4u
+B64:cm0gLXJmIGJ1aWxkLyBzcmMv
+B64:cm0gLXJmIGEudHh0IC92YXIvbGliL3Bvc3RncmVzcWw=
+B64:cm0gLXJmIC9zcnY=
+B64:cm0gLXJmIC9vcHQ=
+B64:ZmluZCAvIC1kZWxldGU=
+B64:ZmluZCAuIC1uYW1lIHggLWV4ZWMgcm0ge30gKw==
+B64:ZmluZCAvdmFyIC10eXBlIGYgLWRlbGV0ZQ==
+B64:cHl0aG9uMyAtYyAiaW1wb3J0IHNodXRpbDsgc2h1dGlsLnJtdHJlZShcIi9zcnZcIiki
+B64:cHl0aG9uMyAtYyAiaW1wb3J0IG9zOyBvcy5yZW1vdmUoXCIvZXRjL3Bhc3N3ZFwiKSI=
+B64:OigpeyA6fDomIH07Og==
+RAW:php artisan migrate
+RAW:php artisan migrate:status
+RAW:php artisan migrate:rollback
+RAW:php artisan db:seed
+B64:cGhwIGFydGlzYW4gbWlncmF0ZTpmcmVzaA==
+B64:cGhwIGFydGlzYW4gZGI6d2lwZQ==
+B64:cGhwIGFydGlzYW4gbWlncmF0ZTpmcmVzaCAtLXNlZWQ=
+RAW:python3 manage.py migrate
+RAW:python3 manage.py showmigrations
+B64:cHl0aG9uMyBtYW5hZ2UucHkgZmx1c2g=
+RAW:npx prisma migrate dev
+RAW:npx prisma migrate deploy
+B64:bnB4IHByaXNtYSBtaWdyYXRlIHJlc2V0
+RAW:alembic upgrade head
+B64:YWxlbWJpYyBkb3duZ3JhZGUgYmFzZQ==
+RAW:npm test
+RAW:npm run test:unit
+RAW:npm run test:e2e
+RAW:npm run lint
+RAW:pytest
+RAW:pytest tests/
+RAW:pytest -v
+RAW:pytest -k test_auth
+RAW:python3 -m unittest
+RAW:python3 -m unittest discover
+RAW:composer test
+RAW:cargo test
+RAW:cargo clippy
+RAW:go test ./...
+RAW:ruff check .
+RAW:eslint .
+RAW:php artisan test
+RAW:bash clearer-engineering/tests/run-all-tests.sh
+RAW:bash clearer-engineering/scripts/test-runner.sh
+RAW:bash clearer-engineering/scripts/preflight.sh
+RAW:npm run build
+RAW:npm install
+RAW:npm ci
+RAW:composer install
+RAW:composer update
+RAW:pip install -r requirements.txt
+RAW:cargo build
+RAW:cargo build --release
+RAW:go build ./...
+RAW:docker build -t app .
+RAW:docker compose up -d
+RAW:docker compose ps
+RAW:docker compose down
+RAW:docker compose logs
+RAW:terraform plan
+B64:dGVycmFmb3JtIGRlc3Ryb3k=
+B64:a3ViZWN0bCBkZWxldGUgcG9kIGFwcA==
+B64:a3ViZWN0bCBkZWxldGUgbmFtZXNwYWNlIGRlZmF1bHQ=
+RAW:curl -s http://localhost:8000
+RAW:rtk git status
+RAW:rtk git diff
+RAW:rtk git log -n 5
+RAW:rtk pytest
+RAW:rtk npm test
+RAW:rtk cargo test
+RAW:rtk ruff check
+RAW:rtk php artisan test
+B64:cnRrIGdpdCByZXNldCAtLWhhcmQ=
+B64:cnRrIGdpdCByZXNldCAtLWhhcmQgSEVBRH4x
+B64:cnRrIGdpdCBjbGVhbiAtZmQ=
+B64:cnRrIHBocCBhcnRpc2FuIG1pZ3JhdGU6ZnJlc2g=
+B64:cnRrIHJtIC1yZiAv
+B64:cnRrIGdpdCBwdXNoIG9yaWdpbiBtYWluIC0tZm9yY2U=
+RAW:git status && ls -la
+RAW:npm test && git status
+RAW:git status; ls
+RAW:git status || true
+RAW:echo "hello world"
+RAW:printf "%s\n" "test"
+RAW:env | grep APP
+RAW:which python3
+RAW:uname -a
+RAW:date -u
+RAW:sleep 1
+B64:Z2l0IHN0YXR1czsgZ2l0IHJlc2V0IC0taGFyZA==
+B64:Z2l0IHN0YXR1cyAmJiBnaXQgcmVzZXQgLS1oYXJk
+B64:bHMgLWxhIHx8IHJtIC1yZiAv
+B64:cm0gLXJmIC8gJg==
+B64:cm0gLXJmICIiLw==
+B64:cm0gLXJmICQnXHgyZic=
+B64:ZWNobyAkKHJtIC1yZiAvKQ==
+B64:ZWNobyAke3JtX3JmX3Zhcn0=
+B64:cm0gLXJmIFwKLw==
+HOOK:agy:eyJ0b29sX25hbWUiOiAicnVuX2NvbW1hbmQiLCAidG9vbF9pbnB1dCI6IHsiQ29tbWFuZExpbmUiOiAiZ2l0IHN0YXR1cyIsICJDd2QiOiAiL3RtcCJ9fQ==
+HOOK:agy:eyJ0b29sX25hbWUiOiAicnVuX2NvbW1hbmQiLCAidG9vbF9pbnB1dCI6IHsiQ29tbWFuZExpbmUiOiAiZ2l0IHJlc2V0IC0taGFyZCIsICJDd2QiOiAiL3RtcCJ9fQ==
+HOOK:agy:eyJ0b29sX25hbWUiOiAicnVuX2NvbW1hbmQiLCAidG9vbF9pbnB1dCI6IHsiQ29tbWFuZExpbmUiOiAicm0gLXJmIC8iLCAiQ3dkIjogIi90bXAifX0=
+HOOK:agy:eyJ0b29sX25hbWUiOiAid3JpdGVfdG9fZmlsZSIsICJ0b29sX2lucHV0IjogeyJUYXJnZXRGaWxlIjogIi90bXAvdGVzdC50eHQifX0=
+HOOK:claude:eyJ0b29sX25hbWUiOiAiQmFzaCIsICJ0b29sX2lucHV0IjogeyJjb21tYW5kIjogImdpdCBzdGF0dXMifX0=
+HOOK:claude:eyJ0b29sX25hbWUiOiAiQmFzaCIsICJ0b29sX2lucHV0IjogeyJjb21tYW5kIjogImdpdCByZXNldCAtLWhhcmQifX0=
+HOOK:claude:eyJ0b29sX25hbWUiOiAiQmFzaCIsICJ0b29sX2lucHV0IjogeyJjb21tYW5kIjogInJtIC1yZiAvIn19
+HOOK:claude:eyJ0b29sX25hbWUiOiAiRmlsZUVkaXQiLCAidG9vbF9pbnB1dCI6IHsiZmlsZV9wYXRoIjogIi90bXAvdGVzdC50eHQifX0=

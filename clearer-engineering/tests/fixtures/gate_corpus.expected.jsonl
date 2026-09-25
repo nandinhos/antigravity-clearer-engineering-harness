@@ -1,0 +1,584 @@
+{"command": "git status", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-000-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git status", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-000-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git status", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-000-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git status -s", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-001-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git status -s", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-001-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git status -s", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-001-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git log -n 10", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-002-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git log -n 10", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-002-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git log -n 10", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-002-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git log --oneline -n 5", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-003-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git log --oneline -n 5", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-003-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git log --oneline -n 5", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-003-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-004-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-004-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-004-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff --stat", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-005-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff --stat", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-005-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff --stat", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-005-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff HEAD~1", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-006-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff HEAD~1", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-006-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git diff HEAD~1", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-006-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-007-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-007-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-007-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch -a", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-008-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch -a", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-008-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch -a", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-008-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch --show-current", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-009-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch --show-current", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-009-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch --show-current", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-009-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git checkout dev", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-010-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout dev", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-010-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout dev", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-010-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -b feature/auth-system", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-011-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -b feature/auth-system", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-011-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -b feature/auth-system", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-011-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout main", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-012-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout main", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-012-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout main", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-012-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout staging", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-013-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout staging", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-013-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout staging", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-013-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout app/Models/User.php", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-014-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout app/Models/User.php", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-014-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout app/Models/User.php", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-014-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout config/app.php", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-015-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout config/app.php", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-015-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout config/app.php", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-015-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore app/Services/PaymentService.php", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-016-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore app/Services/PaymentService.php", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-016-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore app/Services/PaymentService.php", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-016-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore --staged README.md", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-017-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore --staged README.md", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-017-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore --staged README.md", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-017-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git add .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-018-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git add .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-018-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git add .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-018-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git add README.md", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-019-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git add README.md", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-019-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git add README.md", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-019-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git add -A", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-020-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git add -A", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-020-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git add -A", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-020-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git commit -m \"feat: implement safety gate\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-021-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git commit -m \"feat: implement safety gate\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-021-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git commit -m \"feat: implement safety gate\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-021-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git commit -m \"fix: resolve edge case\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-022-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git commit -m \"fix: resolve edge case\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-022-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git commit -m \"fix: resolve edge case\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-022-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git show HEAD", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-023-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git show HEAD", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-023-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git show HEAD", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-023-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git show --stat", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-024-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git show --stat", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-024-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git show --stat", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-024-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git rev-parse HEAD", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-025-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git rev-parse HEAD", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-025-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git rev-parse HEAD", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-025-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git rev-parse --abbrev-ref HEAD", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-026-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git rev-parse --abbrev-ref HEAD", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-026-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git rev-parse --abbrev-ref HEAD", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-026-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git remote -v", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-027-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git remote -v", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-027-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git remote -v", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-027-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git fetch origin", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-028-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git fetch origin", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-028-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git fetch origin", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-028-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git pull origin dev", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-029-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git pull origin dev", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-029-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git pull origin dev", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-029-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git tag v1.0.0", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-030-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git tag v1.0.0", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-030-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git tag v1.0.0", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-030-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-031-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-031-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-031-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash pop", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-032-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash pop", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-032-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash pop", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-032-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash list", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-033-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash list", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-033-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git stash list", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-033-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git reset --hard", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-034-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-034-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-034-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard HEAD~1", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-035-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard HEAD~1", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-035-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard HEAD~1", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-035-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard origin/main", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-036-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard origin/main", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-036-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard origin/main", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-036-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard HEAD", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-037-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard HEAD", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-037-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard HEAD", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-037-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard dev", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-038-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard dev", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-038-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset --hard dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-038-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -f", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-039-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -f", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-039-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -f", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-039-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fd", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-040-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fd", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-040-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fd", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-040-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fdx", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-041-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fdx", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-041-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fdx", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-041-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fx", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-042-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fx", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-042-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git clean -fx", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-042-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin main --force", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-043-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin main --force", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-043-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin main --force", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-043-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push -f origin main", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-044-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push -f origin main", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-044-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push -f origin main", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-044-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin main --force-with-lease", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-045-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin main --force-with-lease", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-045-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin main --force-with-lease", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-045-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin dev --force", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-046-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin dev --force", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-046-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin dev --force", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-046-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin staging --force", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-047-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin staging --force", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-047-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin staging --force", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-047-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin +dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-048-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin +dev", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-048-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin +dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-048-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-049-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin dev", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-049-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-049-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git checkout .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-050-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git checkout .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-050-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git checkout .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-050-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git restore .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-051-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git restore .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-051-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git restore .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-051-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git checkout -- .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-052-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-052-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-052-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git -C . reset --hard", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-053-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git -C . reset --hard", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-053-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git -C . reset --hard", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-053-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git --no-pager reset --hard", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-054-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git --no-pager reset --hard", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-054-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git --no-pager reset --hard", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-054-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git branch -D feature/old", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-055-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git branch -D feature/old", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-055-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git branch -D feature/old", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-055-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push origin --delete feature/old", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-056-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin --delete feature/old", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-056-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin --delete feature/old", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-056-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "ls -la", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-057-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "ls -la", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-057-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "ls -la", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-057-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "pwd", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-058-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "pwd", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-058-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "pwd", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-058-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "mkdir -p storage/logs", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-059-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "mkdir -p storage/logs", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-059-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "mkdir -p storage/logs", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-059-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "mkdir -p build/tmp", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-060-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "mkdir -p build/tmp", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-060-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "mkdir -p build/tmp", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-060-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "touch app/test.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-061-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "touch app/test.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-061-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "touch app/test.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-061-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cat package.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-062-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cat package.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-062-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cat package.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-062-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "grep -r \"test\" src/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-063-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "grep -r \"test\" src/", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-063-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "grep -r \"test\" src/", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-063-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "find . -name \"*.py\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-064-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "find . -name \"*.py\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-064-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "find . -name \"*.py\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-064-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "find src -type f", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-065-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "find src -type f", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-065-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "find src -type f", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-065-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rm app/test.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-066-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rm app/test.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-066-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rm app/test.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-066-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rm -f temp.log", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-067-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -f temp.log", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-067-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -f temp.log", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-067-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf scratch/temp", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-068-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf scratch/temp", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-068-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf scratch/temp", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-068-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf .cache", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-069-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf .cache", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-069-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf .cache", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-069-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf tmp/cache", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-070-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf tmp/cache", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-070-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf tmp/cache", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-070-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf storage/framework/cache", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-071-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf storage/framework/cache", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-071-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf storage/framework/cache", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-071-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "cp -r src/ dst/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-072-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cp -r src/ dst/", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-072-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cp -r src/ dst/", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-072-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "mv old.txt new.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-073-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "mv old.txt new.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-073-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "mv old.txt new.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-073-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "head -n 20 file.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-074-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "head -n 20 file.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-074-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "head -n 20 file.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-074-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "tail -n 20 file.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-075-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "tail -n 20 file.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-075-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "tail -n 20 file.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-075-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "wc -l file.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-076-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "wc -l file.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-076-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "wc -l file.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-076-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "df -h", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-077-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "df -h", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-077-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "df -h", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-077-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "du -sh .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-078-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "du -sh .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-078-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "du -sh .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-078-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "chmod +x script.sh", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-079-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "chmod +x script.sh", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-079-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "chmod +x script.sh", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-079-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"hello\" > log.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-080-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"hello\" > log.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-080-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"hello\" > log.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-080-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "whoami", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-081-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "whoami", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-081-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "whoami", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-081-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rm -rf /", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-082-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-082-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-082-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /*", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-083-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /*", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-083-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /*", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-083-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -r -f /", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-084-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -r -f /", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-084-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -r -f /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-084-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm --recursive --force /", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-085-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rm --recursive --force /", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-085-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rm --recursive --force /", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-085-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rm -rf $HOME", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-086-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf $HOME", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-086-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf $HOME", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-086-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf ~", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-087-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf ~", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-087-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf ~", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-087-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf /etc", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-088-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /etc", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-088-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /etc", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-088-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /usr", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-089-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /usr", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-089-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /usr", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-089-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /var", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-090-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /var", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-090-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /var", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-090-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /bin", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-091-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /bin", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-091-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /bin", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-091-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-092-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf .", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-092-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf .", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-092-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf ..", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-093-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf ..", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-093-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf ..", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-093-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf build/ src/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-094-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf build/ src/", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-094-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf build/ src/", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-094-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-095-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-095-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf a.txt /var/lib/postgresql", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-095-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -rf /srv", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-096-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /srv", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-096-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /srv", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-096-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /opt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-097-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /opt", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-097-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf /opt", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-097-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "find / -delete", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-098-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "find / -delete", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-098-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "find / -delete", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-098-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "find . -name x -exec rm {} +", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-099-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "find . -name x -exec rm {} +", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-099-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "find . -name x -exec rm {} +", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-099-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "find /var -type f -delete", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-100-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "find /var -type f -delete", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-100-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "find /var -type f -delete", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-100-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-101-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-101-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-101-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-102-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-102-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-102-pro", "type": "command", "use_case": "GENERAL"}
+{"command": ":(){ :|:& };:", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-103-dev", "type": "command", "use_case": "GENERAL"}
+{"command": ":(){ :|:& };:", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-103-sta", "type": "command", "use_case": "GENERAL"}
+{"command": ":(){ :|:& };:", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-103-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-104-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-104-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-104-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate:status", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-105-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate:status", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-105-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate:status", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-105-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate:rollback", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-106-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate:rollback", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-106-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate:rollback", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-106-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan db:seed", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-107-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan db:seed", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-107-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan db:seed", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-107-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan migrate:fresh", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-108-dev", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan migrate:fresh", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-108-sta", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan migrate:fresh", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-108-pro", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan db:wipe", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-109-dev", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan db:wipe", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-109-sta", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan db:wipe", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-109-pro", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan migrate:fresh --seed", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-110-dev", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan migrate:fresh --seed", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-110-sta", "type": "command", "use_case": "DATABASE"}
+{"command": "php artisan migrate:fresh --seed", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-110-pro", "type": "command", "use_case": "DATABASE"}
+{"command": "python3 manage.py migrate", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-111-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py migrate", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-111-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py migrate", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-111-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py showmigrations", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-112-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py showmigrations", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-112-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py showmigrations", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-112-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py flush", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-113-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py flush", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-113-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 manage.py flush", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-113-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate dev", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-114-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate dev", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-114-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate dev", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-114-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate deploy", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-115-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate deploy", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-115-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate deploy", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-115-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate reset", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-116-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate reset", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-116-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate reset", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-116-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "alembic upgrade head", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-117-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "alembic upgrade head", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-117-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "alembic upgrade head", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-117-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "alembic downgrade base", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-118-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "alembic downgrade base", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-118-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "alembic downgrade base", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-118-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm test", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-119-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm test", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-119-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm test", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-119-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run test:unit", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-120-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run test:unit", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-120-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run test:unit", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-120-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run test:e2e", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-121-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run test:e2e", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-121-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run test:e2e", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-121-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run lint", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-122-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run lint", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-122-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run lint", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-122-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-123-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-123-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-123-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest tests/", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-124-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest tests/", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-124-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest tests/", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-124-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest -v", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-125-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest -v", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-125-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest -v", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-125-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest -k test_auth", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-126-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest -k test_auth", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-126-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "pytest -k test_auth", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-126-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -m unittest", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-127-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -m unittest", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-127-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -m unittest", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-127-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -m unittest discover", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-128-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -m unittest discover", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-128-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "python3 -m unittest discover", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-128-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "composer test", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-129-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "composer test", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-129-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "composer test", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-129-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo test", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-130-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo test", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-130-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo test", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-130-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo clippy", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-131-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo clippy", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-131-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo clippy", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-131-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "go test ./...", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-132-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "go test ./...", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-132-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "go test ./...", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-132-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "ruff check .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-133-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "ruff check .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-133-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "ruff check .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-133-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "eslint .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-134-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "eslint .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-134-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "eslint .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-134-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan test", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-135-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan test", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-135-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "php artisan test", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-135-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/tests/run-all-tests.sh", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-136-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/tests/run-all-tests.sh", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-136-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/tests/run-all-tests.sh", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-136-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/scripts/test-runner.sh", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-137-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/scripts/test-runner.sh", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-137-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/scripts/test-runner.sh", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-137-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/scripts/preflight.sh", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-138-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/scripts/preflight.sh", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-138-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "bash clearer-engineering/scripts/preflight.sh", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-138-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run build", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-139-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run build", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-139-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm run build", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-139-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm install", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-140-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm install", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-140-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm install", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-140-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm ci", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-141-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm ci", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-141-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm ci", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-141-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "composer install", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-142-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "composer install", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-142-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "composer install", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-142-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "composer update", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-143-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "composer update", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-143-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "composer update", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-143-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "pip install -r requirements.txt", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-144-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "pip install -r requirements.txt", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-144-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "pip install -r requirements.txt", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-144-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo build", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-145-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo build", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-145-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo build", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-145-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo build --release", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-146-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo build --release", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-146-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cargo build --release", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-146-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "go build ./...", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-147-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "go build ./...", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-147-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "go build ./...", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-147-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "docker build -t app .", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-148-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "docker build -t app .", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-148-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "docker build -t app .", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-148-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose up -d", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-149-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose up -d", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-149-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose up -d", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-149-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose ps", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-150-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose ps", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-150-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose ps", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-150-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose down", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-151-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose down", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-151-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose down", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-151-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose logs", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-152-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose logs", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-152-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "docker compose logs", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-152-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "terraform plan", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-153-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "terraform plan", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-153-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "terraform plan", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-153-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "terraform destroy", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-154-dev", "type": "command", "use_case": "INFRASTRUCTURE"}
+{"command": "terraform destroy", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-154-sta", "type": "command", "use_case": "INFRASTRUCTURE"}
+{"command": "terraform destroy", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-154-pro", "type": "command", "use_case": "INFRASTRUCTURE"}
+{"command": "kubectl delete pod app", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-155-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "kubectl delete pod app", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-155-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "kubectl delete pod app", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-155-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "kubectl delete namespace default", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-156-dev", "type": "command", "use_case": "INFRASTRUCTURE"}
+{"command": "kubectl delete namespace default", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-156-sta", "type": "command", "use_case": "INFRASTRUCTURE"}
+{"command": "kubectl delete namespace default", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-156-pro", "type": "command", "use_case": "INFRASTRUCTURE"}
+{"command": "curl -s http://localhost:8000", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-157-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "curl -s http://localhost:8000", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-157-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "curl -s http://localhost:8000", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-157-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git status", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-158-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git status", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-158-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git status", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-158-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git diff", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-159-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git diff", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-159-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git diff", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-159-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git log -n 5", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-160-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git log -n 5", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-160-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git log -n 5", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-160-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk pytest", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-161-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk pytest", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-161-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk pytest", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-161-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk npm test", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-162-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk npm test", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-162-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk npm test", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-162-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk cargo test", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-163-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk cargo test", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-163-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk cargo test", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-163-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk ruff check", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-164-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk ruff check", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-164-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk ruff check", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-164-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk php artisan test", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-165-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk php artisan test", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-165-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk php artisan test", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-165-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "rtk git reset --hard", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-166-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git reset --hard", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-166-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git reset --hard", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-166-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git reset --hard HEAD~1", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-167-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git reset --hard HEAD~1", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-167-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git reset --hard HEAD~1", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-167-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git clean -fd", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-168-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git clean -fd", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-168-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git clean -fd", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-168-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk php artisan migrate:fresh", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-169-dev", "type": "command", "use_case": "DATABASE"}
+{"command": "rtk php artisan migrate:fresh", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-169-sta", "type": "command", "use_case": "DATABASE"}
+{"command": "rtk php artisan migrate:fresh", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-169-pro", "type": "command", "use_case": "DATABASE"}
+{"command": "rtk rm -rf /", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-170-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rtk rm -rf /", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-170-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rtk rm -rf /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-170-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rtk git push origin main --force", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-171-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "rtk git push origin main --force", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-171-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "rtk git push origin main --force", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-171-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git status && ls -la", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-172-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git status && ls -la", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-172-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git status && ls -la", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-172-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npm test && git status", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-173-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "npm test && git status", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-173-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "npm test && git status", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-173-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git status; ls", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-174-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git status; ls", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-174-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git status; ls", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-174-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git status || true", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-175-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git status || true", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-175-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git status || true", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-175-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"hello world\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-176-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"hello world\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-176-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"hello world\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-176-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "printf \"%s\\n\" \"test\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-177-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "printf \"%s\\n\" \"test\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-177-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "printf \"%s\\n\" \"test\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-177-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "env | grep APP", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-178-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "env | grep APP", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-178-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "env | grep APP", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-178-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "which python3", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-179-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "which python3", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-179-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "which python3", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-179-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "uname -a", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-180-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "uname -a", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-180-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "uname -a", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-180-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "date -u", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-181-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "date -u", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-181-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "date -u", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-181-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "sleep 1", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-182-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "sleep 1", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-182-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "sleep 1", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-182-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git status; git reset --hard", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-183-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git status; git reset --hard", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-183-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git status; git reset --hard", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-183-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git status && git reset --hard", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-184-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git status && git reset --hard", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-184-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git status && git reset --hard", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-184-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "ls -la || rm -rf /", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-185-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "ls -la || rm -rf /", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-185-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "ls -la || rm -rf /", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-185-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf / &", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-186-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf / &", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-186-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf / &", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-186-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf \"\"/", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-187-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf \"\"/", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-187-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf \"\"/", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-187-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "rm -rf $'\\x2f'", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-188-dev", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "rm -rf $'\\x2f'", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-188-sta", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "rm -rf $'\\x2f'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-188-pro", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "echo $(rm -rf /)", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-189-dev", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "echo $(rm -rf /)", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-189-sta", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "echo $(rm -rf /)", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-189-pro", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "echo ${rm_rf_var}", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-190-dev", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "echo ${rm_rf_var}", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-190-sta", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "echo ${rm_rf_var}", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-190-pro", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "rm -rf \\\n/", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-191-dev", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "rm -rf \\\n/", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-191-sta", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"command": "rm -rf \\\n/", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-191-pro", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
+{"host": "agy", "id": "HOOK-192-agy", "response": {}, "type": "hook"}
+{"host": "agy", "id": "HOOK-193-agy", "response": {}, "type": "hook"}
+{"host": "agy", "id": "HOOK-194-agy", "response": {}, "type": "hook"}
+{"host": "agy", "id": "HOOK-195-agy", "response": {}, "type": "hook"}
+{"host": "claude", "id": "HOOK-196-claude", "response": {}, "type": "hook"}
+{"host": "claude", "id": "HOOK-197-claude", "response": {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": "[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO (Caso de Uso: Controle de Versão (Git)): Destructive Git reset discarding uncommitted changes (git reset --hard).\nAmbiente detectado: PRODUCTION (Evidência: Explicit parameter (--env production)).\nExecução bloqueada para prevenir perda de dados e indisponibilidade."}}, "type": "hook"}
+{"host": "claude", "id": "HOOK-198-claude", "response": {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": "[CEH CATASTROPHIC BLOCK] Hard block: Attempting recursive deletion of root directory '/'."}}, "type": "hook"}
+{"host": "claude", "id": "HOOK-199-claude", "response": {}, "type": "hook"}
