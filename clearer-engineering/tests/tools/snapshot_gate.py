@@ -2,6 +2,7 @@
 """
 snapshot_gate.py - Golden Corpus Snapshot Tool for CEH Safety Gate
 Manages recording and deterministic regression testing of safety-gate decisions.
+Evaluates all commands and hooks inside hermetic temporary fixtures (O1 / Handoff 011).
 
 Usage:
   python3 snapshot_gate.py --generate   # Record decisions to gate_corpus.expected.jsonl
@@ -14,6 +15,9 @@ import json
 import base64
 import argparse
 import difflib
+import tempfile
+import shutil
+import subprocess
 from pathlib import Path
 from importlib import import_module
 
@@ -35,7 +39,17 @@ def load_corpus(corpus_path: Path):
         line = line.strip()
         if not line or line.startswith("#"):
             continue
-        if line.startswith("HOOK:"):
+        if line.startswith("INTEGRATION:"):
+            parts = line.split(":", 2)
+            name = parts[1]
+            cmd = base64.b64decode(parts[2]).decode("utf-8")
+            items.append({
+                "kind": "integration",
+                "name": name,
+                "command": cmd,
+                "raw_desc": f"integration:{name}"
+            })
+        elif line.startswith("HOOK:"):
             parts = line.split(":", 2)
             host = parts[1]
             payload_str = base64.b64decode(parts[2]).decode("utf-8")
@@ -72,31 +86,99 @@ def run_evaluations(corpus_items):
     records = []
     environments = ["development", "staging", "production"]
 
-    for idx, item in enumerate(corpus_items):
-        if item["kind"] == "command":
-            cmd = item["command"]
-            for env in environments:
-                decision, reason, _, use_case = evaluate_command(cmd, explicit_env=env)
-                has_alerts = ("ALERTA 1/2" in reason and "ALERTA 2/2" in reason)
+    # 1. Cria repositório-fixture temporário isolado (O1)
+    # Permite avaliar git push e comandos git sem depender do .ceh/ do repo real
+    tmp_repo = tempfile.mkdtemp(prefix="ceh_corpus_sandbox_")
+    original_cwd = os.getcwd()
+
+    try:
+        subprocess.run(["git", "init", "-b", "dev"], cwd=tmp_repo, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "CorpusTest"], cwd=tmp_repo, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "corpus@test.local"], cwd=tmp_repo, check=True, capture_output=True)
+        ci_dir = Path(tmp_repo) / ".github" / "workflows"
+        ci_dir.mkdir(parents=True, exist_ok=True)
+        (ci_dir / "ci.yml").write_text("name: CI\n")
+        (Path(tmp_repo) / "README.md").write_text("Corpus Sandbox\n")
+        subprocess.run(["git", "add", "."], cwd=tmp_repo, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_repo, check=True, capture_output=True)
+        head_commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=tmp_repo, check=True, capture_output=True, text=True).stdout.strip()
+
+        os.chdir(tmp_repo)
+
+        # Avaliação de comandos e hooks em ambiente hermético (sem certificado)
+        for idx, item in enumerate(corpus_items):
+            if item["kind"] == "command":
+                cmd = item["command"]
+                for env in environments:
+                    decision, reason, _, use_case = evaluate_command(cmd, explicit_env=env)
+                    has_alerts = ("ALERTA 1/2" in reason and "ALERTA 2/2" in reason)
+                    records.append({
+                        "id": f"CMD-{idx:03d}-{env[:3]}",
+                        "type": "command",
+                        "command": cmd,
+                        "env": env,
+                        "decision": decision,
+                        "use_case": use_case,
+                        "has_alerts": has_alerts
+                    })
+            elif item["kind"] == "hook":
+                payload = item["payload"]
+                host = item["host"]
+                res = evaluate_hook_payload(payload, evaluate_command)
                 records.append({
-                    "id": f"CMD-{idx:03d}-{env[:3]}",
-                    "type": "command",
-                    "command": cmd,
-                    "env": env,
-                    "decision": decision,
-                    "use_case": use_case,
-                    "has_alerts": has_alerts
+                    "id": f"HOOK-{idx:03d}-{host}",
+                    "type": "hook",
+                    "host": host,
+                    "response": res
                 })
-        elif item["kind"] == "hook":
-            payload = item["payload"]
-            host = item["host"]
-            res = evaluate_hook_payload(payload, evaluate_command)
-            records.append({
-                "id": f"HOOK-{idx:03d}-{host}",
-                "type": "hook",
-                "host": host,
-                "response": res
-            })
+            elif item["kind"] == "integration":
+                # Casos de integração do G7 (Handoff 011)
+                name = item["name"]
+                cmd = item["command"]
+                
+                # Prepara certificado para head_commit em dev
+                ceh_dir = Path(tmp_repo) / ".ceh"
+                ceh_dir.mkdir(parents=True, exist_ok=True)
+                (ceh_dir / "last-ci-run.json").write_text(
+                    f'{{"commit_hash": "{head_commit}", "status": "PASS", "exit_code": 0, "canonical_verified": true}}'
+                )
+
+                if name == "G7_CONTROL":
+                    # Controle: git push origin dev:main com commit certificado
+                    subprocess.run(["git", "checkout", "-q", "dev"], cwd=tmp_repo, check=True)
+                    decision, reason, _, use_case = evaluate_command(cmd, explicit_env="development")
+                    records.append({
+                        "id": f"INT-{name}",
+                        "type": "integration",
+                        "name": name,
+                        "command": cmd,
+                        "decision": decision,
+                        "use_case": use_case
+                    })
+                elif name == "G7_RED":
+                    # RED: git push origin outro:main onde 'outro' tem commit a mais sem certificado
+                    subprocess.run(["git", "checkout", "-q", "-b", "outro_branch_tmp"], cwd=tmp_repo, check=True)
+                    (Path(tmp_repo) / "extra_file.txt").write_text("extra\n")
+                    subprocess.run(["git", "add", "extra_file.txt"], cwd=tmp_repo, check=True)
+                    subprocess.run(["git", "commit", "-m", "extra commit"], cwd=tmp_repo, check=True)
+                    subprocess.run(["git", "checkout", "-q", "dev"], cwd=tmp_repo, check=True)
+                    
+                    decision, reason, _, use_case = evaluate_command(cmd, explicit_env="development")
+                    records.append({
+                        "id": f"INT-{name}",
+                        "type": "integration",
+                        "name": name,
+                        "command": cmd,
+                        "decision": decision,
+                        "use_case": use_case
+                    })
+
+                # Limpa .ceh/ para manter o sandbox limpo
+                shutil.rmtree(ceh_dir, ignore_errors=True)
+
+    finally:
+        os.chdir(original_cwd)
+        shutil.rmtree(tmp_repo, ignore_errors=True)
 
     return records
 

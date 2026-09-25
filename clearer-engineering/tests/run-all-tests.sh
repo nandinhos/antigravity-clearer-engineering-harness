@@ -133,10 +133,10 @@ run_test "Script: evidence-report canônico (seções do Response Contract e ver
 
 # 5. Deterministic Test Runner & Non-Masking Tests
 run_test "Test Runner: Success scenario returns exit code 0" \
-    "bash '$PLUGIN_DIR/scripts/test-runner.sh' 'true' | grep 'STATUS:    PASS' >/dev/null"
+    "TMP=\$(mktemp -d); (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep 'STATUS:    PASS' >/dev/null); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
 run_test "Test Runner: Failing test correctly reports FAIL without masking" \
-    "RUNNER_OUTPUT=\$(bash '$PLUGIN_DIR/scripts/test-runner.sh' 'false' 2>&1); RUNNER_EXIT=\$?; [[ \$RUNNER_EXIT -ne 0 && \"\$RUNNER_OUTPUT\" == *'STATUS:    FAIL'* ]]"
+    "TMP=\$(mktemp -d); RUNNER_OUTPUT=\$(cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'false' 2>&1); RUNNER_EXIT=\$?; rm -rf \"\$TMP\"; [[ \$RUNNER_EXIT -ne 0 && \"\$RUNNER_OUTPUT\" == *'STATUS:    FAIL'* ]]"
 
 run_test "Test Runner: Runtime Adapter gracefully handles stopped containers on native host" \
     "TMP=\$(mktemp -d); touch \"\$TMP/docker-compose.yml\"; (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep -q 'Executando diretamente no Host Nativo'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"

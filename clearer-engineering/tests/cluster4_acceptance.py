@@ -146,12 +146,51 @@ class Cluster4Acceptance(unittest.TestCase):
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
     # --------------------------------------------------------------------------
-    # G7: Pre-Push CI Refspec Destination Audit
+    # G7: Pre-Push CI Refspec Source & Destination Audit (Handoff 011)
     # --------------------------------------------------------------------------
     @unittest.expectedFailure
-    def test_g7_pre_push_ci_refspec_destination_audit(self):
-        """G7: git push origin dev:main with dev certificate must inspect destination branch 'main' (today: checks only refspec or dev)"""
+    def test_g7_pre_push_ci_refspec_untested_commit_red(self):
+        """G7 RED: git push origin outro:main with uncertified commit on 'outro' must be denied (today: allow)"""
         tmp_dir = tempfile.mkdtemp()
+        original_cwd = os.getcwd()
+        try:
+            subprocess.run(["git", "init", "-b", "dev"], cwd=tmp_dir, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_dir, check=True)
+            subprocess.run(["git", "config", "user.email", "t@t.com"], cwd=tmp_dir, check=True)
+            ci_dir = Path(tmp_dir) / ".github" / "workflows"
+            ci_dir.mkdir(parents=True, exist_ok=True)
+            (ci_dir / "ci.yml").write_text("name: CI\n")
+            (Path(tmp_dir) / ".gitignore").write_text(".ceh/\n")
+            (Path(tmp_dir) / "f").write_text("f\n")
+            subprocess.run(["git", "add", "."], cwd=tmp_dir, check=True, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init commit A"], cwd=tmp_dir, check=True, capture_output=True)
+            
+            # Branch outro com commit B a mais sem certificado
+            subprocess.run(["git", "checkout", "-b", "outro"], cwd=tmp_dir, check=True, capture_output=True)
+            (Path(tmp_dir) / "f2").write_text("f2\n")
+            subprocess.run(["git", "add", "."], cwd=tmp_dir, check=True, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "commit B sem cert"], cwd=tmp_dir, check=True, capture_output=True)
+
+            # Volta para dev onde o HEAD atual é o commit A certificado
+            subprocess.run(["git", "checkout", "dev"], cwd=tmp_dir, check=True, capture_output=True)
+            head_a = subprocess.run(["git", "rev-parse", "HEAD"], cwd=tmp_dir, check=True, capture_output=True, text=True).stdout.strip()
+            ceh_dir = Path(tmp_dir) / ".ceh"
+            ceh_dir.mkdir(parents=True, exist_ok=True)
+            (ceh_dir / "last-ci-run.json").write_text(f'{{"commit_hash": "{head_a}", "status": "PASS", "exit_code": 0, "canonical_verified": true, "command": "npm test"}}')
+
+            # git push origin outro:main tenta enviar commit B (não certificado)
+            cmd = "git push origin outro:main"
+            os.chdir(tmp_dir)
+            decision, reason, env, use_case = evaluate_command(cmd, explicit_env="development")
+            self.assertEqual(decision, "deny", f"Esperado 'deny' ao enviar commit não certificado via refspec, obtido '{decision}'")
+        finally:
+            os.chdir(original_cwd)
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_g7_pre_push_ci_refspec_certified_commit_control(self):
+        """G7 CONTROLE (verde): git push origin dev:main with dev == HEAD certified must be allowed (legitimate promotion)"""
+        tmp_dir = tempfile.mkdtemp()
+        original_cwd = os.getcwd()
         try:
             subprocess.run(["git", "init", "-b", "dev"], cwd=tmp_dir, check=True, capture_output=True)
             subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_dir, check=True)
@@ -161,25 +200,21 @@ class Cluster4Acceptance(unittest.TestCase):
             (ci_dir / "ci.yml").write_text("name: CI\n")
             (Path(tmp_dir) / "f").write_text("f\n")
             subprocess.run(["git", "add", "."], cwd=tmp_dir, check=True, capture_output=True)
-            subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_dir, check=True, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init commit A"], cwd=tmp_dir, check=True, capture_output=True)
             
-            # Create flight certificate for current HEAD on dev
-            head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=tmp_dir, check=True, capture_output=True, text=True).stdout.strip()
+            # Commit A em dev está certificado
+            head_a = subprocess.run(["git", "rev-parse", "HEAD"], cwd=tmp_dir, check=True, capture_output=True, text=True).stdout.strip()
             ceh_dir = Path(tmp_dir) / ".ceh"
             ceh_dir.mkdir(parents=True, exist_ok=True)
-            (ceh_dir / "last-ci-run.json").write_text(f'{{"commit_hash": "{head}", "status": "PASS", "exit_code": 0, "canonical_verified": true}}')
+            (ceh_dir / "last-ci-run.json").write_text(f'{{"commit_hash": "{head_a}", "status": "PASS", "exit_code": 0, "canonical_verified": true}}')
 
-            # git push origin dev:main targets production branch 'main'
+            # git push origin dev:main envia commit A devidamente certificado
             cmd = "git push origin dev:main"
-            original_cwd = os.getcwd()
             os.chdir(tmp_dir)
-            try:
-                decision, reason, env, use_case = evaluate_command(cmd, explicit_env="development")
-                # When G7 is fixed, pushing to 'main' without main certification or in dev must be denied
-                self.assertEqual(decision, "deny", f"Esperado 'deny' ao dar push para main via refspec, obtido '{decision}'")
-            finally:
-                os.chdir(original_cwd)
+            decision, reason, env, use_case = evaluate_command(cmd, explicit_env="development")
+            self.assertEqual(decision, "allow", f"Esperado 'allow' ao promover commit certificado para main, obtido '{decision}'")
         finally:
+            os.chdir(original_cwd)
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 

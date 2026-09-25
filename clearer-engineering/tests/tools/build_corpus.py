@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 build_corpus.py - Generates gate_corpus.txt safely using base64 encoding
+Includes command cases, hook payloads, and G7 integration scenarios (Handoff 011).
 """
 import base64
 import json
@@ -14,6 +15,9 @@ def raw(s: str) -> str:
 
 def hook(host: str, payload: dict) -> str:
     return "HOOK:" + host + ":" + base64.b64encode(json.dumps(payload).encode("utf-8")).decode("utf-8")
+
+def integration(name: str, cmd: str) -> str:
+    return "INTEGRATION:" + name + ":" + base64.b64encode(cmd.encode("utf-8")).decode("utf-8")
 
 # Decoder for safe construction
 d = lambda s: base64.b64decode(s).decode("utf-8")
@@ -266,9 +270,15 @@ hook_cases = [
     }),
 ]
 
+# 11. G7 Integration Scenarios (Handoff 011)
+integration_cases = [
+    integration("G7_CONTROL", "git push origin dev:main"),
+    integration("G7_RED", "git push origin outro:main"),
+]
+
 if __name__ == "__main__":
     fixtures_dir = Path(__file__).resolve().parents[1] / "fixtures"
     corpus_file = fixtures_dir / "gate_corpus.txt"
-    content = "\n".join(commands + hook_cases) + "\n"
+    content = "\n".join(commands + hook_cases + integration_cases) + "\n"
     corpus_file.write_text(content, encoding="utf-8")
-    print(f"✔ gate_corpus.txt gerado com sucesso: {len(commands)} comandos + {len(hook_cases)} hooks ({len(commands) + len(hook_cases)} itens).")
+    print(f"✔ gate_corpus.txt gerado com sucesso: {len(commands)} comandos + {len(hook_cases)} hooks + {len(integration_cases)} integrações G7 ({len(commands) + len(hook_cases) + len(integration_cases)} itens totais).")
