@@ -243,17 +243,17 @@ python3 -m py_compile "$PLUGIN_DIR/scripts/safety-gate.py"
 python3 -m py_compile "$PLUGIN_DIR/tests/test_safety_matrix.py"
 log_ok "All Python scripts compiled with zero syntax errors (100% pass)."
 
-log_step "5.3 Safety Gate Unit Matrix (24/24 Test Cases including RTK)"
+log_step "5.3 Safety Gate Unit Matrix (including RTK)"
 python3 "$PLUGIN_DIR/tests/test_safety_matrix.py" >/dev/null
-log_ok "Safety Gate Unit Matrix: 24/24 passed (100%)."
+log_ok "Safety Gate Unit Matrix passed."
 
-log_step "5.4 Adversarial Test Suite (5/5 Cases)"
+log_step "5.4 Adversarial Test Suite"
 bash "$PLUGIN_DIR/tests/run-adversarial-tests.sh" >/dev/null
-log_ok "Adversarial Suite: 5/5 cases passed (100%)."
+log_ok "Adversarial Suite passed."
 
-log_step "5.5 Comprehensive General Test Suite (33/33 Cases)"
+log_step "5.5 Comprehensive General Test Suite"
 bash "$PLUGIN_DIR/tests/run-all-tests.sh" >/dev/null
-log_ok "General Test Suite: 33/33 tests passed (100%)."
+log_ok "General Test Suite passed."
 
 # ------------------------------------------------------------------------------
 # FINAL REPORT

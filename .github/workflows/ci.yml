@@ -8,8 +8,11 @@ on:
 
 jobs:
   validate:
-    name: Validate Harness & Run Tests
+    name: Validate Harness & Run Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.12']
 
     steps:
       - name: Checkout repository
@@ -17,30 +20,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
 
       - name: Syntax check on Bash scripts
         run: |
           find clearer-engineering/ -name "*.sh" -exec bash -n {} +
           bash -n install.sh
+          bash -n uninstall.sh
 
-      - name: Syntax check on Python scripts
+      - name: Syntax check on Python scripts (compileall)
         run: |
-          python3 -m py_compile clearer-engineering/scripts/safety-gate.py
-          python3 -m py_compile clearer-engineering/tests/test_safety_matrix.py
+          python3 -m compileall -q clearer-engineering evals
 
       - name: Make scripts executable
         run: |
           chmod +x clearer-engineering/scripts/*
           chmod +x clearer-engineering/tests/*
           chmod +x install.sh
+          chmod +x uninstall.sh
 
-      - name: Run Safety Gate Unit Test Matrix (24 cases across DEV, STAGING, PROD & RTK)
+      - name: Run Safety Gate Unit Test Matrix (DEV, STAGING, PROD & RTK)
         run: |
           python3 clearer-engineering/tests/test_safety_matrix.py
+
+      - name: Run Canonical Test Suite (Hermetic)
+        run: |
+          ./clearer-engineering/tests/run-all-tests.sh
 
       - name: Run Adversarial Test Suite (Controlled Regressions & Evidence)
         run: |
@@ -80,12 +88,10 @@ jobs:
           bash clearer-engineering/scripts/detect-project.sh "$TMP_CLS" | grep "MODO CLÁSSICO"
           rm -rf "$TMP_CLS"
 
-      - name: Test Global Installer (install.sh)
+      - name: Run Install, Idempotency & Uninstall Verification
         run: |
-          ./install.sh
+          ./clearer-engineering/tests/run-install-verification.sh
 
       - name: Run Full E2E Simulation & Integration Lifecycle
         run: |
           ./clearer-engineering/tests/run-e2e-simulation.sh
-
-

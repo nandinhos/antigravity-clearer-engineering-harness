@@ -7,6 +7,13 @@ set -u
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PLUGIN_DIR"
 
+TMP_HOME="$(mktemp -d)"
+cleanup_suite() {
+    rm -rf "$TMP_HOME"
+}
+trap cleanup_suite EXIT
+export HOME="$TMP_HOME"
+
 TOTAL_TESTS=0
 PASSED_TESTS=0
 FAILED_TESTS=0
@@ -41,14 +48,9 @@ echo "Plugin Directory: $PLUGIN_DIR"
 echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo ""
 
-# 1. Plugin Validation Test via Antigravity CLI or Native JSON Spec
-if command -v agy >/dev/null 2>&1; then
-    run_test "Antigravity CLI plugin validation" \
-        "agy plugin validate '$PLUGIN_DIR' >/dev/null"
-else
-    run_test "Plugin Manifest & Structure validation (Native CI fallback)" \
-        "test -f '$PLUGIN_DIR/plugin.json' && python3 -c \"import json; json.load(open('$PLUGIN_DIR/plugin.json'))\""
-fi
+# 1. Plugin Manifest & Structure validation
+run_test "Plugin Manifest & Structure validation" \
+    "test -f '$PLUGIN_DIR/plugin.json' && python3 -c \"import json; json.load(open('$PLUGIN_DIR/plugin.json'))\""
 
 # 2. Safety Gate Unit & Environment Tests
 run_test "Safety Gate: Hard block catastrophic 'rm -rf /' (DENY in any env)" \
@@ -140,18 +142,9 @@ run_test "Test Runner: Runtime Adapter gracefully handles stopped containers on 
     "TMP=\$(mktemp -d); touch \"\$TMP/docker-compose.yml\"; (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep -q 'Executando diretamente no Host Nativo'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
 # 6. Global Agent Profile Availability & Tools Configuration
-if command -v agy >/dev/null 2>&1; then
-    run_test "Antigravity Agent Profile 'clearer-harness' is recognized" \
-        "agy agent | grep 'clearer-harness' >/dev/null"
-fi
+run_test "Agent Profile template in install.sh has write and execution tools declared" \
+    "grep -q 'write_to_file' '$PLUGIN_DIR/../install.sh' && grep -q 'run_command' '$PLUGIN_DIR/../install.sh'"
 
-if [[ -f "$HOME/.gemini/config/agents/clearer-harness/agent.md" ]]; then
-    run_test "Agent Profile 'clearer-harness' has write and execution tools declared" \
-        "grep -q 'write_to_file' '$HOME/.gemini/config/agents/clearer-harness/agent.md' && grep -q 'run_command' '$HOME/.gemini/config/agents/clearer-harness/agent.md'"
-else
-    run_test "Agent Profile template in install.sh has write and execution tools declared" \
-        "grep -q 'write_to_file' '$PLUGIN_DIR/../install.sh' && grep -q 'run_command' '$PLUGIN_DIR/../install.sh'"
-fi
 
 run_test "Plugin Subagent 'ceh-implementer' has code editing tools" \
     "grep -q 'write_to_file' '$PLUGIN_DIR/agents/implementer/agent.md' && grep -q 'replace_file_content' '$PLUGIN_DIR/agents/implementer/agent.md'"
@@ -175,19 +168,11 @@ run_test "Skill: clearer-adhd packaged with Ponytail UX 10 Heuristics & Break-Ru
     "test -f '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Lead with Action' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Break-Rules' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Ponytail UX' '$PLUGIN_DIR/rules/AGENTS.md'"
 
 # 7. Shell Aliases Configuration
-if [[ -d "$HOME/.gemini/config/plugins/clearer-engineering" ]]; then
-    run_test "Shell alias 'agy-ceh' configured in shell rc" \
-        "(test -f ~/.bashrc && grep -q 'alias agy-ceh=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias agy-ceh=' ~/.zshrc)"
+run_test "Shell alias template in install.sh declares 'agy-ceh'" \
+    "grep -q \"^alias agy-ceh='agy --agent clearer-harness'\" '$PLUGIN_DIR/../install.sh'"
 
-    run_test "Shell alias 'ceh-evals' configured in shell rc" \
-        "(test -f ~/.bashrc && grep -q 'alias ceh-evals=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias ceh-evals=' ~/.zshrc)"
-else
-    run_test "Shell alias template in install.sh declares 'agy-ceh'" \
-        "grep -q \"^alias agy-ceh='agy --agent clearer-harness'\" '$PLUGIN_DIR/../install.sh'"
-
-    run_test "Shell alias template in install.sh declares 'ceh-evals'" \
-        "grep -q '^alias ceh-evals=' '$PLUGIN_DIR/../install.sh'"
-fi
+run_test "Shell alias template in install.sh declares 'ceh-evals'" \
+    "grep -q '^alias ceh-evals=' '$PLUGIN_DIR/../install.sh'"
 
 # 8. Deterministic Smoke-Eval Suite
 run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
