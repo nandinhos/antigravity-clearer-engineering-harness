@@ -54,7 +54,7 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 | PR-20 | Arquivar `temp_implementation/` | **Removido**: a pasta é dependência viva | Q3 |
 | Marcos | v1.1.0 / v2.0.0 | **v1.3.0** / v2.0.0. As tags `v1.0.0`–`v1.2.0` já existem em commits antigos, mas o `plugin.json` diz 1.0.0. | `git tag` |
 
-### 0.5 Handoff 006: re-coleta com a sonda v2 (escopo)
+### 0.5 Handoff 006: re-coleta com a sonda v2 — **emitido**: [`handoff-006`](./temp_implementation/handoffs/handoff-006-recoleta-agy-e-conselho-por-cli.md) (sonda v2 em `21dd40f`)
 
 1. **Sentinela com caminho absoluto** no prompt, para que a medição não dependa do `Cwd` escolhido pelo agente.
 2. **Isolamento:** desativar o plugin do CEH durante a sonda, ou registrar sua presença, para eliminar o fator de confusão do E6.
@@ -106,6 +106,7 @@ Fora de escopo: reescrever skills e agentes, trocar Python/Bash por outra stack,
 | I3 | O perfil do agente está embutido como heredoc no `install.sh`, duplicando o conteúdo de `rules/AGENTS.md`. | `Inspeção estática` | `install.sh` |
 | D1 | Há cerca de 40 artefatos "temporários" versionados, um `HANDOFF.md` na raiz, um arquivo com espaços no nome em `prd/` e ADRs que começam na 003. | `Inspeção estática` | `docs/temp_implementation/` |
 | D2 | `conselho-seniores.sh` envia diffs para CLIs externos sem filtrar segredos. | `Inspeção estática` | `conselho-seniores.sh:349-370` |
+| D3 | `evidence-report.sh` imprimia evidências fixas no texto ("suite passing", "FAIL: None", confiança HIGH) sem executar nada: um relatório de sucesso falso. **Corrigido:** relatório canônico com `RESULT`/`CONFIDENCE` calculados a partir de git, do certificado e de provas fixadas por hash (`evidence_report.py`, 10 testes de contrato). | `Reproduzido e corrigido` | `fba8688` |
 
 ## 4. Arquitetura alvo: núcleo + adaptadores + empacotamento
 

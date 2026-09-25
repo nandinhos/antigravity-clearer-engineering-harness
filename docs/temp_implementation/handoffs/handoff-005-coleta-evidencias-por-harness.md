@@ -5,6 +5,7 @@
 **Branch:** `claude/code-review-technical-analysis-kfwcdl`
 **Referência normativa:** [`docs/plano-implementacao-elevacao-ceh.md`](../../plano-implementacao-elevacao-ceh.md) (seção 9, decisões pendentes)
 **Ferramenta:** [`scripts/host_probe.py`](../scripts/host_probe.py)
+**Sucessor:** [Handoff 006](./handoff-006-recoleta-agy-e-conselho-por-cli.md): a sonda v1 tinha o defeito de medição H2 (ver a seção 0.1 do plano).
 **Prioridade:** **Antigravity CLI (`agy`) e Antigravity IDE.** O CEH foi modelado para eles; os demais harnesses adaptam o comportamento por abstração.
 
 ---
