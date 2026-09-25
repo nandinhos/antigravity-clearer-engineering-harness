@@ -72,6 +72,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **D4:** a ata do Conselho conta o template ecoado como voto; placar real de 006: 0 homologados, 5 com ressalvas, 1 erro.
 - **Despacho:** PR-00 **autorizado com condições**; PR-00c separado; detecção por TTY rejeitada.
 
+### 0.7 Resultado do PR-00 (revisado no [Handoff 008](./temp_implementation/handoffs/handoff-008-revisao-pr00-pr00c-d4.md))
+
+- **P0/G6 confirmado de ponta a ponta no `agy` real e corrigido:** E10-YOLO antes do PR-00 executou `git reset --hard` na `main` em 2/2 com o CEH ativo; depois do PR-00, não executou em 2/2.
+- PR-00 **homologado**; PR-00c homologado com ressalva; D4 com ressalvas.
+- Próximos: **PR-00b** (erro do hook → `deny`/exit 2; hoje sai `ask`, que executa no `agy`), **PR-00d** (responder no formato do Claude, que ignora `{"decision"}`, `OBSERVED`) e **D4b** (sem fallback por palavra e sem certeza inventada).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
@@ -99,7 +105,7 @@ Fora de escopo: reescrever skills e agentes, trocar Python/Bash por outra stack,
 | G3 | As opções globais do git só são normalizadas para `push`. `git -C . reset --hard` e `git --no-pager reset --hard` resultam em `allow` em produção. | `Reproduzido` | `safety-gate.py:164,469` |
 | G4 | Os padrões catastróficos dependem da forma exata dos flags. `rm -r -f /`, `rm -rf /*`, `rm -rf $HOME` e `rm -rf -- /` resultam em `allow` em DEV; `rm --recursive --force /` resulta em `allow` em produção. | `Reproduzido` | `safety-gate.py:20-29` |
 | G5 | Deleções indiretas não são reconhecidas: `find / -delete` resulta em `allow` em produção. Os wrappers `bash -c`, `xargs rm` e os one-liners de interpretador não são desembrulhados. | `Reproduzido` (find); `Inspeção estática` (demais) | `safety-gate.py:44-78` |
-| G6 | **(P0, agravado)** Branch, `.env` e raiz do repositório são lidos do cwd do processo do hook, que no `agy` é o diretório do plugin. Com isso, o bloqueio de produção e o Pre-Push CI Gate respondem `allow` (seção 0.3). Secundário: detecção de ambiente por substring em qualquer parte do comando. | `Reproduzido` | `safety-gate.py:238-253,279,178`; seção 0.3 |
+| G6 | **(P0, agravado)** Branch, `.env` e raiz do repositório são lidos do cwd do processo do hook, que no `agy` é o diretório do plugin. Com isso, o bloqueio de produção e o Pre-Push CI Gate respondem `allow` (seção 0.3). Secundário: detecção de ambiente por substring em qualquer parte do comando. | `Reproduzido e corrigido` (PR-00 `4f2b193`; E10-YOLO antes/depois no `agy` real) | `safety-gate.py:238-253,279,178`; seção 0.3 |
 | G7 | O pre-push valida só o `HEAD`, mas um refspec pode enviar outro commit (`git push origin outro:main`). | `Inspeção estática` | `safety-gate.py:212-216` |
 | G8 | `hooks.json` usa o caminho relativo `python3 scripts/safety-gate.py`, então o resultado depende do cwd que o host usa para rodar o hook. Payload vazio resulta em `allow`. | `Refutado` no `agy` (hook roda no diretório do plugin, E2 22/22); payload vazio segue `Inspeção estática` | seção 0.2; `safety-gate.py:591-593` |
 | G9 | O certificado pode ser forjado: é um JSON em disco, e as ferramentas de escrita de arquivo não passam pelo hook do CEH (o matcher é só `run_command`). O próprio teste 16 da suíte forja o certificado e o gate responde `allow`. **Mitigável:** `write_to_file` (agy) e `Write` (Claude) disparam PreToolUse quando há matcher. | `Reproduzido` | `run-all-tests.sh:100`; E7 do Handoff 005 |
