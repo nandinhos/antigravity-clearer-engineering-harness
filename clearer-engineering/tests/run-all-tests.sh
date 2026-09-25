@@ -203,12 +203,16 @@ run_test "Documentation Audit: 7 checagens estruturais de estados, cabeçalhos, 
     "bash '$PLUGIN_DIR/scripts/doc-audit.sh' >/dev/null"
 
 # 15. Golden Corpus Snapshot Consistency
-run_test "Golden Corpus: Snapshot de decisões do Safety Gate (584 cenários, diff vazio)" \
+run_test "Golden Corpus: Snapshot de decisões do Safety Gate (diff vazio)" \
     "python3 '$PLUGIN_DIR/tests/tools/snapshot_gate.py' --check >/dev/null"
 
 # 16. Cluster 4 Acceptance Suite (G1-G5, G7 baseline em RED)
 run_test "Cluster 4 Acceptance: linha de base G1-G5 e G7 em RED (15 expected failures)" \
     "python3 '$PLUGIN_DIR/tests/cluster4_acceptance.py' >/dev/null"
+
+# 17. PR-04b RM Target Normalization & Anti-Regression Suite
+run_test "RM Targets: Normalização estrita de caminhos e controles de falsos positivos (PR-04b)" \
+    "python3 '$PLUGIN_DIR/tests/test_rm_targets.py' >/dev/null"
 
 echo ""
 echo "============================================================"

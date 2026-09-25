@@ -150,7 +150,7 @@ def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[st
 
     return "allow", "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual."
 
-def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, str, str, str]:
+def evaluate_subcommand(subcmd: str, env: str, env_evidence: str, base_cwd: Path | str | None = None) -> tuple[str, str, str, str]:
     """
     Avalia um subcomando atômico contra as políticas de segurança do CEH.
     Retorna (decision, reason, detected_env, use_case).
@@ -160,8 +160,8 @@ def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, 
     sub_eval = re.sub(r"^\s*rtk(?:\s+proxy)?\s+", "", sub_raw)
     sub_norm = normalize_command_for_evaluation(sub_eval)
 
-    # 0. Avaliação Estrita de 'rm' por tokens (G1 + G4)
-    rm_res = evaluate_rm_command(sub_norm, env)
+    # 0. Avaliação Estrita de 'rm' por tokens (G1, G4 e PR-04b)
+    rm_res = evaluate_rm_command(sub_norm, env, env_evidence=env_evidence, base_cwd=base_cwd)
     if rm_res is not None:
         return rm_res
 
@@ -253,7 +253,11 @@ def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, 
     return "allow", f"Command complies with CEH safety policy (Env: {env.upper()}, Source: {env_evidence}).", env, "GENERAL"
 
 
-def evaluate_command(cmd_line: str, explicit_env: str | None = None) -> tuple[str, str, str, str]:
+def evaluate_command(
+    cmd_line: str,
+    explicit_env: str | None = None,
+    base_cwd: Path | str | None = None,
+) -> tuple[str, str, str, str]:
     """
     Evaluates a command line string against environment safety rules, decomposing
     compound commands and aggregating decisions with priority: DENY > ASK > ALLOW.
@@ -280,7 +284,7 @@ def evaluate_command(cmd_line: str, explicit_env: str | None = None) -> tuple[st
 
     evaluations = []
     for sub in subcommands:
-        evaluations.append(evaluate_subcommand(sub, env, env_evidence))
+        evaluations.append(evaluate_subcommand(sub, env, env_evidence, base_cwd=base_cwd))
 
     # Precedência estrita: DENY > ASK > ALLOW
     denies = [e for e in evaluations if e[0] == "deny"]

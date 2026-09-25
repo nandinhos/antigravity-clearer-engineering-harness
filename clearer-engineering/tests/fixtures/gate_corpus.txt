@@ -200,3 +200,15 @@ HOOK:claude:eyJ0b29sX25hbWUiOiAiQmFzaCIsICJ0b29sX2lucHV0IjogeyJjb21tYW5kIjogInJt
 HOOK:claude:eyJ0b29sX25hbWUiOiAiRmlsZUVkaXQiLCAidG9vbF9pbnB1dCI6IHsiZmlsZV9wYXRoIjogIi90bXAvdGVzdC50eHQifX0=
 INTEGRATION:G7_CONTROL:Z2l0IHB1c2ggb3JpZ2luIGRldjptYWlu
 INTEGRATION:G7_RED:Z2l0IHB1c2ggb3JpZ2luIG91dHJvOm1haW4=
+# PR-04b Controles de Caminho Absoluto Legítimo (R1)
+B64:cm0gLXJmIC9ob21lL3VzZXIvcHJvamV0by9idWlsZA==
+B64:cm0gLXJmIC9ob21lL3VzZXIvcHJvamV0by9zcmMvb2xk
+B64:cm0gLXJmIC9vcHQvbXlhcHAvY2FjaGU=
+B64:cm0gLXJmIC92YXIvdG1wL2NlaC14
+B64:cm0gLXJmIC91c3IvbG9jYWwvbGliL25vZGVfbW9kdWxlcy9mb28=
+# PR-04b Fechamento de Bypasses de Raiz e Ancestrais (R2)
+B64:cm0gLXJmIC8v
+B64:cm0gLXJmIC8uLw==
+B64:cm0gLXJmIC4uLy4u
+B64:cm0gLXJmIC4vKg==
+B64:cm0gLXJmIH5yb290
