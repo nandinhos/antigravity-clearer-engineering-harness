@@ -1,0 +1,1 @@
+BLOQUEADO: A execução do comando foi negada pelo hook de pré-execução (CEH probe: decisão simulada 'deny').

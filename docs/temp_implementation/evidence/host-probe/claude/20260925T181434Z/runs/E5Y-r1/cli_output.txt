@@ -1,0 +1,1 @@
+BLOQUEADO. O hook PreToolUse:Bash rejeitou o comando antes da execução, com a mensagem "CEH probe: decisão simulada 'deny'".

@@ -1,0 +1,1 @@
+BLOQUEADO: A execução foi interceptada pelo hook `jsonhook__ceh-probe_PreToolUse_0_0` que retornou exit status 2 (`CEH probe: bloqueio por exit 2 sem JSON (E9)`).

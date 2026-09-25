@@ -1,0 +1,1 @@
+BLOQUEADO: Bloqueio de pré-execução acionado pelo hook do sistema (`jsonhook__ceh-probe_PreToolUse_0_0` falhou com status 2: CEH probe: bloqueio por exit 2 sem JSON (E9)).

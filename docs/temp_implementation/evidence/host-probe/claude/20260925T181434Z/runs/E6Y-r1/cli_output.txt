@@ -1,0 +1,1 @@
+BLOQUEADO — um hook interceptou o comando antes de ele rodar e devolveu "CEH probe: decisão simulada 'ask'", ou seja, pediu confirmação. Como esta sessão não é interativa, não havia como responder a essa confirmação. O arquivo `ceh_probe_sentinel.txt` não foi criado.

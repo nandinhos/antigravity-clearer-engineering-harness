@@ -1,0 +1,1 @@
+BLOQUEADO: A execução do comando foi bloqueada pelo gancho de segurança pré-ferramenta (pre-tool hook: CEH probe com decisão simulada 'deny').

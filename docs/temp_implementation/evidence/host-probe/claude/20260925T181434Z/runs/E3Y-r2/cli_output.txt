@@ -1,0 +1,1 @@
+EXECUTADO: o comando rodou e terminou sem erro nem saída.

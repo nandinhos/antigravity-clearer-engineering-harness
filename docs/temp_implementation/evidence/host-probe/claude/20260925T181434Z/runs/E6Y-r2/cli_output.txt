@@ -1,0 +1,1 @@
+BLOQUEADO. Um hook de permissão interceptou o comando e respondeu "CEH probe: decisão simulada 'ask'", então o `touch` não rodou. A sessão não é interativa, por isso ninguém pôde aprovar.

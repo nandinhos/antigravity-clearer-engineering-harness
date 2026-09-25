@@ -1,0 +1,1 @@
+BLOQUEADO: A execução foi interceptada e cancelada pelo hook de segurança pré-ferramenta (`jsonhook__ceh-probe_PreToolUse_0_0 failed: command failed: signal: killed`).
