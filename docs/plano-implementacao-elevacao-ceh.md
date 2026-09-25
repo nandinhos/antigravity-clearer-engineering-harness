@@ -63,6 +63,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 5. **E10 (P0 de ponta a ponta):** com o gate real do CEH, criar um repositório temporário na `main` com um arquivo versionado alterado e pedir `git reset --hard` com `Cwd` nesse repositório. Se a alteração for revertida, o comando rodou (antes do PR-00 espera-se `allow`; depois, `deny`).
 6. Tabela manual da **Antigravity IDE** (E6 com diálogo?) e E3Y/E5Y/E6Y do Claude como usuário não-root.
 
+### 0.6 Resultado do Handoff 006 (auditado no [Handoff 007](./temp_implementation/handoffs/handoff-007-revisao-006-e-despacho-pr00.md))
+
+- **H1 `OBSERVED`:** `ask` executa no `agy` headless (4/4, CEH isolado). Consequência: PR-00c (`ask`→`deny` em payload do `agy`, sem heurística de TTY).
+- **P0 no `agy` `OBSERVED`:** fail-closed em crash, timeout e exit 2 (2/2). **No Claude, fail-open em crash sob YOLO `OBSERVED`** (2/2); o PR-00b continua necessário para portabilidade.
+- **Âncora do alvo:** `cwd`, `pwd` e `parent_cwd` do hook são o diretório do plugin (`OBSERVED`); só `toolCall.args.Cwd` e `workspacePaths[0]` servem, e `workspacePaths` pode vir vazio (R2).
+- **E10 `INCONCLUSIVO`:** o bloqueio veio da permissão headless do próprio `agy`, não do CEH. Repetir em YOLO antes e depois do PR-00 (critério de aceite).
+- **D4:** a ata do Conselho conta o template ecoado como voto; placar real de 006: 0 homologados, 5 com ressalvas, 1 erro.
+- **Despacho:** PR-00 **autorizado com condições**; PR-00c separado; detecção por TTY rejeitada.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
@@ -107,6 +116,7 @@ Fora de escopo: reescrever skills e agentes, trocar Python/Bash por outra stack,
 | D1 | Há cerca de 40 artefatos "temporários" versionados, um `HANDOFF.md` na raiz, um arquivo com espaços no nome em `prd/` e ADRs que começam na 003. | `Inspeção estática` | `docs/temp_implementation/` |
 | D2 | `conselho-seniores.sh` envia diffs para CLIs externos sem filtrar segredos. | `Inspeção estática` | `conselho-seniores.sh:349-370` |
 | D3 | `evidence-report.sh` imprimia evidências fixas no texto ("suite passing", "FAIL: None", confiança HIGH) sem executar nada: um relatório de sucesso falso. **Corrigido:** relatório canônico com `RESULT`/`CONFIDENCE` calculados a partir de git, do certificado e de provas fixadas por hash (`evidence_report.py`, 10 testes de contrato). | `Reproduzido e corrigido` | `fba8688` |
+| D4 | `conselho-seniores.sh` lê a primeira linha `VEREDITO:` da resposta; quando o CLI ecoa o prompt, o template `[HOMOLOGADO \| RESSALVAS \| REJEITADO]` é contado como voto favorável (ata do Handoff 006: "1/5" inexistente). | `Reproduzido` | `conselho-seniores.sh:391,441`; `parecer_codex.md:155,165` |
 
 ## 4. Arquitetura alvo: núcleo + adaptadores + empacotamento
 
