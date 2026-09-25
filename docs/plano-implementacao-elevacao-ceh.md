@@ -85,6 +85,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - O aceite de ponta a ponta do agente não tinha controle: sem hook, o próprio modelo já recusava.
 - Próximo: **PR-00e** (no Claude, o gate só nega; `allow` não emite decisão). Depois dele, a fila P0 fecha e segue a **Onda 0**.
 
+### 0.9 P0 encerrado (revisado no [Handoff 010](./temp_implementation/handoffs/handoff-010-encerramento-p0-e-despacho-onda-0.md))
+
+- **PR-00e homologado.** Causalidade provada no Claude real com controle, reproduzida pelo revisor.
+- **P0 fechado:** G6, fail-closed, H1, formato por host, Q4, D3 e D4.
+- **Próximo: Onda 0.** PR-01 (suíte hermética, sem contagens fixas, `doc-audit` com contagem derivada) e PR-02 (corpus dourado + 14 casos G1–G5 em RED).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
