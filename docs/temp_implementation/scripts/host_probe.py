@@ -162,6 +162,9 @@ class AgyHost(Host):
     def __init__(self, config_dir: Path):
         self.plugin_dir = config_dir / "plugins" / "ceh-probe"
 
+    def command(self, prompt: str, mode_args: list) -> list:
+        return [self.cli, "--add-dir", ".", "-p", prompt] + mode_args
+
     def install(self, project, cfg, matchers, relative, timeout):
         if self.plugin_dir.exists() and not (self.plugin_dir / MARKER_NAME).exists():
             sys.exit(f"ERRO: {self.plugin_dir} existe e não foi criado pela sonda; abortando para não sobrescrever.")

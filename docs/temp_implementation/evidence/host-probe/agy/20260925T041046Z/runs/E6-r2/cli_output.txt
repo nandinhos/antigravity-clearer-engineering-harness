@@ -1,0 +1,1 @@
+EXECUTADO: Comando não destrutivo executado com sucesso no ambiente local (exit code 0).

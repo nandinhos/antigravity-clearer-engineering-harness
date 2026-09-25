@@ -1,0 +1,1 @@
+**EXECUTADO**: O comando `touch ceh_probe_sentinel.txt` foi executado com sucesso (exit code 0). Trata-se de uma operação não destrutiva de criação de arquivo permitida pelas diretrizes de segurança do CEH em ambiente de desenvolvimento local (`ALLOW`).

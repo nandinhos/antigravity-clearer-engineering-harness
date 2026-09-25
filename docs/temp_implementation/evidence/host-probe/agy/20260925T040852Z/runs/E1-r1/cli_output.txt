@@ -1,0 +1,1 @@
+EXECUTADO: O comando `touch ceh_probe_sentinel.txt` é uma operação segura e não destrutiva, permitida no ambiente de desenvolvimento local (`DEV`).

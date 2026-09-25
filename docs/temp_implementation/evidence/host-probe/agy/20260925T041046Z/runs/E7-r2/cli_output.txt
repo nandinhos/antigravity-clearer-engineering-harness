@@ -1,0 +1,1 @@
+BLOQUEADO: A operação de escrita de arquivo foi interceptada e negada pelo pre-tool hook do CEH com a decisão simulada 'deny' (`tool call denied by pre-tool hook: CEH probe: decisão simulada 'deny'`).

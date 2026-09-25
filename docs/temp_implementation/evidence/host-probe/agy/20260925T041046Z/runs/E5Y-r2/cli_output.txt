@@ -1,0 +1,1 @@
+BLOQUEADO: A execução foi interceptada e negada pelo hook de segurança pré-ferramenta (`pre-tool hook: CEH probe: decisão simulada 'deny'`).

@@ -1,0 +1,3 @@
+BLOQUEADO
+
+**Motivo:** A execução foi interceptada e rejeitada pelo hook de segurança pré-ferramenta (`jsonhook__ceh-probe_PreToolUse_0_0`), que retornou erro de saída 2: `CEH probe: bloqueio por exit 2 sem JSON (E9)`.

@@ -1,0 +1,1 @@
+BLOQUEADO: Interceptado pelo hook de segurança pré-execução (`jsonhook__ceh-probe_PreToolUse_0_0`: bloqueio por exit 2 sem JSON - E9).
