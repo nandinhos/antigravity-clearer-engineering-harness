@@ -6,6 +6,8 @@ Contém:
 """
 from __future__ import annotations
 
+import os
+import re
 import shlex
 
 
@@ -161,3 +163,109 @@ def normalize_command_for_evaluation(subcmd: str) -> str:
     except Exception:
         pass
     return subcmd
+
+
+def _consume_flags(tokens: list[str], idx: int, arg_opts: set[str]) -> int:
+    n = len(tokens)
+    while idx < n and tokens[idx].startswith("-"):
+        tok = tokens[idx]
+        if tok == "--":
+            return idx + 1
+        if tok in arg_opts and idx + 1 < n:
+            idx += 2
+        elif any(tok.startswith(opt + "=") for opt in arg_opts):
+            idx += 1
+        else:
+            idx += 1
+    return idx
+
+
+def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
+    """
+    Identifica o comando executável real consumindo prefixos transparentes ou
+    identificando executores de string (Handoff 026 §3, AB1).
+    """
+    n, idx = len(tokens), 0
+    while idx < n:
+        tok = os.path.basename(tokens[idx])
+        if tok == "rtk":
+            idx += 2 if (idx + 1 < n and tokens[idx + 1] == "proxy") else 1
+            continue
+        if tok in ("nohup", "builtin"):
+            idx += 2 if (idx + 1 < n and tokens[idx + 1] == "--") else 1
+            continue
+        if tok == "command":
+            idx = _consume_flags(tokens, idx + 1, set())
+            continue
+        if tok == "exec":
+            idx = _consume_flags(tokens, idx + 1, {"-a"})
+            continue
+        if tok == "nice":
+            idx = _consume_flags(tokens, idx + 1, {"-n", "--adjustment"})
+            if idx < n and re.match(r"^-\d+$", tokens[idx]):
+                idx += 1
+            continue
+        if tok == "timeout":
+            idx = _consume_flags(tokens, idx + 1, {"-k", "--kill-after", "-s", "--signal"})
+            if idx < n and not tokens[idx].startswith("-"):
+                idx += 1
+            continue
+        if tok in ("sudo", "doas"):
+            idx = _consume_flags(tokens, idx + 1, {"-u", "-g", "-h", "-p", "-r", "-t", "-T", "-C"})
+            continue
+        if tok == "env":
+            idx += 1
+            while idx < n:
+                c = tokens[idx]
+                if c in ("-u", "--unset", "-C", "--chdir") and idx + 1 < n:
+                    idx += 2
+                elif c == "--":
+                    idx += 1; break
+                elif c.startswith("-") or ("=" in c and not c.startswith("=")):
+                    idx += 1
+                else:
+                    break
+            continue
+        if tok == "time":
+            idx = _consume_flags(tokens, idx + 1, {"-o", "--output", "-f", "--format"})
+            continue
+        if tok in ("stdbuf", "ionice", "chrt", "taskset"):
+            idx = _consume_flags(tokens, idx + 1, {"-i", "-o", "-e", "-c", "-n", "-p", "-P", "-u"})
+            if tok in ("chrt", "taskset") and idx < n and not tokens[idx].startswith("-"):
+                idx += 1
+            continue
+        if tok == "xargs":
+            idx = _consume_flags(tokens, idx + 1, {"-n", "-P", "-d", "-s", "-E", "-L", "-I"})
+            continue
+        if tok == "eval":
+            return idx, " ".join(tokens[idx + 1:])
+        if tok == "su":
+            for i in range(idx + 1, n):
+                t = tokens[i]
+                if t in ("-c", "--command") and i + 1 < n: return idx, tokens[i + 1]
+                if t.startswith("-c="): return idx, t[3:]
+                if t.startswith("--command="): return idx, t[10:]
+            break
+        if tok == "watch":
+            i = _consume_flags(tokens, idx + 1, {"-n", "--interval"})
+            if i < n:
+                return idx, " ".join(tokens[i:])
+            break
+        break
+    return idx, None
+
+
+def substitute_positional_args(script: str, args: list[str]) -> str:
+    """Substitui argumentos posicionais ($0, $1..., ${0}, "$@") em scripts de shell (AB3)."""
+    if not args:
+        return script
+    res = script
+    if len(args) > 1:
+        res = res.replace('"$@"', " ".join(f'"{a}"' for a in args[1:])).replace('$@', " ".join(args[1:]))
+    elif len(args) == 1:
+        res = res.replace('"$@"', '').replace('$@', '')
+    for idx, val in enumerate(args):
+        pat = r'\$\{' + str(idx) + r'\}|\$' + str(idx) + r'(?!\d)'
+        res = re.sub(pat, val, res)
+    return res
+

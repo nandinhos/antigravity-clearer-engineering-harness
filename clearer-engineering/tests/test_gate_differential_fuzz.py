@@ -529,6 +529,68 @@ json.dump(results, sys.stdout)
                 msg += f"  ... e mais {len(violations) - 15} violações.\n"
             self.fail(msg)
 
+    def test_prefix_invariants(self):
+        """
+        Invariante do Handoff 026 (AB1):
+        Para cada comando gerado X, a decisão com prefixos transparentes ou
+        executores de string tem de ser pelo menos tão severa quanto a de X em todos os ambientes:
+        - nice X
+        - timeout 5 X
+        - sudo -u x X
+        - nohup X
+        - exec X
+        - eval "X"
+        - watch -n1 "X"
+        """
+        import shlex
+        from importlib import import_module
+        gate = import_module("safety-gate")
+
+        rank_map = {"allow": 1, "ask": 2, "deny": 3}
+
+        target_cmds = [
+            c for c in self.all_commands
+            if any(c.strip().split()[0].endswith(x) for x in ("git", "find", "python3", "node", "perl", "ruby", "sh", "bash"))
+        ]
+        rng = random.Random(42)
+        sample_cmds = rng.sample(target_cmds, min(400, len(target_cmds)))
+
+        violations: list[str] = []
+
+        for cmd in sample_cmds:
+            prefixes = [
+                ("nice", f"nice {cmd}"),
+                ("timeout 5", f"timeout 5 {cmd}"),
+                ("sudo -u x", f"sudo -u x {cmd}"),
+                ("nohup", f"nohup {cmd}"),
+                ("exec", f"exec {cmd}"),
+                ("eval", f"eval {shlex.quote(cmd)}"),
+                ("watch -n1", f"watch -n1 {shlex.quote(cmd)}"),
+            ]
+
+            for env in ("development", "staging", "production"):
+                base_dec, base_r, _, base_uc = gate.evaluate_command(cmd, explicit_env=env)
+                base_is_cat = (base_uc == "CATASTROPHIC") or ("CATASTROPHIC" in base_r)
+                base_rank = 4 if base_is_cat else rank_map[base_dec]
+
+                for p_name, p_cmd in prefixes:
+                    p_dec, p_r, _, p_uc = gate.evaluate_command(p_cmd, explicit_env=env)
+                    p_is_cat = (p_uc == "CATASTROPHIC") or ("CATASTROPHIC" in p_r)
+                    p_rank = 4 if p_is_cat else rank_map[p_dec]
+
+                    if p_rank < base_rank:
+                        violations.append(
+                            f"[{env}] {p_name}: base={base_dec}(cat={base_is_cat}) > prefix={p_dec}(cat={p_is_cat}) para comando: {cmd}"
+                        )
+
+        if violations:
+            msg = f"\n[REPROVADO - Handoff 026 AB1] {len(violations)} violações da invariante de prefixos:\n"
+            for v in violations[:15]:
+                msg += f"  {v}\n"
+            if len(violations) > 15:
+                msg += f"  ... e mais {len(violations) - 15} violações.\n"
+            self.fail(msg)
+
 
 if __name__ == "__main__":
     unittest.main()

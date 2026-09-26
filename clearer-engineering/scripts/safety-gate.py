@@ -29,6 +29,8 @@ from ceh_core.rules import (
 from ceh_core.lexer import (
     split_shell_pipeline,
     normalize_command_for_evaluation,
+    resolve_command_head,
+    substitute_positional_args,
 )
 from ceh_core.environment import (
     normalize_env,
@@ -62,11 +64,8 @@ def resolve_git_invocation(
     except Exception as e:
         return False, None, [], None, cmd_line, f"Erro de parsing na linha git: {e}"
 
-    # Remove prefixo de RTK se presente
-    if tokens and tokens[0] == "rtk":
-        tokens = tokens[1:]
-    if tokens and tokens[0] == "proxy":
-        tokens = tokens[1:]
+    idx, _ = resolve_command_head(tokens)
+    tokens = tokens[idx:]
 
     if not tokens or tokens[0] != "git":
         return False, None, [], None, cmd_line, None
@@ -244,7 +243,7 @@ def max_severity_decision(
 
 
 def extract_shell_c_command(cmd_line: str) -> str | None:
-    """Extrai o comando executado via flag -c em sh, bash, zsh, dash."""
+    """Extrai o comando executado via flag -c em sh, bash, zsh, dash, aplicando substituição posicional."""
     try:
         tokens = shlex.split(cmd_line, posix=True)
     except Exception:
@@ -252,19 +251,7 @@ def extract_shell_c_command(cmd_line: str) -> str | None:
     if not tokens:
         return None
 
-    idx = 0
-    while idx < len(tokens):
-        tok = tokens[idx]
-        if tok in ("sudo", "rtk", "command"):
-            idx += 1
-            continue
-        if tok == "env":
-            idx += 1
-            while idx < len(tokens) and ("=" in tokens[idx] or tokens[idx].startswith("-")):
-                idx += 1
-            continue
-        break
-
+    idx, _ = resolve_command_head(tokens)
     if idx >= len(tokens):
         return None
 
@@ -274,13 +261,19 @@ def extract_shell_c_command(cmd_line: str) -> str | None:
         while i < len(tokens):
             tok = tokens[i]
             if tok == "-c" and i + 1 < len(tokens):
-                return tokens[i + 1]
+                script = tokens[i + 1]
+                extra_args = tokens[i + 2:]
+                return substitute_positional_args(script, extra_args)
             if tok.startswith("-") and not tok.startswith("--") and "c" in tok:
                 pos = tok.rfind("c")
                 if pos == len(tok) - 1 and i + 1 < len(tokens):
-                    return tokens[i + 1]
+                    script = tokens[i + 1]
+                    extra_args = tokens[i + 2:]
+                    return substitute_positional_args(script, extra_args)
                 elif pos < len(tok) - 1:
-                    return tok[pos + 1:]
+                    script = tok[pos + 1:]
+                    extra_args = tokens[i + 1:]
+                    return substitute_positional_args(script, extra_args)
             i += 1
     return None
 
@@ -313,7 +306,22 @@ def evaluate_subcommand(
 
     candidate: tuple[str, str, str, str] | None = None
 
-    # AA2: Desembrulho recursivo de shells (sh -c, bash -c, zsh -c, dash -c)
+    # AA2/AB1: Desembrulho recursivo de shells (sh -c, bash -c) e executores de string (eval, su -c, watch)
+    try:
+        sub_tokens = shlex.split(sub_raw, posix=True)
+    except Exception:
+        sub_tokens = []
+
+    if sub_tokens:
+        h_idx, string_exec = resolve_command_head(sub_tokens)
+        if string_exec is not None:
+            return evaluate_command(
+                string_exec,
+                explicit_env=explicit_env,
+                base_cwd=base_cwd,
+                depth=depth + 1
+            )
+
     shell_inner = extract_shell_c_command(sub_raw)
     if shell_inner:
         return evaluate_command(

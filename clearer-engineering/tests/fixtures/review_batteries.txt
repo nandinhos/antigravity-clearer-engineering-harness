@@ -318,25 +318,25 @@ production|allow|H025-controle|cat s.py | python3
 # --- Handoff 026 · revisão do PR-06b
 # AB1: prefixos de execução (nice, timeout, sudo -u, nohup, exec, xargs) e executores de string (eval, su -c, watch)
 #      escondem o comando dos analisadores por tokens (find, interpretadores, sh -c, git.py)
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|nice find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|timeout 10 find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|sudo -u deploy find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|nohup find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|timeout 5 python3 -c "import shutil; shutil.rmtree('/')"
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|sudo -u root bash -c "find / -delete"
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|timeout 5 bash -c "find / -delete"
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|exec bash -c "find / -delete"
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|xargs -I{} sh -c 'find / -delete'
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|eval "find / -delete"
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|su -c "find / -delete"
-production|deny/CATASTROPHIC|PENDENTE:H026-AB1|watch -n1 "find / -delete"
-production|deny|PENDENTE:H026-AB1|nice git checkout -- .
+production|deny/CATASTROPHIC|H026-AB1|nice find / -delete
+production|deny/CATASTROPHIC|H026-AB1|timeout 10 find / -delete
+production|deny/CATASTROPHIC|H026-AB1|sudo -u deploy find / -delete
+production|deny/CATASTROPHIC|H026-AB1|nohup find / -delete
+production|deny/CATASTROPHIC|H026-AB1|timeout 5 python3 -c "import shutil; shutil.rmtree('/')"
+production|deny/CATASTROPHIC|H026-AB1|sudo -u root bash -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|timeout 5 bash -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|exec bash -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|xargs -I{} sh -c 'find / -delete'
+production|deny/CATASTROPHIC|H026-AB1|eval "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|su -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|watch -n1 "find / -delete"
+production|deny|H026-AB1|nice git checkout -- .
 production|allow|H026-controle|nice npm run build
 production|allow|H026-controle|timeout 5 git status
 production|allow|H026-controle|sudo -u deploy ls /var/www
 production|allow|H026-controle|watch -n1 "git status"
 production|allow|H026-controle|time python3 -c "print(1)"
 # AB3: parâmetros posicionais do sh -c ($0, $1…) são conhecidos: substituir antes de avaliar
-development|deny/CATASTROPHIC|PENDENTE:H026-AB3|bash -c 'rm -rf "$0"' /
-development|deny/CATASTROPHIC|PENDENTE:H026-AB3|bash -c 'find "$1" -delete' _ /
+development|deny/CATASTROPHIC|H026-AB3|bash -c 'rm -rf "$0"' /
+development|deny/CATASTROPHIC|H026-AB3|bash -c 'find "$1" -delete' _ /
 development|allow|H026-controle|bash -c 'echo "$0"' /

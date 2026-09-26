@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Callable, Any
 
 from .rm import is_target_catastrophic
+from .lexer import resolve_command_head
 
 
 # Detecção de APIs destrutivas pelo nome, sem exigir o prefixo do módulo (AA3)
@@ -165,19 +166,7 @@ def evaluate_interpreter_command(
     if not tokens:
         return None
 
-    idx = 0
-    while idx < len(tokens):
-        tok = tokens[idx]
-        if tok in ("sudo", "rtk", "command"):
-            idx += 1
-            continue
-        if tok == "env":
-            idx += 1
-            while idx < len(tokens) and ("=" in tokens[idx] or tokens[idx].startswith("-")):
-                idx += 1
-            continue
-        break
-
+    idx, _ = resolve_command_head(tokens)
     if idx >= len(tokens):
         return None
 
