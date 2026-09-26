@@ -271,6 +271,10 @@ def extract_shell_c_command(cmd_line: str) -> str | None:
                 script = tokens[i + 1]
                 extra_args = tokens[i + 2:]
                 return substitute_positional_args(script, extra_args)
+            if base == "fish" and tok.startswith("--command="):
+                script = tok.split("=", 1)[1]
+                extra_args = tokens[i + 1:]
+                return substitute_positional_args(script, extra_args)
             if tok.startswith("-") and not tok.startswith("--") and "c" in tok:
                 pos = tok.rfind("c")
                 if pos == len(tok) - 1 and i + 1 < len(tokens):
@@ -292,6 +296,7 @@ def evaluate_subcommand(
     base_cwd: Path | str | None = None,
     explicit_env: str | None = None,
     depth: int = 0,
+    scan_suffixes: bool = True,
 ) -> tuple[str, str, str, str]:
     """
     Avalia um subcomando atômico contra as políticas de segurança do CEH.
@@ -329,30 +334,32 @@ def evaluate_subcommand(
                 depth=depth + 1
             )
 
-        # AD1 (Handoff 028 §3.1): Varredura fail-closed de sufixos iniciados por cabeça analisada para TODO comando (sem lista)
-        ANALYZED_HEADS = {
-            "rm", "git", "find",
-            "sh", "bash", "zsh", "dash", "ksh", "mksh", "ash", "fish", "csh", "tcsh",
-            "node", "nodejs", "perl", "ruby", "php", "awk", "gawk", "mawk", "nawk",
-            "deno", "bun", "eval", "su", "watch"
-        }
-        for j in range(1, len(sub_tokens)):
-            base_t = os.path.basename(sub_tokens[j])
-            if (
-                base_t in ANALYZED_HEADS
-                or base_t.startswith("python")
-                or base_t.startswith("php")
-            ):
-                suffix_cmd = shlex.join(sub_tokens[j:])
-                s_res = evaluate_command(
-                    suffix_cmd,
-                    explicit_env=explicit_env,
-                    base_cwd=base_cwd,
-                    depth=depth + 1
-                )
-                if s_res[3] == "CATASTROPHIC":
-                    return s_res
-                candidate = max_severity_decision(candidate, s_res) if candidate else s_res
+        # AD1/AE1 (Handoff 029 §3.1): Varredura fail-closed de sufixos em um único nível por subcomando
+        if scan_suffixes:
+            ANALYZED_HEADS = {
+                "rm", "git", "find",
+                "sh", "bash", "zsh", "dash", "ksh", "mksh", "ash", "fish", "csh", "tcsh",
+                "node", "nodejs", "perl", "ruby", "php", "awk", "gawk", "mawk", "nawk",
+                "deno", "bun", "eval", "su", "watch"
+            }
+            for j in range(1, len(sub_tokens)):
+                base_t = os.path.basename(sub_tokens[j])
+                if (
+                    base_t in ANALYZED_HEADS
+                    or base_t.startswith("python")
+                    or base_t.startswith("php")
+                ):
+                    suffix_cmd = shlex.join(sub_tokens[j:])
+                    s_res = evaluate_command(
+                        suffix_cmd,
+                        explicit_env=explicit_env,
+                        base_cwd=base_cwd,
+                        depth=depth,
+                        scan_suffixes=False,
+                    )
+                    if s_res[3] == "CATASTROPHIC":
+                        return s_res
+                    candidate = max_severity_decision(candidate, s_res) if candidate else s_res
 
     shell_inner = extract_shell_c_command(sub_raw)
     if shell_inner:
@@ -469,6 +476,7 @@ def evaluate_command(
     explicit_env: str | None = None,
     base_cwd: Path | str | None = None,
     depth: int = 0,
+    scan_suffixes: bool = True,
 ) -> tuple[str, str, str, str]:
     """
     Evaluates a command line string against environment safety rules, decomposing
@@ -504,7 +512,17 @@ def evaluate_command(
 
     evaluations = []
     for sub in subcommands:
-        evaluations.append(evaluate_subcommand(sub, env, env_evidence, base_cwd=base_cwd, explicit_env=explicit_env, depth=depth))
+        evaluations.append(
+            evaluate_subcommand(
+                sub,
+                env,
+                env_evidence,
+                base_cwd=base_cwd,
+                explicit_env=explicit_env,
+                depth=depth,
+                scan_suffixes=scan_suffixes,
+            )
+        )
 
     # Precedência estrita: CATASTROPHIC > DENY > ASK > ALLOW
     catastrophics = [e for e in evaluations if e[0] == "deny" and e[3] == "CATASTROPHIC"]

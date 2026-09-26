@@ -25,9 +25,14 @@ PHP_DESTRUCTIVE_APIS = re.compile(
     re.IGNORECASE
 )
 
-AWK_SHELL_PATTERNS = re.compile(
-    r"""\bsystem\s*\(\s*""" + _STR_PAT + r"""\s*\)|\|\s*""" + _STR_PAT,
+AWK_SYSTEM_PATTERNS = re.compile(
+    r"""\bsystem\s*\(\s*""" + _STR_PAT + r"""\s*\)""",
     re.VERBOSE
+)
+
+AWK_PRINT_PIPE_PATTERNS = re.compile(
+    r"""\b(?:print|printf)\b\s*(.+?)\s*\|\s*["'](?:sh|bash|zsh|dash|ksh|ash|fish|csh|tcsh)["']""",
+    re.IGNORECASE
 )
 
 DENO_DESTRUCTIVE_APIS = re.compile(
@@ -168,14 +173,22 @@ def evaluate_awk_command(
         return None
 
     if eval_fn is not None:
-        for match in AWK_SHELL_PATTERNS.finditer(prog):
+        for match in AWK_SYSTEM_PATTERNS.finditer(prog):
             for g in match.groups():
                 if g is not None:
                     unescaped = g.replace('\\"', '"').replace("\\'", "'").replace("\\\\", "\\")
                     sub_res = eval_fn(unescaped, explicit_env=env, base_cwd=base_cwd, depth=depth + 1)
-                    if sub_res[3] == "CATASTROPHIC":
+                    if sub_res[3] == "CATASTROPHIC" or sub_res[0] in ("deny", "ask"):
                         return sub_res
-                    if sub_res[0] in ("deny", "ask"):
+
+        for match in AWK_PRINT_PIPE_PATTERNS.finditer(prog):
+            expr = match.group(1)
+            for s_match in STRING_LITERAL_RE.finditer(expr):
+                raw_val = s_match.group(1) if s_match.group(1) is not None else s_match.group(2)
+                if raw_val is not None:
+                    unescaped = raw_val.replace('\\"', '"').replace("\\'", "'").replace("\\\\", "\\")
+                    sub_res = eval_fn(unescaped, explicit_env=env, base_cwd=base_cwd, depth=depth + 1)
+                    if sub_res[3] == "CATASTROPHIC" or sub_res[0] in ("deny", "ask"):
                         return sub_res
 
     return None

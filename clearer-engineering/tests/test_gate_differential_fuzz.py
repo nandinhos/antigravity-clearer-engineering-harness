@@ -605,6 +605,49 @@ json.dump(results, sys.stdout)
                 msg += f"  ... e mais {len(violations) - 15} violações.\n"
             self.fail(msg)
 
+    def test_benign_commands_invariant(self):
+        """
+        Invariante do Handoff 029 (AE1):
+        Comandos inofensivos gerados com verbos inócuos (echo, which, command -v,
+        apt-get install -y, brew install, pip install, npm install -g, man, ls)
+        seguidos de 1 a 8 nomes de ferramentas analisadas (sem argumentos destrutivos)
+        devem sempre retornar 'allow' em ambiente de desenvolvimento (DEV).
+        """
+        from importlib import import_module
+        gate = import_module("safety-gate")
+
+        verbs = [
+            "echo", "which", "command -v", "apt-get install -y",
+            "brew install", "pip install", "npm install -g", "man", "ls"
+        ]
+        tools = [
+            "git", "find", "rm", "bash", "zsh", "python3", "node", "perl",
+            "ruby", "php", "awk", "sh", "dash", "ksh", "fish", "deno", "bun"
+        ]
+
+        rng = random.Random(42)
+        test_cases: list[str] = []
+
+        for v in verbs:
+            for count in range(1, 9):
+                for _ in range(4):
+                    selected = rng.sample(tools, min(count, len(tools)))
+                    test_cases.append(f"{v} {' '.join(selected)}")
+
+        violations: list[str] = []
+        for cmd in test_cases:
+            dec, reason, env, uc = gate.evaluate_command(cmd, explicit_env="development")
+            if dec != "allow":
+                violations.append(f"{cmd} -> {dec}/{uc} ({reason})")
+
+        if violations:
+            msg = f"\n[REPROVADO - Handoff 029 AE1] {len(violations)} comandos inofensivos bloqueados indevidamente em DEV:\n"
+            for v in violations[:15]:
+                msg += f"  {v}\n"
+            if len(violations) > 15:
+                msg += f"  ... e mais {len(violations) - 15} violações.\n"
+            self.fail(msg)
+
 
 if __name__ == "__main__":
     unittest.main()
