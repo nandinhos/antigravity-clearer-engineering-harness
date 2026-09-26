@@ -244,6 +244,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **AC1 (médio):** opções de prefixo que recebem valor (`sudo --user X`, `-iu X`, `taskset -c 0`, `xargs --max-args 1`) e `env -S` ainda escondem o comando.
 - **Próximo:** PR-06d (varredura de sufixos fail-closed). A §4 do Handoff 027 fixa o critério de encerramento da Onda 1.
 
+### 0.27 PR-06d homologado com ressalvas ([Handoff 028](./temp_implementation/handoffs/handoff-028-revisao-pr06d.md))
+
+- **Fechado:** AC1, com a varredura de sufixos após prefixo. Falsificabilidade reproduzida (1.066 violações); linha de base em `fe171a7`.
+- **Achados da varredura final G1–G6:**
+  - AD1: a varredura depende de lista fixa, e `setsid`/`flock`/`chroot`/`busybox`/`ssh`/`docker exec` a contornam;
+  - AD2: shells `ksh`/`fish`/`ash`;
+  - AD3: `perl -M…` confundido com `-e`;
+  - AD4: PHP, awk, deno e bun sem cobertura.
+- **Próximo:** PR-06e. Com ele, a Onda 1 fecha e a lista de famílias cobertas fica fechada (§4 do Handoff 028).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
