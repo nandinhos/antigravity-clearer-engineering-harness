@@ -146,3 +146,42 @@ production|allow|H017-G5-controle|find . -name '*.log'
 production|allow|H017-G5-controle|grep -r "shutil.rmtree" .
 production|allow|H017-G5-controle|python3 -c 'print(1)'
 production|allow|H017-G5-controle|node -e 'console.log(1)'
+
+# --- Handoff 019 · revisão do PR-05b: variantes de U1/U3 (já corretas) e controles
+production|deny|H019-U1|git checkout -- ././
+production|deny|H019-U1|git checkout -- "./"
+production|deny|H019-U1|git checkout -- ./ app/x.php
+production|deny|H019-U1|git restore -- ./
+production|deny|H019-U1|git checkout HEAD -- ./
+production|deny|H019-U1|git checkout -- ./.
+production|deny|H019-U1|git checkout -- .//
+production|deny|H019-U1|git restore --worktree ./
+production|deny|H019-U1|git checkout -- :/
+production|deny|H019-U3|git switch --force main
+production|deny|H019-U3|git switch -f -c x
+production|deny|H019-U3|git switch --discard-changes
+production|allow|H019-controle|git switch -
+production|allow|H019-controle|git checkout -- ./app/Model.php
+production|allow|H019-controle|git checkout ./app/Model.php
+production|allow|H019-controle|git checkout -- ./src
+# V1: pathspec que resolve para a raiz (normalização e magia :(top))
+production|deny|PENDENTE:H019-V1|git checkout -- src/..
+production|deny|PENDENTE:H019-V1|git checkout -- ":(top)"
+production|deny|PENDENTE:H019-V1|git restore ':(top).'
+production|deny|PENDENTE:H019-V1|git checkout -- app/..
+production|deny|PENDENTE:H019-V1|git checkout -- ./src/../
+production|deny|PENDENTE:H019-V1|git checkout -- ':!x'
+production|deny|PENDENTE:H019-V1|git checkout -- ':^x'
+production|deny|PENDENTE:H019-V1|git restore ':(exclude)x'
+production|allow|H019-V1-controle|git checkout -- :/app/Model.php
+# V2: redefinição forçada de branch (mesma classe de git branch -D)
+production|deny|PENDENTE:H019-V2|git switch -C main
+production|deny|PENDENTE:H019-V2|git checkout -B main
+production|allow|H019-V2-controle|git checkout -b feature
+production|allow|H019-V2-controle|git switch -c feature
+# V3: --staged sozinho só retira do stage (não destrutivo); --staged --worktree segue destrutivo
+production|allow|PENDENTE:H019-V3|git restore --staged .
+production|allow|PENDENTE:H019-V3|git restore --staged ./
+production|allow|PENDENTE:H019-V3|git restore -S .
+production|allow|PENDENTE:H019-V3|git restore --staged -- .
+production|deny|H019-V3-controle|git restore -S -W .

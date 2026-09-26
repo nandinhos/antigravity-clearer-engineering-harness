@@ -161,6 +161,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - PR-05b e PR-06 removem os seus `PENDENTE`;
   - depois, **PR-QA**: fuzz diferencial contra a linha de base, invariante do motivo, contrato com `git --help`/`rm --help` e normalização única.
 
+### 0.18 PR-05b com ressalvas ([Handoff 019](./temp_implementation/handoffs/handoff-019-revisao-pr05b.md))
+
+- U1, U2 e U3 fechados; corpus 787 (655 intactos); evals 5/5; bateria limpa.
+- **V1 (médio, produção):** pathspec com `..` ou com magia (`:(top)`, `:!x`, `:(exclude)`) alcança a raiz e sai allow.
+- **V2 (baixo):** `git switch -C` e `git checkout -B` saem allow (mesma classe de `branch -D`).
+- **V3 (falso positivo):** `git restore --staged .` sai deny.
+- **Próximos:** PR-05c (canonicalização de pathspec), depois PR-06 e PR-QA.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
