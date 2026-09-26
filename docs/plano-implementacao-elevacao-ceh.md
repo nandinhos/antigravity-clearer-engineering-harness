@@ -227,6 +227,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - AA3: flags agrupadas (`-Bc`, `-le`, `-pe`), import por nome e `argv` escapam.
 - **Onda 1 segue aberta.** Próximo: PR-06b (analisadores só apertam; desembrulho recursivo; invariante de embrulho no fuzz).
 
+### 0.25 PR-06b homologado com ressalvas ([Handoff 026](./temp_implementation/handoffs/handoff-026-revisao-pr06b.md))
+
+- **Fechados:** AA1–AA3. As regras agora são:
+  - analisadores só apertam;
+  - desembrulho recursivo de `sh -c`, `-exec` e APIs de shell;
+  - interpretadores com flags agrupadas, APIs pelo nome e `argv`.
+- **Provas:** falsificabilidade reproduzida (75 relaxamentos); linha de base em `75a763a`.
+- **AB1 (alto):** prefixos (`nice`, `timeout`, `sudo -u`, `nohup`, `exec`, `xargs`, `eval`, `su -c`, `watch`) escondem o comando dos analisadores por tokens. `nice find / -delete` e `nice git checkout -- .` saem allow em produção.
+- **Próximo:** PR-06c (resolução única da cabeça do comando + invariante de prefixo). Com ele, a Onda 1 fecha.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
