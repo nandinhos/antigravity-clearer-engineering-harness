@@ -1,0 +1,3 @@
+# Lista de relaxamentos de segurança autorizados em relação à linha de base (gate_baseline.txt)
+# Formato: env|comando|de->para|ID-do-achado
+# Exemplo: production|git checkout --staged .|deny->allow|V3

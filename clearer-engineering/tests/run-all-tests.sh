@@ -225,6 +225,10 @@ run_test "Git Canonicalization: Generalização de opções globais e bloqueio d
 run_test "Review Batteries: baterias adversariais das revisões (pendências em xfail estrito)" \
     "python3 '$PLUGIN_DIR/tests/test_review_batteries.py' >/dev/null 2>&1"
 
+# 20. PR-QA-A Differential Fuzzing vs Baseline
+run_test "Differential Fuzz: Comparação automática contra baseline e detecção de relaxamentos (PR-QA-A)" \
+    "python3 '$PLUGIN_DIR/tests/test_gate_differential_fuzz.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"
