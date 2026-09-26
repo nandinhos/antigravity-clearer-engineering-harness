@@ -352,3 +352,14 @@ RAW:git checkout -- "?*.js"
 RAW:git checkout -- ~/projects/repo
 RAW:git checkout -- tests/*
 RAW:git switch --guess main
+# PR-05e X1: Magia curta combinada
+RAW:git checkout -- ':/!x'
+RAW:git checkout -- ':/^x'
+RAW:git restore ':/!app'
+RAW:git checkout -- ':/!:x'
+RAW:git restore ':/app/x'
+RAW:git checkout -- ':/:app/x'
+# PR-05e Variantes Inéditas do Agente
+RAW:git checkout -- ':^/src'
+RAW:git restore ':!/app/Services'
+RAW:git checkout -- ':/config/database.php'

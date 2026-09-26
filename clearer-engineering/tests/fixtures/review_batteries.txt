@@ -248,9 +248,13 @@ production|allow|H021-agente-controle|git switch --guess main
 
 # --- Handoff 022 · revisão do PR-05d
 # X1 (preexistente): magia curta combinada ":/!x" = raiz + exclusão → descarta tudo exceto x
-production|deny|PENDENTE:H022-X1|git checkout -- ':/!x'
-production|deny|PENDENTE:H022-X1|git checkout -- ':/^x'
-production|deny|PENDENTE:H022-X1|git restore ':/!app'
-production|deny|PENDENTE:H022-X1|git checkout -- ':/!:x'
+production|deny|H022-X1|git checkout -- ':/!x'
+production|deny|H022-X1|git checkout -- ':/^x'
+production|deny|H022-X1|git restore ':/!app'
+production|deny|H022-X1|git checkout -- ':/!:x'
 production|allow|H022-X1-controle|git restore ':/app/x'
 production|allow|H022-X1-controle|git checkout -- ':/:app/x'
+# Variantes inéditas adicionadas pelo agente (PR-05e)
+production|deny|H022-agente-X1|git checkout -- ':^/src'
+production|deny|H022-agente-X1|git restore ':!/app/Services'
+production|allow|H022-agente-controle|git checkout -- ':/config/database.php'

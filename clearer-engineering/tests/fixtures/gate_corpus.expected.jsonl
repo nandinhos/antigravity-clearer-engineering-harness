@@ -983,3 +983,30 @@
 {"command": "git switch --guess main", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-334-dev", "type": "command", "use_case": "GENERAL"}
 {"command": "git switch --guess main", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-334-sta", "type": "command", "use_case": "GENERAL"}
 {"command": "git switch --guess main", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-334-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git checkout -- ':/!x'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-335-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/!x'", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-335-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/!x'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-335-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/^x'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-336-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/^x'", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-336-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/^x'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-336-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git restore ':/!app'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-337-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git restore ':/!app'", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-337-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git restore ':/!app'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-337-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/!:x'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-338-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/!:x'", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-338-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/!:x'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-338-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git restore ':/app/x'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-339-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore ':/app/x'", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-339-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git restore ':/app/x'", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-339-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- ':/:app/x'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-340-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- ':/:app/x'", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-340-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- ':/:app/x'", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-340-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- ':^/src'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-341-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':^/src'", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-341-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':^/src'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-341-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git restore ':!/app/Services'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-342-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git restore ':!/app/Services'", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-342-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git restore ':!/app/Services'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-342-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -- ':/config/database.php'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-343-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- ':/config/database.php'", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-343-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git checkout -- ':/config/database.php'", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-343-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}

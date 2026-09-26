@@ -405,5 +405,33 @@ class TestGitCanonicalization(unittest.TestCase):
             self.assertEqual(use_case, "GIT_HISTORY")
 
 
+    # --------------------------------------------------------------------------
+    # X1 (PR-05e): Magia curta combinada (exclusão/negação com ou sem raiz)
+    # --------------------------------------------------------------------------
+    def test_x1_combined_short_magic(self):
+        x1_destructive = [
+            "git checkout -- ':/!x'",
+            "git checkout -- ':/^x'",
+            "git restore ':/!app'",
+            "git checkout -- ':/!:x'",
+            "git checkout -- ':^/src'",
+            "git restore ':!/app/Services'",
+        ]
+        for cmd in x1_destructive:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}'")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+        x1_controls = [
+            "git restore ':/app/x'",
+            "git checkout -- ':/:app/x'",
+            "git checkout -- ':/config/database.php'",
+        ]
+        for cmd in x1_controls:
+            for env in ["development", "staging", "production"]:
+                decision, _, _, _ = evaluate_command(cmd, explicit_env=env)
+                self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}' em '{env}', obteve '{decision}'")
+
+
 if __name__ == "__main__":
     unittest.main()

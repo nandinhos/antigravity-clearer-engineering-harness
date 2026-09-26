@@ -48,10 +48,21 @@ def strip_quotes(s: str) -> str:
     return s
 
 
+def _is_broad_subpath(sub: str) -> bool:
+    """Valida se um subcaminho normalizado alcança além ou possui glob/variável."""
+    if not sub or sub in (".", "") or "$" in sub or sub.startswith("~"):
+        return True
+    norm = posixpath.normpath(sub)
+    if norm in (".", "..") or norm.startswith("../"):
+        return True
+    return any(c in norm.split("/")[0] for c in ("*", "?", "["))
+
+
 def is_broad_pathspec(pathspec: str) -> bool:
     """
-    Determina se um pathspec individual possui amplitude destrutiva (V1, W3, W4).
+    Determina se um pathspec individual possui amplitude destrutiva (V1, W3, W4, X1).
     Retorna True se o pathspec afetar todo o repositório, diretório atual ou além dele.
+    Conforme gitglossary (pathspec short/long magic).
     """
     p = strip_quotes(pathspec)
     if not p:
@@ -63,45 +74,42 @@ def is_broad_pathspec(pathspec: str) -> bool:
 
     # Pathspec com magia (iniciado por ':')
     if p.startswith(":"):
-        # Exclusão / negação (:!, :^, :(exclude)) -> amplo
-        if p.startswith(":!") or p.startswith(":^") or p.startswith(":(exclude)"):
+        # 1. Magia longa iniciada por ':('
+        if p.startswith(":("):
+            if any(p.startswith(m) for m in (":(exclude)", ":(top,exclude)", ":(exclude,top)")):
+                return True
+            if p.startswith(":(top)"):
+                return _is_broad_subpath(p[len(":(top)"):].lstrip("/"))
+            return True  # Qualquer outra magia longa -> fail-closed
+
+        # 2. Magia curta (gitglossary): ':' seguido de mnemônicos ('/', '!', '^')
+        idx = 1
+        magic_chars = set()
+        while idx < len(p) and p[idx] in ("/", "!", "^"):
+            magic_chars.add(p[idx])
+            idx += 1
+
+        if idx < len(p) and p[idx] == ":":
+            idx += 1
+
+        # X1: Se contiver '!' ou '^' (exclusão/negação) -> amplo
+        if "!" in magic_chars or "^" in magic_chars:
             return True
 
-        # Raiz via :(top) ou :/
-        for prefix in (":(top)", ":/"):
-            if p.startswith(prefix):
-                sub = p[len(prefix):].lstrip("/")
-                if not sub or sub in (".", ""):
-                    return True
-                # W4 no subcaminho da magia
-                if "$" in sub or sub.startswith("~"):
-                    return True
-                norm_sub = posixpath.normpath(sub)
-                if norm_sub in (".", "..") or norm_sub.startswith("../"):
-                    return True
-                # W3 no subcaminho da magia
-                first_seg = norm_sub.split("/")[0]
-                if any(c in first_seg for c in ("*", "?", "[")):
-                    return True
-                return False
+        # Se contiver '/' -> raiz do repositório (top)
+        if "/" in magic_chars:
+            return _is_broad_subpath(p[idx:].lstrip("/"))
 
-        # Qualquer outra magia (glob, attr, icase, literal, desconhecida) -> fail-closed
-        return True
+        # Sem '/' nem exclusão, mas iniciado com ':'
+        if _is_broad_subpath(p[idx:]):
+            return True
+        return idx == 1 and not (p[1:].startswith("/") or p[1:].isalnum() or p[1:2] in (".", "_", "-"))
 
     # Pathspec sem magia: absoluto -> amplo (fail-closed)
     if p.startswith("/") or posixpath.isabs(p) or p in ("*", "/*"):
         return True
 
-    norm = posixpath.normpath(p)
-    if norm in (".", "..") or norm.startswith("../"):
-        return True
-
-    # W3: Glob no primeiro segmento alcança o repositório inteiro
-    first_seg = norm.split("/")[0]
-    if any(c in first_seg for c in ("*", "?", "[")):
-        return True
-
-    return False
+    return _is_broad_subpath(p)
 
 
 def _consume_opt_value(args: list[str], i: int, opt: str) -> int:

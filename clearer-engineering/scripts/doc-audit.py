@@ -170,11 +170,8 @@ def main():
         if matches:
             abs_links_found.append((md_file.relative_to(repo_root), matches))
         sess_matches = re.findall(r"session\s+id:\s+[0-9a-f\-]{36}", content, re.IGNORECASE)
-        # Ignora arquivos de atas consolidadas de sessões históricas pré-PR05c
         if sess_matches:
-            # Verifica se está no diretório recente
-            if "20260925_214340" in str(md_file) or "handoffs" in str(md_file):
-                session_ids_found.append((md_file.relative_to(repo_root), sess_matches))
+            session_ids_found.append((md_file.relative_to(repo_root), sess_matches))
 
     if abs_links_found:
         for f, m in abs_links_found:
