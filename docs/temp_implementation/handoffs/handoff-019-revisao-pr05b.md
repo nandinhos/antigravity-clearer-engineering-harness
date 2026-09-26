@@ -66,7 +66,7 @@ O PR-05b compara o pathspec depois de limpar o `./`, mas **não resolve `..`** e
 - [ ] As 14 linhas `PENDENTE:H019-V1/V2/V3` perdem o prefixo, e todas as linhas de controle H019 seguem verdes.
 - [ ] Linhas novas na bateria, **escolhidas pelo agente**, com pelo menos 5 variantes que ninguém listou aqui (ex.: `a/b/../..`, `:(top,glob)*`). Pelo menos uma tem de ser controle `allow`.
 - [ ] O diff do corpus é justificado em `docs/temp_implementation/evidence/pr05c-corpus-diff.md`. Todo relaxamento (deny→allow) tem de ser só do V3 e estar nomeado.
-- [ ] Suíte, evals (`bash clearer-engineering/evals/run.sh`, **com esse caminho**), `doc-audit` e Python 3.9/3.12.
+- [ ] Suíte, evals (`bash evals/run.sh`, na raiz do repositório; *errata do Handoff 021: a versão original deste item trazia um caminho inexistente*), `doc-audit` e Python 3.9/3.12.
 - [ ] Protocolo 7.1 completo, com o `evidence-report --strict` colado no log de entrega. O PR sai como "pronto para revisão", nunca como "homologado".
 
 ## 4. Sequência atualizada
