@@ -229,6 +229,10 @@ run_test "Review Batteries: baterias adversariais das revisões (pendências em 
 run_test "Differential Fuzz: Comparação automática contra baseline e detecção de relaxamentos (PR-QA-A)" \
     "python3 '$PLUGIN_DIR/tests/test_gate_differential_fuzz.py' >/dev/null 2>&1"
 
+# 21. PR-07 Environment Tokens & Non-Downgrade Invariant
+run_test "Environment Tokens: Detecção por token explícito e invariante de não rebaixamento (PR-07)" \
+    "python3 '$PLUGIN_DIR/tests/test_environment_tokens.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"

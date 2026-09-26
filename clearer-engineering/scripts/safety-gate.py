@@ -494,7 +494,7 @@ def evaluate_command(
         return "allow", "Empty command", "development", "GENERAL"
 
     cmd_normalized = cmd_line.strip()
-    env, env_evidence = detect_environment(explicit_env, cmd_normalized)
+    env, env_evidence = detect_environment(explicit_env, cmd_normalized, target_dir=base_cwd)
 
     # Decompõe linha em subcomandos atômicos via FSM Lexer
     subcommands, parse_err = split_shell_pipeline(cmd_normalized)
