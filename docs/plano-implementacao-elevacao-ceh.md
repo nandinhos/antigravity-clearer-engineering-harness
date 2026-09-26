@@ -169,6 +169,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **V3 (falso positivo):** `git restore --staged .` sai deny.
 - **Próximos:** PR-05c (canonicalização de pathspec), depois PR-06 e PR-QA.
 
+### 0.19 Ata do Conselho sobre o PR-05c endossada com ajustes ([Handoff 020](./temp_implementation/handoffs/handoff-020-revisao-ata-conselho-pr05c.md))
+
+- **Decisões:** analisador por tokens em `ceh_core/git.py`, que substitui as regex de `checkout`/`restore`/`switch`. Caminho absoluto = amplo. A ata `20260925_214340` entra na branch.
+- **Achados novos:**
+  - V1 depois de tree-ish e de `-s`;
+  - V4: falso positivo em nomes com hífen, como `feature/add-pdf`;
+  - V5: `--pathspec-from-file` invisível ao gate.
+- **Estado:** todos os achados estão na bateria como `PENDENTE:H020-*`.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
