@@ -208,6 +208,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - Y5: estado da suíte/evals declarado três vezes; passa a ser recusado pelo código.
 - **Próximos:** PR-QA-A2, depois PR-06.
 
+### 0.23 PR-QA-A2 homologado ([Handoff 024](./temp_implementation/handoffs/handoff-024-revisao-prqa-a2-despacho-pr06.md))
+
+- **Gramática falsificável sem bateria:** 232 relaxamentos com o W2 reintroduzido (reproduzido pela revisão).
+- **Primeiro relaxamento justificado:** H023-Y4.
+- **Evals** certificados e lidos pelo relatório.
+- **Linha de base:** `2820dad`.
+- **Próximos:**
+  - Z1 (regex de recusa sem fronteira de palavra) e Z2 (certificado de evals não invalidado);
+  - PR-06 com `ceh_core/find.py`, cabeça de interpretador resolvida e 8 formas novas pendentes na bateria.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

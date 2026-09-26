@@ -265,3 +265,24 @@ production|allow|H023-Y4|git checkout -- ':app/x'
 production|allow|H023-Y4-controle|git checkout -- '::app/x'
 production|deny|H023-X1-controle|git checkout -- ':^/!x'
 production|deny|H023-X1-controle|git checkout -- ':(top,exclude)x'
+
+# --- Handoff 024 · acréscimos ao PR-06 (G5): formas que o despacho do Handoff 017 não listava
+# find: caminho inicial ancestral do cwd é catastrófico (mesma regra do rm); ações -execdir/-ok e shell no -exec
+development|deny/CATASTROPHIC|PENDENTE:H024-G5|find .. -delete
+development|deny/CATASTROPHIC|PENDENTE:H024-G5|find / -execdir rm -rf {} +
+production|deny|PENDENTE:H024-G5|find .. -exec rm {} \;
+production|deny|H024-G5-ja-coberto|find . -type f -exec sh -c 'rm -f "$1"' _ {} \;
+production|deny|PENDENTE:H024-G5|find build -ok rm {} \;
+development|allow|H024-G5-controle|find ./build -name '*.o' -delete
+production|allow|H024-G5-controle|find . -name '*.pyc' -print
+# interpretadores: cabeça resolvida (caminho absoluto, env, versão) e literal catastrófico
+development|deny/CATASTROPHIC|PENDENTE:H024-G5|/usr/bin/python3 -c "import shutil; shutil.rmtree('/')"
+development|deny/CATASTROPHIC|PENDENTE:H024-G5|ruby -e "FileUtils.rm_rf('/')"
+production|deny|PENDENTE:H024-G5|env python3 -c "import os; os.remove('a')"
+production|deny|PENDENTE:H024-G5|python3.12 -c "import pathlib; pathlib.Path('db').unlink()"
+production|deny|H024-G5-ja-coberto|python3 -c "import os; os.system('rm -rf build')"
+production|deny|H024-G5-ja-coberto|node --eval "require('child_process').execSync('rm -rf dist')"
+production|allow|H024-G5-controle|python3 script.py
+production|allow|H024-G5-controle|python3 -c "import os; print(os.getcwd())"
+production|allow|H024-G5-controle|echo "shutil.rmtree"
+production|allow|H024-G5-controle|node -e "console.log(require('fs').existsSync('db'))"
