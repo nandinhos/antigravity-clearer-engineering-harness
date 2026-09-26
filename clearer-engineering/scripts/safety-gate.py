@@ -243,7 +243,7 @@ def max_severity_decision(
 
 
 def extract_shell_c_command(cmd_line: str) -> str | None:
-    """Extrai o comando executado via flag -c em sh, bash, zsh, dash, aplicando substituição posicional."""
+    """Extrai o comando executado via flag -c em shells conhecidos (AD2, Handoff 028)."""
     try:
         tokens = shlex.split(cmd_line, posix=True)
     except Exception:
@@ -256,11 +256,18 @@ def extract_shell_c_command(cmd_line: str) -> str | None:
         return None
 
     base = os.path.basename(tokens[idx])
-    if base in ("sh", "bash", "zsh", "dash"):
+    SHELL_NAMES = {
+        "sh", "bash", "zsh", "dash", "ksh", "mksh", "ash", "fish", "csh", "tcsh"
+    }
+    if base == "busybox" and idx + 1 < len(tokens) and os.path.basename(tokens[idx + 1]) in SHELL_NAMES:
+        idx += 1
+        base = os.path.basename(tokens[idx])
+
+    if base in SHELL_NAMES:
         i = idx + 1
         while i < len(tokens):
             tok = tokens[i]
-            if tok == "-c" and i + 1 < len(tokens):
+            if (tok == "-c" or (base == "fish" and tok == "--command")) and i + 1 < len(tokens):
                 script = tokens[i + 1]
                 extra_args = tokens[i + 2:]
                 return substitute_positional_args(script, extra_args)
@@ -322,31 +329,30 @@ def evaluate_subcommand(
                 depth=depth + 1
             )
 
-        # AC1 (Handoff 027 §3.1): Varredura fail-closed de sufixos iniciados por cabeça analisada após prefixo conhecido
-        KNOWN_PREFIXES = {
-            "rtk", "nohup", "builtin", "command", "exec", "nice",
-            "timeout", "sudo", "doas", "env", "time", "stdbuf",
-            "ionice", "chrt", "taskset", "xargs"
-        }
+        # AD1 (Handoff 028 §3.1): Varredura fail-closed de sufixos iniciados por cabeça analisada para TODO comando (sem lista)
         ANALYZED_HEADS = {
-            "rm", "git", "find", "sh", "bash", "zsh", "dash",
-            "node", "perl", "ruby", "eval", "su", "watch"
+            "rm", "git", "find",
+            "sh", "bash", "zsh", "dash", "ksh", "mksh", "ash", "fish", "csh", "tcsh",
+            "node", "nodejs", "perl", "ruby", "php", "awk", "gawk", "mawk", "nawk",
+            "deno", "bun", "eval", "su", "watch"
         }
-        first_tok = os.path.basename(sub_tokens[0])
-        if first_tok in KNOWN_PREFIXES:
-            for j in range(1, len(sub_tokens)):
-                base_t = os.path.basename(sub_tokens[j])
-                if base_t in ANALYZED_HEADS or base_t.startswith("python"):
-                    suffix_cmd = shlex.join(sub_tokens[j:])
-                    s_res = evaluate_command(
-                        suffix_cmd,
-                        explicit_env=explicit_env,
-                        base_cwd=base_cwd,
-                        depth=depth + 1
-                    )
-                    if s_res[3] == "CATASTROPHIC":
-                        return s_res
-                    candidate = max_severity_decision(candidate, s_res) if candidate else s_res
+        for j in range(1, len(sub_tokens)):
+            base_t = os.path.basename(sub_tokens[j])
+            if (
+                base_t in ANALYZED_HEADS
+                or base_t.startswith("python")
+                or base_t.startswith("php")
+            ):
+                suffix_cmd = shlex.join(sub_tokens[j:])
+                s_res = evaluate_command(
+                    suffix_cmd,
+                    explicit_env=explicit_env,
+                    base_cwd=base_cwd,
+                    depth=depth + 1
+                )
+                if s_res[3] == "CATASTROPHIC":
+                    return s_res
+                candidate = max_severity_decision(candidate, s_res) if candidate else s_res
 
     shell_inner = extract_shell_c_command(sub_raw)
     if shell_inner:

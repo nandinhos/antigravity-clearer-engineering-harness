@@ -550,7 +550,10 @@ json.dump(results, sys.stdout)
 
         target_cmds = [
             c for c in self.all_commands
-            if any(c.strip().split()[0].endswith(x) for x in ("git", "find", "python3", "node", "perl", "ruby", "sh", "bash"))
+            if any(c.strip().split()[0].endswith(x) for x in (
+                "git", "find", "python3", "node", "perl", "ruby", "php", "awk", "deno", "bun",
+                "sh", "bash", "zsh", "dash", "ksh", "fish", "ash"
+            ))
         ]
         rng = random.Random(42)
         sample_cmds = rng.sample(target_cmds, min(400, len(target_cmds)))
@@ -573,6 +576,10 @@ json.dump(results, sys.stdout)
                 ("eval", f"eval {shlex.quote(cmd)}"),
                 ("watch -n1", f"watch -n1 {shlex.quote(cmd)}"),
                 ("env -S", f"env -S {shlex.quote(cmd)}"),
+                ("setsid", f"setsid {cmd}"),
+                ("flock /tmp/l", f"flock /tmp/l {cmd}"),
+                ("strace -f", f"strace -f {cmd}"),
+                ("custom_wrapper", f"mywrapper_cmd {cmd}"),
             ]
 
             for env in ("development", "staging", "production"):

@@ -355,14 +355,14 @@ production|allow|H027-controle|env -S 'npm run build'
 
 # --- Handoff 028 · revisão do PR-06d (varredura final das classes G1–G6)
 # AD1: a varredura de sufixos só roda após prefixo da lista fixa; qualquer outro embrulho esconde find/git/interpretadores
-production|deny/CATASTROPHIC|PENDENTE:H028-AD1|setsid find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H028-AD1|flock /tmp/lock find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H028-AD1|chroot / find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H028-AD1|busybox find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H028-AD1|strace -f find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H028-AD1|ssh host find / -delete
-production|deny/CATASTROPHIC|PENDENTE:H028-AD1|docker exec app find / -delete
-production|deny|PENDENTE:H028-AD1|setsid git checkout -- .
+production|deny/CATASTROPHIC|H028-AD1|setsid find / -delete
+production|deny/CATASTROPHIC|H028-AD1|flock /tmp/lock find / -delete
+production|deny/CATASTROPHIC|H028-AD1|chroot / find / -delete
+production|deny/CATASTROPHIC|H028-AD1|busybox find / -delete
+production|deny/CATASTROPHIC|H028-AD1|strace -f find / -delete
+production|deny/CATASTROPHIC|H028-AD1|ssh host find / -delete
+production|deny/CATASTROPHIC|H028-AD1|docker exec app find / -delete
+production|deny|H028-AD1|setsid git checkout -- .
 production|allow|H028-controle|sudo apt install git
 production|allow|H028-controle|man find
 production|allow|H028-controle|which python3
@@ -371,19 +371,19 @@ production|allow|H028-controle|git commit -m "find / -delete"
 production|allow|H028-controle|grep -rn find src/
 production|allow|H028-controle|docker exec app php artisan route:list
 # AD2: shells fora da lista (ksh, fish, ash)
-development|deny/CATASTROPHIC|PENDENTE:H028-AD2|ksh -c "find / -delete"
-development|deny/CATASTROPHIC|PENDENTE:H028-AD2|fish -c "find / -delete"
-development|deny/CATASTROPHIC|PENDENTE:H028-AD2|ash -c "find / -delete"
+development|deny/CATASTROPHIC|H028-AD2|ksh -c "find / -delete"
+development|deny/CATASTROPHIC|H028-AD2|fish -c "find / -delete"
+development|deny/CATASTROPHIC|H028-AD2|ash -c "find / -delete"
 # AD3: opção com argumento colado no interpretador (-MFile::Path contém "e" e é lida como -e)
-development|deny/CATASTROPHIC|PENDENTE:H028-AD3|perl -MFile::Path -e 'File::Path::rmtree("/")'
-development|deny/CATASTROPHIC|PENDENTE:H028-AD3|perl -MFile::Path=rmtree -e 'rmtree "/"'
+development|deny/CATASTROPHIC|H028-AD3|perl -MFile::Path -e 'File::Path::rmtree("/")'
+development|deny/CATASTROPHIC|H028-AD3|perl -MFile::Path=rmtree -e 'rmtree "/"'
 # AD4: famílias de interpretador sem cobertura (php, awk, deno, bun)
-production|deny|PENDENTE:H028-AD4|php -r 'array_map("unlink", glob("*"));'
-development|deny/CATASTROPHIC|PENDENTE:H028-AD4|php -r 'system("rm -rf /");'
-development|deny/CATASTROPHIC|PENDENTE:H028-AD4|php -r 'exec("find / -delete");'
-development|deny/CATASTROPHIC|PENDENTE:H028-AD4|awk 'BEGIN{system("find / -delete")}'
-development|deny/CATASTROPHIC|PENDENTE:H028-AD4|deno eval "Deno.removeSync('/', {recursive:true})"
-development|deny/CATASTROPHIC|PENDENTE:H028-AD4|bun -e "require('fs').rmSync('/',{recursive:true})"
+production|deny|H028-AD4|php -r 'array_map("unlink", glob("*"));'
+development|deny/CATASTROPHIC|H028-AD4|php -r 'system("rm -rf /");'
+development|deny/CATASTROPHIC|H028-AD4|php -r 'exec("find / -delete");'
+development|deny/CATASTROPHIC|H028-AD4|awk 'BEGIN{system("find / -delete")}'
+development|deny/CATASTROPHIC|H028-AD4|deno eval "Deno.removeSync('/', {recursive:true})"
+development|deny/CATASTROPHIC|H028-AD4|bun -e "require('fs').rmSync('/',{recursive:true})"
 production|allow|H028-controle|php -r 'echo PHP_VERSION;'
 production|allow|H028-controle|awk '{print $1}' access.log
 production|allow|H028-controle|php artisan route:list
