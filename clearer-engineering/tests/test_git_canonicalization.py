@@ -146,5 +146,61 @@ class TestGitCanonicalization(unittest.TestCase):
             self.assertIn("Opção global do Git não homologada", reason)
 
 
+    # --------------------------------------------------------------------------
+    # U1 (PR-05b): Pathspec ./ e variantes são amplos / destrutivos
+    # --------------------------------------------------------------------------
+    def test_u1_checkout_restore_dot_slash_pathspec(self):
+        u1_destructive = [
+            "git checkout -- ./",
+            "git checkout ./",
+            "git checkout .//",
+            "git checkout .//.",
+            "git restore ./",
+            "git restore -- ./",
+        ]
+        for cmd in u1_destructive:
+            decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}' ({use_case})")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+    # --------------------------------------------------------------------------
+    # U2 (PR-05b): Opção global -P (--no-pager) inócua
+    # --------------------------------------------------------------------------
+    def test_u2_dash_p_innocuous_flag(self):
+        u2_cases = [
+            ("git -P diff", "allow", "GENERAL"),
+            ("git -P log -5", "allow", "GENERAL"),
+            ("git -P reset --hard", "deny", "GIT_HISTORY"),
+        ]
+        for cmd, exp_dec, exp_uc in u2_cases:
+            decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, exp_dec, f"Comando '{cmd}' falhou: {reason}")
+            self.assertEqual(use_case, exp_uc)
+
+    # --------------------------------------------------------------------------
+    # U3 (PR-05b): Git switch com flags destrutivas (-f, --force, --discard-changes)
+    # --------------------------------------------------------------------------
+    def test_u3_git_switch_destructive(self):
+        destructive = [
+            "git switch -f main",
+            "git switch --force main",
+            "git switch --discard-changes main",
+        ]
+        for cmd in destructive:
+            decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}'")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+        controls = [
+            "git switch main",
+            "git switch -c feature",
+            "git switch -b feature",
+            "git switch --create feature",
+        ]
+        for cmd in controls:
+            decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}', obteve '{decision}'")
+
+
 if __name__ == "__main__":
     unittest.main()

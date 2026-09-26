@@ -26,8 +26,8 @@ SAFE_DEV_PATTERNS = [
     # Safe single file removal
     r"\brm\s+-[rRfF]*[fF][rRfF]*\s+[a-zA-Z0-9_\-\.\/]+\.[a-zA-Z0-9]+(?:\s|$)",
     # Safe git checkout/restore of specific files (not '.' or whole tree)
-    r"\bgit\s+checkout\s+(?![\.\-]\s*$)[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
-    r"\bgit\s+restore\s+(?![\.\-]\s*$)[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
+    r"\bgit\s+checkout\s+(?:--\s+)?(?!(?:\.(?:[\.\/]*)|--?)(?:\s|$))[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
+    r"\bgit\s+restore\s+(?:--\s+)?(?!(?:\.(?:[\.\/]*)|--?)(?:\s|$))[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
 ]
 
 # Destructive patterns categorized by Use Case
@@ -48,8 +48,9 @@ USE_CASE_DESTRUCTIVE_PATTERNS = [
     (r"\bgit\s+reset\s+--hard\b", "Destructive Git reset discarding uncommitted changes (git reset --hard)", "GIT_HISTORY", "Controle de Versão (Git)"),
     (r"\bgit\s+clean\s+-[a-zA-Z]*f", "Git clean discarding untracked files (git clean -f)", "GIT_HISTORY", "Controle de Versão (Git)"),
     (r"\bgit\s+checkout\s+.*-(?:[a-zA-Z]*f|-[a-zA-Z]*force)(?:\s|$)", "Git checkout with force flag discarding modifications", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+checkout\s+(?:.*?\s+)?(?:\.|\:\/|'\*'|\"[\*]\"|\*)(?:\s|$)", "Git checkout discarding all modified files", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+restore\s+(?:.*?\s+)?(?:\.|\:\/|'\*'|\"[\*]\"|\*)(?:\s|$)", "Git restore discarding all working tree changes", "GIT_HISTORY", "Controle de Versão (Git)"),
+    (r"\bgit\s+checkout\s+(?:.*?\s+)?(?:\.(?:[\.\/]*)|:\/|'\*'|\"[\*]\"|\*)(?:\s|$)", "Git checkout discarding all modified files", "GIT_HISTORY", "Controle de Versão (Git)"),
+    (r"\bgit\s+restore\s+(?:.*?\s+)?(?:\.(?:[\.\/]*)|:\/|'\*'|\"[\*]\"|\*)(?:\s|$)", "Git restore discarding all working tree changes", "GIT_HISTORY", "Controle de Versão (Git)"),
+    (r"\bgit\s+switch\s+.*-(?:[a-zA-Z]*f|-[a-zA-Z]*force|-[a-zA-Z]*discard-changes)(?:\s|$)", "Git switch discarding uncommitted changes", "GIT_HISTORY", "Controle de Versão (Git)"),
     (r"\bgit\s+branch\s+-[dD]\b", "Force deleting a Git branch", "GIT_HISTORY", "Controle de Versão (Git)"),
     (r"\bgit\s+push\s+.*--force\b", "Force pushing to remote repository (git push --force)", "GIT_HISTORY", "Controle de Versão (Git)"),
     (r"\bgit\s+push\s+.*-f\b", "Force pushing to remote repository (git push -f)", "GIT_HISTORY", "Controle de Versão (Git)"),

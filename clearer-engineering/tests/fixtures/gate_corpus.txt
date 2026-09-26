@@ -230,3 +230,49 @@ B64:cm0gLXJmIGNvdmVyYWdlLy4uLy5naXQ=
 # PR-04d Variantes de Ancestrais Catastróficos
 B64:cm0gLXJmIC9ob21lL3VzZXIvLi4=
 B64:cm0gLXJmIC91c3IvbG9jYWwvLi4vLi4=
+# PR-05b Bateria de Revisão H017 (G2/G3/U1-U3: Git Destrutivo e Controles)
+RAW:git restore .
+RAW:git restore --staged --worktree .
+RAW:git restore --source=HEAD .
+RAW:git restore :/
+RAW:git restore -W -S .
+RAW:git restore --worktree -- .
+RAW:git restore -s HEAD .
+RAW:git restore ./
+RAW:git restore -- ./
+RAW:git checkout .
+RAW:git checkout -- .
+RAW:git checkout ./
+RAW:git checkout -- ./
+RAW:git checkout .//
+RAW:git checkout ./.
+RAW:git checkout HEAD .
+RAW:git checkout HEAD -- .
+RAW:git checkout @ -- .
+RAW:git checkout --force main
+RAW:git checkout -f
+RAW:git checkout :/
+RAW:git checkout -- '*'
+RAW:git checkout -- *
+RAW:git checkout -f -- app/x.php
+RAW:git switch -f main
+RAW:git switch --discard-changes main
+RAW:git switch --force main
+RAW:git -C . reset --hard
+RAW:git --no-pager reset --hard
+RAW:git -P reset --hard
+RAW:git --paginate reset --hard
+RAW:git --no-pager -C . reset --hard
+# PR-05b Controles Seguros Git
+RAW:git checkout app/Model.php
+RAW:git checkout feature/login
+RAW:git checkout -- app/Model.php
+RAW:git checkout v1.2.0
+RAW:git restore --staged app/Model.php
+RAW:git -C sub status
+RAW:git --no-pager log -5
+RAW:git -P diff
+RAW:git -P log -5
+RAW:git switch main
+RAW:git switch -c feature
+RAW:git switch -b feature

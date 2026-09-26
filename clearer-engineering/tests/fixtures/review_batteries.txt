@@ -109,14 +109,14 @@ production|deny|H017-G2|git restore -W -S .
 production|deny|H017-G2|git restore --worktree -- .
 production|deny|H017-G2|git restore -s HEAD .
 production|deny|H017-G2|git checkout -f -- app/x.php
-production|deny|PENDENTE:H017-U1|git checkout -- ./
+production|deny|H017-U1|git checkout -- ./
 production|deny|H017-G3|git -C . reset --hard
 production|deny|H017-G3|git --no-pager reset --hard
 production|deny|H017-G3|git -P reset --hard
 production|deny|H017-G3|git --paginate reset --hard
 production|deny|H017-G3|git --no-pager -C . reset --hard
-production|deny|PENDENTE:H017-U3|git switch -f main
-production|deny|PENDENTE:H017-U3|git switch --discard-changes main
+production|deny|H017-U3|git switch -f main
+production|deny|H017-U3|git switch --discard-changes main
 production|allow|H017-controle|git checkout app/Model.php
 production|allow|H017-controle|git checkout main
 production|allow|H017-controle|git checkout -b feature
@@ -127,8 +127,8 @@ production|allow|H017-controle|git restore --staged app/Model.php
 production|allow|H017-controle|git status
 production|allow|H017-controle|git -C sub status
 production|allow|H017-controle|git --no-pager log -5
-production|allow|PENDENTE:H017-U2|git -P diff
-production|allow|PENDENTE:H017-U2|git -P log -5
+production|allow|H017-U2|git -P diff
+production|allow|H017-U2|git -P log -5
 production|allow|H017-controle|git switch main
 production|allow|H017-controle|git switch -c feature
 

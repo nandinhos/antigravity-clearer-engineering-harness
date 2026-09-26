@@ -74,7 +74,7 @@ def resolve_git_invocation(
     i = 1
 
     INNOCUOUS_GLOBAL_FLAGS = {
-        "--no-pager", "-p", "--paginate",
+        "--no-pager", "-p", "-P", "--paginate",
         "--no-replace-objects", "--literal-pathspecs", "--bare"
     }
 
@@ -101,6 +101,16 @@ def resolve_git_invocation(
             subcommand = token
             remaining_args = tokens[i+1:]
             break
+
+    # U1: normalização de pathspecs equivalentes ao diretório atual (./, .//, ./.) para .
+    if subcommand in ("checkout", "restore"):
+        norm_args = []
+        for arg in remaining_args:
+            if arg in ("./", ".//", "./.") or (arg.startswith("./") and all(c in "./" for c in arg)):
+                norm_args.append(".")
+            else:
+                norm_args.append(arg)
+        remaining_args = norm_args
 
     repo_root = find_repo_root(current_dir) if current_dir.exists() else current_dir
     if subcommand is None:
