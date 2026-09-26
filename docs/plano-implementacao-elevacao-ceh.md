@@ -141,6 +141,17 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **T1:** o atalho seguro usa o caminho cru. Em produção, `rm -rf build/../src` e `rm -rf coverage/../.git` saem `allow`.
 - **Próximos:** PR-04d (normalização + fuzz com invariantes, ≥ 2000 casos) e, na sequência, PR-05 (G2 + G3).
 
+### 0.16 PR-04d e PR-05 revisados ([Handoff 017](./temp_implementation/handoffs/handoff-017-revisao-pr04d-pr05-e-despacho-pr05b-pr06.md))
+
+- **PR-04d homologado:** T1 fechado; fuzz falsificável (falha com o T1 reintroduzido).
+- **PR-05 com ressalvas:**
+  - G2/G3 fechados, e `-C` define o ambiente nas duas direções;
+  - U1: `git checkout -- ./` = allow em produção;
+  - U2: `git -P` negado (falso positivo);
+  - U3: `git switch -f` não coberto;
+  - U4: bateria fora do corpus.
+- **Próximos:** PR-05b (pequeno) e PR-06 (G5: `find -delete`/`-exec rm` e one-liners ancorados no interpretador). Com eles, a Onda 1 fecha.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
