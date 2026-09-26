@@ -218,6 +218,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - Z1 (regex de recusa sem fronteira de palavra) e Z2 (certificado de evals não invalidado);
   - PR-06 com `ceh_core/find.py`, cabeça de interpretador resolvida e 8 formas novas pendentes na bateria.
 
+### 0.24 PR-06 implementado (G5: deleções indiretas) — Fechamento da Onda 1
+
+- **find por tokens (`ceh_core/find.py`):** 188 linhas (≤ 300), reuso de `is_target_catastrophic` para `/`, `~`, `/etc`, `..`, exceto quando o caminho for o próprio cwd (`.`); ações `-delete`, `-exec`, `-execdir`, `-ok` destrutivas graduadas por ambiente (`FILESYSTEM`).
+- **Interpretadores (`ceh_core/interpreters.py`):** 155 linhas (≤ 300), cabeças resolvidas (`/usr/bin/python3`, `env python3`, `python3.12`, `node`, `perl`, `ruby`), flags inline (`-c`, `-e`, `--eval`), literal catastrófico -> `CATASTROPHIC`. Âncoras seguras preservadas.
+- **Testes:** 15 pendências do G5 desmarcadas e verdes na bateria (Ran 1 test, OK); 3 testes do G5 verdes em `cluster4_acceptance.py` (resta apenas G7); 0 regex novas em `rules.py`.
+- **Fuzz e falsificabilidade:** diferencial contra `2820dad` sem relaxamentos (0 adições em `relaxamentos_justificados.txt`); gramática combinatória estendida detecta 52 relaxamentos sozinha ao desabilitar `/usr/bin/python3`.
+- **Próximos:** Homologação do PR-06, PR-QA B–E e Onda 2 (PR-08 G7, PR-09, PR-10).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

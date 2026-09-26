@@ -38,6 +38,8 @@ from ceh_core.environment import (
 )
 from ceh_core.rm import evaluate_rm_command
 from ceh_core.git import evaluate_git_subcommand
+from ceh_core.find import evaluate_find_command
+from ceh_core.interpreters import evaluate_interpreter_command
 
 
 def resolve_git_invocation(
@@ -232,6 +234,16 @@ def evaluate_subcommand(
     rm_res = evaluate_rm_command(sub_norm, env, env_evidence=env_evidence, base_cwd=base_cwd)
     if rm_res is not None:
         return rm_res
+
+    # 0.1 Avaliação Estrita de 'find' por tokens (G5, PR-06)
+    find_res = evaluate_find_command(sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd)
+    if find_res is not None:
+        return find_res
+
+    # 0.2 Avaliação Estrita de interpretadores (python, node, perl, ruby) por tokens (G5, PR-06)
+    interp_res = evaluate_interpreter_command(sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd)
+    if interp_res is not None:
+        return interp_res
 
     # 1. Catastrophic Blocks: DENY has absolute priority in ANY environment
     for pattern, reason in CATASTROPHIC_PATTERNS:

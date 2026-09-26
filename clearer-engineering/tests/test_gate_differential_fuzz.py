@@ -159,30 +159,20 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
     reset_opts = ["--hard", "--soft", "--mixed", "--merge", "--keep"]
     clean_opts = ["-f", "-fd", "-fx", "-fxd", "-n", "-nd", "-f -d", "--force"]
 
-    # Comandos find (Y1)
-    find_catastrophic_roots = ["/", "~", "/etc", "..", "/var", "/usr", "/home"]
-    find_safe_roots = [".", "src", "build", "dist", "/tmp"]
+    # Produções combinatórias de find (Handoff 024)
+    find_comb_paths = ["/", "~", "/etc", "..", ".", "build", "./src"]
+    find_comb_filters = ["", "-name '*.pyc'", "-type f"]
+    find_comb_actions = [
+        "-delete",
+        "-exec rm {} +",
+        "-execdir rm -rf {} \\;",
+        "-ok rm {} \\;",
+        "-print"
+    ]
 
-    # One-liners de interpretador (Y1)
-    interpreter_destructive = [
-        "python3 -c \"import shutil; shutil.rmtree('/')\"",
-        "python3 -c \"import os; os.system('rm -rf /')\"",
-        "node -e \"fs.rmSync('/', {recursive: true})\"",
-        "node -e \"child_process.execSync('rm -rf *')\"",
-        "perl -e \"system('rm -rf /')\"",
-        "ruby -e \"require 'fileutils'; FileUtils.rm_rf('/')\"",
-        "sh -c \"rm -rf /\"",
-        "bash -c \"rm -rf *\""
-    ]
-    interpreter_safe = [
-        "python3 -c \"print('hello')\"",
-        "python3 -c \"import sys; sys.exit(0)\"",
-        "node -e \"console.log(1+1)\"",
-        "perl -e \"print 42\"",
-        "ruby -e \"puts 'hello'\"",
-        "sh -c \"echo safe\"",
-        "bash -c \"echo safe\""
-    ]
+    # Produções combinatórias de interpretadores (Handoff 024)
+    interp_literals = ["/", "~", "db", "/srv", ".."]
+    interp_heads_py = ["python3", "/usr/bin/python3", "env python3", "python3.12"]
 
     while len(cmds) < target_unique:
         cat = rng.randint(1, 10)
@@ -232,25 +222,65 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
                 cmds.add(f"{rng.choice(git_prefixes)} push origin {rng.choice(branches)} {rng.choice(['', '--force', '-f', '--force-with-lease'])}".strip())
             else:
                 cmds.add(f"{rng.choice(git_prefixes)} branch {rng.choice(['-d', '-D', '-m', '-a'])} {rng.choice(branches)}")
-        elif cat == 8:  # find com -delete catastrófico e seguro (Y1)
-            r = rng.random()
-            if r < 0.3:
-                root = rng.choice(find_catastrophic_roots)
-                cmds.add(f"find {root} -delete")
-            elif r < 0.6:
-                root = rng.choice(find_catastrophic_roots)
-                cmds.add(f"find {root} -name '*.log' -delete")
-            elif r < 0.8:
-                root = rng.choice(find_safe_roots)
-                cmds.add(f"find {root} -name '*.pyc' -delete")
-            else:
-                root = rng.choice(find_catastrophic_roots)
-                cmds.add(f"find {root} -exec rm -rf {{}} +")
-        elif cat == 9:  # one-liners de interpretador inócuos e destrutivos (Y1)
-            if rng.random() < 0.5:
-                cmds.add(rng.choice(interpreter_destructive))
-            else:
-                cmds.add(rng.choice(interpreter_safe))
+        elif cat == 8:  # find combinatório (Handoff 024)
+            p = rng.choice(find_comb_paths)
+            flt = rng.choice(find_comb_filters)
+            act = rng.choice(find_comb_actions)
+            find_parts = ["find", p]
+            if flt:
+                find_parts.append(flt)
+            find_parts.append(act)
+            cmds.add(" ".join(find_parts))
+        elif cat == 9:  # one-liners de interpretador combinatórios (Handoff 024)
+            lit = rng.choice(interp_literals)
+            family = rng.choice(["python", "node", "perl", "ruby"])
+            if family == "python":
+                head = rng.choice(interp_heads_py)
+                flag = "-c"
+                if rng.random() < 0.7:
+                    api = rng.choice([
+                        f"import shutil; shutil.rmtree('{lit}')",
+                        f"import os; os.remove('{lit}')",
+                        f"import os; os.unlink('{lit}')",
+                        f"import os; os.rmdir('{lit}')",
+                        f"import pathlib; pathlib.Path('{lit}').unlink()",
+                        f"import pathlib; pathlib.Path('{lit}').rmdir()"
+                    ])
+                else:
+                    api = rng.choice([f"import os; print('{lit}')", "print('hello')", "import sys; sys.exit(0)"])
+                cmds.add(f'{head} {flag} "{api}"')
+            elif family == "node":
+                head = "node"
+                flag = rng.choice(["-e", "--eval"])
+                if rng.random() < 0.7:
+                    api = rng.choice([
+                        f"require('fs').rmSync('{lit}', {{recursive:true}})",
+                        f"require('fs').unlinkSync('{lit}')",
+                        f"require('fs').rmdirSync('{lit}')"
+                    ])
+                else:
+                    api = rng.choice([f"console.log('{lit}')", f"console.log(require('fs').existsSync('{lit}'))", "console.log(1+1)"])
+                cmds.add(f"{head} {flag} \"{api}\"")
+            elif family == "perl":
+                head = "perl"
+                flag = rng.choice(["-e", "-E"])
+                if rng.random() < 0.7:
+                    api = rng.choice([f"unlink '{lit}'", f"rmdir '{lit}'", f"use File::Path; rmtree('{lit}')"])
+                else:
+                    api = rng.choice([f"print '{lit}'", "print 42"])
+                cmds.add(f"{head} {flag} \"{api}\"")
+            elif family == "ruby":
+                head = "ruby"
+                flag = "-e"
+                if rng.random() < 0.7:
+                    api = rng.choice([
+                        f"require 'fileutils'; FileUtils.rm_rf('{lit}')",
+                        f"File.unlink('{lit}')",
+                        f"Dir.rmdir('{lit}')"
+                    ])
+                else:
+                    api = rng.choice([f"puts '{lit}'", "puts 'hello'"])
+                cmds.add(f"{head} {flag} \"{api}\"")
         elif cat == 10:  # pipelines e comandos encadeados
             r = rng.random()
             if r < 0.4:

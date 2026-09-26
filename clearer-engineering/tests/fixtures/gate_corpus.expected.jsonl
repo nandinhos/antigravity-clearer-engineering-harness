@@ -292,21 +292,21 @@
 {"command": "rm -rf /opt", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-097-dev", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf /opt", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-097-sta", "type": "command", "use_case": "CATASTROPHIC"}
 {"command": "rm -rf /opt", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-097-pro", "type": "command", "use_case": "CATASTROPHIC"}
-{"command": "find / -delete", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-098-dev", "type": "command", "use_case": "GENERAL"}
-{"command": "find / -delete", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-098-sta", "type": "command", "use_case": "GENERAL"}
-{"command": "find / -delete", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-098-pro", "type": "command", "use_case": "GENERAL"}
-{"command": "find . -name x -exec rm {} +", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-099-dev", "type": "command", "use_case": "GENERAL"}
-{"command": "find . -name x -exec rm {} +", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-099-sta", "type": "command", "use_case": "GENERAL"}
-{"command": "find . -name x -exec rm {} +", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-099-pro", "type": "command", "use_case": "GENERAL"}
-{"command": "find /var -type f -delete", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-100-dev", "type": "command", "use_case": "GENERAL"}
-{"command": "find /var -type f -delete", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-100-sta", "type": "command", "use_case": "GENERAL"}
-{"command": "find /var -type f -delete", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-100-pro", "type": "command", "use_case": "GENERAL"}
-{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-101-dev", "type": "command", "use_case": "GENERAL"}
-{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-101-sta", "type": "command", "use_case": "GENERAL"}
-{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-101-pro", "type": "command", "use_case": "GENERAL"}
-{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-102-dev", "type": "command", "use_case": "GENERAL"}
-{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-102-sta", "type": "command", "use_case": "GENERAL"}
-{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-102-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "find / -delete", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-098-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "find / -delete", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-098-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "find / -delete", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-098-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "find . -name x -exec rm {} +", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-099-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "find . -name x -exec rm {} +", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-099-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "find . -name x -exec rm {} +", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-099-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "find /var -type f -delete", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-100-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "find /var -type f -delete", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-100-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "find /var -type f -delete", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-100-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-101-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-101-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "python3 -c \"import shutil; shutil.rmtree(\\\"/srv\\\")\"", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-101-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-102-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-102-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "python3 -c \"import os; os.remove(\\\"/etc/passwd\\\")\"", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-102-pro", "type": "command", "use_case": "FILESYSTEM"}
 {"command": ":(){ :|:& };:", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-103-dev", "type": "command", "use_case": "GENERAL"}
 {"command": ":(){ :|:& };:", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-103-sta", "type": "command", "use_case": "GENERAL"}
 {"command": ":(){ :|:& };:", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-103-pro", "type": "command", "use_case": "GENERAL"}

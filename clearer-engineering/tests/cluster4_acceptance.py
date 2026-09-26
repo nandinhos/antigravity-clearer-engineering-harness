@@ -138,23 +138,20 @@ class Cluster4Acceptance(unittest.TestCase):
         self.assertEqual(use_case, "FILESYSTEM_SAFE")
 
     # --------------------------------------------------------------------------
-    # G5: Alternative Deletion Tools (find, python shutil)
+    # G5: Alternative Deletion Tools (find, python shutil) (CORRIGIDO PR-06)
     # --------------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_g5_find_delete_root_production(self):
         """G5: find / -delete in production must be denied (today: allow)"""
         cmd = b64("ZmluZCAvIC1kZWxldGU=") # find / -delete
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g5_find_exec_rm_production(self):
         """G5: find . -name x -exec rm {} + in production must be denied (today: allow)"""
         cmd = b64("ZmluZCAuIC1uYW1lIHggLWV4ZWMgcm0ge30gKw==") # find . -name x -exec rm {} +
         decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
         self.assertEqual(decision, "deny", f"Esperado 'deny', mas obtido '{decision}' com razão: {reason}")
 
-    @unittest.expectedFailure
     def test_g5_python_shutil_rmtree_production(self):
         """G5: python3 -c 'import shutil; shutil.rmtree("/srv")' in production must be denied (today: allow)"""
         cmd = b64("cHl0aG9uMyAtYyAnaW1wb3J0IHNodXRpbDsgc2h1dGlsLnJtdHJlZSgiL3NydiIpJw==") # python3 shutil.rmtree
