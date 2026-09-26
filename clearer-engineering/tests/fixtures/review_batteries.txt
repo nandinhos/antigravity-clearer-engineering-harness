@@ -165,41 +165,48 @@ production|allow|H019-controle|git checkout -- ./app/Model.php
 production|allow|H019-controle|git checkout ./app/Model.php
 production|allow|H019-controle|git checkout -- ./src
 # V1: pathspec que resolve para a raiz (normalização e magia :(top))
-production|deny|PENDENTE:H019-V1|git checkout -- src/..
-production|deny|PENDENTE:H019-V1|git checkout -- ":(top)"
-production|deny|PENDENTE:H019-V1|git restore ':(top).'
-production|deny|PENDENTE:H019-V1|git checkout -- app/..
-production|deny|PENDENTE:H019-V1|git checkout -- ./src/../
-production|deny|PENDENTE:H019-V1|git checkout -- ':!x'
-production|deny|PENDENTE:H019-V1|git checkout -- ':^x'
-production|deny|PENDENTE:H019-V1|git restore ':(exclude)x'
+production|deny|H019-V1|git checkout -- src/..
+production|deny|H019-V1|git checkout -- ":(top)"
+production|deny|H019-V1|git restore ':(top).'
+production|deny|H019-V1|git checkout -- app/..
+production|deny|H019-V1|git checkout -- ./src/../
+production|deny|H019-V1|git checkout -- ':!x'
+production|deny|H019-V1|git checkout -- ':^x'
+production|deny|H019-V1|git restore ':(exclude)x'
 production|allow|H019-V1-controle|git checkout -- :/app/Model.php
 # V2: redefinição forçada de branch (mesma classe de git branch -D)
-production|deny|PENDENTE:H019-V2|git switch -C main
-production|deny|PENDENTE:H019-V2|git checkout -B main
+production|deny|H019-V2|git switch -C main
+production|deny|H019-V2|git checkout -B main
 production|allow|H019-V2-controle|git checkout -b feature
 production|allow|H019-V2-controle|git switch -c feature
 # V3: --staged sozinho só retira do stage (não destrutivo); --staged --worktree segue destrutivo
-production|allow|PENDENTE:H019-V3|git restore --staged .
-production|allow|PENDENTE:H019-V3|git restore --staged ./
-production|allow|PENDENTE:H019-V3|git restore -S .
-production|allow|PENDENTE:H019-V3|git restore --staged -- .
+production|allow|H019-V3|git restore --staged .
+production|allow|H019-V3|git restore --staged ./
+production|allow|H019-V3|git restore -S .
+production|allow|H019-V3|git restore --staged -- .
 production|deny|H019-V3-controle|git restore -S -W .
 
 # --- Handoff 020 · revisão da ata do Conselho (PR-05c): achados adicionais
 # V1 (mais formas): pathspec depois de tree-ish sem "--", com -s/--source e magia com ".."
-production|deny|PENDENTE:H020-V1|git checkout HEAD src/..
-production|deny|PENDENTE:H020-V1|git restore -s HEAD src/..
-production|deny|PENDENTE:H020-V1|git restore --source=HEAD~2 -- src/..
-production|deny|PENDENTE:H020-V1|git checkout -- ':/app/../..'
+production|deny|H020-V1|git checkout HEAD src/..
+production|deny|H020-V1|git restore -s HEAD src/..
+production|deny|H020-V1|git restore --source=HEAD~2 -- src/..
+production|deny|H020-V1|git checkout -- ':/app/../..'
 # V4: regex "-…f" casa nomes de branch/caminho com hífen (falso positivo)
-production|allow|PENDENTE:H020-V4|git checkout feature/add-pdf
-production|allow|PENDENTE:H020-V4|git checkout fix-leaf
-production|allow|PENDENTE:H020-V4|git switch hotfix-ref
-production|allow|PENDENTE:H020-V4|git checkout -- app/self-ref
+production|allow|H020-V4|git checkout feature/add-pdf
+production|allow|H020-V4|git checkout fix-leaf
+production|allow|H020-V4|git switch hotfix-ref
+production|allow|H020-V4|git checkout -- app/self-ref
 production|deny|H020-V4-controle|git checkout -qf main
 production|deny|H020-V4-controle|git switch -f hotfix-ref
 # V5: lista de pathspecs vinda de arquivo é invisível ao gate (fail-closed)
-production|deny|PENDENTE:H020-V5|git restore --pathspec-from-file=list.txt
-production|deny|PENDENTE:H020-V5|git checkout --pathspec-from-file=list.txt
-production|deny|PENDENTE:H020-V5|git restore --pathspec-from-file -
+production|deny|H020-V5|git restore --pathspec-from-file=list.txt
+production|deny|H020-V5|git checkout --pathspec-from-file=list.txt
+production|deny|H020-V5|git restore --pathspec-from-file -
+# Variantes inéditas adicionadas pelo agente (PR-05c)
+production|deny|H020-agente-V1|git checkout -- a/b/../..
+production|deny|H020-agente-V1|git restore ":(top,glob)*"
+production|deny|H020-agente-V1|git checkout -- ":(top,icase)*"
+production|allow|H020-agente-controle|git checkout ":(top)app/Services/PaymentService.php"
+production|allow|H020-agente-controle|git restore ":/config/app.php"
+production|deny|H020-agente-V2|git switch -C feature/new-workflow

@@ -202,5 +202,113 @@ class TestGitCanonicalization(unittest.TestCase):
             self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}', obteve '{decision}'")
 
 
+    # --------------------------------------------------------------------------
+    # V1 (PR-05c): Pathspecs relativos/mágicos amplos
+    # --------------------------------------------------------------------------
+    def test_v1_broad_relative_and_magic_pathspecs(self):
+        v1_destructive = [
+            "git checkout HEAD src/..",
+            "git checkout app/..",
+            "git restore -s HEAD src/..",
+            "git restore -s HEAD app/..",
+            "git checkout ':(top)'",
+            "git checkout ':(top).'",
+            "git checkout ':!x'",
+            "git checkout ':^x'",
+            "git checkout ':(exclude)x'",
+            "git checkout ':/app/../..'",
+            "git restore ':/app/../..'",
+        ]
+        for cmd in v1_destructive:
+            decision, reason, env, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado 'deny' para '{cmd}', obtido '{decision}' ({reason})")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+    # --------------------------------------------------------------------------
+    # V2 (PR-05c): Redefinição forçada de branch (-C e -B)
+    # --------------------------------------------------------------------------
+    def test_v2_forced_branch_reset_switch_and_checkout(self):
+        v2_cases = [
+            "git switch -C main",
+            "git switch -C feature-x origin/main",
+            "git checkout -B main",
+            "git checkout -B release/1.0",
+        ]
+        for cmd in v2_cases:
+            dec_prod, _, _, uc_prod = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(dec_prod, "deny", f"Esperado deny em PROD para '{cmd}', obteve '{dec_prod}'")
+            self.assertEqual(uc_prod, "GIT_HISTORY")
+
+            dec_sta, reason_sta, _, _ = evaluate_command(cmd, explicit_env="staging")
+            self.assertEqual(dec_sta, "ask", f"Esperado ask em STA para '{cmd}', obteve '{dec_sta}'")
+            self.assertIn("ALERTA 1/2", reason_sta)
+            self.assertIn("ALERTA 2/2", reason_sta)
+
+            dec_dev, _, _, _ = evaluate_command(cmd, explicit_env="development")
+            self.assertEqual(dec_dev, "allow", f"Esperado allow em DEV para '{cmd}', obteve '{dec_dev}'")
+
+    # --------------------------------------------------------------------------
+    # V3 (PR-05c): git restore --staged isolado vs com --worktree
+    # --------------------------------------------------------------------------
+    def test_v3_restore_staged_isolated_vs_with_worktree(self):
+        # --staged isolado altera apenas o index (não descarta worktree) -> allow
+        staged_safe = [
+            "git restore --staged .",
+            "git restore -S .",
+            "git restore --staged :/",
+            "git restore --staged src/..",
+        ]
+        for cmd in staged_safe:
+            for env in ["development", "staging", "production"]:
+                decision, reason, _, use_case = evaluate_command(cmd, explicit_env=env)
+                self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}' em '{env}', obteve '{decision}'")
+                self.assertEqual(use_case, "FILESYSTEM_SAFE")
+
+        # Com --worktree / -W presente e pathspec amplo -> deny em PROD
+        staged_with_worktree = [
+            "git restore --staged --worktree .",
+            "git restore -S -W .",
+            "git restore -W -S .",
+            "git restore --worktree --staged :/",
+        ]
+        for cmd in staged_with_worktree:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}' com worktree, obteve '{decision}'")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+    # --------------------------------------------------------------------------
+    # V4 (PR-05c): Falso positivo de nomes com hífen
+    # --------------------------------------------------------------------------
+    def test_v4_hyphenated_names_not_confused_with_flags(self):
+        v4_controls = [
+            "git checkout feature/add-pdf",
+            "git checkout fix-leaf",
+            "git checkout -b fix-leaf",
+            "git switch hotfix-ref",
+            "git switch -c hotfix-ref",
+            "git checkout -- app/self-ref",
+            "git checkout app/self-ref",
+        ]
+        for cmd in v4_controls:
+            for env in ["development", "staging", "production"]:
+                decision, reason, _, use_case = evaluate_command(cmd, explicit_env=env)
+                self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}' em '{env}', obteve '{decision}'")
+
+    # --------------------------------------------------------------------------
+    # V5 (PR-05c): Pathspec opaco (--pathspec-from-file) fail-closed
+    # --------------------------------------------------------------------------
+    def test_v5_opaque_pathspec_fail_closed(self):
+        v5_cases = [
+            "git restore --pathspec-from-file=list.txt",
+            "git restore --pathspec-from-file=-",
+            "git restore --pathspec-file-nul",
+            "git checkout --pathspec-from-file=list.txt",
+        ]
+        for cmd in v5_cases:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}' ({reason})")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+
 if __name__ == "__main__":
     unittest.main()

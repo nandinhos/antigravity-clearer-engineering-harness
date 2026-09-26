@@ -37,6 +37,7 @@ from ceh_core.environment import (
     find_repo_root,
 )
 from ceh_core.rm import evaluate_rm_command
+from ceh_core.git import evaluate_git_subcommand
 
 
 def resolve_git_invocation(
@@ -217,6 +218,38 @@ def evaluate_subcommand(
             sub_env, sub_env_evidence = detect_environment(explicit_env=None, target_dir=target_repo)
             env = sub_env
             env_evidence = sub_env_evidence
+
+        # PR-05c (Handoffs 019 e 020): Analisador por tokens para checkout, restore e switch
+        if git_subcmd in ("checkout", "restore", "switch"):
+            is_dest, desc, use_case_code = evaluate_git_subcommand(git_subcmd, git_args)
+            if is_dest:
+                if env == "production":
+                    reason = (
+                        f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
+                        f"(Caso de Uso: Controle de Versão (Git)): {desc}.\n"
+                        f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+                        f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
+                    )
+                    return "deny", reason, env, use_case_code
+                if env == "staging":
+                    reason = (
+                        f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: Controle de Versão (Git)]\n"
+                        f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural ({desc}).\n"
+                        f"   Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+                        f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
+                        f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
+                        f"Confirma a execução com rollback assegurado?"
+                    )
+                    return "ask", reason, env, use_case_code
+                reason = (
+                    f"[CEH DEV PERMITTED - Caso de Uso: Controle de Versão (Git)] Comando destrutivo liberado para ambiente de "
+                    f"DESENVOLVIMENTO/TESTE ({desc}). Ambiente: {env.upper()} (Evidência: {env_evidence}).\n"
+                    f"Assegure a disponibilidade de backup e rollback para fins de correção."
+                )
+                return "allow", reason, env, use_case_code
+            else:
+                safe_uc = "GENERAL" if git_subcmd == "switch" else "FILESYSTEM_SAFE"
+                return "allow", f"Safe Git operation permitted ({env_evidence}).", env, safe_uc
 
     # 3. Safe Development Bypasses: allow cache/scratch cleanup and selective checkout (sem outros padrões destrutivos)
     is_safe_dev = False

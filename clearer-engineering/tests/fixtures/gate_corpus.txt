@@ -276,3 +276,46 @@ RAW:git -P log -5
 RAW:git switch main
 RAW:git switch -c feature
 RAW:git switch -b feature
+# PR-05c V1: Pathspecs relativos, com tree-ish e magias Git amplas
+RAW:git checkout src/..
+RAW:git checkout -- app/..
+RAW:git restore src/..
+RAW:git restore -- app/..
+RAW:git checkout ':(top)'
+RAW:git checkout ':(top).'
+RAW:git restore ':(top)'
+RAW:git restore ':(top).'
+RAW:git checkout ':!x'
+RAW:git checkout ':^x'
+RAW:git checkout ':(exclude)x'
+RAW:git restore ':!x'
+RAW:git checkout HEAD src/..
+RAW:git restore -s HEAD src/..
+RAW:git checkout ':/app/../..'
+RAW:git restore ':/app/../..'
+# PR-05c V2: Redefinição forçada de branch (-C e -B)
+RAW:git switch -C main
+RAW:git switch -C feature-x origin/main
+RAW:git checkout -B main
+RAW:git checkout -B release/1.0
+# PR-05c V3: git restore --staged isolado e com --worktree
+RAW:git restore --staged .
+RAW:git restore -S .
+RAW:git restore --staged :
+RAW:git restore --staged :(
+RAW:git restore --staged :!x
+RAW:git restore --staged --worktree .
+RAW:git restore -S -W .
+RAW:git restore -W -S .
+RAW:git restore --worktree --staged :/
+# PR-05c V4: Controles seguros com hífen
+RAW:git checkout feature/add-pdf
+RAW:git checkout fix-leaf
+RAW:git switch hotfix-ref
+RAW:git checkout -- app/self-ref
+RAW:git checkout -b fix-leaf
+RAW:git switch -c hotfix-ref
+# PR-05c V5: Pathspec opaco (--pathspec-from-file)
+RAW:git restore --pathspec-from-file=list.txt
+RAW:git checkout --pathspec-from-file=list.txt
+RAW:git restore --pathspec-file-nul
