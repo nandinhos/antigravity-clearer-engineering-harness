@@ -101,9 +101,7 @@ def is_broad_pathspec(pathspec: str) -> bool:
             return _is_broad_subpath(p[idx:].lstrip("/"))
 
         # Sem '/' nem exclusão, mas iniciado com ':'
-        if _is_broad_subpath(p[idx:]):
-            return True
-        return idx == 1 and not (p[1:].startswith("/") or p[1:].isalnum() or p[1:2] in (".", "_", "-"))
+        return _is_broad_subpath(p[idx:])
 
     # Pathspec sem magia: absoluto -> amplo (fail-closed)
     if p.startswith("/") or posixpath.isabs(p) or p in ("*", "/*"):

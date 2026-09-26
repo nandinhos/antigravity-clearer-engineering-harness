@@ -43,12 +43,17 @@ class EvidenceReportContract(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.repo, ignore_errors=True)
 
-    def cert(self, status="PASS", commit=None, canonical=True):
+    def cert(self, status="PASS", commit=None, canonical=True, evals="APROVA", evals_commit=None):
         (self.repo / ".ceh").mkdir(exist_ok=True)
         (self.repo / ".ceh" / "last-ci-run.json").write_text(json.dumps({
             "commit_hash": commit or self.head, "timestamp": "2026-09-25T00:00:00Z", "command": "make test",
             "normalized_runner": "make test", "canonical_verified": canonical, "status": status,
             "exit_code": 0 if status == "PASS" else 1}))
+        if evals is not None:
+            (self.repo / ".ceh" / "last-evals-run.json").write_text(json.dumps({
+                "commit": evals_commit or commit or self.head, "verdict": evals,
+                "passed": 5 if evals == "APROVA" else 4, "total": 5,
+                "timestamp": "2026-09-25T00:00:00Z"}))
 
     def run_report(self, *args, expect_code=0):
         env = dict(os.environ, CEH_ENV="development")
@@ -126,6 +131,25 @@ class EvidenceReportContract(unittest.TestCase):
     def test_declared_status_is_rejected_and_strict_exit(self):
         self.run_report("COMPLETED", "HIGH", expect_code=2)
         self.run_report("--strict", expect_code=1)
+
+    def test_forbidden_claim_rejected_in_strict(self):
+        self.cert()
+        # Afirmações proibidas com palavras de suíte/evals e estado são recusadas sob --strict
+        self.run_report("--strict", "--claim", "Suíte 53/53 PASS", "proof.json", expect_code=1)
+        self.run_report("--strict", "--criterion", "Smoke-evals 5/5 aprovado", "proof.json", expect_code=1)
+
+    def test_evals_certificate_observed(self):
+        self.cert()
+        out = self.run_report()
+        self.assertIn("Smoke-evals: **PASS** (`OBSERVED`)", out)
+        self.assertIn("5/5 critérios (APROVA)", out)
+
+    def test_evals_stale_certificate(self):
+        self.cert(evals_commit="0" * 40)
+        out = self.run_report()
+        self.assertIn("Smoke-evals: **STALE** (`OBSERVED`)", out)
+        self.assertIn("[DESATUALIZADO]", out)
+        self.assertIn("**NAO_VERIFICADO**", out)
 
 
 if __name__ == "__main__":

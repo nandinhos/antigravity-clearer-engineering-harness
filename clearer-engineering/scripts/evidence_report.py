@@ -98,6 +98,26 @@ def load_certificate(head: str) -> dict:
                       f"em `{str(cert.get('commit_hash'))[:7]}` ({cert.get('timestamp')})"}
 
 
+def load_evals_certificate(head: str) -> dict:
+    eval_path = Path(".ceh/last-evals-run.json")
+    if not eval_path.is_file():
+        return {"state": "NOT_RUN", "detail": "sem `.ceh/last-evals-run.json`: os smoke-evals não foram executados"}
+    try:
+        ev = json.loads(eval_path.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        return {"state": "INVALID", "detail": f"certificado de evals ilegível ({exc})"}
+    state = "PASS" if ev.get("verdict") == "APROVA" and ev.get("passed") == ev.get("total") else "FAIL"
+    if ev.get("commit") != head:
+        state = "STALE"
+    detail = f"{ev.get('passed')}/{ev.get('total')} critérios ({ev.get('verdict')}) em `{str(ev.get('commit'))[:7]}` ({ev.get('timestamp')})"
+    if state == "STALE":
+        detail += " [DESATUALIZADO]"
+    return {"state": state, "cert": ev, "detail": detail}
+
+
+FORBIDDEN_EXEC_STATE_RE = re.compile(r"(su[íi]te|evals?|smoke).*(pass|aprovad|verde|\d+/\d+)", re.I)
+
+
 def detect_env() -> str:
     try:
         spec = importlib.util.spec_from_file_location("ceh_safety_gate", HERE.with_name("safety-gate.py"))
@@ -113,6 +133,16 @@ def build(args) -> dict:
     code, head = git("rev-parse", "HEAD")
     if code != 0:
         sys.exit("ERRO: evidence-report precisa de um repositório git com ao menos um commit.")
+
+    if args.strict:
+        for t, _ in args.claim + args.criterion:
+            if FORBIDDEN_EXEC_STATE_RE.search(t):
+                sys.exit(
+                    f"ERRO: Afirmação proibida com --strict: '{t}'. "
+                    f"O estado da suíte e dos evals é calculado automaticamente a partir dos certificados em .ceh/, "
+                    f"e não deve ser declarado manualmente como --claim ou --criterion."
+                )
+
     base, base_desc = resolve_base(args.base, head)
     _, branch = git("branch", "--show-current")
     _, porcelain = git("status", "--porcelain")
@@ -126,6 +156,7 @@ def build(args) -> dict:
     conflicts = sum(1 for ln in added if CONFLICT_RE.match(ln))
 
     tests = load_certificate(head)
+    evals = load_evals_certificate(head)
     claims = [{"text": t, "proof": p, **dict(zip(("status", "where"), verify_proof(p, head)))} for t, p in args.claim]
     criteria = [{"text": t, "proof": p, **dict(zip(("status", "where"), verify_proof(p, head)))} for t, p in args.criterion]
     findings = [{"severity": s.upper(), "text": t} for s, t in args.finding]
@@ -139,6 +170,8 @@ def build(args) -> dict:
         pending.append(f"Worktree com {len(dirty)} alteração(ões) não commitada(s): o certificado não as cobre.")
     if tests["state"] != "PASS":
         pending.append(f"Testes: {tests['state']} — {tests['detail']}.")
+    if evals["state"] != "PASS":
+        pending.append(f"Evals: {evals['state']} — {evals['detail']}.")
     for item in claims + criteria:
         if item["status"] != "SUPPORTED":
             pending.append(f"{item['status']}: \"{item['text']}\" ({item['where']}).")
@@ -146,24 +179,24 @@ def build(args) -> dict:
         pending.append(f"Diff com {secrets} padrão(ões) de segredo e {conflicts} marcador(es) de conflito.")
 
     # Veredito e confiança: regras fechadas, calculadas (nunca declaradas).
-    if tests["state"] == "FAIL" or counts["BLOCKER"] or secrets or conflicts:
+    if tests["state"] == "FAIL" or evals["state"] == "FAIL" or counts["BLOCKER"] or secrets or conflicts:
         result = "FALHOU"
-    elif tests["state"] == "PASS" and not dirty and all(i["status"] == "SUPPORTED" for i in claims + criteria):
+    elif tests["state"] == "PASS" and evals["state"] == "PASS" and not dirty and all(i["status"] == "SUPPORTED" for i in claims + criteria):
         result = "VERIFICADO"
     else:
         result = "NAO_VERIFICADO"
     if result == "VERIFICADO" and claims + criteria:
-        confidence = ("ALTA", "1.0", "suíte canônica PASS no HEAD, worktree limpo e todas as afirmações com prova versionada")
+        confidence = ("ALTA", "1.0", "suíte e evals PASS no HEAD, worktree limpo e todas as afirmações com prova versionada")
     elif result == "VERIFICADO":
-        confidence = ("MEDIA", "0.60", "suíte canônica PASS no HEAD, mas nenhuma afirmação ou critério foi amarrado a prova")
+        confidence = ("MEDIA", "0.60", "suíte e evals PASS no HEAD, mas nenhuma afirmação ou critério foi amarrado a prova")
     elif result == "NAO_VERIFICADO" and tests["state"] == "PASS":
-        confidence = ("MEDIA", "0.60", "testes PASS no HEAD, mas há pendências de prova ou alterações não cobertas")
+        confidence = ("MEDIA", "0.60", "testes PASS no HEAD, mas há pendências de evals, prova ou alterações não cobertas")
     else:
-        confidence = ("BAIXA", "0.30", "sem evidência de testes válida no HEAD ou com falha comprovada")
+        confidence = ("BAIXA", "0.30", "sem evidência de testes/evals válida no HEAD ou com falha comprovada")
 
     return {"result": result, "branch": branch or "(detached)", "head": head, "base": base_desc,
             "environment": detect_env(), "commits": commits, "files": files, "shortstat": stat,
-            "dirty": dirty, "tests": tests, "claims": claims, "criteria": criteria,
+            "dirty": dirty, "tests": tests, "evals": evals, "claims": claims, "criteria": criteria,
             "findings": findings, "finding_counts": counts, "secrets": secrets, "conflicts": conflicts,
             "risks": list(args.risk), "pending": pending,
             "confidence": {"level": confidence[0], "score": confidence[1], "rule": confidence[2]}}
@@ -190,8 +223,11 @@ def render(r: dict) -> str:
     out += [f"- [{c['status']}] {c['text']} — {c['where']}" for c in r["claims"]] or \
            ["- Nenhuma afirmação registrada (use `--claim TEXTO PROVA`)."]
     t = r["tests"]
+    ev = r.get("evals", {})
     out += ["", "## TESTS", "", f"- Suíte canônica: **{t['state']}** (`OBSERVED`) — {t['detail']}"]
     out += [f"  > {ln}" for ln in t.get("log_tail", [])]
+    if ev:
+        out += [f"- Smoke-evals: **{ev.get('state', 'UNKNOWN')}** (`OBSERVED`) — {ev.get('detail', '')}"]
     c = r["finding_counts"]
     out += ["", "## REVIEW", "", f"- Achados declarados: BLOCKER {c['BLOCKER']} · HIGH {c['HIGH']} · MEDIUM {c['MEDIUM']} · "
             f"LOW {c['LOW']} · INFO {c['INFO']}"]

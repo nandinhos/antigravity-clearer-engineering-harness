@@ -285,12 +285,35 @@ echo "  Critérios Atendidos: $CRITERIA_PASSED de $TOTAL_CRITERIA"
 echo "  Tempo Total:         ${TOTAL_WALL_TIME}s"
 echo "----------------------------------------------------------------------"
 
+CEH_DIR="$REPO_ROOT/.ceh"
+mkdir -p "$CEH_DIR" 2>/dev/null || true
+CURRENT_COMMIT=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "untracked")
+NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
 if [ "$CRITERIA_PASSED" -eq "$TOTAL_CRITERIA" ]; then
     echo -e "${COLOR_GREEN}${COLOR_BOLD}VEREDITO FINAL: APROVA (5/5 Critérios Atendidos)${COLOR_RESET}"
     echo "Harness validado contra falsificação e degradação de infraestrutura."
+    cat <<EOF > "$CEH_DIR/last-evals-run.json"
+{
+  "commit": "$CURRENT_COMMIT",
+  "verdict": "APROVA",
+  "passed": $CRITERIA_PASSED,
+  "total": $TOTAL_CRITERIA,
+  "timestamp": "$NOW_ISO"
+}
+EOF
     exit 0
 else
     echo -e "${COLOR_RED}${COLOR_BOLD}VEREDITO FINAL: DESCARTA ($CRITERIA_PASSED/$TOTAL_CRITERIA Critérios Atendidos)${COLOR_RESET}"
     echo "Harness falhou no protocolo de falsificabilidade. Exige ADR de descarte."
+    cat <<EOF > "$CEH_DIR/last-evals-run.json"
+{
+  "commit": "$CURRENT_COMMIT",
+  "verdict": "DESCARTA",
+  "passed": $CRITERIA_PASSED,
+  "total": $TOTAL_CRITERIA,
+  "timestamp": "$NOW_ISO"
+}
+EOF
     exit 1
 fi

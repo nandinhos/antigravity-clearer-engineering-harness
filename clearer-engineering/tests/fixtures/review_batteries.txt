@@ -261,7 +261,7 @@ production|allow|H022-agente-controle|git checkout -- ':/config/database.php'
 
 # --- Handoff 023 · revisão do PR-05e e do PR-QA-A
 # Y4 (falso positivo): ":" sem mnemônico é pathspec comum (git real restaurou só app/x)
-production|allow|PENDENTE:H023-Y4|git checkout -- ':app/x'
+production|allow|H023-Y4|git checkout -- ':app/x'
 production|allow|H023-Y4-controle|git checkout -- '::app/x'
 production|deny|H023-X1-controle|git checkout -- ':^/!x'
 production|deny|H023-X1-controle|git checkout -- ':(top,exclude)x'
