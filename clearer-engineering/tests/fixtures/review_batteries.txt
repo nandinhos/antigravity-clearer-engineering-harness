@@ -245,3 +245,12 @@ production|deny|H021-agente-W3|git checkout -- "?*.js"
 production|deny|H021-agente-W4|git checkout -- ~/projects/repo
 production|allow|H021-agente-controle|git checkout -- tests/*
 production|allow|H021-agente-controle|git switch --guess main
+
+# --- Handoff 022 · revisão do PR-05d
+# X1 (preexistente): magia curta combinada ":/!x" = raiz + exclusão → descarta tudo exceto x
+production|deny|PENDENTE:H022-X1|git checkout -- ':/!x'
+production|deny|PENDENTE:H022-X1|git checkout -- ':/^x'
+production|deny|PENDENTE:H022-X1|git restore ':/!app'
+production|deny|PENDENTE:H022-X1|git checkout -- ':/!:x'
+production|allow|H022-X1-controle|git restore ':/app/x'
+production|allow|H022-X1-controle|git checkout -- ':/:app/x'

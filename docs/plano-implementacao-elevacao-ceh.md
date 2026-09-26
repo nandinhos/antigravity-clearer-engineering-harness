@@ -187,6 +187,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Preexistentes:** W3 (glob no 1º segmento) e W4 (variável/`~`).
 - **Próximos:** PR-05d, depois PR-QA-A (fuzz diferencial, antecipado), PR-06 e PR-QA B–E.
 
+### 0.21 PR-05d com ressalvas ([Handoff 022](./temp_implementation/handoffs/handoff-022-revisao-pr05d.md))
+
+- **Fechados:** W1–W6. O diferencial registra 0 relaxamentos contra o PR-05c; contra o PR-05b, só os de V3/V4, que eram autorizados.
+- **Achados:**
+  - X1: magia curta combinada `':/!x'` descarta tudo e sai allow (preexistente);
+  - X2: a checagem de session ID do `doc-audit` filtra por diretório.
+- **Próximos:** PR-05e (pequeno), PR-QA-A (a linha de base só é avançada pela revisão), depois PR-06.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
