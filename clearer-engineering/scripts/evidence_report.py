@@ -115,7 +115,7 @@ def load_evals_certificate(head: str) -> dict:
     return {"state": state, "cert": ev, "detail": detail}
 
 
-FORBIDDEN_EXEC_STATE_RE = re.compile(r"(su[íi]te|evals?|smoke).*(pass|aprovad|verde|\d+/\d+)", re.I)
+FORBIDDEN_EXEC_STATE_RE = re.compile(r"\b(su[íi]tes?|evals?|smoke)\b.*\b(pass(ed|a)?|aprovad[oa]s?|verde|\d+/\d+)\b", re.I)
 
 
 def detect_env() -> str:

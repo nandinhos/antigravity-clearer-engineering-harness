@@ -136,7 +136,16 @@ class EvidenceReportContract(unittest.TestCase):
         self.cert()
         # Afirmações proibidas com palavras de suíte/evals e estado são recusadas sob --strict
         self.run_report("--strict", "--claim", "Suíte 53/53 PASS", "proof.json", expect_code=1)
+        self.run_report("--strict", "--claim", "Suíte canônica 53/53 PASS", "proof.json", expect_code=1)
         self.run_report("--strict", "--criterion", "Smoke-evals 5/5 aprovado", "proof.json", expect_code=1)
+
+    def test_legitimate_phrases_accepted_in_strict(self):
+        self.cert()
+        # Z1: Frases legítimas contendo 'evaluates' ou 'bypass' não devem ser falsamente recusadas
+        out = self.run_report("--strict",
+                              "--claim", "Gate evaluates bypass de find -delete", "proof.json",
+                              "--claim", "Contrato de evaluate_command cobre 12/12 variantes", "proof.json")
+        self.assertIn("**VERIFICADO**", out)
 
     def test_evals_certificate_observed(self):
         self.cert()

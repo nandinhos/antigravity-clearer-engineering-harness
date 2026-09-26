@@ -40,6 +40,9 @@ log_warn()  { echo -e "${COLOR_YELLOW}[WARN]${COLOR_RESET} $1"; }
 # ------------------------------------------------------------------------------
 # 0. Verificação Prévia de Integridade
 # ------------------------------------------------------------------------------
+CEH_DIR="$REPO_ROOT/.ceh"
+rm -f "$CEH_DIR/last-evals-run.json"
+
 if [ ! -f "$CRITERIA_FILE" ]; then
     log_fail "INFRA-FAIL: Arquivo de critérios obrigatório não encontrado: $CRITERIA_FILE"
     exit 1
