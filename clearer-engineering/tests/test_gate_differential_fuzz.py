@@ -159,7 +159,7 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
     reset_opts = ["--hard", "--soft", "--mixed", "--merge", "--keep"]
     clean_opts = ["-f", "-fd", "-fx", "-fxd", "-n", "-nd", "-f -d", "--force"]
 
-    # Produções combinatórias de find (Handoff 024)
+    # Produções combinatórias de find (Handoff 024 e 025)
     find_comb_paths = ["/", "~", "/etc", "..", ".", "build", "./src"]
     find_comb_filters = ["", "-name '*.pyc'", "-type f"]
     find_comb_actions = [
@@ -167,10 +167,15 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
         "-exec rm {} +",
         "-execdir rm -rf {} \\;",
         "-ok rm {} \\;",
+        "-exec rm -rf / \\;",
+        "-exec rm -rf ~ \\;",
+        "-exec rm -rf /etc \\;",
+        "-exec rm -rf {} /etc \\;",
+        "-exec rm -rf / +",
         "-print"
     ]
 
-    # Produções combinatórias de interpretadores (Handoff 024)
+    # Produções combinatórias de interpretadores (Handoff 024 e 025)
     interp_literals = ["/", "~", "db", "/srv", ".."]
     interp_heads_py = ["python3", "/usr/bin/python3", "env python3", "python3.12"]
 
@@ -222,7 +227,7 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
                 cmds.add(f"{rng.choice(git_prefixes)} push origin {rng.choice(branches)} {rng.choice(['', '--force', '-f', '--force-with-lease'])}".strip())
             else:
                 cmds.add(f"{rng.choice(git_prefixes)} branch {rng.choice(['-d', '-D', '-m', '-a'])} {rng.choice(branches)}")
-        elif cat == 8:  # find combinatório (Handoff 024)
+        elif cat == 8:  # find combinatório (Handoff 024 e 025)
             p = rng.choice(find_comb_paths)
             flt = rng.choice(find_comb_filters)
             act = rng.choice(find_comb_actions)
@@ -231,30 +236,39 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
                 find_parts.append(flt)
             find_parts.append(act)
             cmds.add(" ".join(find_parts))
-        elif cat == 9:  # one-liners de interpretador combinatórios (Handoff 024)
+        elif cat == 9:  # one-liners de interpretador combinatórios (Handoff 024 e 025)
             lit = rng.choice(interp_literals)
             family = rng.choice(["python", "node", "perl", "ruby"])
             if family == "python":
                 head = rng.choice(interp_heads_py)
-                flag = "-c"
+                flag = rng.choice(["-c", "-Bc", "-Ic"])
                 if rng.random() < 0.7:
                     api = rng.choice([
                         f"import shutil; shutil.rmtree('{lit}')",
+                        f"from shutil import rmtree; rmtree('{lit}')",
+                        f"__import__('shutil').rmtree('{lit}')",
                         f"import os; os.remove('{lit}')",
                         f"import os; os.unlink('{lit}')",
                         f"import os; os.rmdir('{lit}')",
                         f"import pathlib; pathlib.Path('{lit}').unlink()",
-                        f"import pathlib; pathlib.Path('{lit}').rmdir()"
+                        f"import pathlib; pathlib.Path('{lit}').rmdir()",
+                        f"import shutil, sys; shutil.rmtree(sys.argv[1])"
                     ])
+                    if "sys.argv[1]" in api:
+                        cmds.add(f'{head} {flag} "{api}" {lit}')
+                    else:
+                        cmds.add(f'{head} {flag} "{api}"')
                 else:
                     api = rng.choice([f"import os; print('{lit}')", "print('hello')", "import sys; sys.exit(0)"])
-                cmds.add(f'{head} {flag} "{api}"')
+                    cmds.add(f'{head} {flag} "{api}"')
             elif family == "node":
                 head = "node"
-                flag = rng.choice(["-e", "--eval"])
+                flag = rng.choice(["-e", "-pe", "--eval"])
                 if rng.random() < 0.7:
                     api = rng.choice([
                         f"require('fs').rmSync('{lit}', {{recursive:true}})",
+                        f"require('node:fs').rmSync('{lit}', {{recursive:true}})",
+                        f"const {{rmSync}}=require('fs'); rmSync('{lit}', {{recursive:true}})",
                         f"require('fs').unlinkSync('{lit}')",
                         f"require('fs').rmdirSync('{lit}')"
                     ])
@@ -263,9 +277,9 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
                 cmds.add(f"{head} {flag} \"{api}\"")
             elif family == "perl":
                 head = "perl"
-                flag = rng.choice(["-e", "-E"])
+                flag = rng.choice(["-e", "-E", "-le", "-ne"])
                 if rng.random() < 0.7:
-                    api = rng.choice([f"unlink '{lit}'", f"rmdir '{lit}'", f"use File::Path; rmtree('{lit}')"])
+                    api = rng.choice([f"unlink '{lit}'", f"rmdir '{lit}'", f"use File::Path; rmtree('{lit}')", "unlink glob '*'"])
                 else:
                     api = rng.choice([f"print '{lit}'", "print 42"])
                 cmds.add(f"{head} {flag} \"{api}\"")
@@ -464,6 +478,56 @@ json.dump(results, sys.stdout)
 
         total_evals = len(self.current_results)
         self.assertEqual(identical_count + tightenings_count + authorized_count, total_evals)
+
+    def test_wrapping_invariants(self):
+        """
+        Invariante do Handoff 025 (AA1/AA2):
+        Para cada comando gerado X, a decisão de:
+        - bash -c 'X'
+        - sh -c 'X'
+        - python3 -c "import os; os.system(repr(X))"
+        tem de ser pelo menos tão severa quanto a de X em todos os ambientes.
+        """
+        import shlex
+        from importlib import import_module
+        gate = import_module("safety-gate")
+
+        rank_map = {"allow": 1, "ask": 2, "deny": 3}
+
+        # Amostra determinística dos comandos gerados pela gramática (cobrindo rm, find, git, interpreters)
+        rng = random.Random(42)
+        sample_cmds = rng.sample(self.all_commands, min(400, len(self.all_commands)))
+
+        violations: list[str] = []
+
+        for cmd in sample_cmds:
+            w_bash = f"bash -c {shlex.quote(cmd)}"
+            w_sh = f"sh -c {shlex.quote(cmd)}"
+            py_code = f"import os; os.system({repr(cmd)})"
+            w_py = f"python3 -c {shlex.quote(py_code)}"
+
+            for env in ("development", "staging", "production"):
+                base_dec, base_r, _, base_uc = gate.evaluate_command(cmd, explicit_env=env)
+                base_is_cat = (base_uc == "CATASTROPHIC") or ("CATASTROPHIC" in base_r)
+                base_rank = 4 if base_is_cat else rank_map[base_dec]
+
+                for w_name, w_cmd in [("bash -c", w_bash), ("sh -c", w_sh), ("python3 os.system", w_py)]:
+                    w_dec, w_r, _, w_uc = gate.evaluate_command(w_cmd, explicit_env=env)
+                    w_is_cat = (w_uc == "CATASTROPHIC") or ("CATASTROPHIC" in w_r)
+                    w_rank = 4 if w_is_cat else rank_map[w_dec]
+
+                    if w_rank < base_rank:
+                        violations.append(
+                            f"[{env}] {w_name}: base={base_dec}(cat={base_is_cat}) > wrapper={w_dec}(cat={w_is_cat}) para comando: {cmd}"
+                        )
+
+        if violations:
+            msg = f"\n[REPROVADO - Handoff 025 AA1/AA2] {len(violations)} violações da invariante de embrulho:\n"
+            for v in violations[:15]:
+                msg += f"  {v}\n"
+            if len(violations) > 15:
+                msg += f"  ... e mais {len(violations) - 15} violações.\n"
+            self.fail(msg)
 
 
 if __name__ == "__main__":

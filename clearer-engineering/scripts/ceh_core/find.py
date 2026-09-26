@@ -1,12 +1,13 @@
 """
-find.py - Análise por tokens e avaliação de segurança de comandos 'find' do CEH (G5, PR-06).
-Analisa tokens estruturalmente sem introduzir regex em rules.py.
+find.py - Análise por tokens e avaliação de segurança de comandos 'find' do CEH (G5, PR-06/PR-06b).
+Analisa tokens estruturalmente com desembrulho recursivo e sem introduzir regex em rules.py.
 """
 from __future__ import annotations
 
 import os
 import shlex
 from pathlib import Path
+from typing import Callable, Any
 
 from .rm import is_target_catastrophic
 
@@ -29,13 +30,21 @@ def is_cwd_subpath(target: str, cwd: Path | str | None = None) -> bool:
     return norm == cwd_str
 
 
-def parse_find_tokens(tokens: list[str]) -> tuple[list[str], bool, str]:
+def parse_find_tokens(
+    tokens: list[str],
+    env: str,
+    base_cwd: Path | str | None = None,
+    eval_fn: Callable[..., tuple[str, str, str, str]] | None = None,
+    depth: int = 0
+) -> tuple[list[str], bool, str, tuple[str, str, str, str] | None]:
     """
-    Decompõe argumentos de 'find' em (paths, is_destructive, action_desc).
+    Decompõe argumentos de 'find' em:
+    (paths, is_destructive, action_desc, worst_subcmd_decision)
     """
     paths: list[str] = []
     is_destructive = False
     action_desc = ""
+    worst_subcmd_decision: tuple[str, str, str, str] | None = None
 
     i = 1
     n = len(tokens)
@@ -89,32 +98,34 @@ def parse_find_tokens(tokens: list[str]) -> tuple[list[str], bool, str]:
             if exec_args:
                 cmd_raw = exec_args[0]
                 cmd_base = os.path.basename(cmd_raw)
-                if cmd_base in DESTRUCTIVE_CMDS:
+                if cmd_base in DESTRUCTIVE_CMDS or cmd_base in SHELL_CMDS:
                     is_destructive = True
                     action_desc = f"{exec_flag} {cmd_base}"
-                elif cmd_base in SHELL_CMDS:
-                    for idx, s_arg in enumerate(exec_args[1:], start=1):
-                        if s_arg == "-c" and idx + 1 < len(exec_args):
-                            script = exec_args[idx + 1]
-                            try:
-                                s_tokens = shlex.split(script, posix=True)
-                                if any(os.path.basename(t) in DESTRUCTIVE_CMDS for t in s_tokens):
-                                    is_destructive = True
-                                    action_desc = f"{exec_flag} {cmd_base} -c {s_tokens[0]}"
-                            except Exception:
-                                pass
+
+                # Desembrulho recursivo com o gate inteiro (AA1 e AA2)
+                if eval_fn is not None:
+                    # Substitui {} por um placeholder inócuo
+                    norm_args = ["safe_placeholder.tmp" if a == "{}" else a for a in exec_args]
+                    sub_cmd_str = " ".join(shlex.quote(a) for a in norm_args)
+                    sub_res = eval_fn(sub_cmd_str, explicit_env=env, base_cwd=base_cwd, depth=depth + 1)
+                    dec, _, _, uc = sub_res
+                    if uc == "CATASTROPHIC" or dec in ("deny", "ask"):
+                        is_destructive = True
+                        worst_subcmd_decision = sub_res
             continue
 
         i += 1
 
-    return paths, is_destructive, action_desc
+    return paths, is_destructive, action_desc, worst_subcmd_decision
 
 
 def evaluate_find_command(
     cmd_line: str,
     env: str,
     env_evidence: str = "",
-    base_cwd: Path | str | None = None
+    base_cwd: Path | str | None = None,
+    eval_fn: Callable[..., tuple[str, str, str, str]] | None = None,
+    depth: int = 0
 ) -> tuple[str, str, str, str] | None:
     """Avalia a segurança de comandos 'find' por tokens."""
     try:
@@ -146,17 +157,29 @@ def evaluate_find_command(
         return None
 
     find_tokens = [tokens[idx]] + tokens[idx + 1:]
-    paths, is_destructive, action_desc = parse_find_tokens(find_tokens)
+    paths, is_destructive, action_desc, sub_res = parse_find_tokens(
+        find_tokens, env=env, base_cwd=base_cwd, eval_fn=eval_fn, depth=depth
+    )
+
+    # Se um subcomando executado pelo -exec resultou em CATASTROPHIC, bloqueia imediatamente
+    if sub_res is not None and sub_res[3] == "CATASTROPHIC":
+        return sub_res
 
     if not is_destructive:
         return None
 
+    # Verifica se algum caminho inicial do find é catastrófico
     for p in paths:
         if is_cwd_subpath(p, base_cwd):
             continue
         is_cat, cat_desc = is_target_catastrophic(p, base_cwd)
         if is_cat:
             return "deny", f"[CEH CATASTROPHIC BLOCK] Hard block: {cat_desc}", env, "CATASTROPHIC"
+
+    # Se o subcomando executado pelo -exec tiver restrição em prod/staging
+    if sub_res is not None and sub_res[0] in ("deny", "ask"):
+        if env in ("production", "staging"):
+            return sub_res
 
     desc = f"find com ação destrutiva ({action_desc})"
     if env == "production":

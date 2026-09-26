@@ -214,36 +214,142 @@ def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[st
 
     return "allow", "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual."
 
+def max_severity_decision(
+    d1: tuple[str, str, str, str],
+    d2: tuple[str, str, str, str]
+) -> tuple[str, str, str, str]:
+    """
+    Retorna a decisão de maior severidade: CATASTROPHIC > deny > ask > allow.
+    Em caso de empate em allow, prefere a decisão mais específica sobre GENERAL.
+    """
+    def rank(d: tuple[str, str, str, str]) -> int:
+        dec, _, _, uc = d
+        if uc == "CATASTROPHIC":
+            return 4
+        if dec == "deny":
+            return 3
+        if dec == "ask":
+            return 2
+        return 1
+
+    r1, r2 = rank(d1), rank(d2)
+    if r1 > r2:
+        return d1
+    if r2 > r1:
+        return d2
+    # Empate: se d1 é GENERAL e d2 não é GENERAL, prefere d2
+    if d1[3] == "GENERAL" and d2[3] != "GENERAL":
+        return d2
+    return d1
+
+
+def extract_shell_c_command(cmd_line: str) -> str | None:
+    """Extrai o comando executado via flag -c em sh, bash, zsh, dash."""
+    try:
+        tokens = shlex.split(cmd_line, posix=True)
+    except Exception:
+        return None
+    if not tokens:
+        return None
+
+    idx = 0
+    while idx < len(tokens):
+        tok = tokens[idx]
+        if tok in ("sudo", "rtk", "command"):
+            idx += 1
+            continue
+        if tok == "env":
+            idx += 1
+            while idx < len(tokens) and ("=" in tokens[idx] or tokens[idx].startswith("-")):
+                idx += 1
+            continue
+        break
+
+    if idx >= len(tokens):
+        return None
+
+    base = os.path.basename(tokens[idx])
+    if base in ("sh", "bash", "zsh", "dash"):
+        i = idx + 1
+        while i < len(tokens):
+            tok = tokens[i]
+            if tok == "-c" and i + 1 < len(tokens):
+                return tokens[i + 1]
+            if tok.startswith("-") and not tok.startswith("--") and "c" in tok:
+                pos = tok.rfind("c")
+                if pos == len(tok) - 1 and i + 1 < len(tokens):
+                    return tokens[i + 1]
+                elif pos < len(tok) - 1:
+                    return tok[pos + 1:]
+            i += 1
+    return None
+
+
 def evaluate_subcommand(
     subcmd: str,
     env: str,
     env_evidence: str,
     base_cwd: Path | str | None = None,
     explicit_env: str | None = None,
+    depth: int = 0,
 ) -> tuple[str, str, str, str]:
     """
     Avalia um subcomando atômico contra as políticas de segurança do CEH.
     Retorna (decision, reason, detected_env, use_case).
+    Composição estrita (AA1): analisadores só apertam; a decisão final é a mais severa.
     """
+    if depth > 3:
+        return (
+            "deny",
+            f"[CEH SAFETY GATE - FAIL-CLOSED] Limite de profundidade de recursão excedido (depth={depth} > 3).",
+            env,
+            "CATASTROPHIC",
+        )
+
     sub_raw = subcmd.strip()
     # Strip CLI proxy prefix (RTK / RTK proxy)
     sub_eval = re.sub(r"^\s*rtk(?:\s+proxy)?\s+", "", sub_raw)
     sub_norm = normalize_command_for_evaluation(sub_eval)
+
+    candidate: tuple[str, str, str, str] | None = None
+
+    # AA2: Desembrulho recursivo de shells (sh -c, bash -c, zsh -c, dash -c)
+    shell_inner = extract_shell_c_command(sub_raw)
+    if shell_inner:
+        return evaluate_command(
+            shell_inner,
+            explicit_env=explicit_env,
+            base_cwd=base_cwd,
+            depth=depth + 1
+        )
 
     # 0. Avaliação Estrita de 'rm' por tokens (G1, G4 e PR-04b)
     rm_res = evaluate_rm_command(sub_norm, env, env_evidence=env_evidence, base_cwd=base_cwd)
     if rm_res is not None:
         return rm_res
 
-    # 0.1 Avaliação Estrita de 'find' por tokens (G5, PR-06)
-    find_res = evaluate_find_command(sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd)
+    # 0.1 Avaliação Estrita de 'find' por tokens com desembrulho de -exec (G5, PR-06/PR-06b)
+    find_res = evaluate_find_command(
+        sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd, eval_fn=evaluate_command, depth=depth
+    )
     if find_res is not None:
-        return find_res
+        if find_res[3] == "CATASTROPHIC":
+            return find_res
+        candidate = find_res
 
-    # 0.2 Avaliação Estrita de interpretadores (python, node, perl, ruby) por tokens (G5, PR-06)
-    interp_res = evaluate_interpreter_command(sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd)
+    # 0.2 Avaliação Estrita de interpretadores por tokens com desembrulho recursivo (G5, PR-06/PR-06b)
+    interp_res = evaluate_interpreter_command(
+        sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd, eval_fn=evaluate_command, depth=depth
+    )
     if interp_res is not None:
-        return interp_res
+        if interp_res[3] == "CATASTROPHIC":
+            return interp_res
+        candidate = max_severity_decision(candidate, interp_res) if candidate else interp_res
+
+    def finalize(decision: tuple[str, str, str, str]) -> tuple[str, str, str, str]:
+        if candidate is not None:
+            return max_severity_decision(decision, candidate)
+        return decision
 
     # 1. Catastrophic Blocks: DENY has absolute priority in ANY environment
     for pattern, reason in CATASTROPHIC_PATTERNS:
@@ -257,37 +363,33 @@ def evaluate_subcommand(
     # 2. Resolução Canônica de Git (R5 + G3)
     is_git, git_subcmd, git_args, target_repo, canonical_cmd, git_err = resolve_git_invocation(sub_eval, base_cwd)
     if git_err:
-        return "deny", f"[CEH SAFETY GATE - GIT] ⛔ {git_err}", env, "GIT_DESTRUCTIVE"
+        return finalize(("deny", f"[CEH SAFETY GATE - GIT] ⛔ {git_err}", env, "GIT_DESTRUCTIVE"))
 
     is_git_push = (is_git and git_subcmd == "push")
     if is_git:
         sub_eval = canonical_cmd
         sub_norm = normalize_command_for_evaluation(canonical_cmd)
 
-        # G3: Se -C apontou para outro repositório e explicit_env não foi fixado,
-        # detecta o ambiente no repositório de destino de -C
         if target_repo and explicit_env is None:
             sub_env, sub_env_evidence = detect_environment(explicit_env=None, target_dir=target_repo)
             env = sub_env
             env_evidence = sub_env_evidence
 
-        # PR-05c/d (Handoffs 019, 020, 021): Analisador por tokens para checkout, restore e switch
         if git_subcmd in ("checkout", "restore", "switch"):
             is_dest, desc, use_case_code = evaluate_git_subcommand(git_subcmd, git_args)
             if is_dest:
-                return build_destructive_decision(env, env_evidence, desc, use_case_code, "Controle de Versão (Git)")
+                return finalize(build_destructive_decision(env, env_evidence, desc, use_case_code, "Controle de Versão (Git)"))
             else:
                 safe_uc = "GENERAL" if git_subcmd == "switch" else "FILESYSTEM_SAFE"
-                return "allow", f"Safe Git operation permitted ({env_evidence}).", env, safe_uc
+                return finalize(("allow", f"Safe Git operation permitted ({env_evidence}).", env, safe_uc))
 
-    # 3. Safe Development Bypasses: allow cache/scratch cleanup and selective checkout (sem outros padrões destrutivos)
+    # 3. Safe Development Bypasses: allow cache/scratch cleanup and selective checkout
     is_safe_dev = False
     for pattern in SAFE_DEV_PATTERNS:
         if re.search(pattern, sub_eval, re.IGNORECASE) or re.search(pattern, sub_norm, re.IGNORECASE):
             is_safe_dev = True
             break
     if is_safe_dev:
-        # Confirma que não contém padrões destrutivos de Banco de Dados, Git History ou Infraestrutura
         has_other_destructive = False
         for pattern, desc, use_case_code, use_case_label in USE_CASE_DESTRUCTIVE_PATTERNS:
             if use_case_code != "FILESYSTEM":
@@ -299,7 +401,7 @@ def evaluate_subcommand(
                     has_other_destructive = True
                     break
         if not has_other_destructive:
-            return "allow", f"Safe development operation permitted ({env_evidence}).", env, "FILESYSTEM_SAFE"
+            return finalize(("allow", f"Safe development operation permitted ({env_evidence}).", env, "FILESYSTEM_SAFE"))
 
     # 4. Evaluate Destructive Patterns by Use Case and Environment
     for pattern, desc, use_case_code, use_case_label in USE_CASE_DESTRUCTIVE_PATTERNS:
@@ -309,28 +411,37 @@ def evaluate_subcommand(
             or re.search(pattern, sub_raw, re.IGNORECASE)
         ):
             if is_git_push and env == "development":
-                break  # Force push segue para o gate de CI (passo 5): força não isenta de certificado
-            return build_destructive_decision(env, env_evidence, desc, use_case_code, use_case_label)
+                break
+            return finalize(build_destructive_decision(env, env_evidence, desc, use_case_code, use_case_label))
 
     # 5. Pre-Push CI Clearance Gate (todo git push, inclusive force push)
     if is_git_push:
         ci_gate_result = check_pre_push_ci_gate(sub_eval, target_dir=target_repo)
         if ci_gate_result is not None:
             ci_decision, ci_reason = ci_gate_result
-            return ci_decision, ci_reason, env, "PRE_PUSH_CI"
+            return finalize((ci_decision, ci_reason, env, "PRE_PUSH_CI"))
 
-    return "allow", f"Command complies with CEH safety policy (Env: {env.upper()}, Source: {env_evidence}).", env, "GENERAL"
+    return finalize(("allow", f"Command complies with CEH safety policy (Env: {env.upper()}, Source: {env_evidence}).", env, "GENERAL"))
 
 
 def evaluate_command(
     cmd_line: str,
     explicit_env: str | None = None,
     base_cwd: Path | str | None = None,
+    depth: int = 0,
 ) -> tuple[str, str, str, str]:
     """
     Evaluates a command line string against environment safety rules, decomposing
-    compound commands and aggregating decisions with priority: DENY > ASK > ALLOW.
+    compound commands and aggregating decisions with priority: CATASTROPHIC > DENY > ASK > ALLOW.
     """
+    if depth > 3:
+        return (
+            "deny",
+            f"[CEH SAFETY GATE - FAIL-CLOSED] Limite de profundidade de recursão/desembrulho excedido (depth={depth} > 3).",
+            "development" if explicit_env is None else explicit_env,
+            "CATASTROPHIC",
+        )
+
     if not cmd_line or not cmd_line.strip():
         return "allow", "Empty command", "development", "GENERAL"
 
@@ -353,9 +464,13 @@ def evaluate_command(
 
     evaluations = []
     for sub in subcommands:
-        evaluations.append(evaluate_subcommand(sub, env, env_evidence, base_cwd=base_cwd, explicit_env=explicit_env))
+        evaluations.append(evaluate_subcommand(sub, env, env_evidence, base_cwd=base_cwd, explicit_env=explicit_env, depth=depth))
 
-    # Precedência estrita: DENY > ASK > ALLOW
+    # Precedência estrita: CATASTROPHIC > DENY > ASK > ALLOW
+    catastrophics = [e for e in evaluations if e[0] == "deny" and e[3] == "CATASTROPHIC"]
+    if catastrophics:
+        return catastrophics[0]
+
     denies = [e for e in evaluations if e[0] == "deny"]
     if denies:
         return denies[0]
