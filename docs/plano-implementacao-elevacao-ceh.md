@@ -237,6 +237,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **AB1 (alto):** prefixos (`nice`, `timeout`, `sudo -u`, `nohup`, `exec`, `xargs`, `eval`, `su -c`, `watch`) escondem o comando dos analisadores por tokens. `nice find / -delete` e `nice git checkout -- .` saem allow em produção.
 - **Próximo:** PR-06c (resolução única da cabeça do comando + invariante de prefixo). Com ele, a Onda 1 fecha.
 
+### 0.26 PR-06c homologado com ressalvas ([Handoff 027](./temp_implementation/handoffs/handoff-027-revisao-pr06c.md))
+
+- **Fechados:** AB1 e AB3, com uma única resolução da cabeça do comando e a substituição de `$0`/`$1`.
+- **Provas:** invariante de prefixo falsificável (533 violações); linha de base em `3ac81b0`.
+- **AC1 (médio):** opções de prefixo que recebem valor (`sudo --user X`, `-iu X`, `taskset -c 0`, `xargs --max-args 1`) e `env -S` ainda escondem o comando.
+- **Próximo:** PR-06d (varredura de sufixos fail-closed). A §4 do Handoff 027 fixa o critério de encerramento da Onda 1.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

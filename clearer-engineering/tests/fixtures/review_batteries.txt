@@ -340,3 +340,15 @@ production|allow|H026-controle|time python3 -c "print(1)"
 development|deny/CATASTROPHIC|H026-AB3|bash -c 'rm -rf "$0"' /
 development|deny/CATASTROPHIC|H026-AB3|bash -c 'find "$1" -delete' _ /
 development|allow|H026-controle|bash -c 'echo "$0"' /
+
+# --- Handoff 027 · revisão do PR-06c
+# AC1: opção de prefixo que recebe valor (forma longa separada, agrupada, ou de semântica própria) vira a "cabeça"
+production|deny/CATASTROPHIC|PENDENTE:H027-AC1|sudo --user deploy find / -delete
+production|deny/CATASTROPHIC|PENDENTE:H027-AC1|sudo -iu root find / -delete
+production|deny/CATASTROPHIC|PENDENTE:H027-AC1|taskset -c 0 find / -delete
+production|deny/CATASTROPHIC|PENDENTE:H027-AC1|xargs --max-args 1 find / -delete
+production|deny/CATASTROPHIC|PENDENTE:H027-AC1|env -S 'find / -delete'
+production|deny|PENDENTE:H027-AC1|sudo --user deploy git checkout -- .
+production|allow|H027-controle|sudo --user deploy systemctl status nginx
+production|allow|H027-controle|taskset -c 0 npm test
+production|allow|H027-controle|env -S 'npm run build'
