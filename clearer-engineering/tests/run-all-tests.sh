@@ -222,6 +222,9 @@ run_test "RM Fuzz: Teste de propriedade com fuzzing determinístico (≥ 2000 ca
 run_test "Git Canonicalization: Generalização de opções globais e bloqueio de pathspec amplo (G2/G3)" \
     "python3 '$PLUGIN_DIR/tests/test_git_canonicalization.py' >/dev/null"
 
+run_test "Review Batteries: baterias adversariais das revisões (pendências em xfail estrito)" \
+    "python3 '$PLUGIN_DIR/tests/test_review_batteries.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"

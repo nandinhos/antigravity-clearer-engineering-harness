@@ -152,6 +152,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - U4: bateria fora do corpus.
 - **Próximos:** PR-05b (pequeno) e PR-06 (G5: `find -delete`/`-exec rm` e one-liners ancorados no interpretador). Com eles, a Onda 1 fecha.
 
+### 0.17 Rede anti-pane ([Handoff 018](./temp_implementation/handoffs/handoff-018-rede-anti-pane.md))
+
+- **Versão do Python não é a causa:** a bateria de 123 linhas dá decisões idênticas em 3.9, 3.10, 3.11 e 3.12. Mantidos o piso 3.9 e a matriz de CI.
+- **Causas reais:** literais sem canonicalização, `allow` alargado, especificação por memória e bateria que não vira teste.
+- **Entregue:** `review_batteries.txt` + `test_review_batteries.py` (pendências em xfail estrito) na suíte.
+- **Próximo:**
+  - PR-05b e PR-06 removem os seus `PENDENTE`;
+  - depois, **PR-QA**: fuzz diferencial contra a linha de base, invariante do motivo, contrato com `git --help`/`rm --help` e normalização única.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

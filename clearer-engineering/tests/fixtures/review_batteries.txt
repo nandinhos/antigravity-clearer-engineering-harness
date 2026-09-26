@@ -1,0 +1,148 @@
+# Baterias executáveis das revisões do CEH (Handoffs 014–017 em diante).
+#
+# Formato: <env>|<esperado>|<referência>|<comando>
+#   env        development | staging | production
+#   esperado   <decisão> ou <decisão>/<use_case>   (ex.: deny, deny/CATASTROPHIC, allow/FILESYSTEM_SAFE)
+#   referência ID do achado; "PENDENTE:<ID>" marca um defeito conhecido ainda não corrigido:
+#              o teste EXIGE que a linha pendente ainda falhe (xfail estrito). Quem corrigir
+#              remove o prefixo PENDENTE no mesmo PR.
+#   comando    o resto da linha (pode conter '|').
+#
+# Regra (Handoff 015): toda bateria usada numa revisão entra aqui no commit da revisão.
+
+# --- Handoff 014 · R1: descendentes de diretórios do sistema NÃO são catastróficos (uso legítimo em DEV)
+development|allow|H014-R1|rm -rf /home/user/projeto/build
+development|allow|H014-R1|rm -rf /home/user/projeto/src/old
+development|allow|H014-R1|rm -rf /opt/myapp/cache
+development|allow|H014-R1|rm -rf /var/tmp/ceh-x
+development|allow|H014-R1|rm -rf /usr/local/lib/node_modules/foo
+development|allow|H014-R1|rm -rf ~/projeto/dist
+development|allow|H014-R1|rm -rf ./node_modules
+development|allow|H014-R1|rm -rf node_modules
+development|allow|H014-R1|rm file.txt
+development|allow|H014-R1|rm -rf ../outro-projeto/dist
+
+# --- Handoff 014 · R2 e G4: variantes catastróficas (qualquer ambiente)
+development|deny/CATASTROPHIC|H014-R2|rm -rf //
+development|deny/CATASTROPHIC|H014-R2|rm -rf /./
+development|deny/CATASTROPHIC|H014-R2|rm -rf ../..
+development|deny/CATASTROPHIC|H014-R2|rm -rf ./*
+development|deny/CATASTROPHIC|H014-R2|rm -rf ~root
+development|deny/CATASTROPHIC|H014-G4|rm -rf '/'
+development|deny/CATASTROPHIC|H014-G4|rm -rf "/"
+development|deny/CATASTROPHIC|H014-G4|rm -Rf /etc/
+development|deny/CATASTROPHIC|H014-G4|rm -rf /etc/*
+development|deny/CATASTROPHIC|H014-G4|rm -rf ~/
+development|deny/CATASTROPHIC|H014-G4|rm -rf $HOME/
+development|deny/CATASTROPHIC|H014-G4|rm -rf ..
+development|deny/CATASTROPHIC|H014-G4|rm -rf *
+development|deny/CATASTROPHIC|H014-G4|\rm -rf /
+development|deny/CATASTROPHIC|H014-G4|command rm -rf /
+development|deny/CATASTROPHIC|H014-G4|/bin/rm -rf /
+development|deny/CATASTROPHIC|H014-G4|rm -rf /tmp/ /
+development|deny/CATASTROPHIC|H014-G4|rm -r -- /
+development|deny/CATASTROPHIC|H014-G4|rm --no-preserve-root -rf /
+development|deny/CATASTROPHIC|H014-G4|rm -rfv /
+development|deny/CATASTROPHIC|H014-G4|rm -rf /home
+development|deny/CATASTROPHIC|H014-G4|rm -rf /home/*
+development|deny/CATASTROPHIC|H014-G4|rm -rf /root
+development|deny/CATASTROPHIC|H014-G4|rm -rf /boot
+development|deny/CATASTROPHIC|H014-G4|rm -rf /lib
+development|deny/CATASTROPHIC|H014-G4|rm -rf /sys
+development|deny/CATASTROPHIC|H014-G4|rm -rf dist/ /
+development|deny/CATASTROPHIC|H014-G4|rm -rf . --
+development|deny/CATASTROPHIC|H015-extra|rm -rf /home/user/
+development|deny/CATASTROPHIC|H015-extra|rm -rf /home/user/..
+development|deny/CATASTROPHIC|H015-extra|rm -rf /usr/local/../..
+development|deny/CATASTROPHIC|H015-extra|rm -rf ~/.
+development|deny/CATASTROPHIC|H015-extra|rm -rf ./..
+development|deny/CATASTROPHIC|H015-extra|rm -rf "$HOME"
+
+# --- Handoff 015 · S1: atalho seguro não vale para caminho absoluto/fora do cwd (produção)
+production|deny|H015-S1|rm -rf /var/www/site/dist
+production|deny|H015-S1|rm -rf /srv/app/build
+production|deny|H015-S1|rm -rf /opt/prod/app/dist/
+production|deny|H015-S1|rm -rf /etc/nginx/coverage/
+production|deny|H015-S1|rm -rf ../../prod-release/dist
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf dist/
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf ./build
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf /tmp/ceh-x
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -f a.txt
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf node_modules/.cache
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf dist/assets
+
+# --- Handoff 015 · S2: $PWD é o diretório de trabalho; variável não resolvida é incerta
+development|deny/CATASTROPHIC|H015-S2|rm -rf $PWD
+development|deny/CATASTROPHIC|H015-S2|rm -rf "$PWD"
+development|deny/CATASTROPHIC|H015-S2|rm -rf "$PWD"/*
+development|ask|H015-S2|rm -rf $OLDPWD
+development|ask|H015-S2|rm -rf $BUILD_DIR
+
+# --- Handoff 016 · T1: atalho seguro sobre o caminho normalizado (produção)
+production|deny|H016-T1|rm -rf build/../src
+production|deny|H016-T1|rm -rf coverage/../.git
+production|deny|H016-T1|rm -rf dist/../../etc
+production|deny/CATASTROPHIC|H016-T1|rm -rf ./dist/../..
+production|deny/CATASTROPHIC|H016-T1|rm -rf tmp/../
+production|deny/CATASTROPHIC|H016-T1|rm -rf /tmp/../etc
+production|deny/CATASTROPHIC|H016-T1|rm -rf /tmp/../home/user
+production|deny|H016-T1|rm -rf ../a.txt
+production|deny|H016-T1|rm -rf /etc/passwd.bak
+production|deny/CATASTROPHIC|H016-T1|rm -rf dist/../../../
+
+# --- Handoff 017 · G2/G3: descarte amplo e opções globais (produção)
+production|deny|H017-G2|git checkout .
+production|deny|H017-G2|git checkout -- .
+production|deny|H017-G2|git checkout HEAD -- .
+production|deny|H017-G2|git checkout -f
+production|deny|H017-G2|git checkout :/
+production|deny|H017-G2|git checkout -- '*'
+production|deny|H017-G2|git restore .
+production|deny|H017-G2|git restore --staged --worktree .
+production|deny|H017-G2|git restore --source=HEAD .
+production|deny|H017-G2|git restore :/
+production|deny|H017-G2|git checkout HEAD .
+production|deny|H017-G2|git checkout @ -- .
+production|deny|H017-G2|git checkout --force main
+production|deny|H017-G2|git checkout -- *
+production|deny|H017-G2|git restore -W -S .
+production|deny|H017-G2|git restore --worktree -- .
+production|deny|H017-G2|git restore -s HEAD .
+production|deny|H017-G2|git checkout -f -- app/x.php
+production|deny|PENDENTE:H017-U1|git checkout -- ./
+production|deny|H017-G3|git -C . reset --hard
+production|deny|H017-G3|git --no-pager reset --hard
+production|deny|H017-G3|git -P reset --hard
+production|deny|H017-G3|git --paginate reset --hard
+production|deny|H017-G3|git --no-pager -C . reset --hard
+production|deny|PENDENTE:H017-U3|git switch -f main
+production|deny|PENDENTE:H017-U3|git switch --discard-changes main
+production|allow|H017-controle|git checkout app/Model.php
+production|allow|H017-controle|git checkout main
+production|allow|H017-controle|git checkout -b feature
+production|allow|H017-controle|git checkout feature/login
+production|allow|H017-controle|git checkout -- app/Model.php
+production|allow|H017-controle|git checkout v1.2.0
+production|allow|H017-controle|git restore --staged app/Model.php
+production|allow|H017-controle|git status
+production|allow|H017-controle|git -C sub status
+production|allow|H017-controle|git --no-pager log -5
+production|allow|PENDENTE:H017-U2|git -P diff
+production|allow|PENDENTE:H017-U2|git -P log -5
+production|allow|H017-controle|git switch main
+production|allow|H017-controle|git switch -c feature
+
+# --- Handoff 017 · G5 (PR-06): deleções indiretas
+development|deny/CATASTROPHIC|PENDENTE:H017-G5|find / -delete
+development|deny/CATASTROPHIC|PENDENTE:H017-G5|find /etc -delete
+development|deny/CATASTROPHIC|PENDENTE:H017-G5|find ~ -delete
+development|allow|H017-G5-controle|find . -name '*.pyc' -delete
+production|deny|PENDENTE:H017-G5|find . -name '*.pyc' -delete
+production|deny|H017-G5-ja-coberto|find . -exec rm -rf {} +
+production|deny|PENDENTE:H017-G5|python3 -c 'import shutil; shutil.rmtree("/srv")'
+production|deny|PENDENTE:H017-G5|node -e 'require("fs").rmSync("db",{recursive:true})'
+production|deny|PENDENTE:H017-G5|perl -e 'unlink glob "*"'
+production|allow|H017-G5-controle|find . -name '*.log'
+production|allow|H017-G5-controle|grep -r "shutil.rmtree" .
+production|allow|H017-G5-controle|python3 -c 'print(1)'
+production|allow|H017-G5-controle|node -e 'console.log(1)'
