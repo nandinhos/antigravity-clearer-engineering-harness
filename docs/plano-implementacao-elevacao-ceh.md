@@ -271,6 +271,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - `prisma migrate reset --force` e `docker compose down -v` (banco/infra).
 - **Próximo:** PR-07. Com ele, a Onda 1 fecha.
 
+### 0.30 PR-07 não homologado ([Handoff 031](./temp_implementation/handoffs/handoff-031-revisao-pr07.md))
+
+- **Corrigidos:** rebaixamento e casamento por pedaço de palavra.
+- **Relaxamentos na detecção** (repo em `dev`): `cd /srv/production && …`, `--environment=production`, `terraform destroy -var env=production` e `DJANGO_SETTINGS_MODULE=…production` deixaram de escalar. A causa é a lista estreita de sinais que o revisor especificou de memória.
+- **Ponto cego da rede:** o fuzz usa ambiente explícito e não mede a detecção.
+- **AF1 (G6):** `cd <repo-main> && git reset --hard` é avaliado no repositório errado.
+- **Próximo:** PR-07b (sinais por forma, `cd` como contexto, rede diferencial da detecção). Com ele, a Onda 1 fecha.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
