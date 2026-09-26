@@ -319,3 +319,36 @@ RAW:git switch -c hotfix-ref
 RAW:git restore --pathspec-from-file=list.txt
 RAW:git checkout --pathspec-from-file=list.txt
 RAW:git restore --pathspec-file-nul
+# PR-05d W1: Avaliação de todos os posicionais
+RAW:git checkout . app/x
+RAW:git checkout src/.. app/x
+RAW:git checkout app/x .
+RAW:git checkout main app/x
+# PR-05d W2: Abreviações de opções longas (prefixos únicos)
+RAW:git checkout --forc main
+RAW:git switch --discard main
+RAW:git switch --force-c main
+RAW:git restore --staged --work .
+RAW:git restore --pathspec-from=list.txt
+RAW:git restore --stag --work .
+RAW:git checkout --quiet main
+RAW:git switch --detach HEAD~1
+# PR-05d W3: Glob no primeiro segmento
+RAW:git checkout -- '*.php'
+RAW:git restore '*.php'
+RAW:git checkout -- ./*
+RAW:git checkout -- '**'
+RAW:git restore -- '[a-z]*'
+RAW:git checkout -- src/*
+RAW:git checkout -- 'src/*.php'
+# PR-05d W4: Variável ($) ou til (~) no pathspec
+RAW:git checkout -- "$PWD"
+RAW:git restore $DIR
+RAW:git checkout -- ~
+# PR-05d Variantes Inéditas do Agente
+RAW:git checkout ./src/.. app/Model.php
+RAW:git switch --discard-c main
+RAW:git checkout -- "?*.js"
+RAW:git checkout -- ~/projects/repo
+RAW:git checkout -- tests/*
+RAW:git switch --guess main

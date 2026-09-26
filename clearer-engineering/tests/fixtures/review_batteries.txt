@@ -213,28 +213,35 @@ production|deny|H020-agente-V2|git switch -C feature/new-workflow
 
 # --- Handoff 021 · revisão do PR-05c
 # W1 (regressão): sem "--", o git trata "." como pathspec quando não é ref; avaliar todos os posicionais
-production|deny|PENDENTE:H021-W1|git checkout . app/x
-production|deny|PENDENTE:H021-W1|git checkout src/.. app/x
+production|deny|H021-W1|git checkout . app/x
+production|deny|H021-W1|git checkout src/.. app/x
 production|deny|H021-W1-controle|git checkout app/x .
 production|allow|H021-W1-controle|git checkout main app/x
 # W2 (regressão parcial): o git aceita prefixo único de opção longa (--forc = --force)
-production|deny|PENDENTE:H021-W2|git checkout --forc main
-production|deny|PENDENTE:H021-W2|git switch --discard main
-production|deny|PENDENTE:H021-W2|git switch --force-c main
-production|deny|PENDENTE:H021-W2|git restore --staged --work .
-production|deny|PENDENTE:H021-W2|git restore --pathspec-from=list.txt
+production|deny|H021-W2|git checkout --forc main
+production|deny|H021-W2|git switch --discard main
+production|deny|H021-W2|git switch --force-c main
+production|deny|H021-W2|git restore --staged --work .
+production|deny|H021-W2|git restore --pathspec-from=list.txt
 production|deny|H021-W2-controle|git restore --stag --work .
 production|allow|H021-W2-controle|git checkout --quiet main
 production|allow|H021-W2-controle|git switch --detach HEAD~1
 # W3 (preexistente): glob no primeiro segmento alcança o repositório inteiro
-production|deny|PENDENTE:H021-W3|git checkout -- '*.php'
-production|deny|PENDENTE:H021-W3|git restore '*.php'
-production|deny|PENDENTE:H021-W3|git checkout -- ./*
-production|deny|PENDENTE:H021-W3|git checkout -- '**'
-production|deny|PENDENTE:H021-W3|git restore -- '[a-z]*'
+production|deny|H021-W3|git checkout -- '*.php'
+production|deny|H021-W3|git restore '*.php'
+production|deny|H021-W3|git checkout -- ./*
+production|deny|H021-W3|git checkout -- '**'
+production|deny|H021-W3|git restore -- '[a-z]*'
 production|allow|H021-W3-controle|git checkout -- src/*
 production|allow|H021-W3-controle|git checkout -- 'src/*.php'
 # W4 (preexistente): variável ou "~" no pathspec é incerteza (mesma regra do S2 no rm)
-production|deny|PENDENTE:H021-W4|git checkout -- "$PWD"
-production|deny|PENDENTE:H021-W4|git restore $DIR
-production|deny|PENDENTE:H021-W4|git checkout -- ~
+production|deny|H021-W4|git checkout -- "$PWD"
+production|deny|H021-W4|git restore $DIR
+production|deny|H021-W4|git checkout -- ~
+# Variantes inéditas adicionadas pelo agente (PR-05d)
+production|deny|H021-agente-W1|git checkout ./src/.. app/Model.php
+production|deny|H021-agente-W2|git switch --discard-c main
+production|deny|H021-agente-W3|git checkout -- "?*.js"
+production|deny|H021-agente-W4|git checkout -- ~/projects/repo
+production|allow|H021-agente-controle|git checkout -- tests/*
+production|allow|H021-agente-controle|git switch --guess main

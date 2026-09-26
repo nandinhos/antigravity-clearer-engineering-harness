@@ -310,5 +310,100 @@ class TestGitCanonicalization(unittest.TestCase):
             self.assertEqual(use_case, "GIT_HISTORY")
 
 
+    # --------------------------------------------------------------------------
+    # W1 (PR-05d): Avaliação de todos os posicionais em checkout
+    # --------------------------------------------------------------------------
+    def test_w1_all_positionals_evaluated_in_checkout(self):
+        w1_destructive = [
+            "git checkout . app/x",
+            "git checkout src/.. app/x",
+            "git checkout app/x .",
+            "git checkout ./src/.. app/Model.php",
+        ]
+        for cmd in w1_destructive:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}'")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+        w1_controls = [
+            "git checkout main app/x",
+            "git checkout dev config/app.php",
+        ]
+        for cmd in w1_controls:
+            for env in ["development", "staging", "production"]:
+                decision, _, _, _ = evaluate_command(cmd, explicit_env=env)
+                self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}' em '{env}', obteve '{decision}'")
+
+    # --------------------------------------------------------------------------
+    # W2 (PR-05d): Abreviações de opções longas (prefixos únicos)
+    # --------------------------------------------------------------------------
+    def test_w2_long_option_abbreviations(self):
+        w2_destructive = [
+            "git checkout --forc main",
+            "git switch --discard main",
+            "git switch --force-c main",
+            "git switch --discard-c main",
+            "git restore --staged --work .",
+            "git restore --pathspec-from=list.txt",
+            "git restore --stag --work .",
+        ]
+        for cmd in w2_destructive:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}'")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+        w2_controls = [
+            "git checkout --quiet main",
+            "git switch --detach HEAD~1",
+            "git switch --guess main",
+        ]
+        for cmd in w2_controls:
+            for env in ["development", "staging", "production"]:
+                decision, _, _, _ = evaluate_command(cmd, explicit_env=env)
+                self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}' em '{env}', obteve '{decision}'")
+
+    # --------------------------------------------------------------------------
+    # W3 (PR-05d): Glob no primeiro segmento alcança o repositório inteiro
+    # --------------------------------------------------------------------------
+    def test_w3_first_segment_glob_broad(self):
+        w3_destructive = [
+            "git checkout -- '*.php'",
+            "git restore '*.php'",
+            "git checkout -- ./*",
+            "git checkout -- '**'",
+            "git restore -- '[a-z]*'",
+            "git checkout -- '?*.js'",
+        ]
+        for cmd in w3_destructive:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}'")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+        w3_controls = [
+            "git checkout -- src/*",
+            "git checkout -- 'src/*.php'",
+            "git checkout -- tests/*",
+        ]
+        for cmd in w3_controls:
+            for env in ["development", "staging", "production"]:
+                decision, _, _, _ = evaluate_command(cmd, explicit_env=env)
+                self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}' em '{env}', obteve '{decision}'")
+
+    # --------------------------------------------------------------------------
+    # W4 (PR-05d): Variável ($) ou til (~) no pathspec é incerteza (amplo)
+    # --------------------------------------------------------------------------
+    def test_w4_variable_or_tilde_pathspec(self):
+        w4_destructive = [
+            "git checkout -- \"$PWD\"",
+            "git restore $DIR",
+            "git checkout -- ~",
+            "git checkout -- ~/projects/repo",
+        ]
+        for cmd in w4_destructive:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}'")
+            self.assertEqual(use_case, "GIT_HISTORY")
+
+
 if __name__ == "__main__":
     unittest.main()

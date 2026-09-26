@@ -7,7 +7,6 @@ approval: never
 sandbox: workspace-write [workdir, /tmp, $TMPDIR]
 reasoning effort: medium
 reasoning summaries: none
-session id: 01a0db2c-5ddf-73b0-b6db-8c80225c18a3
 --------
 user
 Você está deliberando como integrante do CONSELHO DE SENIORES do CLEARER Engineering Harness (CEH).

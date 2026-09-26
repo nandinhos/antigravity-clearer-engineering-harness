@@ -1,12 +1,40 @@
 """
 git.py - Analisador por tokens de comandos Git sensíveis para o Safety Gate do CEH.
-Módulo normativo do PR-05c (Handoffs 019 e 020).
+Módulo normativo do PR-05c e PR-05d (Handoffs 019, 020 e 021).
 Substitui regex de checkout, restore e switch, eliminando fontes duplas de verdade.
-Fundamentação: gitglossary (pathspec), git restore --help, git checkout/switch --help.
+Fundamentação: gitglossary (pathspec), git 2.43 (git checkout|restore|switch --help).
 """
 from __future__ import annotations
 
 import posixpath
+
+# Opções longas canônicas extraídas de git 2.43 (git checkout|restore|switch --help)
+CHECKOUT_LONG_OPTS = (
+    "--conflict", "--detach", "--force", "--guess", "--ignore-other-worktrees",
+    "--ignore-skip-worktree-bits", "--merge", "--no-guess", "--no-overlay",
+    "--no-overwrite-ignore", "--no-progress", "--no-recurse-submodules",
+    "--no-track", "--orphan", "--ours", "--overlay", "--overwrite-ignore",
+    "--patch", "--pathspec-file-nul", "--pathspec-from-file", "--progress",
+    "--quiet", "--theirs", "--track"
+)
+
+RESTORE_LONG_OPTS = (
+    "--conflict", "--ignore-skip-worktree-bits", "--ignore-unmerged", "--merge",
+    "--no-overlay", "--no-progress", "--no-recurse-submodules", "--ours",
+    "--overlay", "--patch", "--pathspec-file-nul", "--pathspec-from-file",
+    "--progress", "--quiet", "--source", "--staged", "--theirs", "--worktree"
+)
+
+SWITCH_LONG_OPTS = (
+    "--conflict", "--create", "--detach", "--discard-changes", "--force",
+    "--force-create", "--guess", "--ignore-other-worktrees", "--merge",
+    "--no-guess", "--no-progress", "--no-recurse-submodules", "--no-track",
+    "--orphan", "--progress", "--quiet", "--track"
+)
+
+CHECKOUT_VAL_OPTS = ("--conflict", "--orphan", "--pathspec-from-file")
+RESTORE_VAL_OPTS = ("--conflict", "--source", "--pathspec-from-file")
+SWITCH_VAL_OPTS = ("--conflict", "--create", "--orphan", "--force-create")
 
 
 def strip_quotes(s: str) -> str:
@@ -22,12 +50,16 @@ def strip_quotes(s: str) -> str:
 
 def is_broad_pathspec(pathspec: str) -> bool:
     """
-    Determina se um pathspec individual possui amplitude destrutiva (V1).
+    Determina se um pathspec individual possui amplitude destrutiva (V1, W3, W4).
     Retorna True se o pathspec afetar todo o repositório, diretório atual ou além dele.
     """
     p = strip_quotes(pathspec)
     if not p:
         return False
+
+    # W4: Variável ($) ou til (~) no pathspec é incerteza -> amplo / fail-closed
+    if "$" in p or p.startswith("~"):
+        return True
 
     # Pathspec com magia (iniciado por ':')
     if p.startswith(":"):
@@ -41,8 +73,17 @@ def is_broad_pathspec(pathspec: str) -> bool:
                 sub = p[len(prefix):].lstrip("/")
                 if not sub or sub in (".", ""):
                     return True
+                # W4 no subcaminho da magia
+                if "$" in sub or sub.startswith("~"):
+                    return True
                 norm_sub = posixpath.normpath(sub)
-                return norm_sub == "." or norm_sub == ".." or norm_sub.startswith("../")
+                if norm_sub in (".", "..") or norm_sub.startswith("../"):
+                    return True
+                # W3 no subcaminho da magia
+                first_seg = norm_sub.split("/")[0]
+                if any(c in first_seg for c in ("*", "?", "[")):
+                    return True
+                return False
 
         # Qualquer outra magia (glob, attr, icase, literal, desconhecida) -> fail-closed
         return True
@@ -52,7 +93,15 @@ def is_broad_pathspec(pathspec: str) -> bool:
         return True
 
     norm = posixpath.normpath(p)
-    return norm == "." or norm == ".." or norm.startswith("../")
+    if norm in (".", "..") or norm.startswith("../"):
+        return True
+
+    # W3: Glob no primeiro segmento alcança o repositório inteiro
+    first_seg = norm.split("/")[0]
+    if any(c in first_seg for c in ("*", "?", "[")):
+        return True
+
+    return False
 
 
 def _consume_opt_value(args: list[str], i: int, opt: str) -> int:
@@ -84,15 +133,20 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
                 i += 1
                 continue
             if tok.startswith("--"):
-                if tok == "--force":
+                opt_name = tok.split("=")[0]
+                matches = [o for o in CHECKOUT_LONG_OPTS if o.startswith(opt_name)]
+                # W2: abreviação só aperta
+                if any(m == "--force" for m in matches):
                     has_force = True
-                elif tok.startswith("--pathspec-from-file") or tok == "--pathspec-file-nul":
+                if any(m in ("--pathspec-from-file", "--pathspec-file-nul") for m in matches):
                     has_pathspec_file = True
-                elif tok in ("--orphan", "--source", "--conflict"):
-                    i = _consume_opt_value(args, i, tok)
+
+                if "=" not in tok and any(m in CHECKOUT_VAL_OPTS for m in matches):
+                    i = i + 2 if i + 1 < len(args) else i + 1
                     continue
                 i += 1
                 continue
+
             if tok.startswith("-") and len(tok) > 1:
                 if tok.startswith("-B"):
                     has_dash_B = True
@@ -109,6 +163,7 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
                     has_dash_B = True
                 i += 1
                 continue
+
             positionals.append(tok)
             i += 1
 
@@ -119,8 +174,8 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
         if has_pathspec_file:
             return True, "Git checkout with --pathspec-from-file (opaque pathspec)", "GIT_HISTORY"
 
-        target_specs = positionals if after_double_dash else (positionals[1:] if len(positionals) >= 2 else positionals)
-        if target_specs and any(is_broad_pathspec(p) for p in target_specs):
+        # W1: Avaliar TODOS os posicionais, com ou sem '--'
+        if any(is_broad_pathspec(p) for p in positionals):
             return True, "Git checkout discarding working tree files with broad pathspec", "GIT_HISTORY"
         return False, None, None
 
@@ -140,17 +195,24 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
                 i += 1
                 continue
             if tok.startswith("--"):
+                # W2: --staged só relaxa se for nome EXATO
                 if tok == "--staged":
                     has_staged = True
-                elif tok == "--worktree":
+
+                opt_name = tok.split("=")[0]
+                matches = [o for o in RESTORE_LONG_OPTS if o.startswith(opt_name)]
+                # W2: abreviação só aperta
+                if any(m == "--worktree" for m in matches):
                     has_worktree = True
-                elif tok.startswith("--pathspec-from-file") or tok == "--pathspec-file-nul":
+                if any(m in ("--pathspec-from-file", "--pathspec-file-nul") for m in matches):
                     has_pathspec_file = True
-                elif tok in ("--source", "--conflict"):
-                    i = _consume_opt_value(args, i, tok)
+
+                if "=" not in tok and any(m in RESTORE_VAL_OPTS for m in matches):
+                    i = i + 2 if i + 1 < len(args) else i + 1
                     continue
                 i += 1
                 continue
+
             if tok.startswith("-") and len(tok) > 1:
                 if tok.startswith("-s"):
                     i = _consume_opt_value(args, i, "-s") if tok == "-s" else i + 1
@@ -162,6 +224,7 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
                     has_worktree = True
                 i += 1
                 continue
+
             positionals.append(tok)
             i += 1
 
@@ -183,19 +246,22 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
             if tok == "--":
                 break
             if tok.startswith("--"):
-                if tok == "--force":
+                opt_name = tok.split("=")[0]
+                matches = [o for o in SWITCH_LONG_OPTS if o.startswith(opt_name)]
+                # W2: abreviação só aperta
+                if any(m == "--force" for m in matches):
                     has_force = True
-                elif tok == "--discard-changes":
+                if any(m == "--discard-changes" for m in matches):
                     has_discard = True
-                elif tok == "--force-create" or tok.startswith("--force-create="):
+                if any(m == "--force-create" for m in matches):
                     has_force_create = True
-                    i = _consume_opt_value(args, i, "--force-create") if tok == "--force-create" else i + 1
-                    continue
-                elif tok in ("--create", "--orphan"):
-                    i = _consume_opt_value(args, i, tok)
+
+                if "=" not in tok and any(m in SWITCH_VAL_OPTS for m in matches):
+                    i = i + 2 if i + 1 < len(args) else i + 1
                     continue
                 i += 1
                 continue
+
             if tok.startswith("-") and len(tok) > 1:
                 if tok.startswith("-C"):
                     has_force_create = True

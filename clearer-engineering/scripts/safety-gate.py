@@ -120,6 +120,46 @@ def resolve_git_invocation(
     canonical_cmd = "git " + subcommand + (" " + " ".join(remaining_args) if remaining_args else "")
     return True, subcommand, remaining_args, repo_root, canonical_cmd, None
 
+
+def build_destructive_decision(
+    env: str,
+    env_evidence: str,
+    desc: str,
+    use_case_code: str,
+    use_case_label: str,
+) -> tuple[str, str, str, str]:
+    """
+    W5: Helper unificado para montagem da decisão por ambiente (texto e use_case)
+    para comandos destrutivos (PROD deny, STAGING ask com 2 alertas, DEV allow).
+    """
+    if env == "production":
+        reason = (
+            f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
+            f"(Caso de Uso: {use_case_label}): {desc}.\n"
+            f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+            f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
+        )
+        return "deny", reason, env, use_case_code
+
+    if env == "staging":
+        reason = (
+            f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: {use_case_label}]\n"
+            f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural ({desc}).\n"
+            f"   Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+            f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
+            f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
+            f"Confirma a execução com rollback assegurado?"
+        )
+        return "ask", reason, env, use_case_code
+
+    reason = (
+        f"[CEH DEV PERMITTED - Caso de Uso: {use_case_label}] Comando destrutivo liberado para ambiente de "
+        f"DESENVOLVIMENTO/TESTE ({desc}). Ambiente: {env.upper()} (Evidência: {env_evidence}).\n"
+        f"Assegure a disponibilidade de backup e rollback para fins de correção."
+    )
+    return "allow", reason, env, use_case_code
+
+
 def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[str, str] | None:
     """
     Zero-Tolerance Pipeline Red Pre-Push Gate:
@@ -219,34 +259,11 @@ def evaluate_subcommand(
             env = sub_env
             env_evidence = sub_env_evidence
 
-        # PR-05c (Handoffs 019 e 020): Analisador por tokens para checkout, restore e switch
+        # PR-05c/d (Handoffs 019, 020, 021): Analisador por tokens para checkout, restore e switch
         if git_subcmd in ("checkout", "restore", "switch"):
             is_dest, desc, use_case_code = evaluate_git_subcommand(git_subcmd, git_args)
             if is_dest:
-                if env == "production":
-                    reason = (
-                        f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
-                        f"(Caso de Uso: Controle de Versão (Git)): {desc}.\n"
-                        f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
-                        f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
-                    )
-                    return "deny", reason, env, use_case_code
-                if env == "staging":
-                    reason = (
-                        f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: Controle de Versão (Git)]\n"
-                        f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural ({desc}).\n"
-                        f"   Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
-                        f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
-                        f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
-                        f"Confirma a execução com rollback assegurado?"
-                    )
-                    return "ask", reason, env, use_case_code
-                reason = (
-                    f"[CEH DEV PERMITTED - Caso de Uso: Controle de Versão (Git)] Comando destrutivo liberado para ambiente de "
-                    f"DESENVOLVIMENTO/TESTE ({desc}). Ambiente: {env.upper()} (Evidência: {env_evidence}).\n"
-                    f"Assegure a disponibilidade de backup e rollback para fins de correção."
-                )
-                return "allow", reason, env, use_case_code
+                return build_destructive_decision(env, env_evidence, desc, use_case_code, "Controle de Versão (Git)")
             else:
                 safe_uc = "GENERAL" if git_subcmd == "switch" else "FILESYSTEM_SAFE"
                 return "allow", f"Safe Git operation permitted ({env_evidence}).", env, safe_uc
@@ -279,37 +296,9 @@ def evaluate_subcommand(
             or re.search(pattern, sub_norm, re.IGNORECASE)
             or re.search(pattern, sub_raw, re.IGNORECASE)
         ):
-            # PRODUÇÃO: Fora de cogitação (DENY incondicional)
-            if env == "production":
-                reason = (
-                    f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
-                    f"(Caso de Uso: {use_case_label}): {desc}.\n"
-                    f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
-                    f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
-                )
-                return "deny", reason, env, use_case_code
-
-            # HOMOLOGAÇÃO: Confirmação obrigatória com 2 ALERTAS explícitos
-            if env == "staging":
-                reason = (
-                    f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: {use_case_label}]\n"
-                    f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural ({desc}).\n"
-                    f"   Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
-                    f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
-                    f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
-                    f"Confirma a execução com rollback assegurado?"
-                )
-                return "ask", reason, env, use_case_code
-
-            # DESENVOLVIMENTO / TESTE: Permitido com prontidão de backup/rollback
-            if is_git_push:
+            if is_git_push and env == "development":
                 break  # Force push segue para o gate de CI (passo 5): força não isenta de certificado
-            reason = (
-                f"[CEH DEV PERMITTED - Caso de Uso: {use_case_label}] Comando destrutivo liberado para ambiente de "
-                f"DESENVOLVIMENTO/TESTE ({desc}). Ambiente: {env.upper()} (Evidência: {env_evidence}).\n"
-                f"Assegure a disponibilidade de backup e rollback para fins de correção."
-            )
-            return "allow", reason, env, use_case_code
+            return build_destructive_decision(env, env_evidence, desc, use_case_code, use_case_label)
 
     # 5. Pre-Push CI Clearance Gate (todo git push, inclusive force push)
     if is_git_push:

@@ -161,19 +161,29 @@ def main():
     # ---------------------------------------------------------
     # 4. Portabilidade de links (zero file:/// ou /home/<user>/)
     # ---------------------------------------------------------
-    print("[4/7] Verificando portabilidade de links na documentação...")
+    print("[4/7] Verificando portabilidade de links e ausência de session IDs na documentação...")
     abs_links_found = []
+    session_ids_found = []
     for md_file in docs_dir.rglob("*.md"):
         content = md_file.read_text(encoding="utf-8")
         matches = re.findall(r"(file:///home/[^\s\)\"'>]+|/home/\w+/projects/[^\s\)\"'>]+)", content)
         if matches:
             abs_links_found.append((md_file.relative_to(repo_root), matches))
+        sess_matches = re.findall(r"session\s+id:\s+[0-9a-f\-]{36}", content, re.IGNORECASE)
+        # Ignora arquivos de atas consolidadas de sessões históricas pré-PR05c
+        if sess_matches:
+            # Verifica se está no diretório recente
+            if "20260925_214340" in str(md_file) or "handoffs" in str(md_file):
+                session_ids_found.append((md_file.relative_to(repo_root), sess_matches))
 
     if abs_links_found:
         for f, m in abs_links_found:
             errors.append(f"Caminho absoluto local detectado em {f}: {m}")
-    else:
-        print("  • Zero caminhos absolutos locais detectados em toda a pasta docs/.")
+    if session_ids_found:
+        for f, m in session_ids_found:
+            errors.append(f"Session ID de ferramenta detectado em {f}: {m}")
+    if not abs_links_found and not session_ids_found:
+        print("  • Zero caminhos absolutos locais ou session IDs recentes detectados em docs/.")
         checks_passed += 1
 
     # ---------------------------------------------------------
