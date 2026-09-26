@@ -175,6 +175,8 @@ def _consume_flags(tokens: list[str], idx: int, arg_opts: set[str]) -> int:
             idx += 2
         elif any(tok.startswith(opt + "=") for opt in arg_opts):
             idx += 1
+        elif not tok.startswith("--") and len(tok) > 1 and f"-{tok[-1]}" in arg_opts and idx + 1 < n:
+            idx += 2
         else:
             idx += 1
     return idx
@@ -183,7 +185,7 @@ def _consume_flags(tokens: list[str], idx: int, arg_opts: set[str]) -> int:
 def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
     """
     Identifica o comando executável real consumindo prefixos transparentes ou
-    identificando executores de string (Handoff 026 §3, AB1).
+    identificando executores de string (Handoff 026 §3, Handoff 027 §3, AB1/AC1).
     """
     n, idx = len(tokens), 0
     while idx < n:
@@ -214,6 +216,14 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
             idx = _consume_flags(tokens, idx + 1, {"-u", "-g", "-h", "-p", "-r", "-t", "-T", "-C"})
             continue
         if tok == "env":
+            for i in range(idx + 1, n):
+                c = tokens[i]
+                if c in ("-S", "--split-string") and i + 1 < n:
+                    return idx, tokens[i + 1]
+                if c.startswith(("-S=", "--split-string=")):
+                    return idx, c.split("=", 1)[1]
+                if c.startswith("-S") and len(c) > 2:
+                    return idx, c[2:]
             idx += 1
             while idx < n:
                 c = tokens[idx]
@@ -230,8 +240,13 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
             idx = _consume_flags(tokens, idx + 1, {"-o", "--output", "-f", "--format"})
             continue
         if tok in ("stdbuf", "ionice", "chrt", "taskset"):
-            idx = _consume_flags(tokens, idx + 1, {"-i", "-o", "-e", "-c", "-n", "-p", "-P", "-u"})
-            if tok in ("chrt", "taskset") and idx < n and not tokens[idx].startswith("-"):
+            start_i = idx
+            idx = _consume_flags(tokens, idx + 1, {"-i", "-o", "-e", "-c", "--cpu-list", "-n", "-p", "-P", "-u"})
+            if tok == "taskset":
+                has_cpu = any(t in ("-c", "--cpu-list") or t.startswith(("-c=", "--cpu-list=")) or (t.startswith("-") and not t.startswith("--") and "c" in t) for t in tokens[start_i:idx])
+                if not has_cpu and idx < n and not tokens[idx].startswith("-"):
+                    idx += 1
+            elif tok == "chrt" and idx < n and not tokens[idx].startswith("-"):
                 idx += 1
             continue
         if tok == "xargs":

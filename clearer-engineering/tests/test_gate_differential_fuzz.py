@@ -560,12 +560,19 @@ json.dump(results, sys.stdout)
         for cmd in sample_cmds:
             prefixes = [
                 ("nice", f"nice {cmd}"),
+                ("nice --adjustment 5", f"nice --adjustment 5 {cmd}"),
                 ("timeout 5", f"timeout 5 {cmd}"),
+                ("timeout --signal KILL 5", f"timeout --signal KILL 5 {cmd}"),
                 ("sudo -u x", f"sudo -u x {cmd}"),
+                ("sudo --user x", f"sudo --user x {cmd}"),
+                ("sudo -iu x", f"sudo -iu x {cmd}"),
+                ("taskset -c 0", f"taskset -c 0 {cmd}"),
+                ("xargs --max-args 1", f"xargs --max-args 1 {cmd}"),
                 ("nohup", f"nohup {cmd}"),
                 ("exec", f"exec {cmd}"),
                 ("eval", f"eval {shlex.quote(cmd)}"),
                 ("watch -n1", f"watch -n1 {shlex.quote(cmd)}"),
+                ("env -S", f"env -S {shlex.quote(cmd)}"),
             ]
 
             for env in ("development", "staging", "production"):

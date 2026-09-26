@@ -322,6 +322,32 @@ def evaluate_subcommand(
                 depth=depth + 1
             )
 
+        # AC1 (Handoff 027 §3.1): Varredura fail-closed de sufixos iniciados por cabeça analisada após prefixo conhecido
+        KNOWN_PREFIXES = {
+            "rtk", "nohup", "builtin", "command", "exec", "nice",
+            "timeout", "sudo", "doas", "env", "time", "stdbuf",
+            "ionice", "chrt", "taskset", "xargs"
+        }
+        ANALYZED_HEADS = {
+            "rm", "git", "find", "sh", "bash", "zsh", "dash",
+            "node", "perl", "ruby", "eval", "su", "watch"
+        }
+        first_tok = os.path.basename(sub_tokens[0])
+        if first_tok in KNOWN_PREFIXES:
+            for j in range(1, len(sub_tokens)):
+                base_t = os.path.basename(sub_tokens[j])
+                if base_t in ANALYZED_HEADS or base_t.startswith("python"):
+                    suffix_cmd = shlex.join(sub_tokens[j:])
+                    s_res = evaluate_command(
+                        suffix_cmd,
+                        explicit_env=explicit_env,
+                        base_cwd=base_cwd,
+                        depth=depth + 1
+                    )
+                    if s_res[3] == "CATASTROPHIC":
+                        return s_res
+                    candidate = max_severity_decision(candidate, s_res) if candidate else s_res
+
     shell_inner = extract_shell_c_command(sub_raw)
     if shell_inner:
         return evaluate_command(
