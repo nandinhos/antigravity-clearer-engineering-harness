@@ -254,6 +254,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - AD4: PHP, awk, deno e bun sem cobertura.
 - **Próximo:** PR-06e. Com ele, a Onda 1 fecha e a lista de famílias cobertas fica fechada (§4 do Handoff 028).
 
+### 0.28 PR-06e não homologado ([Handoff 029](./temp_implementation/handoffs/handoff-029-revisao-pr06e.md))
+
+- **Fechados:** AD1–AD4, sem lista de prefixos, com shells extras, agrupamentos por interpretador e PHP/awk/deno/bun.
+- **AE1 (regressão de uso):** a varredura reaplicada em cada sufixo estoura a profundidade. `brew install git node perl ruby python3` e `which git bash perl python3 node` saem deny/CATASTROPHIC até em DEV.
+- **AE2/AE3:** `awk … | "sh"` e `fish --command=` ainda passam.
+- **Estado:** a linha de base segue em `fe171a7`. Próximo: PR-06f (varredura em um nível + invariante de benignidade no fuzz), que fecha a Onda 1.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

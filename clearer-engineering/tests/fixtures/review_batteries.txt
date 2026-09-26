@@ -387,3 +387,21 @@ development|deny/CATASTROPHIC|H028-AD4|bun -e "require('fs').rmSync('/',{recursi
 production|allow|H028-controle|php -r 'echo PHP_VERSION;'
 production|allow|H028-controle|awk '{print $1}' access.log
 production|allow|H028-controle|php artisan route:list
+
+# --- Handoff 029 · revisão do PR-06e
+# AE1 (regressão de uso): a varredura reaplicada em cada sufixo estoura a profundidade e nega como CATASTROPHIC
+#      qualquer comando inofensivo com 4 ou mais nomes de ferramenta
+development|allow|PENDENTE:H029-AE1|brew install git node perl ruby python3
+development|allow|PENDENTE:H029-AE1|apt-get install -y git bash perl python3 ruby
+production|allow|PENDENTE:H029-AE1|which git bash perl python3 node
+production|allow|PENDENTE:H029-AE1|echo git git git git
+production|allow|PENDENTE:H029-AE1|command -v git bash zsh fish
+production|deny/CATASTROPHIC|H029-AE1-controle|echo git git git git find / -delete
+production|deny/CATASTROPHIC|H029-AE1-controle|setsid nice timeout 5 sudo -u x find / -delete
+# AE2: awk com saída canalizada para shell dentro do programa
+development|deny/CATASTROPHIC|PENDENTE:H029-AE2|gawk 'BEGIN{print "find / -delete" | "sh"}'
+# AE3: fish com --command=<script>
+development|deny/CATASTROPHIC|PENDENTE:H029-AE3|fish --command="find / -delete"
+production|allow|H029-controle|php -f script.php
+production|allow|H029-controle|awk -f prog.awk data.txt
+production|allow|H029-controle|bun run build
