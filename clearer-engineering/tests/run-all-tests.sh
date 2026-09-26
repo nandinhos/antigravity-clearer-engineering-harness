@@ -233,6 +233,10 @@ run_test "Differential Fuzz: Comparação automática contra baseline e detecç�
 run_test "Environment Tokens: Detecção por token explícito e invariante de não rebaixamento (PR-07)" \
     "python3 '$PLUGIN_DIR/tests/test_environment_tokens.py' >/dev/null 2>&1"
 
+# 22. PR-07b Environment Differential Network
+run_test "Environment Differential: Rede diferencial da detecção sem explicit_env (PR-07b)" \
+    "python3 '$PLUGIN_DIR/tests/test_environment_differential.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"

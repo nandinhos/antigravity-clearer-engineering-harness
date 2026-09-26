@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-test_environment_tokens.py - Testes de detecção de ambiente por token explícito (PR-07)
-Cobre as seções 3 e 4 do Handoff 030:
-- Detecção por tokens explícitos (--env, APP_ENV, NODE_ENV, --context, etc.)
+test_environment_tokens.py - Testes de detecção de ambiente por token explícito (PR-07b)
+Cobre os Handoffs 030 e 031:
+- Detecção por tokens explícitos e por forma (atribuições NOME=valor, -var k=v, --opt=val)
 - Invariante de não rebaixamento de severidade
 - Segmentação estrita em normalize_env e branch names (anti falsos-positivos delivery/evaluation)
+- AF1: cd/pushd definindo contexto dos subcomandos seguintes
+- Hermeticidade com isolamento do os.environ
 """
 
 import os
@@ -34,9 +36,15 @@ class TestEnvironmentTokens(unittest.TestCase):
     def setUp(self):
         self.tmp_dir = Path(tempfile.mkdtemp(prefix="ceh-test-env-tokens-"))
         self.orig_cwd = os.getcwd()
+        # Handoff 031 §3.4: Hermeticidade contra variáveis do host/CI
+        self.orig_environ = os.environ.copy()
+        for var in ["CEH_ENV", "APP_ENV", "NODE_ENV", "RAILS_ENV", "ENVIRONMENT", "ENV", "STAGE"]:
+            os.environ.pop(var, None)
 
     def tearDown(self):
         os.chdir(self.orig_cwd)
+        os.environ.clear()
+        os.environ.update(self.orig_environ)
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     def _init_repo(self, name: str, branch: str = "main") -> Path:
@@ -83,7 +91,7 @@ class TestEnvironmentTokens(unittest.TestCase):
         for cmd, expected_env, expected_decision in cases:
             env, _ = detect_environment(cmd_line=cmd, target_dir=repo)
             self.assertEqual(env, expected_env, f"Falha no ambiente para '{cmd}' na branch main")
-            decision, reason, evaluated_env, use_case = safety_gate.evaluate_command(cmd, base_cwd=repo)
+            decision, reason, _, _ = safety_gate.evaluate_command(cmd, base_cwd=repo)
             self.assertEqual(decision, expected_decision, f"Falha na decisão para '{cmd}' na branch main: reason={reason}")
 
     def test_handoff_030_section_3_word_segments(self):
@@ -121,6 +129,35 @@ class TestEnvironmentTokens(unittest.TestCase):
         for repo, cmd, expected_env in cases:
             env, _ = detect_environment(cmd_line=cmd, target_dir=repo)
             self.assertEqual(env, expected_env, f"Falha para comando '{cmd}' no repo {repo.name}")
+
+    def test_handoff_031_section_1_table(self):
+        """Handoff 031 §1: Sinais por forma reconhecidos em contexto de dev."""
+        repo_dev = self._init_repo("r_dev_h31", branch="dev")
+
+        cases = [
+            ("cd /srv/production && php artisan migrate:fresh", "production", "deny"),
+            ("php artisan migrate:fresh --environment=production", "production", "deny"),
+            ("terraform destroy -var env=production", "production", "deny"),
+            ("DJANGO_SETTINGS_MODULE=app.settings.production python manage.py flush --noinput", "production", None),
+        ]
+
+        for cmd, expected_env, expected_decision in cases:
+            env, _ = detect_environment(cmd_line=cmd, target_dir=repo_dev)
+            self.assertEqual(env, expected_env, f"Falha no ambiente para '{cmd}' em dev")
+            decision, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+            self.assertEqual(eval_env, expected_env, f"Falha no ambiente avaliado pelo gate para '{cmd}' em dev")
+            if expected_decision is not None:
+                self.assertEqual(decision, expected_decision, f"Falha na decisão para '{cmd}' em dev: reason={reason}")
+
+    def test_handoff_031_af1_cd_updates_context(self):
+        """Handoff 031 AF1: cd <repo-main> && git reset --hard -> deny/production."""
+        repo_dev = self._init_repo("repo_af1_dev", branch="dev")
+        repo_main = self._init_repo("repo_af1_main", branch="main")
+
+        cmd = f"cd {repo_main} && git reset --hard"
+        decision, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+        self.assertEqual(decision, "deny", f"AF1 falhou: {cmd} deveria ser deny/production, mas foi {decision} ({reason})")
+        self.assertEqual(eval_env, "production", f"AF1 falhou: ambiente deveria ser production, mas foi {eval_env}")
 
     def test_non_downgrade_invariant(self):
         """

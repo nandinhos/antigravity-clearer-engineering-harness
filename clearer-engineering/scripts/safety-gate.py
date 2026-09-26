@@ -37,6 +37,7 @@ from ceh_core.environment import (
     detect_environment,
     get_git_branch,
     find_repo_root,
+    ENV_SEVERITY,
 )
 from ceh_core.rm import evaluate_rm_command
 from ceh_core.git import evaluate_git_subcommand
@@ -511,13 +512,54 @@ def evaluate_command(
         return "allow", "Empty command after decomposition", env, "GENERAL"
 
     evaluations = []
+    current_cwd = Path(base_cwd).resolve() if base_cwd else Path.cwd()
+    current_env = env
+    current_env_ev = env_evidence
+    unresolved_cd = False
+
     for sub in subcommands:
+        sub_tokens = []
+        try:
+            sub_tokens = shlex.split(sub, posix=True, comments=True)
+        except Exception:
+            sub_tokens = sub.split()
+
+        # AF1: cd / pushd atualiza o contexto dos subcomandos seguintes
+        if sub_tokens and sub_tokens[0] in ("cd", "pushd") and len(sub_tokens) > 1:
+            raw_target = sub_tokens[1]
+            has_unresolved = bool(re.search(r'\$[\w{]|~', raw_target))
+            target_path = None
+            if not has_unresolved:
+                cand = Path(raw_target)
+                target_path = cand if cand.is_absolute() else (current_cwd / cand).resolve()
+
+            if target_path and target_path.is_dir():
+                current_cwd = target_path
+                new_env, new_ev = detect_environment(explicit_env=explicit_env, target_dir=current_cwd)
+                if ENV_SEVERITY.get(new_env, 0) > ENV_SEVERITY.get(current_env, 0):
+                    current_env = new_env
+                    current_env_ev = new_ev
+            elif has_unresolved:
+                unresolved_cd = True
+
+        sub_eval_env, sub_eval_ev = detect_environment(explicit_env=explicit_env, cmd_line=sub, target_dir=current_cwd)
+        if ENV_SEVERITY.get(sub_eval_env, 0) > ENV_SEVERITY.get(current_env, 0):
+            effective_env = sub_eval_env
+            effective_ev = sub_eval_ev
+        else:
+            effective_env = current_env
+            effective_ev = current_env_ev
+
+        if unresolved_cd and effective_env == "development":
+            effective_env = "staging"
+            effective_ev = "Incerteza: cd para caminho dinâmico não resolvido antes de subcomando"
+
         evaluations.append(
             evaluate_subcommand(
                 sub,
-                env,
-                env_evidence,
-                base_cwd=base_cwd,
+                effective_env,
+                effective_ev,
+                base_cwd=current_cwd,
                 explicit_env=explicit_env,
                 depth=depth,
                 scan_suffixes=scan_suffixes,

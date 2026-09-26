@@ -23,8 +23,8 @@ ENV_SEVERITY = {
     "production": 2,
 }
 
-EXPLICIT_ENV_VARS = {"APP_ENV", "NODE_ENV", "RAILS_ENV", "CEH_ENV"}
-CONTEXT_FLAGS = {"--context", "--kube-context"}
+ENV_KEY_SEGMENTS = {"env", "environment", "stage", "profile", "context", "target"}
+TARGET_OPTS = {"env", "environment", "stage", "profile", "context", "kube-context", "target"}
 
 
 def normalize_env(val: str) -> str:
@@ -40,12 +40,12 @@ def normalize_env(val: str) -> str:
 
 def extract_command_environment_tokens(cmd_line: str) -> tuple[str | None, str | None]:
     """
-    Extrai sinais explícitos de ambiente na linha de comando:
-    1. Atribuições APP_ENV=X, NODE_ENV=X, RAILS_ENV=X, CEH_ENV=X no início ou após 'env'.
-    2. Flags --env=X ou --env X.
-    3. Flags --context=X, --context X, --kube-context=X, --kube-context X.
-    Ignora comentários (# ...), caminhos de arquivo, mensagens (--grep=..., -m "...") e texto livre.
-    Retorna (env, evidence) do sinal mais severo encontrado, ou (None, None).
+    Extrai sinais de ambiente na linha de comando por forma (Handoff 031 §3.1):
+    1. Atribuição KEY=VAL (qualquer que seja o nome) na cabeça, após export ou após env.
+    2. Argumento chave=valor sem hífen ou com -var/--set quando a chave contiver env/stage/target...
+    3. Opções --X=valor, --X valor, -X=valor, -X valor (X in TARGET_OPTS).
+    4. cd ou pushd: o diretório de contexto conta como sinal de ambiente.
+    Retorna (env, evidence) do sinal mais severo, ou (None, None).
     """
     if not cmd_line:
         return None, None
@@ -56,22 +56,28 @@ def extract_command_environment_tokens(cmd_line: str) -> tuple[str | None, str |
         tokens = cmd_line.split()
 
     found_envs: list[tuple[str, str]] = []
-    n = len(tokens)
-    idx = 0
+    n, idx = len(tokens), 0
 
     while idx < n:
         tok = tokens[idx]
-
-        # 1. Atribuições KEY=VAL na cabeça do comando ou após 'env'
-        if "=" in tok and not tok.startswith("-") and not tok.startswith("="):
-            k, v = tok.split("=", 1)
-            if k in EXPLICIT_ENV_VARS:
-                target_env = normalize_env(v)
-                found_envs.append((target_env, f"Explicit command assignment {k}={v}"))
+        if tok == "export":
             idx += 1
             continue
 
-        # 2. Comando transparente 'env': processa flags e atribuições seguintes
+        # 1. Atribuições KEY=VAL na cabeça ou após env
+        if "=" in tok and not tok.startswith("-") and not tok.startswith("="):
+            k, v = tok.split("=", 1)
+            v_env = normalize_env(v)
+            if v_env in ("production", "staging"):
+                found_envs.append((v_env, f"Explicit assignment {k}={v}"))
+            else:
+                k_segs = set(s for s in re.split(r'[^\w]+', k.lower()) if s)
+                if any(s in ENV_KEY_SEGMENTS for s in k_segs) and v_env != "development":
+                    found_envs.append((v_env, f"Explicit key=value argument {k}={v}"))
+            idx += 1
+            continue
+
+        # 2. Comando transparente 'env'
         if tok == "env":
             idx += 1
             while idx < n:
@@ -80,40 +86,50 @@ def extract_command_environment_tokens(cmd_line: str) -> tuple[str | None, str |
                     idx += 1
                 elif "=" in c and not c.startswith("="):
                     k, v = c.split("=", 1)
-                    if k in EXPLICIT_ENV_VARS:
-                        target_env = normalize_env(v)
-                        found_envs.append((target_env, f"Explicit env command assignment {k}={v}"))
+                    v_env = normalize_env(v)
+                    if v_env in ("production", "staging"):
+                        found_envs.append((v_env, f"Explicit env assignment {k}={v}"))
                     idx += 1
                 else:
                     break
             continue
 
-        # 3. Flags --env=X ou --env X
-        if tok == "--env" and idx + 1 < n:
-            val = tokens[idx + 1]
-            target_env = normalize_env(val)
-            found_envs.append((target_env, f"Explicit command flag --env {val}"))
+        # 3. Flags de variáveis: -var chave=valor ou --set chave=valor
+        if tok in ("-var", "--set") and idx + 1 < n:
+            arg = tokens[idx + 1]
+            if "=" in arg and not arg.startswith("="):
+                k, v = arg.split("=", 1)
+                k_segs = set(s for s in re.split(r'[^\w]+', k.lower()) if s)
+                if any(s in ENV_KEY_SEGMENTS for s in k_segs):
+                    v_env = normalize_env(v)
+                    if v_env in ("production", "staging"):
+                        found_envs.append((v_env, f"Explicit variable flag {tok} {arg}"))
             idx += 2
-            continue
-        if tok.startswith("--env="):
-            val = tok.split("=", 1)[1]
-            target_env = normalize_env(val)
-            found_envs.append((target_env, f"Explicit command flag --env={val}"))
-            idx += 1
             continue
 
-        # 4. Flags --context / --kube-context
-        if tok in CONTEXT_FLAGS and idx + 1 < n:
-            val = tokens[idx + 1]
-            target_env = normalize_env(val)
-            found_envs.append((target_env, f"Explicit context flag {tok} {val}"))
+        # 4. Opções com valor: --X=valor, --X valor, -X=valor, -X valor (X in TARGET_OPTS)
+        opt_name, opt_val = None, None
+        if tok.startswith("--") and len(tok) > 2:
+            clean = tok[2:]
+            opt_name, opt_val = clean.split("=", 1) if "=" in clean else (clean, tokens[idx + 1] if idx + 1 < n else None)
+        elif tok.startswith("-") and len(tok) > 1 and not tok.startswith("--"):
+            clean = tok[1:]
+            opt_name, opt_val = clean.split("=", 1) if "=" in clean else (clean, tokens[idx + 1] if idx + 1 < n else None)
+
+        if opt_name and opt_name.lower() in TARGET_OPTS and opt_val is not None:
+            v_env = normalize_env(opt_val)
+            if v_env in ("production", "staging"):
+                found_envs.append((v_env, f"Explicit option {tok} {opt_val}"))
+                if "=" not in tok:
+                    idx += 2
+                    continue
+
+        # 5. cd / pushd: diretório de trabalho conta como contexto que só escala
+        if tok in ("cd", "pushd") and idx + 1 < n:
+            cd_env = normalize_env(tokens[idx + 1])
+            if cd_env in ("production", "staging"):
+                found_envs.append((cd_env, f"Working directory context {tok} {tokens[idx + 1]}"))
             idx += 2
-            continue
-        if any(tok.startswith(f"{cf}=") for cf in CONTEXT_FLAGS):
-            flag, val = tok.split("=", 1)
-            target_env = normalize_env(val)
-            found_envs.append((target_env, f"Explicit context flag {flag}={val}"))
-            idx += 1
             continue
 
         idx += 1
