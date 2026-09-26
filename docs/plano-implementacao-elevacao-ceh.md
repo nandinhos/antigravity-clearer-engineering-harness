@@ -261,6 +261,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **AE2/AE3:** `awk … | "sh"` e `fish --command=` ainda passam.
 - **Estado:** a linha de base segue em `fe171a7`. Próximo: PR-06f (varredura em um nível + invariante de benignidade no fuzz), que fecha a Onda 1.
 
+### 0.29 PR-06f homologado: G5 fechado ([Handoff 030](./temp_implementation/handoffs/handoff-030-revisao-pr06f-despacho-pr07.md))
+
+- **Fechados:** AE1–AE3, com varredura em um nível e invariante de benignidade falsificável (180 casos). A bateria está sem pendências; linha de base em `acd257d`.
+- **Correção do revisor:** a Onda 1 inclui o **PR-07**, que nunca foi despachado.
+- **Achado do PR-07 nesta revisão:** na `main`, `php artisan db:wipe # staging` sai ask/staging, porque um comentário rebaixa o ambiente.
+- **Backlog, fora de G1–G6:**
+  - `ssh host "…"` (execução remota);
+  - `prisma migrate reset --force` e `docker compose down -v` (banco/infra).
+- **Próximo:** PR-07. Com ele, a Onda 1 fecha.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
