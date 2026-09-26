@@ -286,3 +286,31 @@ production|allow|H024-G5-controle|python3 script.py
 production|allow|H024-G5-controle|python3 -c "import os; print(os.getcwd())"
 production|allow|H024-G5-controle|echo "shutil.rmtree"
 production|allow|H024-G5-controle|node -e "console.log(require('fs').existsSync('db'))"
+
+# --- Handoff 025 · revisão do PR-06
+# AA1 (regressão): o analisador de find devolve allow cedo e esconde o rm catastrófico dentro do -exec
+development|deny/CATASTROPHIC|PENDENTE:H025-AA1|find . -exec rm -rf / \;
+development|deny/CATASTROPHIC|PENDENTE:H025-AA1|find . -name x -exec rm -rf ~ \;
+development|deny/CATASTROPHIC|PENDENTE:H025-AA1|find build -delete -exec rm -rf / +
+development|deny/CATASTROPHIC|PENDENTE:H025-AA1|find . -exec rm -rf {} /etc \;
+development|allow|H025-controle|find ./build -name '*.o' -exec rm {} +
+production|allow|H025-controle|find . -name '*.log' -exec ls {} \;
+# AA2: embrulhos (sh/bash -c, os.system) escondem o G5 dos analisadores novos
+production|deny/CATASTROPHIC|PENDENTE:H025-AA2|bash -c "find / -delete"
+development|deny/CATASTROPHIC|PENDENTE:H025-AA2|sh -c "python3 -c \"import shutil; shutil.rmtree('/')\""
+development|deny/CATASTROPHIC|PENDENTE:H025-AA2|python3 -c "import os; os.system('find / -delete')"
+development|deny/CATASTROPHIC|PENDENTE:H025-AA2|python3 -c "import os; os.remove('x'); os.system('rm -rf /')"
+development|deny/CATASTROPHIC|H025-AA2-controle|bash -c "rm -rf /"
+# AA3: detecção de interpretador incompleta (flags agrupadas, import por nome, argv)
+development|deny/CATASTROPHIC|PENDENTE:H025-AA3|python3 -Bc 'import shutil; shutil.rmtree("/")'
+production|deny|PENDENTE:H025-AA3|python3 -Ic 'import shutil; shutil.rmtree("db")'
+production|deny|PENDENTE:H025-AA3|perl -le 'unlink glob "*"'
+development|deny/CATASTROPHIC|PENDENTE:H025-AA3|node -pe "require('fs').rmSync('/',{recursive:true})"
+production|deny|PENDENTE:H025-AA3|node -e "require('node:fs').rmSync('db',{recursive:true})"
+development|deny/CATASTROPHIC|PENDENTE:H025-AA3|node -e "const {rmSync}=require('fs'); rmSync('/',{recursive:true})"
+development|deny/CATASTROPHIC|PENDENTE:H025-AA3|python3 -c "from shutil import rmtree; rmtree('/')"
+development|deny/CATASTROPHIC|PENDENTE:H025-AA3|python3 -c "__import__('shutil').rmtree('/')"
+development|deny/CATASTROPHIC|PENDENTE:H025-AA3|python3 -c 'import shutil,sys; shutil.rmtree(sys.argv[1])' /
+production|allow|H025-controle|python3 -c "l=[1]; print(len(l))"
+production|allow|H025-controle|perl -le 'print 1'
+production|allow|H025-controle|cat s.py | python3
