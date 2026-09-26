@@ -279,6 +279,18 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **AF1 (G6):** `cd <repo-main> && git reset --hard` é avaliado no repositório errado.
 - **Próximo:** PR-07b (sinais por forma, `cd` como contexto, rede diferencial da detecção). Com ele, a Onda 1 fecha.
 
+### 0.31 PR-07b: comportamento homologado, rede reprovada ([Handoff 032](./temp_implementation/handoffs/handoff-032-revisao-pr07b.md))
+
+- **Comportamento:** sinais por forma e `cd` como contexto (AF1). Os 4 relaxamentos foram fechados, e isso foi confirmado contra `971c56a`. Linha de base em `0a51eef`; justificativas zeradas.
+- **Rede reprovada:**
+  - B1: a baseline reaproveita o `ceh_core` atual (mesmo processo), e uma mutação real passa despercebida;
+  - B2: a "prova de falsificabilidade" era uma tautologia;
+  - B3: chaves de justificativa sem branch.
+- **Achados G6:**
+  - AG1: subshell `(cd … && …)`;
+  - AG2: `cd "$VAR"`/`cd -` não escalam.
+- **Próximo:** PR-07c. Com ele, a Onda 1 fecha formalmente.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
