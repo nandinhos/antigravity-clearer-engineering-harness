@@ -14,7 +14,7 @@ OBJETO DE AVALIAÇÃO:
 
 ## 1. Objetivos & Critérios de Aceite (Handoff 045 §4)
 
-1. **Substituição de Greps Frágeis:** Substituir os `grep -q '<texto>'` estruturais de [run-all-tests.sh:142–165](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/tests/run-all-tests.sh#L142-L165) por asserções em código Python sobre a estrutura real analisada (frontmatter e cabeçalhos Markdown).
+1. **Substituição de Greps Frágeis:** Substituir os `grep -q '<texto>'` estruturais de [run-all-tests.sh:142–165](clearer-engineering/tests/run-all-tests.sh#L142-L165) por asserções em código Python sobre a estrutura real analisada (frontmatter e cabeçalhos Markdown).
 2. **Validação de Esquema de Frontmatter YAML:** Garantir que todo `agents/*/agent.md`, `skills/*/SKILL.md` e `profiles/clearer-harness.agent.md` possua frontmatter válido com `name` e `description` preenchidos e com `name` aderente à convenção do diretório.
 3. **Catálogo Versionado de Ferramentas com Evidência:** Criar `clearer-engineering/config/tool_catalog.json`. Toda ferramenta declarada em `tools:` deve constar no catálogo com apontamento para arquivo físico de evidência existente.
 4. **Resolução de Skills `/nome`:** Toda menção a `/nome` de skill nos perfis e agentes deve corresponder a um arquivo físico existente em `skills/<nome>/SKILL.md`.
@@ -81,7 +81,7 @@ Implementado em Python com `unittest` e registrado na suíte do `run-all-tests.s
 
 ## 4. Integração no `run-all-tests.sh`
 
-Substituição das linhas antigas [142–165](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/tests/run-all-tests.sh#L142-L165):
+Substituição das linhas antigas [142–165](clearer-engineering/tests/run-all-tests.sh#L142-L165):
 ```bash
 # 6. Content Schema & Structural Integrity (PR-18 / T3)
 run_test "Content Schema: Frontmatter, tool catalog, skill links and relative URLs" \

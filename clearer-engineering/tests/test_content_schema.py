@@ -173,7 +173,7 @@ class TestFrontmatterSchema(unittest.TestCase):
 
 
 class TestToolCatalogIntegrity(unittest.TestCase):
-    """Valida o catálogo de ferramentas e a comprovação física de evidências."""
+    """Valida o catálogo de ferramentas e a comprovação física rigorosa de proveniência (PR-18b)."""
 
     def setUp(self) -> None:
         self.assertTrue(TOOL_CATALOG_PATH.is_file(), f"Catálogo ausente: {TOOL_CATALOG_PATH}")
@@ -181,20 +181,99 @@ class TestToolCatalogIntegrity(unittest.TestCase):
             self.catalog = json.load(f)
         self.tools_catalog = self.catalog.get("tools", {})
 
-    def test_all_catalog_entries_have_valid_evidence_paths(self) -> None:
+    def test_catalog_evidence_provenance_and_verification(self) -> None:
         self.assertGreater(len(self.tools_catalog), 0, "Catálogo de ferramentas está vazio.")
+        valid_evidence_types = {"payload", "host_doc", "declared"}
+        declared_tools: list[tuple[str, str, str]] = []
+
         for tool_name, tool_data in self.tools_catalog.items():
-            with self.subTest(tool=tool_name):
+            ev_type = tool_data.get("evidence_type")
+            self.assertIn(
+                ev_type,
+                valid_evidence_types,
+                f"{TOOL_CATALOG_PATH}: Ferramenta '{tool_name}' possui 'evidence_type' inválido: '{ev_type}'. "
+                f"Esperado um de: {sorted(list(valid_evidence_types))}",
+            )
+
+            host = tool_data.get("host")
+            self.assertIn(host, {"agy", "claude", "all"}, f"{tool_name}: host inválido '{host}'")
+
+            if ev_type == "payload":
                 evidence_path_str = tool_data.get("evidence_path")
                 self.assertTrue(
                     bool(evidence_path_str),
-                    f"{TOOL_CATALOG_PATH}: Ferramenta '{tool_name}' não possui 'evidence_path' declarado.",
+                    f"{TOOL_CATALOG_PATH}: Ferramenta '{tool_name}' com evidence_type='payload' exige 'evidence_path'.",
                 )
                 evidence_file = REPO_ROOT / str(evidence_path_str)
                 self.assertTrue(
                     evidence_file.is_file(),
-                    f"{TOOL_CATALOG_PATH}: Evidência física para ferramenta '{tool_name}' não existe no disco: {evidence_file}",
+                    f"{TOOL_CATALOG_PATH}: Arquivo de payload não encontrado para '{tool_name}': {evidence_file}",
                 )
+
+                # Validação de conteúdo: deve conter invocação física da ferramenta no JSONL
+                found_invocation = False
+                with open(evidence_file, "r", encoding="utf-8") as fp:
+                    for line in fp:
+                        if not line.strip():
+                            continue
+                        entry = json.loads(line)
+                        payload = entry.get("payload", {})
+                        if host == "agy":
+                            tool_call_name = payload.get("toolCall", {}).get("name")
+                            if tool_call_name == tool_name:
+                                found_invocation = True
+                                break
+                        elif host == "claude":
+                            tool_call_name = payload.get("tool_name")
+                            if tool_call_name == tool_name:
+                                found_invocation = True
+                                break
+
+                self.assertTrue(
+                    found_invocation,
+                    f"{TOOL_CATALOG_PATH}: Payload '{evidence_file}' não contém invocação comprovada para '{tool_name}'.",
+                )
+
+            elif ev_type == "host_doc":
+                evidence_path_str = tool_data.get("evidence_path")
+                self.assertTrue(
+                    bool(evidence_path_str),
+                    f"{TOOL_CATALOG_PATH}: Ferramenta '{tool_name}' com evidence_type='host_doc' exige 'evidence_path'.",
+                )
+                evidence_file = REPO_ROOT / str(evidence_path_str)
+                self.assertTrue(
+                    evidence_file.is_file(),
+                    f"{TOOL_CATALOG_PATH}: Arquivo de documentação de host não encontrado para '{tool_name}': {evidence_file}",
+                )
+
+                # Validação de conteúdo: o nome da ferramenta deve constar expressamente no arquivo
+                doc_text = evidence_file.read_text(encoding="utf-8")
+                self.assertIn(
+                    tool_name,
+                    doc_text,
+                    f"{TOOL_CATALOG_PATH}: Nome da ferramenta '{tool_name}' não consta no arquivo de documentação '{evidence_file}'.",
+                )
+
+            elif ev_type == "declared":
+                # Nenhuma entrada 'declared' pode apontar para dentro de host-probe/
+                evidence_path_str = tool_data.get("evidence_path")
+                if evidence_path_str:
+                    self.assertNotIn(
+                        "host-probe",
+                        str(evidence_path_str),
+                        f"{TOOL_CATALOG_PATH}: Ferramenta '{tool_name}' declarada (declared) não pode apontar para 'host-probe/'.",
+                    )
+                source = tool_data.get("declaration_source", "Não informada")
+                reason = tool_data.get("declaration_reason", "Não informado")
+                declared_tools.append((tool_name, source, reason))
+
+        # Relatório de transparência das ferramentas declaradas
+        print(f"\n[TOOL CATALOG PROVENANCE] {len(self.tools_catalog)} ferramentas verificadas.")
+        print(f"  • Ferramentas com payload físico comprovado: {sum(1 for t in self.tools_catalog.values() if t.get('evidence_type') == 'payload')}")
+        print(f"  • Ferramentas com documentação de host comprovada: {sum(1 for t in self.tools_catalog.values() if t.get('evidence_type') == 'host_doc')}")
+        print(f"  • Ferramentas declaradas com rótulo explícito (declared): {len(declared_tools)}")
+        for name, src, rsn in sorted(declared_tools):
+            print(f"    - {name} [{src}]: {rsn}")
 
     def test_all_declared_tools_exist_in_catalog(self) -> None:
         target_files = sorted((PLUGIN_DIR / "agents").glob("*/agent.md")) + [

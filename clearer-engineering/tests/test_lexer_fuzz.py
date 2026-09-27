@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# test_lexer_fuzz.py — Fuzzing Determinístico In-Process do Lexer e Safety Gate
+# test_lexer_fuzz.py — Propriedades Formais do Lexer e Decisão do Safety Gate
 # ==============================================================================
 """
-Fuzzing determinístico baseado em propriedades (PR-18 / T3 / Pareceres do Conselho):
-- Semente determinística fixa: random.Random(1337).
-- 2.000 composições determinísticas de comandos seguros e destrutivos.
-- Execução 100% in-process / in-memory (sem forks de subprocesso) para velocidade e segurança.
-- Cobertura garantida de classes de operadores (;, &&, ||, |, \n, subshell).
-- Invariante formal inegociável: sob --env production, nenhuma composição com segmento
-  destrutivo pode receber a decisão 'allow' (decision != 'allow').
-- Erros de parsing ou sintaxe malformada devem escalar compulsoriamente para fail-closed (deny).
+Bateria determinística de validação do analisador léxico e do gate (PR-18b / Handoff 046):
+1. Propriedade matemática de ida e volta (roundtrip):
+   - Para segmentos atômicos sorteados unidos por ;, &&, ||, | e \\n:
+     split_shell_pipeline(join(segs)) == (segs, None).
+   - Falsificabilidade estrita: se || deixar de dividir (mutação no lexer), esta
+     propriedade REPROVA deterministicamente.
+2. Preservação de separadores dentro de aspas (aspas simples e duplas):
+   - Operadores dentro de aspas ('a;b', "x || y") não provocam divisão.
+3. Tratamento de subshell ( ... ):
+   - Conforme especificação em lexer.py:85–99, o subshell acumula operadores
+     internos preservando a expressão como unidade atômica.
+4. Invariante formal de decisão do Safety Gate (2.000 permutações com semente 1337):
+   - Sob --env production, nenhum comando com trecho destrutivo pode receber 'allow'.
+   - Demonstra a defesa em profundidade da camada de regras com re.search.
 """
 
 from __future__ import annotations
@@ -40,12 +46,11 @@ evaluate_command = safety_gate.evaluate_command
 from ceh_core.lexer import split_shell_pipeline
 
 
-SAFE_SEGMENTS = [
+ATOMIC_SAFE_SEGMENTS = [
     "ls -la",
     "pwd",
     "git status",
     "cat README.md",
-    "echo 'hello world'",
     "git log -n 5",
     "head -n 10 file.txt",
     "python3 test.py",
@@ -55,6 +60,8 @@ SAFE_SEGMENTS = [
     "date",
     "whoami",
     "git rev-parse HEAD",
+    "wc -l file.txt",
+    "uname -a",
 ]
 
 DESTRUCTIVE_SEGMENTS = [
@@ -78,23 +85,112 @@ DESTRUCTIVE_SEGMENTS = [
 CONNECTORS = [";", "&&", "||", "|", "\n"]
 
 
-class TestLexerFuzz(unittest.TestCase):
-    """Bateria de fuzzing determinístico in-process com semente fixa 1337."""
+class TestLexerPropertiesAndFuzz(unittest.TestCase):
+    """Bateria de propriedades formais do lexer e fuzzing determinístico (PR-18b)."""
 
-    def test_lexer_destructive_invariant_2000_cases(self) -> None:
+    def test_lexer_roundtrip_property_and_delimiters(self) -> None:
         """
-        Invariante: Em ambiente 'production', nenhuma cadeia contendo qualquer
-        segmento destrutivo pode receber a decisão 'allow' (deve ser != 'allow').
+        AT2 (Handoff 046 §3.2): Propriedade de ida e volta (roundtrip) sobre split_shell_pipeline:
+        1. Para segmentos atômicos sorteados unidos por ;, &&, ||, | e \\n:
+           split(join(segs)) == segs.
+        2. Segmentos com separadores dentro de aspas continuam um único segmento.
+        3. Expressões em subshell ( ... ) preservam seu conteúdo como uma unidade.
+        """
+        rng = random.Random(1337)
+        total_roundtrip_cases = 500
+        start_time = time.perf_counter()
+
+        # --- Parte 1: Propriedade de Ida e Volta (Roundtrip) ---
+        # Garante falsificabilidade estrita: se || deixar de dividir, falha imediatamente.
+        for case_idx in range(1, total_roundtrip_cases + 1):
+            num_segs = rng.randint(2, 5)
+            selected_segs = [rng.choice(ATOMIC_SAFE_SEGMENTS) for _ in range(num_segs)]
+
+            # Conectar os segmentos com operadores sorteados
+            parts = [selected_segs[0]]
+            for seg in selected_segs[1:]:
+                op = rng.choice(CONNECTORS)
+                space = " " if op != "\n" else ""
+                parts.append(f"{space}{op}{space}")
+                parts.append(seg)
+            cmd_line = "".join(parts)
+
+            split_res, err = split_shell_pipeline(cmd_line)
+            self.assertIsNone(
+                err,
+                f"Caso #{case_idx}: Erro inesperado no split_shell_pipeline para:\n{cmd_line!r}\nErro: {err}",
+            )
+            self.assertEqual(
+                split_res,
+                selected_segs,
+                f"Caso #{case_idx} VIOLOU PROPRIEDADE DE IDA E VOLTA DO LEXER:\n"
+                f"  Comando original composto: {cmd_line!r}\n"
+                f"  Segmentos esperados: {selected_segs}\n"
+                f"  Segmentos obtidos pelo split: {split_res}",
+            )
+
+        # --- Parte 2: Separadores dentro de aspas simples e duplas ---
+        quoted_test_cases = [
+            ("echo 'a;b'", ["echo 'a;b'"]),
+            ("echo 'x || y'", ["echo 'x || y'"]),
+            ("echo 'foo && bar | baz'", ["echo 'foo && bar | baz'"]),
+            ('echo "a;b"', ['echo "a;b"']),
+            ('echo "x || y"', ['echo "x || y"']),
+            ('git commit -m "feat: login && auth || fix"', ['git commit -m "feat: login && auth || fix"']),
+            ('grep -E "pattern_a|pattern_b" file.txt', ['grep -E "pattern_a|pattern_b" file.txt']),
+            ("awk '{print $1; print $2}' data.tsv", ["awk '{print $1; print $2}' data.tsv"]),
+            ("sed 's/foo/bar/g; s/alpha/beta/g' file.txt", ["sed 's/foo/bar/g; s/alpha/beta/g' file.txt"]),
+            ('printf "%s\\n" "one;two&&three"', ['printf "%s\\n" "one;two&&three"']),
+        ]
+        for cmd, expected in quoted_test_cases:
+            res, err = split_shell_pipeline(cmd)
+            self.assertIsNone(err, f"Erro inesperado no comando com aspas: {cmd!r}")
+            self.assertEqual(
+                res,
+                expected,
+                f"Separador dentro de aspas não deve dividir segmento: {cmd!r} -> obtido {res}",
+            )
+
+        # --- Parte 3: Subshell ( ... ) preserva conteúdo como uma unidade ---
+        # Conforme especificação em lexer.py:85-99, paren_depth impede que operadores
+        # internos dividam o pipeline antes do fechamento do parêntese.
+        subshell_test_cases = [
+            ("(cd src && cargo test)", ["(cd src && cargo test)"]),
+            ("(git status; git diff)", ["(git status; git diff)"]),
+            ("ls -la && (cd src && cargo test) || pwd", ["ls -la", "(cd src && cargo test)", "pwd"]),
+            ("(date; whoami) | cat", ["(date; whoami)", "cat"]),
+        ]
+        for cmd, expected in subshell_test_cases:
+            res, err = split_shell_pipeline(cmd)
+            self.assertIsNone(err, f"Erro inesperado no subshell: {cmd!r}")
+            self.assertEqual(
+                res,
+                expected,
+                f"Expressão em subshell deve ser preservada como unidade: {cmd!r} -> obtido {res}",
+            )
+
+        elapsed = time.perf_counter() - start_time
+        print(
+            f"\n[LEXER ROUNDTRIP PROPERTY] {total_roundtrip_cases} permutações determinísticas "
+            f"+ casos de aspas e subshells validados com sucesso em {elapsed:.3f}s."
+        )
+
+    def test_safety_gate_decision_invariant_2000_cases(self) -> None:
+        """
+        Invariante de Decisão do Safety Gate (2.000 casos determinísticos com semente 1337):
+        Em ambiente 'production', nenhuma cadeia contendo qualquer segmento destrutivo
+        pode receber a decisão 'allow' (deve ser != 'allow').
+        Graças à defesa em profundidade da camada de regras com re.search, este invariante
+        se mantém mesmo sob mutações parciais do pipeline.
         """
         rng = random.Random(1337)
         total_cases_target = 2000
         generated_cases: list[tuple[str, bool]] = []
 
-        # Fase 1: Cobertura Determinística Obrigatória de Operadores (Garantia Codex)
-        # Assegura que todo conector (inclusive ||) e posições de destruição sejam testados
+        # Fase 1: Cobertura Determinística Obrigatória de Operadores
         for op in CONNECTORS:
             for d in DESTRUCTIVE_SEGMENTS:
-                s = rng.choice(SAFE_SEGMENTS)
+                s = rng.choice(ATOMIC_SAFE_SEGMENTS)
                 generated_cases.append((f"{s} {op} {d}", True))
                 generated_cases.append((f"{d} {op} {s}", True))
                 generated_cases.append((f"{s} {op} {d} {op} {s}", True))
@@ -103,7 +199,6 @@ class TestLexerFuzz(unittest.TestCase):
         # Fase 2: Geração Pseudo-Aleatória com Semente 1337 até atingir 2000 casos
         while len(generated_cases) < total_cases_target:
             num_segments = rng.randint(1, 4)
-            # 85% de chance de conter pelo menos um segmento destrutivo
             has_destructive = rng.random() < 0.85
 
             segments: list[str] = []
@@ -113,10 +208,10 @@ class TestLexerFuzz(unittest.TestCase):
                     if i == dest_idx:
                         segments.append(rng.choice(DESTRUCTIVE_SEGMENTS))
                     else:
-                        segments.append(rng.choice(SAFE_SEGMENTS))
+                        segments.append(rng.choice(ATOMIC_SAFE_SEGMENTS))
             else:
                 for _ in range(num_segments):
-                    segments.append(rng.choice(SAFE_SEGMENTS))
+                    segments.append(rng.choice(ATOMIC_SAFE_SEGMENTS))
 
             # Conectar os segmentos com operadores sorteados
             if len(segments) == 1:
@@ -125,7 +220,6 @@ class TestLexerFuzz(unittest.TestCase):
                 parts = [segments[0]]
                 for seg in segments[1:]:
                     op = rng.choice(CONNECTORS)
-                    # Variação com espaçamento
                     space = " " if op != "\n" else ""
                     parts.append(f"{space}{op}{space}")
                     parts.append(seg)
@@ -153,7 +247,6 @@ class TestLexerFuzz(unittest.TestCase):
             if has_dest:
                 destructive_count += 1
 
-            # Invocação in-memory com explícito env="production"
             decision, reason, evaluated_env, severity = evaluate_command(
                 cmd,
                 explicit_env="production",
@@ -185,17 +278,15 @@ class TestLexerFuzz(unittest.TestCase):
 
         elapsed = time.perf_counter() - start_time
 
-        # Diagnóstico e Relatório de Execução
         if violations:
             msg = (
-                f"Fuzzing do Lexer FALHOU com {len(violations)} violação(ões) no teste in-process:\n\n"
+                f"Safety Gate FALHOU com {len(violations)} violação(ões) no teste in-process:\n\n"
                 + "\n\n".join(violations)
             )
             self.fail(msg)
 
-        # Registro de sucesso com estatísticas
         print(
-            f"\n[LEXER FUZZ SUCCESS] Executados {total_cases_target} casos determinísticos "
+            f"[SAFETY GATE INVARIANT] {total_cases_target} casos determinísticos "
             f"({destructive_count} com segmentos destrutivos) em {elapsed:.3f}s. "
             f"Invariante formal (decision != 'allow') 100% preservado."
         )

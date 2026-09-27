@@ -176,14 +176,19 @@ def main():
     print("[4/7] Verificando portabilidade de links e ausência de session IDs na documentação...")
     abs_links_found = []
     session_ids_found = []
-    for md_file in docs_dir.rglob("*.md"):
-        content = md_file.read_text(encoding="utf-8")
+    target_files = list(docs_dir.rglob("*.md"))
+    conselho_dir = docs_dir / "temp_implementation" / "conselho"
+    if conselho_dir.is_dir():
+        target_files.extend(conselho_dir.rglob("*.txt"))
+
+    for target_file in target_files:
+        content = target_file.read_text(encoding="utf-8")
         matches = re.findall(r"(file:///home/[^\s\)\"'>]+|/home/\w+/projects/[^\s\)\"'>]+)", content)
         if matches:
-            abs_links_found.append((md_file.relative_to(repo_root), matches))
+            abs_links_found.append((target_file.relative_to(repo_root), matches))
         sess_matches = re.findall(r"session\s+id:\s+[0-9a-f\-]{36}", content, re.IGNORECASE)
         if sess_matches:
-            session_ids_found.append((md_file.relative_to(repo_root), sess_matches))
+            session_ids_found.append((target_file.relative_to(repo_root), sess_matches))
 
     if abs_links_found:
         for f, m in abs_links_found:
