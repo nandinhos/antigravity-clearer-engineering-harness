@@ -313,6 +313,21 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Backlog, alvo opaco:** `npm --prefix` e `make -C`.
 - **Próximo:** PR-07e. Com ele, a Onda 1 fecha.
 
+### 0.34 **Onda 1 encerrada** ([Handoff 035](./temp_implementation/handoffs/handoff-035-encerramento-onda-1-despacho-pr08.md))
+
+- **PR-07e homologado:** troca de branch e `.env` carregado entram como mudança de contexto; falsificabilidade reproduzida. Linha de base em `9dfc85a`.
+- **Onda 1 (G1–G6) fechada**, sem contorno conhecido nas classes cobertas. Redes que a protegem:
+  - fuzz diferencial;
+  - rede diferencial da detecção;
+  - invariantes de embrulho, prefixo, benignidade, não rebaixamento e equivalência de contexto.
+- **Limites documentados (backlog):**
+  - `curl | bash`, `ssh`/`docker exec`;
+  - código vindo de arquivo ou stdin;
+  - comando montado em tempo de execução;
+  - alvos opacos;
+  - banco/infra não detectados (`prisma migrate reset`, `docker compose down -v`, `migrate --force`).
+- **Próximo:** Onda 2, começando pelo PR-08 (G7: refspecs do push contra o certificado, em `ceh_core/push.py`). A trilha PR-QA B–D vai para a Onda 5.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
