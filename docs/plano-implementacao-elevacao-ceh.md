@@ -328,6 +328,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - banco/infra não detectados (`prisma migrate reset`, `docker compose down -v`, `migrate --force`).
 - **Próximo:** Onda 2, começando pelo PR-08 (G7: refspecs do push contra o certificado, em `ceh_core/push.py`). A trilha PR-QA B–D vai para a Onda 5.
 
+### 0.35 PR-08 homologado com ressalvas ([Handoff 036](./temp_implementation/handoffs/handoff-036-revisao-pr08-despacho-pr08b-pr09.md))
+
+- **G7 fechado:** cada refspec do push é conferido contra o certificado; `--all`/`--mirror`/`--tags` = deny sob CI; falsificabilidade reproduzida. Nenhum `@expectedFailure` restante. Linha de base em `921a649`.
+- **AJ1 (processo):** o `test_pre_push_refspecs.py` não roda na suíte oficial. Vira uma checagem de teste órfão no `doc-audit`.
+- **AJ2:** apagar a `main` remota (`:main`, `--delete`) passa em produção (preexistente).
+- **Próximo:** PR-08b + PR-09 (payload vazio ou sem comando → deny/exit 2; despacho por nome de ferramenta).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

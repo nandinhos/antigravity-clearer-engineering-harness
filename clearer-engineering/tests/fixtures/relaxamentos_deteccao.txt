@@ -1,3 +1,3 @@
 # Lista de relaxamentos de detecção de ambiente autorizados em relação à linha de base (gate_baseline.txt)
 # Formato: branch|comando|de->para|ID-do-achado
-# Zerada a cada avanço da linha de base pela revisão (Handoff 035: linha de base 9dfc85a).
+# Zerada a cada avanço da linha de base pela revisão (Handoff 036: linha de base 921a649).
