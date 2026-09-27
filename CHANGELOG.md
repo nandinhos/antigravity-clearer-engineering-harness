@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Onda 5 (PR-19c — Shellcheck Fixado por Versão e SHA-256 em Job Único)**:
   - Shellcheck pinned strictly to official upstream binary release `v0.11.0` (Linux x86_64) with cryptographic SHA-256 checksum verification (`8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198`).
   - Linter step scoped to execute exclusively in a single matrix job (`ubuntu-latest` / Python 3.12), removing `shellcheck` package dependencies from `apt` and `brew` to eliminate cross-platform linter drift and rolling-release regressions.
+- **Onda 5 (PR-18 — Validação de Esquema no Lugar de Grep em Markdown & Fuzzing do Lexer / T3)**:
+  - Formal schema validation in `clearer-engineering/tests/test_content_schema.py` replacing brittle grep assertions for agent profiles, subagents, and YAML frontmatter (`name`, `description`).
+  - Versioned tool catalog [`clearer-engineering/config/tool_catalog.json`](./clearer-engineering/config/tool_catalog.json) cataloging all 23 native Antigravity tools mapped to verified physical evidence files in `docs/temp_implementation/evidence/`.
+  - Resolution check for all `/skill` invocations ensuring every referenced skill resolves to an existing physical `skills/<name>/SKILL.md`.
+  - Relative link validator ensuring all relative Markdown links in plugin documentation resolve to valid target files, with fixes for 24 broken relative links in [`clearer-engineering/README_PT.md`](./clearer-engineering/README_PT.md) and [`clearer-engineering/README.md`](./clearer-engineering/README.md).
+  - Deterministic property-based in-process shell lexer fuzzing in `clearer-engineering/tests/test_lexer_fuzz.py` with fixed seed 1337, executing 2,000 composite command permutations in ~0.58s to verify the formal invariant that no destructive command chain can yield an `allow` decision in production.
+  - Integration of `test_content_schema.py` and `test_lexer_fuzz.py` directly into `run-all-tests.sh` with physical falsifiability proofs documented.
 
 ### Changed
 - **Bash 3.2 vs Bash 4+ Decision (Formal Architectural Decision)**:

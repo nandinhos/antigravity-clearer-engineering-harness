@@ -1,0 +1,134 @@
+Você está deliberando como integrante do CONSELHO DE SENIORES do CLEARER Engineering Harness (CEH).
+Sua identidade e delegação nesta sessão:
+ARQUITETO DE LÓGICA FORMAL & ALGORITMOS — Especialista em raciocínio formal profundo, tipagem estrita, invariantes matemáticos, estruturas de dados e análise de concorrência/deadlocks.
+
+OBJETO DE AVALIAÇÃO:
+=== DOCUMENTO SOB AVALIAÇÃO (pr18_implementation_plan.md) ===\n# Plano de Implementação — PR-18 (Handoff 045 / T3)
+
+**PR:** PR-18  
+**Título:** `test(content): validação de esquema no lugar de grep em Markdown`  
+**Escopo:** Qualidade de conteúdo, catálogo de ferramentas, integridade de links e robustez do lexer.  
+**Linha de Base:** Commit `71de82c` (58/58 testes PASS, CI 4/4 verde no PR-19c).
+
+---
+
+## 1. Objetivos & Critérios de Aceite (Handoff 045 §4)
+
+1. **Substituição de Greps Frágeis:** Substituir os `grep -q '<texto>'` estruturais de [run-all-tests.sh:142–165](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/tests/run-all-tests.sh#L142-L165) por asserções em código Python sobre a estrutura real analisada (frontmatter e cabeçalhos Markdown).
+2. **Validação de Esquema de Frontmatter YAML:** Garantir que todo `agents/*/agent.md`, `skills/*/SKILL.md` e `profiles/clearer-harness.agent.md` possua frontmatter válido com `name` e `description` preenchidos e com `name` aderente à convenção do diretório.
+3. **Catálogo Versionado de Ferramentas com Evidência:** Criar `clearer-engineering/config/tool_catalog.json`. Toda ferramenta declarada em `tools:` deve constar no catálogo com apontamento para arquivo físico de evidência existente.
+4. **Resolução de Skills `/nome`:** Toda menção a `/nome` de skill nos perfis e agentes deve corresponder a um arquivo físico existente em `skills/<nome>/SKILL.md`.
+5. **Resolução de Links Relativos em Markdown:** Todo link relativo (`./...` e `../...`) em `clearer-engineering/**/*.md`, `README*.md` e `CHANGELOG.md` deve resolver para um arquivo físico existente.
+6. **Fuzzing Determinístico do Lexer (Semente 1337):** Criar `clearer-engineering/tests/test_lexer_fuzz.py` executando 2.000 composições determinísticas de comandos seguros e destrutivos com separadores e aspas, garantindo o invariante: sob `--env production`, nenhuma cadeia com segmento destrutivo pode resultar em `allow`.
+7. **Correção de Achados Reais:** Corrigir os 24 links quebrados identificados nos READMEs do plugin (`./docs/...` -> `../docs/...`).
+8. **Falsificabilidade Comprovada por Mutação:** Provar que uma mutação no frontmatter/links ou no lexer reprova os testes imediatamente indicando o arquivo, linha ou comando mínimo.
+
+---
+
+## 2. Componentes e Arquitetura da Solução
+
+### 2.1. Catálogo Versionado de Ferramentas (`clearer-engineering/config/tool_catalog.json`)
+Catálogo estrito contendo as ferramentas autorizadas e suas fontes de evidência física comprovada:
+- **Ferramentas Antigravity CLI/IDE (`agy`):**
+  - `run_command`: evidência em `docs/temp_implementation/evidence/host-probe/agy/20260925T040852Z/runs/E1-r1/invocations.jsonl`
+  - `write_to_file`: evidência em `docs/temp_implementation/evidence/host-probe/agy/20260927T034219Z/runs/E11-allow-write-padrao/invocations.jsonl`
+  - `replace_file_content`: evidência em `docs/temp_implementation/evidence/pr10-evidence.md` e matcher em `hooks.json`
+  - `multi_replace_file_content`: evidência em `docs/temp_implementation/evidence/pr10-evidence.md` e matcher em `hooks.json`
+  - Ferramentas nativas do host (`view_file`, `list_dir`, `grep_search`, `find_by_name`, `search_web`, `read_url_content`, `manage_task`, `schedule`, `generate_image`, `ask_question`, `invoke_subagent`, `define_subagent`, `manage_subagents`, `send_message`): registradas com declaração canônica comprovada no inventário do host `docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json`.
+- **Ferramentas Claude Code (`claude`):**
+  - `Bash`, `Write`, `Edit`, `MultiEdit`, `NotebookEdit`: registradas com evidência em `docs/temp_implementation/evidence/host-probe/claude/20260925T033645Z/e0_help.txt` e `summary.md`.
+
+### 2.2. Teste de Esquema (`clearer-engineering/tests/test_content_schema.py`)
+Implementado em Python com `unittest` e registrado na suíte do `run-all-tests.sh`:
+- **Classe `TestFrontmatterSchema`**:
+  - Valida YAML de todos os agentes em `agents/*/agent.md` (`name == f"ceh-{dir_name}"`, `description` não vazio).
+  - Valida YAML de todas as skills em `skills/*/SKILL.md` (`name == dir_name`, `description` não vazio).
+  - Valida perfil em `profiles/clearer-harness.agent.md` (`name == "clearer-harness"`, `description` não vazio).
+- **Classe `TestToolCatalogIntegrity`**:
+  - Para cada ferramenta declarada nos frontmatters, verifica se existe no catálogo.
+  - Para cada entrada no catálogo, verifica se o `evidence_path` aponta para um arquivo existente.
+- **Classe `TestSkillReferences`**:
+  - Localiza citações a `/skill-name` e valida se `skills/<skill-name>/SKILL.md` existe fisicamente.
+- **Classe `TestMarkdownRelativeLinks`**:
+  - Escaneia todos os links relativos em `clearer-engineering/**/*.md`, `README*.md` e `CHANGELOG.md`.
+  - Ignora links externos (`http://`, `https://`, `mailto:`, `file://`) e âncoras puras (`#...`).
+  - Valida a existência física do arquivo de destino (removendo âncora `#...` de subseção se houver).
+- **Classe `TestContentStructure` (Substituição dos greps antigos)**:
+  - Validação de que `clearer-bugfix/SKILL.md` possui as 5 seções dos Gates (`Gate 0 — TRIAGE`, `Gate 1 — REPRODUCE`, `Gate 2 — ISOLATE`, `Gate 3 — ROOT CAUSE`, `Gate 4 — FIX & HARDEN`).
+  - Validação de que `learned-lesson/SKILL.md` possui seção `Learned Lesson Engine v2.0` e suporte a `dev-memory`.
+  - Validação de que `ceh-investigator` orienta o uso da `Matriz de Hipóteses Falsificáveis`.
+  - Validação de que `ceh-reviewer` referencia `clearer-bugfix` e o detector de regressões.
+  - Validação de que `clearer-adhd` possui `Lead with Action` e `Break-Rules`.
+
+### 2.3. Teste de Fuzz do Lexer (`clearer-engineering/tests/test_lexer_fuzz.py`)
+- Semente fixa obrigatória: `random.Random(1337)`.
+- Casos: 2.000 iterações determinísticas.
+- Segmentos seguros: comandos de leitura e inspeção (`ls -la`, `git status`, `pwd`, `cat README.md`, `git log -n 5`, etc.).
+- Segmentos destrutivos: comandos com risco de mutação (`git reset --hard`, `git clean -fd`, `rm -rf /tmp/teste`, `git push --force`, `drop database`, `truncate table`, `terraform destroy`, `kubectl delete`).
+- Conectores e separadores: `;`, `&&`, `||`, `|`, quebra de linha `\n`, parênteses de subshell `( ... )`, além de variações com aspas simples `'...'` e duplas `"..."`.
+- **Invariante Testado:** Sob ambiente `production` (`explicit_env="production"` ou `APP_ENV=production`), se houver qualquer segmento destrutivo na composição, o resultado do Safety Gate **DEVE ser `deny`**.
+- Diagnóstico: Se falhar em qualquer iteração, o teste imprime no log o comando exato mínimo que causou a violação e o tempo total de execução.
+
+---
+
+## 3. Correções Reais do Repositório (Achados)
+
+- **Links Quebrados no Plugin:**
+  - `clearer-engineering/README_PT.md`: Linhas 101–110, 183 e 189 apontavam para `./docs/...`, `./evals/...` e `./LICENSE`. Devem ser corrigidos para `../docs/...`, `../evals/...` e `../LICENSE`.
+  - `clearer-engineering/README.md`: Linhas 101–110, 183 e 189 com o mesmo ajuste para referências relativas corretas.
+
+---
+
+## 4. Integração no `run-all-tests.sh`
+
+Substituição das linhas antigas [142–165](file:///home/nandodev/projects/clearer-engineering-harness/clearer-engineering/tests/run-all-tests.sh#L142-L165):
+```bash
+# 6. Content Schema & Structural Integrity (PR-18 / T3)
+run_test "Content Schema: Frontmatter, tool catalog, skill links and relative URLs" \
+    "python3 '$PLUGIN_DIR/tests/test_content_schema.py'"
+
+run_test "Lexer Fuzz: Deterministic property testing with seed 1337 (2,000 cases)" \
+    "python3 '$PLUGIN_DIR/tests/test_lexer_fuzz.py'"
+```
+- A suíte passará de 58 para **60 testes determinísticos**.
+
+---
+
+## 5. Falsificabilidade por Mutação (AS2)
+
+Realizada em sandbox/clone isolado:
+1. **Mutação 1 (Esquema):** Remover temporariamente o campo `description` de uma skill e incluir um link quebrado `[link](./inexistente.md)`.
+   - *Comportamento esperado:* `test_content_schema.py` falha citando o arquivo e linha exatos.
+2. **Mutação 2 (Lexer Fuzz):** Desativar temporariamente a divisão pelo operador `||` no lexer.
+   - *Comportamento esperado:* `test_lexer_fuzz.py` falha reportando o comando mínimo que resultou em falso `allow`.
+
+---
+
+## 6. Sequência de Execução
+
+1. Criar o inventário de evidências de ferramentas em `docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json`.
+2. Criar `clearer-engineering/config/tool_catalog.json`.
+3. Corrigir os 24 links relativos nos READMEs do plugin.
+4. Implementar `clearer-engineering/tests/test_content_schema.py`.
+5. Implementar `clearer-engineering/tests/test_lexer_fuzz.py`.
+6. Atualizar `clearer-engineering/tests/run-all-tests.sh` e rodar a suíte (60/60 PASS).
+7. Executar a prova de falsificabilidade das duas suítes em sandbox isolado.
+8. Atualizar o CHANGELOG.md (`[Unreleased]`).
+9. Emitir o Certificado de Voo do Safety Gate via `test-runner.sh`.
+10. Submeter o commit do PR-18, aguardar e comprovar 4/4 jobs verdes no GitHub Actions.\n\n=== INSTRUÇÃO ESPECÍFICA DO DEVELOPER ===\nAvaliar criticamente o Plano de Implementação do PR-18 (validação de esquema de Markdown, tool_catalog.json e fuzz do lexer com semente 1337). Identificar riscos, blindagens adicionais, refinamentos arquiteturais e oportunidades para elevar o nível de excelência de engenharia sob a ótica de cada especialista.\n\n
+
+INSTRUÇÕES DO PROTOCOLO SYSTEM ONE:
+1. Avalie o material estritamente sob o ponto de vista da sua delegação técnica.
+2. Não produza enrolação, preâmbulos protocolares ou elogios.
+3. Responda obrigatoriamente preenchendo o contrato de saída abaixo:
+
+--- CONTRATO DE SAÍDA MANDATÓRIO ---
+VEREDITO: [HOMOLOGADO | RESSALVAS | REJEITADO]
+CERTEZA: [número entre 0.0 e 1.0 fundamentado em evidência física]
+ANALISE_ESPECIALIZADA:
+<análise técnica cirúrgica detalhando pontos fortes ou vulnerabilidades sob sua ótica>
+RISCOS_IDENTIFICADOS:
+<lista de riscos reais ou 'Nenhum risco observado'>
+RECOMENDACAO_FINAL:
+<ação prática direta e verificável recomendada>
+------------------------------------

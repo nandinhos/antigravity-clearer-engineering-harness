@@ -98,16 +98,16 @@ Explore as diretrizes aprofundadas do CEH:
 
 | Documento | Descrição |
 |---|---|
-| 📜 [**Guia do Protocolo CLEARER**](./docs/clearer_protocol.md) | Explicação completa das 7 etapas do ciclo de engenharia (*Concrete Goal*, *Load Context*, etc.). |
-| 💎 [**Padrões de Código & Craftsmanship**](./docs/coding_standards.md) | Diretrizes de alto nível de engenharia: Clean Code, SOLID, tipagem estrita, resiliência e testes. |
-| 🎚️ [**Especificação do Risk Dial**](./docs/risk_dial.md) | Dinâmica de **Execução Contínua** para MEDIUM e os 4 gates de checkpoint por exceção. |
-| ⚖️ [**Semântica de Evidências & Claims**](./docs/evidence_semantics.md) | Classificação epistêmica (`OBSERVED`, `INFERRED`, `UNKNOWN`) e auditoria de claims (`SUPPORTED`). |
-| 🏗️ [**Arquitetura do Sistema**](./docs/architecture.md) | Topologia, pipelines unificados, contratos entre subagentes e integração de hooks. |
-| 🤖 [**Guia de Subagentes Especializados**](./docs/agents_guide.md) | Papéis de Investigator, Architect, Implementer, Test Engineer, Reviewer e Auditor. |
-| 🛠️ [**Manual de Skills & Comandos**](./docs/skills_and_commands.md) | Como utilizar `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
-| 🛡️ [**Guia do Safety Gate**](./docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos com `DENY > ASK > ALLOW`. |
-| 💻 [**Instalação & Configuração**](./docs/installation.md) | Guia completo de instalação global, dependências e desinstalação. |
-| 💡 [**Exemplos Práticos**](./docs/examples.md) | Casos reais de uso em TypeScript/Next.js, PHP/Laravel e Python/FastAPI. |
+| 📜 [**Guia do Protocolo CLEARER**](../docs/clearer_protocol.md) | Explicação completa das 7 etapas do ciclo de engenharia (*Concrete Goal*, *Load Context*, etc.). |
+| 💎 [**Padrões de Código & Craftsmanship**](../docs/coding_standards.md) | Diretrizes de alto nível de engenharia: Clean Code, SOLID, tipagem estrita, resiliência e testes. |
+| 🎚️ [**Especificação do Risk Dial**](../docs/risk_dial.md) | Dinâmica de **Execução Contínua** para MEDIUM e os 4 gates de checkpoint por exceção. |
+| ⚖️ [**Semântica de Evidências & Claims**](../docs/evidence_semantics.md) | Classificação epistêmica (`OBSERVED`, `INFERRED`, `UNKNOWN`) e auditoria de claims (`SUPPORTED`). |
+| 🏗️ [**Arquitetura do Sistema**](../docs/architecture.md) | Topologia, pipelines unificados, contratos entre subagentes e integração de hooks. |
+| 🤖 [**Guia de Subagentes Especializados**](../docs/agents_guide.md) | Papéis de Investigator, Architect, Implementer, Test Engineer, Reviewer e Auditor. |
+| 🛠️ [**Manual de Skills & Comandos**](../docs/skills_and_commands.md) | Como utilizar `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
+| 🛡️ [**Guia do Safety Gate**](../docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos com `DENY > ASK > ALLOW`. |
+| 💻 [**Instalação & Configuração**](../docs/installation.md) | Guia completo de instalação global, dependências e desinstalação. |
+| 💡 [**Exemplos Práticos**](../docs/examples.md) | Casos reais de uso em TypeScript/Next.js, PHP/Laravel e Python/FastAPI. |
 
 ---
 
@@ -180,11 +180,11 @@ O harness possui validação rigorosa de ponta a ponta, incluindo testes de muta
 ./evals/run.sh
 ```
 
-Consulte [`evals/CRITERIA.md`](./evals/CRITERIA.md) para a matriz formal de 5 critérios (RFC 2119).
+Consulte [`evals/CRITERIA.md`](../evals/CRITERIA.md) para a matriz formal de 5 critérios (RFC 2119).
 
 ---
 
 ## 📄 Licença
 
-Distribuído sob a licença **Apache License 2.0**. Consulte [`LICENSE`](./LICENSE) para mais detalhes.
+Distribuído sob a licença **Apache License 2.0**. Consulte [`LICENSE`](../LICENSE) para mais detalhes.
 

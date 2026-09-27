@@ -138,17 +138,17 @@ run_test "Test Runner: Failing test correctly reports FAIL without masking" \
 run_test "Test Runner: Runtime Adapter gracefully handles stopped containers on native host" \
     "TMP=\$(mktemp -d); touch \"\$TMP/docker-compose.yml\"; (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep -q 'Executando diretamente no Host Nativo'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
-# 6. Global Agent Profile Availability & Tools Configuration
-run_test "Agent Profile in profiles/ has write and execution tools declared" \
-    "grep -q 'write_to_file' '$PLUGIN_DIR/profiles/clearer-harness.agent.md' && grep -q 'run_command' '$PLUGIN_DIR/profiles/clearer-harness.agent.md'"
+# 6. Content Schema & Tool Catalog Validation (PR-18 / T3)
+run_test "Tool Catalog: Catálogo versionado com 23 ferramentas mapeadas para evidências físicas (PR-18)" \
+    "python3 -c \"import json, sys; from pathlib import Path; cat = json.loads(Path('$PLUGIN_DIR/config/tool_catalog.json').read_text()); assert len(cat['tools']) >= 23; sys.exit(0)\""
 
+run_test "Content Schema: Perfis, subagentes e links relativos validados formalmente (PR-18)" \
+    "python3 '$PLUGIN_DIR/tests/test_content_schema.py' >/dev/null"
 
-run_test "Plugin Subagent 'ceh-implementer' has code editing tools" \
-    "grep -q 'write_to_file' '$PLUGIN_DIR/agents/implementer/agent.md' && grep -q 'replace_file_content' '$PLUGIN_DIR/agents/implementer/agent.md'"
+run_test "Lexer Fuzzing: Fuzzing determinístico in-process com 2.000 casos (PR-18)" \
+    "python3 '$PLUGIN_DIR/tests/test_lexer_fuzz.py' >/dev/null"
 
-run_test "Plugin Subagent 'ceh-test-engineer' has execution and editing tools" \
-    "grep -q 'run_command' '$PLUGIN_DIR/agents/test-engineer/agent.md' && grep -q 'write_to_file' '$PLUGIN_DIR/agents/test-engineer/agent.md'"
-
+# Validações textuais contratuais deliberadas (políticas e design patterns declarados em Markdown)
 run_test "Skill: clearer-bugfix implements Systematic Debugging 5 Blocking Gates" \
     "grep -q 'Gate 0 — TRIAGE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 1 — REPRODUCE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 2 — ISOLATE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 3 — ROOT CAUSE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 4 — FIX & HARDEN' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md'"
 

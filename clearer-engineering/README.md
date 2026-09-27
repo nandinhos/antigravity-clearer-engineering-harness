@@ -98,16 +98,16 @@ Deep dive into CEH principles, architectures, and guidelines:
 
 | Document | Description |
 |---|---|
-| 📜 [**CLEARER Protocol Guide**](./docs/clearer_protocol.md) | Complete explanation of the 7-step engineering cycle (*Concrete Goal*, *Load Context*, etc.). |
-| 💎 [**Coding Standards & Craftsmanship**](./docs/coding_standards.md) | Staff engineering standards: Clean Code, SOLID, strict typing, resilience, and tests. |
-| 🎚️ [**Risk Dial Specification**](./docs/risk_dial.md) | **Continuous Execution** dynamics for MEDIUM and the 4 exception checkpoint gates. |
-| ⚖️ [**Evidence Semantics & Claims**](./docs/evidence_semantics.md) | Epistemic classification (`OBSERVED`, `INFERRED`, `UNKNOWN`) and claim auditing (`SUPPORTED`). |
-| 🏗️ [**System Architecture**](./docs/architecture.md) | Unified pipelines, topologies, data contracts, and Antigravity hook integration. |
-| 🤖 [**Specialized Agents Guide**](./docs/agents_guide.md) | Role descriptions and I/O contracts for Investigator, Architect, Implementer, Test Engineer, Reviewer, and Auditor. |
-| 🛠️ [**Skills & Commands Manual**](./docs/skills_and_commands.md) | How to use `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
-| 🛡️ [**Safety Gate Guide**](./docs/safety_gate.md) | How `PreToolUse` hooks intercept destructive commands with `DENY > ASK > ALLOW`. |
-| 💻 [**Installation & Troubleshooting**](./docs/installation.md) | Global installation, environment prerequisites, and uninstallation. |
-| 💡 [**Practical Examples**](./docs/examples.md) | Real-world workflows across TypeScript, PHP/Laravel, and Python/FastAPI. |
+| 📜 [**CLEARER Protocol Guide**](../docs/clearer_protocol.md) | Complete explanation of the 7-step engineering cycle (*Concrete Goal*, *Load Context*, etc.). |
+| 💎 [**Coding Standards & Craftsmanship**](../docs/coding_standards.md) | Staff engineering standards: Clean Code, SOLID, strict typing, resilience, and tests. |
+| 🎚️ [**Risk Dial Specification**](../docs/risk_dial.md) | **Continuous Execution** dynamics for MEDIUM and the 4 exception checkpoint gates. |
+| ⚖️ [**Evidence Semantics & Claims**](../docs/evidence_semantics.md) | Epistemic classification (`OBSERVED`, `INFERRED`, `UNKNOWN`) and claim auditing (`SUPPORTED`). |
+| 🏗️ [**System Architecture**](../docs/architecture.md) | Unified pipelines, topologies, data contracts, and Antigravity hook integration. |
+| 🤖 [**Specialized Agents Guide**](../docs/agents_guide.md) | Role descriptions and I/O contracts for Investigator, Architect, Implementer, Test Engineer, Reviewer, and Auditor. |
+| 🛠️ [**Skills & Commands Manual**](../docs/skills_and_commands.md) | How to use `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
+| 🛡️ [**Safety Gate Guide**](../docs/safety_gate.md) | How `PreToolUse` hooks intercept destructive commands with `DENY > ASK > ALLOW`. |
+| 💻 [**Installation & Troubleshooting**](../docs/installation.md) | Global installation, environment prerequisites, and uninstallation. |
+| 💡 [**Practical Examples**](../docs/examples.md) | Real-world workflows across TypeScript, PHP/Laravel, and Python/FastAPI. |
 
 ---
 
@@ -180,11 +180,11 @@ CEH provides rigorous end-to-end verification, including infrastructure mutation
 ./evals/run.sh
 ```
 
-See [`evals/CRITERIA.md`](./evals/CRITERIA.md) for the formal 5-criteria matrix (RFC 2119).
+See [`evals/CRITERIA.md`](../evals/CRITERIA.md) for the formal 5-criteria matrix (RFC 2119).
 
 ---
 
 ## 📄 License
 
-Distributed under the **Apache License 2.0**. See [`LICENSE`](./LICENSE) for details.
+Distributed under the **Apache License 2.0**. See [`LICENSE`](../LICENSE) for details.
 

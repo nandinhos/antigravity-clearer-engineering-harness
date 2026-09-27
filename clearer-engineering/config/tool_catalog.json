@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "catalog_version": "1.0.0",
+  "description": "Catálogo canônico de ferramentas autorizadas para perfis e agentes do CLEARER Engineering Harness com proveniência de evidência comprovada.",
+  "tools": {
+    "run_command": {
+      "host": "agy",
+      "category": "terminal",
+      "description": "Execução de comandos de shell no terminal do host com monitoramento e timeout.",
+      "evidence_type": "payload",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/20260925T040852Z/runs/E1-r1/invocations.jsonl"
+    },
+    "write_to_file": {
+      "host": "agy",
+      "category": "filesystem_write",
+      "description": "Criação ou sobrescrita integral de arquivos no sistema de arquivos.",
+      "evidence_type": "payload",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/20260927T034219Z/runs/E11-allow-write-padrao/invocations.jsonl"
+    },
+    "replace_file_content": {
+      "host": "agy",
+      "category": "filesystem_write",
+      "description": "Edição de bloco contíguo de texto em arquivo com verificação de correspondência exata.",
+      "evidence_type": "payload",
+      "evidence_path": "docs/temp_implementation/evidence/pr10-evidence.md"
+    },
+    "multi_replace_file_content": {
+      "host": "agy",
+      "category": "filesystem_write",
+      "description": "Edição de múltiplos blocos não contíguos de texto no mesmo arquivo.",
+      "evidence_type": "payload",
+      "evidence_path": "docs/temp_implementation/evidence/pr10-evidence.md"
+    },
+    "view_file": {
+      "host": "agy",
+      "category": "filesystem_read",
+      "description": "Visualização de conteúdo de arquivos locais com suporte a fatiamento de linhas.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "list_dir": {
+      "host": "agy",
+      "category": "filesystem_read",
+      "description": "Listagem estruturada de arquivos e subdiretórios com contagem de filhos e tamanho.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "grep_search": {
+      "host": "agy",
+      "category": "code_search",
+      "description": "Busca textual e por regex em arquivos via ripgrep com filtros de glob e números de linha.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "find_by_name": {
+      "host": "agy",
+      "category": "code_search",
+      "description": "Localização de arquivos e diretórios por padrão de nome no workspace.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "search_web": {
+      "host": "agy",
+      "category": "network_read",
+      "description": "Consulta de busca web com extração de resumos e fontes citadas.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "read_url_content": {
+      "host": "agy",
+      "category": "network_read",
+      "description": "Requisição HTTP GET para extração de conteúdo estático de URL convertida para Markdown.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "manage_task": {
+      "host": "agy",
+      "category": "task_management",
+      "description": "Gerenciamento de tarefas em background: status, kill, list e envio de input para stdin.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "schedule": {
+      "host": "agy",
+      "category": "task_management",
+      "description": "Agendamento de timers únicos (one-shot) ou jobs recorrentes (cron) com notificações assíncronas.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "generate_image": {
+      "host": "agy",
+      "category": "media_generation",
+      "description": "Geração ou edição de imagens e mockups de interface via prompt textual.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "ask_question": {
+      "host": "agy",
+      "category": "user_interaction",
+      "description": "Exibição de modal interativo para perguntas de múltipla escolha ao desenvolvedor.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "invoke_subagent": {
+      "host": "agy",
+      "category": "orchestration",
+      "description": "Delegação e execução de subtarefa especializada para um subagente autônomo.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "define_subagent": {
+      "host": "agy",
+      "category": "orchestration",
+      "description": "Criação dinâmica de subagente com prompt, ferramentas e restrições configuradas.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "manage_subagents": {
+      "host": "agy",
+      "category": "orchestration",
+      "description": "Inspeção e controle do ciclo de vida dos subagentes ativos no workspace.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "send_message": {
+      "host": "agy",
+      "category": "orchestration",
+      "description": "Comunicação inter-agentes no protocolo multi-agente do harness.",
+      "evidence_type": "inventory",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/agy/tools/inventory.json"
+    },
+    "Bash": {
+      "host": "claude",
+      "category": "terminal",
+      "description": "Execução de comandos bash no terminal do Claude Code.",
+      "evidence_type": "documentation",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/claude/20260925T033645Z/e0_help.txt"
+    },
+    "Write": {
+      "host": "claude",
+      "category": "filesystem_write",
+      "description": "Escrita e criação de arquivos no Claude Code.",
+      "evidence_type": "documentation",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/claude/20260925T033645Z/e0_help.txt"
+    },
+    "Edit": {
+      "host": "claude",
+      "category": "filesystem_write",
+      "description": "Edição cirúrgica de arquivos no Claude Code.",
+      "evidence_type": "documentation",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/claude/20260925T033645Z/e0_help.txt"
+    },
+    "MultiEdit": {
+      "host": "claude",
+      "category": "filesystem_write",
+      "description": "Edição múltipla de arquivos no Claude Code.",
+      "evidence_type": "documentation",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/claude/20260925T033645Z/e0_help.txt"
+    },
+    "NotebookEdit": {
+      "host": "claude",
+      "category": "filesystem_write",
+      "description": "Edição de células em Jupyter Notebooks no Claude Code.",
+      "evidence_type": "documentation",
+      "evidence_path": "docs/temp_implementation/evidence/host-probe/claude/20260925T033645Z/e0_help.txt"
+    }
+  }
+}
