@@ -300,7 +300,7 @@ echo -e "${BOLD}${CYAN}=========================================================
 echo -e "${BOLD}${CYAN}   CLEARER ENGINEERING HARNESS — CONSELHO DE SENIORES                 ${RESET}"
 echo -e "${BOLD}${CYAN}   (Add-on Opcional de Apoio à Decisão Multi-Modelo)                  ${RESET}"
 echo -e "${BOLD}${CYAN}======================================================================${RESET}"
-echo -e "Data/Hora:       $(date -Iseconds)"
+echo -e "Data/Hora:       $(date +"%Y-%m-%dT%H:%M:%S%z")"
 echo -e "Repositório:     $(basename "$REPO_ROOT")"
 echo -e "Branch:          $(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')"
 echo -e "Commit:          $(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
@@ -421,7 +421,7 @@ cat <<EOF > "$ATA_FILE"
 # Ata de Deliberação do Conselho de Seniores (CEH)
 > *Add-on Opcional de Apoio à Decisão Multi-Modelo*
 
-**Data/Hora:** $(date -Iseconds)  
+**Data/Hora:** $(date +"%Y-%m-%dT%H:%M:%S%z")  
 **Repositório:** \`$(basename "$REPO_ROOT")\`  
 **Branch:** \`$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')\`  
 **Commit:** \`$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'N/A')\`  

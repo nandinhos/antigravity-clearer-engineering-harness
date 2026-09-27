@@ -11,7 +11,7 @@ echo "============================================================"
 echo "    CEH Installation Verification: Idempotency, Symmetry & Honesty"
 echo "============================================================"
 
-TMP_BASE="$(mktemp -d -t ceh-verify-XXXXXX)"
+TMP_BASE="$(mktemp -d "${TMPDIR:-/tmp}/ceh-verify-XXXXXX")"
 cleanup() {
     rm -rf "$TMP_BASE"
 }

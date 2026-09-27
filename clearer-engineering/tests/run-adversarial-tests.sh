@@ -5,7 +5,7 @@
 set -u
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEMP_DIR=$(mktemp -d -t ceh-adversarial-XXXXXX)
+TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-adversarial-XXXXXX")
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
 echo "============================================================"

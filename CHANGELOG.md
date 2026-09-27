@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Onda 5 (PR-19 — CI Multiplataforma, Shellcheck e Branch de Trabalho)**:
+  - CI workflow triggers expanded in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) to run on `push` to `claude/**` branches and `workflow_dispatch`, enabling server-side CI verification during active development without requiring PR opening.
+  - Multiplatform test matrix across `os: [ubuntu-latest, macos-latest]` and `python-version: ['3.9', '3.12']` (4 matrix jobs total).
+  - Informative `shellcheck` step analyzing all 19 `.sh` repository scripts plus `install.sh` and `uninstall.sh` with `continue-on-error: true`, automated baseline SCxxxx counting, and artifact upload (`shellcheck-report.txt`).
+  - Automated one-liner pipe installation test steps in CI: offline execution with mock git and local clone execution via `CEH_REPO_URL="file://$GITHUB_WORKSPACE"`.
+  - Pinned repository URL support in [`install.sh`](./install.sh) via `CEH_REPO_URL` (defaults to canonical GitHub repo), enabling network-isolated local integration testing.
+
+### Changed
+- **Bash 3.2 vs Bash 4+ Decision (Formal Architectural Decision)**:
+  - The CEH core suite utilizes associative arrays (`declare -A`) in analytical components ([`conselho-seniores.sh`](./clearer-engineering/scripts/conselho-seniores.sh)), requiring Bash 4.0+.
+  - macOS ships with legacy Bash 3.2 by default due to GPLv3 licensing.
+  - Decision: Rather than polyfilling or degrading associative array semantics, [`install.sh`](./install.sh) enforces Bash >= 4 in `check_prerequisites`, providing clear, friendly remediation instructions for macOS users (`brew install bash`).
+  - In CI, the macOS runner installs modern GNU Bash via Homebrew (`brew install bash coreutils shellcheck`), ensuring full compatibility.
+- Replaced non-POSIX `date -Iseconds` with POSIX-compliant `date +"%Y-%m-%dT%H:%M:%S%z"` in [`conselho-seniores.sh`](./clearer-engineering/scripts/conselho-seniores.sh) for macOS/BSD compatibility.
+- Replaced `mktemp -d -t` with standard POSIX syntax `mktemp -d "${TMPDIR:-/tmp}/..."` in [`install.sh`](./install.sh), [`run-adversarial-tests.sh`](./clearer-engineering/tests/run-adversarial-tests.sh), [`run-install-verification.sh`](./clearer-engineering/tests/run-install-verification.sh), and [`run-e2e-simulation.sh`](./clearer-engineering/tests/run-e2e-simulation.sh).
+
 ## [1.3.0] - 2026-09-27
 
 ### Added

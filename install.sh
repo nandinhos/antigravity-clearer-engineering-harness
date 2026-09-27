@@ -62,6 +62,14 @@ check_prerequisites() {
         fi
     fi
 
+    if [[ -n "${BASH_VERSINFO[0]:-}" && "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+        log_error "Bash 4.0+ is required. Detected: Bash ${BASH_VERSION}."
+        if [[ "$(uname -s)" == "Darwin" ]]; then
+            log_error "macOS includes outdated Bash 3.2 by default. Install modern Bash via Homebrew: 'brew install bash' and ensure it takes precedence in your PATH."
+        fi
+        missing=1
+    fi
+
     if ! command -v agy >/dev/null 2>&1; then
         log_warn "'agy' (Antigravity CLI) was not found in PATH."
         log_warn "If Antigravity is installed in a non-standard location, ensure ~/.local/bin is in your PATH."
@@ -101,14 +109,15 @@ setup_source_directory() {
         SOURCE_DIR="$local_candidate"
         log_info "Using local source directory: $SOURCE_DIR"
     else
-        INSTALL_TMP_DIR=$(mktemp -d -t ceh-install-XXXXXX)
+        INSTALL_TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-install-XXXXXX")
+        local repo_url="${CEH_REPO_URL:-https://github.com/nandinhos/antigravity-clearer-engineering-harness.git}"
         if [[ -n "${CEH_VERSION:-}" ]]; then
             local TARGET_REF="v${CEH_VERSION#v}"
             log_info "Fetching CEH version $TARGET_REF from GitHub..."
-            git clone --depth 1 --branch "$TARGET_REF" https://github.com/nandinhos/antigravity-clearer-engineering-harness.git "$INSTALL_TMP_DIR" -q
+            git clone --depth 1 --branch "$TARGET_REF" "$repo_url" "$INSTALL_TMP_DIR" -q
         else
             log_info "Fetching latest CEH release from GitHub..."
-            git clone --depth 1 https://github.com/nandinhos/antigravity-clearer-engineering-harness.git "$INSTALL_TMP_DIR" -q
+            git clone --depth 1 "$repo_url" "$INSTALL_TMP_DIR" -q
         fi
         SOURCE_DIR="$INSTALL_TMP_DIR"
         log_success "Repository cloned to temporary directory."

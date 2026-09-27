@@ -2,16 +2,26 @@ name: CEH Quality & Test Suite
 
 on:
   push:
-    branches: [ main, staging, dev ]
+    branches:
+      - main
+      - staging
+      - dev
+      - 'claude/**'
   pull_request:
-    branches: [ main, staging, dev ]
+    branches:
+      - main
+      - staging
+      - dev
+  workflow_dispatch:
 
 jobs:
   validate:
-    name: Validate Harness & Run Tests (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    name: Validate (${{ matrix.os }} - Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest]
         python-version: ['3.9', '3.12']
 
     steps:
@@ -25,22 +35,99 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Syntax check on Bash scripts
+      - name: Install system dependencies (Ubuntu)
+        if: runner.os == 'Linux'
         run: |
-          find clearer-engineering/ -name "*.sh" -exec bash -n {} +
-          bash -n install.sh
-          bash -n uninstall.sh
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
 
-      - name: Syntax check on Python scripts (compileall)
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
         run: |
-          python3 -m compileall -q clearer-engineering evals
+          brew install bash shellcheck
+          # Ensure Homebrew GNU Bash 5+ takes precedence over Apple legacy Bash 3.2
+          if [[ -d "/opt/homebrew/bin" ]]; then
+            echo "/opt/homebrew/bin" >> $GITHUB_PATH
+          fi
+          if [[ -d "/usr/local/bin" ]]; then
+            echo "/usr/local/bin" >> $GITHUB_PATH
+          fi
 
       - name: Make scripts executable
         run: |
           chmod +x clearer-engineering/scripts/*
           chmod +x clearer-engineering/tests/*
+          chmod +x evals/run.sh
           chmod +x install.sh
           chmod +x uninstall.sh
+
+      - name: Syntax check on Bash scripts
+        run: |
+          find clearer-engineering/ -name "*.sh" -exec bash -n {} +
+          bash -n install.sh
+          bash -n uninstall.sh
+          bash -n evals/run.sh
+
+      - name: Syntax check on Python scripts (compileall)
+        run: |
+          python3 -m compileall -q clearer-engineering evals
+
+      - name: Run Shellcheck (Informational Baseline)
+        continue-on-error: true
+        run: |
+          mkdir -p build/reports
+          ALL_SH=$(find clearer-engineering/ evals/ -name "*.sh"; echo install.sh; echo uninstall.sh)
+          shellcheck -f gcc $ALL_SH | tee build/reports/shellcheck-report.txt || true
+
+      - name: Upload Shellcheck Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shellcheck-report-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: build/reports/shellcheck-report.txt
+          if-no-files-found: ignore
+
+      - name: Test One-Liner Pipe Install (Offline Mock Git)
+        run: |
+          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-pipe-mock-XXXXXX")
+          MOCK_GIT_DIR="$TMP_DIR/mock_git"
+          mkdir -p "$MOCK_GIT_DIR"
+          cat << 'EOF' > "$MOCK_GIT_DIR/git"
+          #!/usr/bin/env bash
+          if [[ "$1" == "clone" ]]; then
+              target_dir=""
+              for arg in "$@"; do
+                  if [[ "$arg" != -* && "$arg" != "clone" && "$arg" != http* && "$arg" != file* ]]; then
+                      target_dir="$arg"
+                  fi
+              done
+              mkdir -p "$target_dir"
+              cp -r "$GITHUB_WORKSPACE/." "$target_dir/"
+              exit 0
+          else
+              exec /usr/bin/git "$@"
+          fi
+          EOF
+          chmod +x "$MOCK_GIT_DIR/git"
+
+          TMP_HOME="$TMP_DIR/home"
+          OUTSIDE_DIR="$TMP_DIR/outside"
+          mkdir -p "$TMP_HOME" "$OUTSIDE_DIR"
+
+          (cd "$OUTSIDE_DIR" && cat "$GITHUB_WORKSPACE/install.sh" | HOME="$TMP_HOME" PATH="$MOCK_GIT_DIR:$PATH" bash)
+          test -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json"
+          rm -rf "$TMP_DIR"
+
+      - name: Test One-Liner Pipe Install (Real Git Clone via file://)
+        run: |
+          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-pipe-real-XXXXXX")
+          TMP_HOME="$TMP_DIR/home"
+          OUTSIDE_DIR="$TMP_DIR/outside"
+          mkdir -p "$TMP_HOME" "$OUTSIDE_DIR"
+
+          # Tests real git clone over local filesystem protocol without internet access
+          (cd "$OUTSIDE_DIR" && CEH_REPO_URL="file://$GITHUB_WORKSPACE" cat "$GITHUB_WORKSPACE/install.sh" | HOME="$TMP_HOME" bash)
+          test -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json"
+          rm -rf "$TMP_DIR"
 
       - name: Run Safety Gate Unit Test Matrix (DEV, STAGING, PROD & RTK)
         run: |
@@ -56,17 +143,13 @@ jobs:
 
       - name: Run Integration Scripts & Branch Topology Tests
         run: |
-          # Test stack detector and environment awareness
           bash clearer-engineering/scripts/detect-project.sh .
-          
-          # Test auxiliary engineering scripts
           bash clearer-engineering/scripts/preflight.sh
           bash clearer-engineering/scripts/diff-audit.sh
           bash clearer-engineering/scripts/evidence-report.sh
           bash clearer-engineering/scripts/ceh-help.sh
 
-          # Test branch topologies in isolated sandbox
-          TMP_ENT=$(mktemp -d)
+          TMP_ENT=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-ent-XXXXXX")
           git -C "$TMP_ENT" init -b main
           git -C "$TMP_ENT" config user.name "CI"
           git -C "$TMP_ENT" config user.email "ci@clearer.dev"
@@ -77,7 +160,7 @@ jobs:
           bash clearer-engineering/scripts/detect-project.sh "$TMP_ENT" | grep "MODO ENTERPRISE"
           rm -rf "$TMP_ENT"
 
-          TMP_CLS=$(mktemp -d)
+          TMP_CLS=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-cls-XXXXXX")
           git -C "$TMP_CLS" init -b main
           git -C "$TMP_CLS" config user.name "CI"
           git -C "$TMP_CLS" config user.email "ci@clearer.dev"
@@ -91,6 +174,14 @@ jobs:
       - name: Run Install, Idempotency & Uninstall Verification
         run: |
           ./clearer-engineering/tests/run-install-verification.sh
+
+      - name: Run Smoke Evals (Deterministic RFC 2119 criteria)
+        run: |
+          ./evals/run.sh
+
+      - name: Run Document Structure & Line Budget Audit
+        run: |
+          bash clearer-engineering/scripts/doc-audit.sh
 
       - name: Run Full E2E Simulation & Integration Lifecycle
         run: |

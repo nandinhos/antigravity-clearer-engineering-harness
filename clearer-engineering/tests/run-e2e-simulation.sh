@@ -49,7 +49,7 @@ log_error() {
 }
 
 # Cleanup sandbox on exit
-SANDBOX_DIR=$(mktemp -d -t ceh-e2e-sandbox-XXXXXX)
+SANDBOX_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-e2e-sandbox-XXXXXX")
 cleanup() {
     rm -rf "$SANDBOX_DIR"
 }
