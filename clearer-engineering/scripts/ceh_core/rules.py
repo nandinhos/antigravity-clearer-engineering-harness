@@ -61,3 +61,67 @@ USE_CASE_DESTRUCTIVE_PATTERNS = [
     # Packages & Registries
     (r"\b(?:npm|pnpm|yarn)\s+publish\b", "Publishing packages to public registry", "PACKAGE", "Pacotes e Registros"),
 ]
+
+import os
+import re
+import shlex
+
+CERT_FILES_REGEX = re.compile(
+    r"(?:^|[\s\"'/])(?:\.ceh/)?(last-ci-run\.json|last-ci-run\.log|last-evals-run\.json)(?:[\s\"';&|]|$)"
+)
+
+ALLOWED_READ_CMDS = {
+    "cat", "less", "more", "head", "tail", "jq", "grep", "egrep", "fgrep", "ls", "stat", "wc"
+}
+
+def is_cert_tampering(cmd: str) -> tuple[bool, str]:
+    """
+    Detecta tentativas de alteração ou escrita nos certificados de CI (.ceh/).
+    Regra fail-closed: qualquer menção aos arquivos protegidos é bloqueada (DENY),
+    EXCETO leituras puras sem redirecionamento de escrita (Handoff 037 G9).
+    """
+    if not CERT_FILES_REGEX.search(cmd):
+        return False, ""
+
+    clean_cmd = cmd.strip()
+    try:
+        tokens = shlex.split(clean_cmd)
+    except ValueError:
+        return True, "[CEH CERTIFICATE INTEGRITY - G9] ⛔ Erro de sintaxe em comando mencionando certificado de CI (.ceh/)."
+
+    if not tokens:
+        return False, ""
+
+    # Verifica redirecionamentos de escrita para qualquer arquivo
+    for tok in tokens:
+        if any(tok.startswith(r) for r in (">", ">>", "1>", "2>", "&>")):
+            return True, "[CEH CERTIFICATE INTEGRITY - G9] ⛔ Redirecionamento de escrita para certificado de CI (.ceh/)."
+
+    idx = 0
+    while idx < len(tokens):
+        tok = tokens[idx]
+        if tok in ("sudo", "env", "nohup", "time"):
+            idx += 1
+            continue
+        if tok.startswith("-") and "=" in tok:
+            idx += 1
+            continue
+        break
+
+    if idx >= len(tokens):
+        return True, "[CEH CERTIFICATE INTEGRITY - G9] ⛔ Comando inválido mencionando certificado de CI (.ceh/)."
+
+    base_cmd = os.path.basename(tokens[idx])
+    args = tokens[idx + 1:]
+
+    # Leituras puras permitidas
+    if base_cmd in ALLOWED_READ_CMDS:
+        return False, ""
+
+    # python3 -m json.tool .ceh/last-ci-run.json (leitura pura)
+    if base_cmd in ("python", "python3") and len(args) >= 2:
+        if args[0] == "-m" and args[1] == "json.tool":
+            return False, ""
+
+    return True, f"[CEH CERTIFICATE INTEGRITY - G9] ⛔ Tentativa de escrita/modificação de certificado de CI ({base_cmd}). Apenas leituras puras são permitidas."
+

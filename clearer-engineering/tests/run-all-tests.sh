@@ -241,6 +241,10 @@ run_test "Environment Differential: Rede diferencial da detecção sem explicit_
 run_test "Pre-Push Refspecs: Validação de refspecs contra o certificado da CI (PR-08 / G7)" \
     "python3 '$PLUGIN_DIR/tests/test_pre_push_refspecs.py' >/dev/null 2>&1"
 
+# 24. PR-10 Certificate Integrity Protection (G9)
+run_test "Certificate Integrity: Proteção contra alteração ou forja de certificados de CI (PR-10 / G9)" \
+    "python3 '$PLUGIN_DIR/tests/test_cert_protection.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"

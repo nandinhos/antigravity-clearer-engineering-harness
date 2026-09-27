@@ -25,6 +25,7 @@ from ceh_core.rules import (
     CATASTROPHIC_PATTERNS,
     SAFE_DEV_PATTERNS,
     USE_CASE_DESTRUCTIVE_PATTERNS,
+    is_cert_tampering,
 )
 from ceh_core.lexer import (
     split_shell_pipeline,
@@ -310,6 +311,11 @@ def evaluate_subcommand(
             base_cwd=base_cwd,
             depth=depth + 1
         )
+
+    # 0. Proteção de Integridade do Certificado de CI (G9, PR-10)
+    is_tampering, cert_reason = is_cert_tampering(sub_eval)
+    if is_tampering:
+        return ("deny", cert_reason, env, "CERTIFICATE_INTEGRITY")
 
     # 0. Avaliação Estrita de 'rm' por tokens (G1, G4 e PR-04b)
     rm_res = evaluate_rm_command(sub_norm, env, env_evidence=env_evidence, base_cwd=base_cwd)

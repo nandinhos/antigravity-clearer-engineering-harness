@@ -114,11 +114,11 @@ def is_git_push_command(cmd_line: str) -> bool:
 
 def format_host_response(payload: dict[str, Any], decision: str, reason: str = "") -> dict[str, Any]:
     """Formats decision response according to host contract (Antigravity or Claude Code)."""
-    # Host Claude: identificado por hook_event_name 'PreToolUse' ou ferramenta nativa 'Bash'
+    # Host Claude: identificado por hook_event_name 'PreToolUse' ou ferramentas nativas do Claude
     tool_name = extract_tool_name(payload)
     is_claude = (
         payload.get("hook_event_name") == "PreToolUse"
-        or tool_name == "Bash"
+        or tool_name in ("Bash", "Write", "Edit", "MultiEdit", "NotebookEdit")
     ) and "toolCall" not in payload
 
     if is_claude:
@@ -186,10 +186,79 @@ def handle_terminal_tool(
             pass
 
 
+def extract_file_write_target(tool_name: str, payload: dict[str, Any]) -> str:
+    """Extrai o caminho do arquivo alvo de ferramentas de escrita/edição de arquivo."""
+    if "toolCall" in payload:
+        tc = payload.get("toolCall")
+        if isinstance(tc, dict):
+            args = tc.get("args") or {}
+            if isinstance(args, dict):
+                return str(args.get("TargetFile", "")).strip()
+    if "tool_input" in payload:
+        ti = payload.get("tool_input") or {}
+        if isinstance(ti, dict):
+            return str(ti.get("file_path") or ti.get("notebook_path") or ti.get("TargetFile") or "").strip()
+    return ""
+
+
+def is_protected_cert_file(target_file: str, resolved_target_dir: Path | None = None) -> bool:
+    """Verifica se o arquivo alvo é um certificado de CI protegido (.ceh/)."""
+    if not target_file:
+        return False
+    clean = target_file.replace("\\", "/").strip("'\"")
+    if any(name in clean for name in ("last-ci-run.json", "last-ci-run.log", "last-evals-run.json")):
+        return True
+    if re.search(r"(?:^|/)\.ceh(?:/|$)", clean):
+        return True
+    if resolved_target_dir is not None:
+        try:
+            full = (resolved_target_dir / Path(clean)).resolve()
+            ceh_dir = (resolved_target_dir / ".ceh").resolve()
+            if ceh_dir == full or ceh_dir in full.parents:
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def handle_file_write_tool(
+    tool_name: str,
+    payload: dict[str, Any],
+    evaluate_command_fn: Callable[[str, str | None], tuple[str, str, str, str]],
+) -> dict[str, Any]:
+    """Handles safety evaluation for file write/edit tools (PR-10 / G9)."""
+    target_file = extract_file_write_target(tool_name, payload)
+    if not target_file:
+        return format_host_response(
+            payload,
+            "deny",
+            f"[CEH HOOK ERROR] Caminho de arquivo alvo ausente para ferramenta '{tool_name}'.",
+        )
+
+    target_dir, explicit_env, _ = resolve_hook_target(payload)
+    if is_protected_cert_file(target_file, target_dir):
+        return format_host_response(
+            payload,
+            "deny",
+            f"[CEH CERTIFICATE INTEGRITY - G9] ⛔ Tentativa de escrita/modificação de certificado de CI ({target_file}). Arquivos sob .ceh/ são imutáveis via ferramentas de escrita.",
+        )
+
+    return format_host_response(payload, "allow")
+
+
 # Despacho extensível por ferramenta (PR-09 / PR-10)
 TOOL_DISPATCH: dict[str, Callable[[str, dict[str, Any], Callable[[str, str | None], tuple[str, str, str, str]]], dict[str, Any]]] = {
+    # Terminal
     "run_command": handle_terminal_tool,
     "Bash": handle_terminal_tool,
+    # Escrita / Edição de arquivo (PR-10 / G9)
+    "write_to_file": handle_file_write_tool,
+    "replace_file_content": handle_file_write_tool,
+    "multi_replace_file_content": handle_file_write_tool,
+    "Write": handle_file_write_tool,
+    "Edit": handle_file_write_tool,
+    "MultiEdit": handle_file_write_tool,
+    "NotebookEdit": handle_file_write_tool,
 }
 
 
