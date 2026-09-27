@@ -39,7 +39,11 @@ Em vez de depender de prompts vagos ou suposições não comprovadas, o CEH oper
 Instale ou atualize o CEH no Linux, macOS ou WSL executando no terminal:
 
 ```bash
+# Versão estável mais recente
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
+
+# Versão fixada (SemVer)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | CEH_VERSION=1.3.0 bash
 ```
 
 ---

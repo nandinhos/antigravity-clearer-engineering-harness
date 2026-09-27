@@ -53,6 +53,11 @@ if [[ ! -f "$TMP_HOME/.gemini/config/agents/clearer-harness/agent.md" ]]; then
     exit 1
 fi
 
+if ! cmp -s "$REPO_ROOT/clearer-engineering/profiles/clearer-harness.agent.md" "$TMP_HOME/.gemini/config/agents/clearer-harness/agent.md"; then
+    echo "ERRO: agent.md instalado difere byte a byte do perfil canônico em profiles/clearer-harness.agent.md"
+    exit 1
+fi
+
 if [[ ! -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/config/aliases.sh" ]]; then
     echo "ERRO: config/aliases.sh não foi copiado para a árvore instalada"
     exit 1

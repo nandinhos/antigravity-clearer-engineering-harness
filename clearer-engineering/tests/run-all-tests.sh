@@ -142,8 +142,8 @@ run_test "Test Runner: Runtime Adapter gracefully handles stopped containers on 
     "TMP=\$(mktemp -d); touch \"\$TMP/docker-compose.yml\"; (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep -q 'Executando diretamente no Host Nativo'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
 # 6. Global Agent Profile Availability & Tools Configuration
-run_test "Agent Profile template in install.sh has write and execution tools declared" \
-    "grep -q 'write_to_file' '$PLUGIN_DIR/../install.sh' && grep -q 'run_command' '$PLUGIN_DIR/../install.sh'"
+run_test "Agent Profile in profiles/ has write and execution tools declared" \
+    "grep -q 'write_to_file' '$PLUGIN_DIR/profiles/clearer-harness.agent.md' && grep -q 'run_command' '$PLUGIN_DIR/profiles/clearer-harness.agent.md'"
 
 
 run_test "Plugin Subagent 'ceh-implementer' has code editing tools" \
