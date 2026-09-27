@@ -539,10 +539,21 @@ def handle_hook():
     try:
         raw_input = sys.stdin.read()
         if not raw_input.strip():
-            print(json.dumps({"decision": "allow"}))
-            return
+            print(json.dumps({
+                "decision": "deny",
+                "reason": "[CEH SAFETY GATE ERROR] Payload vazio recebido no hook."
+            }, ensure_ascii=False))
+            sys.exit(2)
 
-        payload = json.loads(raw_input)
+        try:
+            payload = json.loads(raw_input)
+        except Exception as e:
+            print(json.dumps({
+                "decision": "deny",
+                "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: JSON inválido ({str(e)})"
+            }, ensure_ascii=False))
+            sys.exit(2)
+
         if not isinstance(payload, dict):
             print(json.dumps({
                 "decision": "deny",
@@ -554,6 +565,23 @@ def handle_hook():
         from hook_context import evaluate_hook_payload
         result = evaluate_hook_payload(payload, evaluate_command)
         print(json.dumps(result, ensure_ascii=False))
+
+        decision = "allow"
+        if "decision" in result:
+            decision = result.get("decision", "allow")
+        elif "hookSpecificOutput" in result:
+            hso = result.get("hookSpecificOutput")
+            if isinstance(hso, dict):
+                decision = hso.get("permissionDecision", "allow")
+
+        if decision == "deny":
+            sys.exit(2)
+        elif decision == "ask":
+            sys.exit(1)
+        else:
+            sys.exit(0)
+    except SystemExit:
+        raise
     except Exception as e:
         print(json.dumps({
             "decision": "deny",

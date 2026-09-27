@@ -51,7 +51,7 @@ def resolve_hook_target(payload: dict[str, Any]) -> tuple[Path | None, str | Non
         ti = payload.get("tool_input")
         if ti is not None and not isinstance(ti, dict):
             raise ValueError("Invalid tool_input format: expected JSON object.")
-        raw_cwd = payload.get("cwd")
+        raw_cwd = payload.get("cwd") or (ti or {}).get("Cwd")
 
     if not raw_cwd:
         return None, "production", True
@@ -72,6 +72,18 @@ def resolve_hook_target(payload: dict[str, Any]) -> tuple[Path | None, str | Non
     return resolved, None, False
 
 
+def extract_tool_name(payload: dict[str, Any]) -> str:
+    """Extracts the tool name from either Antigravity (toolCall) or Claude hook payloads."""
+    if "toolCall" in payload:
+        tc = payload.get("toolCall")
+        if not isinstance(tc, dict):
+            raise ValueError("Invalid toolCall format: expected JSON object.")
+        return str(tc.get("name", "")).strip()
+    if "tool_name" in payload:
+        return str(payload.get("tool_name", "")).strip()
+    return ""
+
+
 def extract_hook_command(payload: dict[str, Any]) -> tuple[str, str]:
     """
     Extracts (tool_name, command_line) from Antigravity or Claude hook payloads.
@@ -84,13 +96,13 @@ def extract_hook_command(payload: dict[str, Any]) -> tuple[str, str]:
         if args is not None and not isinstance(args, dict):
             raise ValueError("Invalid toolCall.args format: expected JSON object.")
         args = args or {}
-        return str(tc.get("name", "")), str(args.get("CommandLine", ""))
+        return str(tc.get("name", "")).strip(), str(args.get("CommandLine", ""))
     if "tool_input" in payload or "tool_name" in payload:
-        tool_name = str(payload.get("tool_name", ""))
+        tool_name = str(payload.get("tool_name", "")).strip()
         ti = payload.get("tool_input")
         if ti is not None and not isinstance(ti, dict):
             raise ValueError("Invalid tool_input format: expected JSON object.")
-        cmd = str((ti or {}).get("command", ""))
+        cmd = str((ti or {}).get("command") or (ti or {}).get("CommandLine") or "")
         return tool_name, cmd
     return "", ""
 
@@ -102,7 +114,14 @@ def is_git_push_command(cmd_line: str) -> bool:
 
 def format_host_response(payload: dict[str, Any], decision: str, reason: str = "") -> dict[str, Any]:
     """Formats decision response according to host contract (Antigravity or Claude Code)."""
-    if "tool_input" in payload or "tool_name" in payload or payload.get("hook_event_name") == "PreToolUse":
+    # Host Claude: identificado por hook_event_name 'PreToolUse' ou ferramenta nativa 'Bash'
+    tool_name = extract_tool_name(payload)
+    is_claude = (
+        payload.get("hook_event_name") == "PreToolUse"
+        or tool_name == "Bash"
+    ) and "toolCall" not in payload
+
+    if is_claude:
         # PR-00e: No Claude Code, o gate nunca aprova — só nega ou pede confirmação (F6).
         # Retornar objeto vazio para allow devolve o fluxo normal de permissões ao Claude.
         if decision == "allow":
@@ -118,25 +137,26 @@ def format_host_response(payload: dict[str, Any], decision: str, reason: str = "
             res["hookSpecificOutput"]["permissionDecisionReason"] = reason
         return res
 
+    # Antigravity ou sem host identificável (Handoff 036 §3)
     res: dict[str, Any] = {"decision": decision}
     if reason:
         res["reason"] = reason
     return res
 
 
-def evaluate_hook_payload(
+def handle_terminal_tool(
+    tool_name: str,
     payload: dict[str, Any],
     evaluate_command_fn: Callable[[str, str | None], tuple[str, str, str, str]],
 ) -> dict[str, Any]:
-    """
-    Processes PreToolUse hook payload, safely resolving target directory before evaluation.
-    """
-    if not isinstance(payload, dict):
-        raise ValueError("Invalid hook payload: expected JSON object.")
-
-    tool_name, cmd_line = extract_hook_command(payload)
-    if tool_name not in ("run_command", "Bash") or not cmd_line.strip():
-        return format_host_response(payload, "allow")
+    """Handles safety evaluation for terminal commands (run_command, Bash)."""
+    _, cmd_line = extract_hook_command(payload)
+    if not cmd_line.strip():
+        return format_host_response(
+            payload,
+            "deny",
+            f"[CEH HOOK ERROR] Comando vazio ou ausente para ferramenta de terminal '{tool_name}'.",
+        )
 
     target_dir, explicit_env, force_deny_push = resolve_hook_target(payload)
     original_cwd = os.getcwd()
@@ -164,3 +184,41 @@ def evaluate_hook_payload(
             os.chdir(original_cwd)
         except OSError:
             pass
+
+
+# Despacho extensível por ferramenta (PR-09 / PR-10)
+TOOL_DISPATCH: dict[str, Callable[[str, dict[str, Any], Callable[[str, str | None], tuple[str, str, str, str]]], dict[str, Any]]] = {
+    "run_command": handle_terminal_tool,
+    "Bash": handle_terminal_tool,
+}
+
+
+def evaluate_hook_payload(
+    payload: dict[str, Any],
+    evaluate_command_fn: Callable[[str, str | None], tuple[str, str, str, str]],
+) -> dict[str, Any]:
+    """
+    Processes PreToolUse hook payload, safely resolving target directory before evaluation.
+    Enforces fail-closed on empty, missing, or unrecognized tools.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("Invalid hook payload: expected JSON object.")
+
+    tool_name = extract_tool_name(payload)
+    if not tool_name:
+        return format_host_response(
+            payload,
+            "deny",
+            "[CEH HOOK ERROR] Nenhuma ferramenta identificável no payload do hook.",
+        )
+
+    handler = TOOL_DISPATCH.get(tool_name)
+    if handler is None:
+        return format_host_response(
+            payload,
+            "deny",
+            f"[CEH HOOK ERROR] Ferramenta desconhecida '{tool_name}': fail-closed ativado.",
+        )
+
+    return handler(tool_name, payload, evaluate_command_fn)
+

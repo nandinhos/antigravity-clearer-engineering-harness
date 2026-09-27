@@ -282,7 +282,7 @@ class TestHookContext(unittest.TestCase):
         self.assertIn("[CEH SAFETY GATE ERROR] Hook execution failed:", res.get("reason", ""))
 
     def test_case_13_pr00d_claude_stdin_returns_claude_format(self):
-        """PR-00d: Claude payload via stdin returns hookSpecificOutput JSON format."""
+        """PR-00d / PR-09: Claude payload via stdin returns hookSpecificOutput JSON format with exit 2 on deny."""
         repo = self._init_repo("repo_claude_stdin", branch="main")
         payload = json.dumps({
             "hook_event_name": "PreToolUse",
@@ -293,7 +293,7 @@ class TestHookContext(unittest.TestCase):
             },
         })
         code, res = self._run_gate_hook(payload)
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 2)
         self.assertIn("hookSpecificOutput", res)
         self.assertEqual(res["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertIn("CEH PRODUCTION LOCK", res["hookSpecificOutput"]["permissionDecisionReason"])
@@ -344,6 +344,80 @@ class TestHookContext(unittest.TestCase):
         res = evaluate_hook_payload(payload, safety_gate.evaluate_command)
         self.assertEqual(res.get("decision"), "allow")
 
+    def test_case_17_pr09_seven_table_rows_fail_closed_exit_2(self):
+        """
+        PR-09: Verifies all 7 rows from Handoff 036 table fail-closed with exit code 2 and explicit deny reason.
+        Row 1: "" (vazio)
+        Row 2: "{}"
+        Row 3: '{"toolCall":{}}'
+        Row 4: '{"toolCall":{"name":"run_command","args":{}}}'
+        Row 5: '{"tool_name":"Bash","tool_input":{}}'
+        Row 6: '{"tool_name":"Bash","tool_input":{"command":""}}'
+        Row 7: "nao-json"
+        """
+        # Row 1: "" (vazio) -> deny, exit 2
+        code, res = self._run_gate_hook("")
+        self.assertEqual(code, 2, "Row 1 ('') must exit 2")
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("Payload vazio", res.get("reason", ""))
+
+        # Row 2: "{}" -> deny, exit 2
+        code, res = self._run_gate_hook("{}")
+        self.assertEqual(code, 2, "Row 2 ('{}') must exit 2")
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("Nenhuma ferramenta identificável", res.get("reason", ""))
+
+        # Row 3: '{"toolCall":{}}' -> deny, exit 2
+        code, res = self._run_gate_hook('{"toolCall":{}}')
+        self.assertEqual(code, 2, "Row 3 ('{\"toolCall\":{}}') must exit 2")
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("Nenhuma ferramenta identificável", res.get("reason", ""))
+
+        # Row 4: '{"toolCall":{"name":"run_command","args":{}}}' -> deny, exit 2
+        code, res = self._run_gate_hook('{"toolCall":{"name":"run_command","args":{}}}')
+        self.assertEqual(code, 2, "Row 4 must exit 2")
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("Comando vazio ou ausente", res.get("reason", ""))
+
+        # Row 5: '{"tool_name":"Bash","tool_input":{}}' -> deny (Claude format), exit 2
+        code, res = self._run_gate_hook('{"tool_name":"Bash","tool_input":{}}')
+        self.assertEqual(code, 2, "Row 5 must exit 2")
+        self.assertIn("hookSpecificOutput", res)
+        hso = res["hookSpecificOutput"]
+        self.assertEqual(hso.get("permissionDecision"), "deny")
+        self.assertIn("Comando vazio ou ausente", hso.get("permissionDecisionReason", ""))
+
+        # Row 6: '{"tool_name":"Bash","tool_input":{"command":""}}' -> deny (Claude format), exit 2
+        code, res = self._run_gate_hook('{"tool_name":"Bash","tool_input":{"command":""}}')
+        self.assertEqual(code, 2, "Row 6 must exit 2")
+        self.assertIn("hookSpecificOutput", res)
+        hso = res["hookSpecificOutput"]
+        self.assertEqual(hso.get("permissionDecision"), "deny")
+        self.assertIn("Comando vazio ou ausente", hso.get("permissionDecisionReason", ""))
+
+        # Row 7: "nao-json" -> deny, exit 2
+        code, res = self._run_gate_hook("nao-json")
+        self.assertEqual(code, 2, "Row 7 ('nao-json') must exit 2")
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("Hook execution failed", res.get("reason", ""))
+
+    def test_case_18_pr09_unknown_tools_fail_closed_exit_2(self):
+        """PR-09: Unrecognized tool names fail-closed with exit code 2 and explicit deny."""
+        # Agy format
+        code, res = self._run_gate_hook('{"toolCall":{"name":"ferramenta_desconhecida","args":{"CommandLine":"ls"}}}')
+        self.assertEqual(code, 2)
+        self.assertEqual(res.get("decision"), "deny")
+        self.assertIn("Ferramenta desconhecida 'ferramenta_desconhecida'", res.get("reason", ""))
+
+        # Claude format (com hook_event_name identificando o host Claude)
+        code, res = self._run_gate_hook('{"hook_event_name":"PreToolUse","tool_name":"UnknownClaudeTool","tool_input":{"command":"ls"}}')
+        self.assertEqual(code, 2)
+        self.assertIn("hookSpecificOutput", res)
+        hso = res["hookSpecificOutput"]
+        self.assertEqual(hso.get("permissionDecision"), "deny")
+        self.assertIn("Ferramenta desconhecida 'UnknownClaudeTool'", hso.get("permissionDecisionReason", ""))
+
 
 if __name__ == "__main__":
     unittest.main()
+
