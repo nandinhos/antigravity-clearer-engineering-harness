@@ -88,10 +88,6 @@ EOF
     fi
 }
 
-# FALSIFIABILITY MUTATION: Intentionally unquoted variable to fail blocking shellcheck in CI
-falsifiability_var=$1
-echo $falsifiability_var >/dev/null
-
 if [[ "$ONCE" = true ]]; then
     render_monitor
 else
