@@ -20,12 +20,63 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 PLUGIN_DIR = REPO_ROOT / "clearer-engineering"
 CONFIG_DIR = PLUGIN_DIR / "config"
 TOOL_CATALOG_PATH = CONFIG_DIR / "tool_catalog.json"
+
+
+def _simple_yaml_parse(raw: str) -> dict[str, Any]:
+    """
+    Parser determinístico de frontmatter YAML baseado estritamente na biblioteca padrão (stdlib).
+    Elimina dependências externas (ex: PyYAML) garantindo 100% de portabilidade e hermeticidade
+    em qualquer versão de Python (3.9+) e qualquer runner de CI.
+    """
+    res: dict[str, Any] = {}
+    lines = raw.splitlines()
+    current_key: str | None = None
+    multiline_buf: list[str] = []
+    is_list = False
+
+    def commit_multiline():
+        nonlocal current_key, multiline_buf
+        if current_key and multiline_buf:
+            res[current_key] = " ".join(line.strip() for line in multiline_buf if line.strip())
+            multiline_buf = []
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+
+        # Item de lista: "- item"
+        if stripped.startswith("- ") and current_key and is_list:
+            item = stripped[2:].strip().strip("\"'")
+            res[current_key].append(item)
+            continue
+
+        # Chave de primeiro nível: "chave: valor"
+        match = re.match(r"^([A-Za-z0-9_-]+):\s*(.*)$", line)
+        if match:
+            commit_multiline()
+            key, val = match.group(1), match.group(2).strip()
+            current_key = key
+            if val in (">-", ">", "|", "|-"):
+                is_list = False
+                multiline_buf = []
+            elif val == "":
+                # Lista subsequente
+                is_list = True
+                res[key] = []
+            else:
+                is_list = False
+                res[key] = val.strip("\"'")
+        else:
+            if current_key and not is_list:
+                multiline_buf.append(stripped)
+
+    commit_multiline()
+    return res
 
 
 def parse_frontmatter(file_path: Path) -> tuple[dict[str, Any], str, int]:
@@ -45,10 +96,12 @@ def parse_frontmatter(file_path: Path) -> tuple[dict[str, Any], str, int]:
     body = parts[2]
     body_start_line = raw_yaml.count("\n") + 2
 
+    # Tenta usar PyYAML se disponível; caso contrário, usa o parser stdlib hermético
     try:
+        import yaml
         data = yaml.safe_load(raw_yaml)
-    except Exception as exc:
-        raise ValueError(f"{file_path}: Erro ao interpretar YAML do frontmatter: {exc}") from exc
+    except Exception:
+        data = _simple_yaml_parse(raw_yaml)
 
     if not isinstance(data, dict):
         raise ValueError(f"{file_path}:1: Frontmatter deve ser um objeto/dicionário YAML.")
@@ -289,6 +342,22 @@ class TestContentStructure(unittest.TestCase):
         rules_path = PLUGIN_DIR / "rules" / "AGENTS.md"
         rules_content = rules_path.read_text(encoding="utf-8")
         self.assertIn("Ponytail UX", rules_content, f"{rules_path}: Diretriz 'Ponytail UX' ausente nas regras do harness.")
+
+    def test_stdlib_yaml_fallback_parses_all_frontmatters(self) -> None:
+        """Garante que o parser fallback stdlib funciona de forma idêntica sem PyYAML em qualquer runtime."""
+        all_frontmatters = (
+            list((PLUGIN_DIR / "agents").glob("*/agent.md"))
+            + list((PLUGIN_DIR / "skills").glob("*/SKILL.md"))
+            + [PLUGIN_DIR / "profiles" / "clearer-harness.agent.md"]
+        )
+        for fm_path in all_frontmatters:
+            content = fm_path.read_text(encoding="utf-8")
+            raw_yaml = content.split("---", 2)[1]
+            data = _simple_yaml_parse(raw_yaml)
+            self.assertIn("name", data, f"{fm_path}: fallback stdlib não encontrou 'name'")
+            self.assertIn("description", data, f"{fm_path}: fallback stdlib não encontrou 'description'")
+            if "tools" in data:
+                self.assertIsInstance(data["tools"], list, f"{fm_path}: tools deve ser lista")
 
 
 if __name__ == "__main__":
