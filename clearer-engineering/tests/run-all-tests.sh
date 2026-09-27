@@ -168,11 +168,11 @@ run_test "Skill: clearer-adhd packaged with Ponytail UX 10 Heuristics & Break-Ru
     "test -f '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Lead with Action' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Break-Rules' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Ponytail UX' '$PLUGIN_DIR/rules/AGENTS.md'"
 
 # 7. Shell Aliases Configuration
-run_test "Shell alias template in install.sh declares 'agy-ceh'" \
-    "grep -q \"^alias agy-ceh='agy --agent clearer-harness'\" '$PLUGIN_DIR/../install.sh'"
+run_test "Shell alias template in config/aliases.sh declares 'agy-ceh'" \
+    "grep -q \"^alias agy-ceh='agy --agent clearer-harness'\" '$PLUGIN_DIR/config/aliases.sh'"
 
-run_test "Shell alias template in install.sh declares 'ceh-evals'" \
-    "grep -q '^alias ceh-evals=' '$PLUGIN_DIR/../install.sh'"
+run_test "Shell alias template in config/aliases.sh declares 'ceh-evals'" \
+    "grep -q '^alias ceh-evals=' '$PLUGIN_DIR/config/aliases.sh'"
 
 # 8. Deterministic Smoke-Eval Suite
 run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
@@ -244,6 +244,10 @@ run_test "Pre-Push Refspecs: Validação de refspecs contra o certificado da CI 
 # 24. PR-10 Certificate Integrity Protection (G9)
 run_test "Certificate Integrity: Proteção contra alteração ou forja de certificados de CI (PR-10 / G9)" \
     "python3 '$PLUGIN_DIR/tests/test_cert_protection.py' >/dev/null 2>&1"
+
+# 25. PR-11 Install Verification Suite (Idempotência, Simetria e Validação Honesta)
+run_test "Install Verification: Idempotência, simetria byte a byte e validação honesta (PR-11)" \
+    "bash '$PLUGIN_DIR/tests/run-install-verification.sh' >/dev/null 2>&1"
 
 echo ""
 echo "============================================================"
