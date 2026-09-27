@@ -390,6 +390,19 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - AN3: o uninstall engole erros.
 - **Próximo:** PR-11b (uninstall seguro) e PR-12 (SemVer/CHANGELOG), cada um no seu commit certificado, e com isso a Onda 3 se encerra.
 
+### 0.40 PR-11b homologado; PR-12 não homologado ([Handoff 041](./temp_implementation/handoffs/handoff-041-revisao-pr11b-pr12-despacho-pr12b.md))
+
+- **PR-11b:**
+  - AN1, AN2 e AN3 corrigidos;
+  - prova por mutação reproduzida em dois clones;
+  - ressalva AO1: a heurística `\.sh` apaga aliases do usuário no install e no uninstall, e só existe para satisfazer uma fixture sintética do `cluster3`.
+- **PR-12 não homologado:**
+  - **AO2:** o one-liner `curl | bash` falha com `BASH_SOURCE[0]: unbound variable` desde `b7df47d`, então o `CEH_VERSION` não é alcançável pelo caminho documentado;
+  - AO3: via pipe dentro de um clone, o `CEH_VERSION` é ignorado em silêncio, e o README baixa o `install.sh` da `main`;
+  - AO4: o CHANGELOG diz "inviolable", em contradição com o ADR 007.
+- **Linha de base:** `0e14a09`.
+- **Próximo:** PR-12b, com testes do pipe sem rede (`git` falso) e o helper único de órfãos. Com ele, a Onda 3 se encerra.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
