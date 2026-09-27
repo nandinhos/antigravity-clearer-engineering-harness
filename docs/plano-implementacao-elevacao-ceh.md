@@ -432,6 +432,20 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Linha de base:** `dbf470d`.
 - **Próximo:** PR-19a, com o CI verde nos 4 jobs. A release v1.3.0 espera esse sinal.
 
+### 0.43 PR-19a homologado: **CI do servidor verde em 4/4** ([Handoff 044](./temp_implementation/handoffs/handoff-044-revisao-pr19a-ci-verde-despacho-pr19b.md))
+
+- **Servidor:** [run 36331068859](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36331068859), ubuntu/macOS × 3.9/3.12, todos **success**, com a suíte canônica e o E2E rodando no servidor pela primeira vez.
+- **O CI revelou três defeitos latentes:**
+  - `cluster1_acceptance.py` quebrado no Python 3.9 (PEP 604);
+  - E2E desatualizado desde o fail-closed do hook sem `Cwd` e o exit 2 do PR-09;
+  - `chmod` sujando a árvore dos evals.
+- **Confirmado:**
+  - a guarda do bash 3.2 funciona no `/bin/bash` real do macOS;
+  - o `file://` prova a origem da árvore com `cmp`.
+- **Linha de base:** `00d8dd6`.
+- **Release v1.3.0 desbloqueada** (desenvolvedor): decidir se o PR-19/19a entra em 1.3.0 ou 1.3.1, e exigir os 4 jobs na branch protection.
+- **Próximo:** PR-19b (limpeza do shellcheck, que passa a bloquear), com carona de AR1 e AP1–AP3.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
