@@ -408,11 +408,11 @@ production|allow|H029-controle|bun run build
 
 # --- Handoff 038 · revisão do PR-10 (G9)
 # AL1: substituição do diretório .ceh inteiro (o certificado chega com o nome original)
-development|deny|PENDENTE:H038-AL1|cp -r /tmp/fakeceh/. .ceh
-development|deny|PENDENTE:H038-AL1|rm -rf .ceh && cp -r /tmp/fakeceh .ceh
-development|deny|PENDENTE:H038-AL1|mv /tmp/fakeceh .ceh
-development|deny|PENDENTE:H038-AL1|cp -r /tmp/fakeceh/* .ceh/
-development|deny|PENDENTE:H038-AL1|rsync -a /tmp/fakeceh/ .ceh/
+development|deny|H038-AL1|cp -r /tmp/fakeceh/. .ceh
+development|deny|H038-AL1|rm -rf .ceh && cp -r /tmp/fakeceh .ceh
+development|deny|H038-AL1|mv /tmp/fakeceh .ceh
+development|deny|H038-AL1|cp -r /tmp/fakeceh/* .ceh/
+development|deny|H038-AL1|rsync -a /tmp/fakeceh/ .ceh/
 development|deny|H038-AL1-controle|cp /tmp/x/last-ci-run.json .ceh/
 development|deny|H038-AL1-controle|cat /tmp/fake.json > .ceh/last-ci-run.json
 production|allow|H038-controle|cat .ceh/last-ci-run.json

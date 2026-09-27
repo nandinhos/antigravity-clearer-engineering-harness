@@ -76,6 +76,29 @@ class TestCertProtection(unittest.TestCase):
                 self.assertEqual(uc, "CERTIFICATE_INTEGRITY")
                 self.assertIn("CERTIFICATE INTEGRITY", reason)
 
+    def test_terminal_ceh_directory_manipulation_denied(self):
+        """Manipulações no diretório .ceh/ inteiro (cp, mv, rsync, rm, etc.) são deny (AL1)."""
+        dir_cmds = [
+            "cp -r /tmp/fakeceh/. .ceh",
+            "rm -rf .ceh && cp -r /tmp/fakeceh .ceh",
+            "mv /tmp/fakeceh .ceh",
+            "cp -r /tmp/fakeceh/* .ceh/",
+            "rsync -a /tmp/fakeceh/ .ceh/",
+            "rm -rf .ceh",
+            "rm -rf ./.ceh",
+            "rm -rf .ceh/",
+            "mkdir -p .ceh",
+            "ln -sf /tmp/fake .ceh",
+        ]
+        for cmd in dir_cmds:
+            dec, reason, _, uc = safety_gate.evaluate_command(cmd, explicit_env="development")
+            self.assertEqual(
+                dec, "deny",
+                f"Manipulação de diretório .ceh '{cmd}' deve ser DENY no ambiente development"
+            )
+            self.assertEqual(uc, "CERTIFICATE_INTEGRITY")
+            self.assertIn("CERTIFICATE INTEGRITY", reason)
+
     def test_terminal_wrapped_cert_writes_denied(self):
         """Comandos embrulhados em bash -c, sh -c, eval que tentam forjar certificado são deny."""
         wrapped_cmds = [

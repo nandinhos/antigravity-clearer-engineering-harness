@@ -74,20 +74,29 @@ ALLOWED_READ_CMDS = {
     "cat", "less", "more", "head", "tail", "jq", "grep", "egrep", "fgrep", "ls", "stat", "wc"
 }
 
+def mentions_ceh_or_certs(cmd: str) -> bool:
+    """Detecta se o comando menciona arquivos de certificado ou o próprio diretório .ceh/ (AL1)."""
+    if CERT_FILES_REGEX.search(cmd):
+        return True
+    clean = cmd.replace("\"", "").replace("\x27", "").strip()
+    if re.search(r"(?:^|[\s/=])(?:[^\s/]+/)*\.ceh(?:[/\s;&|*]|$)", clean, re.I):
+        return True
+    return False
+
 def is_cert_tampering(cmd: str) -> tuple[bool, str]:
     """
-    Detecta tentativas de alteração ou escrita nos certificados de CI (.ceh/).
-    Regra fail-closed: qualquer menção aos arquivos protegidos é bloqueada (DENY),
-    EXCETO leituras puras sem redirecionamento de escrita (Handoff 037 G9).
+    Detecta tentativas de alteração ou escrita nos certificados de CI ou no diretório .ceh/.
+    Regra fail-closed: qualquer menção aos arquivos protegidos ou ao diretório .ceh é bloqueada (DENY),
+    EXCETO leituras puras sem redirecionamento de escrita (Handoff 037 G9 / Handoff 038 AL1).
     """
-    if not CERT_FILES_REGEX.search(cmd):
+    if not mentions_ceh_or_certs(cmd):
         return False, ""
 
     clean_cmd = cmd.strip()
     try:
         tokens = shlex.split(clean_cmd)
     except ValueError:
-        return True, "[CEH CERTIFICATE INTEGRITY - G9] ⛔ Erro de sintaxe em comando mencionando certificado de CI (.ceh/)."
+        return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Erro de sintaxe em comando mencionando .ceh/ ou certificado de CI."
 
     if not tokens:
         return False, ""
@@ -95,7 +104,7 @@ def is_cert_tampering(cmd: str) -> tuple[bool, str]:
     # Verifica redirecionamentos de escrita para qualquer arquivo
     for tok in tokens:
         if any(tok.startswith(r) for r in (">", ">>", "1>", "2>", "&>")):
-            return True, "[CEH CERTIFICATE INTEGRITY - G9] ⛔ Redirecionamento de escrita para certificado de CI (.ceh/)."
+            return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Redirecionamento de escrita para .ceh/ ou certificado de CI."
 
     idx = 0
     while idx < len(tokens):
@@ -109,12 +118,12 @@ def is_cert_tampering(cmd: str) -> tuple[bool, str]:
         break
 
     if idx >= len(tokens):
-        return True, "[CEH CERTIFICATE INTEGRITY - G9] ⛔ Comando inválido mencionando certificado de CI (.ceh/)."
+        return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Comando inválido mencionando .ceh/ ou certificado de CI."
 
     base_cmd = os.path.basename(tokens[idx])
     args = tokens[idx + 1:]
 
-    # Leituras puras permitidas
+    # Leituras puras permitidas (ls .ceh, cat .ceh/last-ci-run.json, etc.)
     if base_cmd in ALLOWED_READ_CMDS:
         return False, ""
 
@@ -123,5 +132,5 @@ def is_cert_tampering(cmd: str) -> tuple[bool, str]:
         if args[0] == "-m" and args[1] == "json.tool":
             return False, ""
 
-    return True, f"[CEH CERTIFICATE INTEGRITY - G9] ⛔ Tentativa de escrita/modificação de certificado de CI ({base_cmd}). Apenas leituras puras são permitidas."
+    return True, f"[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Tentativa de escrita/modificação de .ceh/ ou certificado de CI ({base_cmd}). Apenas leituras puras são permitidas."
 

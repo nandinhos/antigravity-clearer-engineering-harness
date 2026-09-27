@@ -34,7 +34,15 @@ O hook de pre-tool interception protege simultaneamente:
 Foi deliberadamente descartada a inclusão de metadados complexos como `tree_hash` ou `runner_version` no schema do certificado.
 - **Justificativa**: O hash do commit (`commit_hash`) já amarra deterministicamente o certificado à árvore Git correspondente. Num ambiente local onde o agente tem privilégios de execução, calcular e validar um `tree_hash` não adiciona barreira de segurança real contra adulteração intencional, introduzindo apenas complexidade acidental, fragilidade em branches transitórias e quebra de ergonomia. A simplicidade cirúrgica é a melhor salvaguarda.
 
+### Decisão 4: Proteção do Diretório `.ceh/` Inteiro (Handoff 038 / AL1)
+A proteção não se restringe aos nomes específicos dos arquivos de certificado (`last-ci-run.json`, etc.). Toda manipulação do diretório `.ceh/` como um todo (`cp -r`, `mv`, `rsync`, `rm -rf .ceh`) é bloqueada compulsoriamente como `deny`, impedindo a substituição em bloco de certificados. Leituras puras do diretório (`ls .ceh`, `ls -la ./.ceh`) permanecem liberadas como `allow`.
+
+### Decisão 5: Contratos de Retorno de Hook Específicos por Host (E11 Controlado / AL2)
+A caracterização experimental rigorosa 3x2x2 (documentada em `docs/temp_implementation/evidence/host-probe/agy/20260927T034219Z/`) comprovou com dados observados (`OBSERVED`):
+- No Antigravity CLI (`agy` 1.2.11), o braço de controle (**sem hook**) executa normalmente tanto escrita quanto comandos de shell em modo não interativo. O retorno de `{"decision": "allow"}` é 100% neutro e equivalente ao controle, enquanto retornar `{}` bloqueia compulsoriamente qualquer ferramenta. Portanto, o agy exige `{"decision": "allow"}` afirmativo.
+- No Claude Code, a regra F6 mantém o retorno `{}` vazio para allow, preservando a disciplina de permissões nativa do host.
+
 ## Consequências
-- **Positivas**: Falsificação de certificados por parte de LLMs ou scripts acidentais é bloqueada em todos os ambientes (`development`, `staging`, `production`).
-- **Ergonomia Preservada**: Comandos normais de auditoria e leitura (`cat .ceh/last-ci-run.json`, `jq . .ceh/last-ci-run.json`) continuam funcionando com resposta `allow`.
-- **Alinhamento**: Total aderência às regras de processo e segurança estabelecidas no Handoff 037.
+- **Positivas**: Falsificação de certificados por parte de LLMs ou scripts acidentais é bloqueada em todos os ambientes (`development`, `staging`, `production`), inclusive contra a substituição inteira da pasta `.ceh`.
+- **Ergonomia Preservada**: Comandos normais de auditoria e leitura (`cat .ceh/last-ci-run.json`, `jq . .ceh/last-ci-run.json`, `ls .ceh`) continuam funcionando com resposta `allow`.
+- **Alinhamento**: Total aderência às regras de processo e segurança estabelecidas nos Handoffs 037 e 038.
