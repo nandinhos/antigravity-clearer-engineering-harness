@@ -412,9 +412,10 @@ mkdir -p "$OUTSIDE_DIR"
 # 5.1 Pipe simples a partir de fora do repositório
 TMP_HOME_PIPE="$TMP_BASE/home_pipe"
 mkdir -p "$TMP_HOME_PIPE"
-> "$MOCK_GIT_LOG"
+: > "$MOCK_GIT_LOG"
 
 pipe_exit=0
+# shellcheck disable=SC2002 # Teste explícito do fluxo de instalação via pipe (cat install.sh | bash)
 (cd "$OUTSIDE_DIR" && cat "$REPO_ROOT/install.sh" | HOME="$TMP_HOME_PIPE" PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1) || pipe_exit=$?
 
 if [[ "$pipe_exit" -ne 0 ]]; then
@@ -434,9 +435,10 @@ echo "  • [PASS] Pipe simples: executou com sucesso (exit 0) e sem --branch."
 # 5.2 Pipe com CEH_VERSION=1.3.0
 TMP_HOME_PIPE_V1="$TMP_BASE/home_pipe_v1"
 mkdir -p "$TMP_HOME_PIPE_V1"
-> "$MOCK_GIT_LOG"
+: > "$MOCK_GIT_LOG"
 
 pipe_v1_exit=0
+# shellcheck disable=SC2002 # Teste explícito do fluxo de instalação via pipe (cat install.sh | bash)
 (cd "$OUTSIDE_DIR" && cat "$REPO_ROOT/install.sh" | HOME="$TMP_HOME_PIPE_V1" CEH_VERSION=1.3.0 PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1) || pipe_v1_exit=$?
 
 if [[ "$pipe_v1_exit" -ne 0 ]]; then
@@ -452,8 +454,9 @@ echo "  • [PASS] Pipe fixado (CEH_VERSION=1.3.0): git clone recebeu '--branch 
 # 5.3 Pipe com CEH_VERSION=v1.3.0 (já com prefixo v)
 TMP_HOME_PIPE_V2="$TMP_BASE/home_pipe_v2"
 mkdir -p "$TMP_HOME_PIPE_V2"
-> "$MOCK_GIT_LOG"
+: > "$MOCK_GIT_LOG"
 
+# shellcheck disable=SC2002 # Teste explícito do fluxo de instalação via pipe (cat install.sh | bash)
 (cd "$OUTSIDE_DIR" && cat "$REPO_ROOT/install.sh" | HOME="$TMP_HOME_PIPE_V2" CEH_VERSION=v1.3.0 PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1)
 
 if ! grep -q -- "--branch v1.3.0" "$MOCK_GIT_LOG" || grep -q -- "--branch vv1.3.0" "$MOCK_GIT_LOG"; then
@@ -465,8 +468,9 @@ echo "  • [PASS] Pipe fixado (CEH_VERSION=v1.3.0): normalizou prefixo 'v' sem 
 # 5.4 Pipe executado de DENTRO do repositório com CEH_VERSION
 TMP_HOME_PIPE_INSIDE="$TMP_BASE/home_pipe_inside"
 mkdir -p "$TMP_HOME_PIPE_INSIDE"
-> "$MOCK_GIT_LOG"
+: > "$MOCK_GIT_LOG"
 
+# shellcheck disable=SC2002 # Teste explícito do fluxo de instalação via pipe (cat install.sh | bash)
 (cd "$REPO_ROOT" && cat install.sh | HOME="$TMP_HOME_PIPE_INSIDE" CEH_VERSION=1.3.0 PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1)
 
 if ! grep -q -- "--branch v1.3.0" "$MOCK_GIT_LOG"; then
@@ -489,6 +493,84 @@ echo "  • [PASS] Arquivo local com CEH_VERSION: emitiu aviso explícito no log
 
 echo "✔ Teste 5 PASS: Todos os 5 cenários de one-liner (pipe) e versão fixada sem rede validados."
 
+# ------------------------------------------------------------------------------
+# Teste 6: Limpeza de Cabeçalho Legado no Install e Simetria no Uninstall (AP1)
+# ------------------------------------------------------------------------------
+echo "[6/6] Teste 6: Remoção de Cabeçalho Legado no Install e Simetria no Uninstall (AP1)..."
+
+TMP_HOME_LEGACY="$TMP_BASE/home_legacy"
+mkdir -p "$TMP_HOME_LEGACY"
+
+cat << 'EOF' > "$TMP_HOME_LEGACY/.bashrc"
+# ~/.bashrc: default mock configuration
+export PATH="/usr/local/bin:$PATH"
+# === CLEARER Engineering Harness (CEH) ===
+alias ll='ls -al'
+EOF
+
+cat << 'EOF' > "$TMP_HOME_LEGACY/.zshrc"
+# ~/.zshrc: default mock configuration
+# === CLEARER Engineering Harness (CEH) ===
+export ZSH_THEME="robbyrussell"
+EOF
+
+CLEAN_BASHRC=$(cat << 'EOF'
+# ~/.bashrc: default mock configuration
+export PATH="/usr/local/bin:$PATH"
+alias ll='ls -al'
+EOF
+)
+
+CLEAN_ZSHRC=$(cat << 'EOF'
+# ~/.zshrc: default mock configuration
+export ZSH_THEME="robbyrussell"
+EOF
+)
+
+# 6.1 Install deve remover o cabeçalho legado dos rc files
+HOME="$TMP_HOME_LEGACY" bash "$REPO_ROOT/install.sh" >/dev/null
+
+for rc in "$TMP_HOME_LEGACY/.bashrc" "$TMP_HOME_LEGACY/.zshrc"; do
+    rc_name=$(basename "$rc")
+    if grep -q "# === CLEARER Engineering Harness (CEH) ===" "$rc"; then
+        echo "ERRO AP1: '$rc_name' ainda contém o cabeçalho legado após install.sh!"
+        exit 1
+    fi
+    if ! grep -q "# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES" "$rc"; then
+        echo "ERRO AP1: '$rc_name' não contém o novo bloco após install.sh!"
+        exit 1
+    fi
+done
+
+# 6.2 Uninstall deve remover o bloco e deixar o arquivo limpo, idêntico ao estado esperado
+HOME="$TMP_HOME_LEGACY" bash "$REPO_ROOT/uninstall.sh" >/dev/null
+
+for rc in "$TMP_HOME_LEGACY/.bashrc" "$TMP_HOME_LEGACY/.zshrc"; do
+    rc_name=$(basename "$rc")
+    if grep -q "# === CLEARER Engineering Harness (CEH) ===" "$rc"; then
+        echo "ERRO AP1: '$rc_name' ainda contém o cabeçalho legado após uninstall.sh!"
+        exit 1
+    fi
+    if grep -q "# BEGIN CLEARER ENGINEERING HARNESS" "$rc"; then
+        echo "ERRO AP1: '$rc_name' ainda contém o bloco CEH após uninstall.sh!"
+        exit 1
+    fi
+done
+
+if [[ "$(< "$TMP_HOME_LEGACY/.bashrc")" != "$CLEAN_BASHRC" ]]; then
+    echo "ERRO AP1: .bashrc pós-uninstall difere do conteúdo limpo esperado!"
+    diff -u <(echo "$CLEAN_BASHRC") "$TMP_HOME_LEGACY/.bashrc" || true
+    exit 1
+fi
+
+if [[ "$(< "$TMP_HOME_LEGACY/.zshrc")" != "$CLEAN_ZSHRC" ]]; then
+    echo "ERRO AP1: .zshrc pós-uninstall difere do conteúdo limpo esperado!"
+    diff -u <(echo "$CLEAN_ZSHRC") "$TMP_HOME_LEGACY/.zshrc" || true
+    exit 1
+fi
+
+echo "✔ Teste 6 PASS: Cabeçalho legado removido no install e simetria confirmada no uninstall."
+
 echo "============================================================"
-echo "✔ TODOS OS 5 TESTES DE INSTALAÇÃO/DESINSTALAÇÃO PASSARAM (100%)"
+echo "✔ TODOS OS 6 TESTES DE INSTALAÇÃO/DESINSTALAÇÃO PASSARAM (100%)"
 echo "============================================================"

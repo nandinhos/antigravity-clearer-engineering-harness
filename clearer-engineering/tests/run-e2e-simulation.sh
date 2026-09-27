@@ -20,7 +20,6 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
 BOLD='\033[1m'
 NC='\033[0m'
 
@@ -108,7 +107,9 @@ git branch -D staging >/dev/null 2>&1 || true
 bash "$PLUGIN_DIR/scripts/setup-branches.sh" --classic "$SANDBOX_DIR" >/dev/null
 git show-ref --verify --quiet refs/heads/dev
 git show-ref --verify --quiet refs/heads/main
-! git show-ref --verify --quiet refs/heads/staging
+if git show-ref --verify --quiet refs/heads/staging; then
+    log_error "Branch staging ainda existe após comutação para Modo Clássico!"
+fi
 OUTPUT_CLASSIC=$(bash "$PLUGIN_DIR/scripts/detect-project.sh" "$SANDBOX_DIR")
 echo "$OUTPUT_CLASSIC" | grep -q "MODO CLÁSSICO"
 log_ok "Classic Mode verified (dev and main active, staging absent)."
@@ -118,7 +119,7 @@ log_ok "Classic Mode verified (dev and main active, staging absent)."
 # ------------------------------------------------------------------------------
 log_header "PHASE 2: Safety Gate PreToolUse & RTK Evasion Immunity (E2E)"
 
-test_safety_hook() {
+test_gate_check() {
     local cmd="$1"
     local env_var="$2"
     local expected_decision="$3"
@@ -132,41 +133,84 @@ test_safety_hook() {
     if [[ "$decision" == "$expected_decision" ]]; then
         if [[ -n "$extra_check" ]]; then
             if echo "$result" | grep -q "$extra_check"; then
-                log_ok "Safety Gate Hook: '$cmd' [$env_var] -> $decision ($extra_check)"
+                log_ok "Safety Gate Check: '$cmd' [$env_var] -> $decision ($extra_check)"
             else
-                log_error "Safety Gate Hook: '$cmd' returned $decision but missed '$extra_check'"
+                log_error "Safety Gate Check: '$cmd' returned $decision but missed '$extra_check'"
             fi
         else
-            log_ok "Safety Gate Hook: '$cmd' [$env_var] -> $decision"
+            log_ok "Safety Gate Check: '$cmd' [$env_var] -> $decision"
         fi
     else
-        log_error "Safety Gate Hook: '$cmd' [$env_var] expected '$expected_decision', got '$decision'. Output: $result"
+        log_error "Safety Gate Check: '$cmd' [$env_var] expected '$expected_decision', got '$decision'. Output: $result"
+    fi
+}
+
+test_actual_hook() {
+    local cmd="$1"
+    local expected_decision="$2"
+    local expected_exit="$3"
+    local extra_check="${4:-}"
+
+    local payload
+    payload=$(jq -n --arg cmd "$cmd" --arg cwd "$SANDBOX_DIR" \
+        '{"toolCall": {"name": "run_command", "args": {"CommandLine": $cmd, "Cwd": $cwd}}}')
+
+    set +e
+    local result
+    result=$(echo "$payload" | python3 "$PLUGIN_DIR/scripts/safety-gate.py" 2>&1)
+    local actual_exit=$?
+    set -e
+
+    local decision
+    decision=$(echo "$result" | jq -r '.decision // empty' 2>/dev/null || true)
+
+    if [[ "$actual_exit" -eq "$expected_exit" ]] && [[ "$decision" == "$expected_decision" ]]; then
+        if [[ -n "$extra_check" ]]; then
+            if echo "$result" | grep -q "$extra_check"; then
+                log_ok "Actual Hook Stdin: '$cmd' -> exit $actual_exit, $decision ($extra_check)"
+            else
+                log_error "Actual Hook Stdin: '$cmd' returned exit $actual_exit ($decision) but missed '$extra_check'"
+            fi
+        else
+            log_ok "Actual Hook Stdin: '$cmd' -> exit $actual_exit, $decision"
+        fi
+    else
+        log_error "Actual Hook Stdin: '$cmd' expected exit $expected_exit ($expected_decision), got exit $actual_exit ($decision). Output: $result"
     fi
 }
 
 log_step "2.1 Testing Catastrophic command rejection across environments"
-test_safety_hook "rm -rf /" "development" "deny" "CATASTROPHIC BLOCK"
-test_safety_hook "rtk rm -rf /" "development" "deny" "CATASTROPHIC BLOCK"
-test_safety_hook "rtk proxy rm -rf /" "development" "deny" "CATASTROPHIC BLOCK"
+test_gate_check "rm -rf /" "development" "deny" "CATASTROPHIC BLOCK"
+test_gate_check "rtk rm -rf /" "development" "deny" "CATASTROPHIC BLOCK"
+test_gate_check "rtk proxy rm -rf /" "development" "deny" "CATASTROPHIC BLOCK"
 
 log_step "2.2 Testing Production lock on destructive commands (with and without RTK)"
-test_safety_hook "git reset --hard HEAD~1" "production" "deny" "CEH PRODUCTION LOCK"
-test_safety_hook "rtk git reset --hard HEAD~1" "production" "deny" "CEH PRODUCTION LOCK"
-test_safety_hook "rtk php artisan migrate:fresh" "production" "deny" "CEH PRODUCTION LOCK"
+test_gate_check "git reset --hard HEAD~1" "production" "deny" "CEH PRODUCTION LOCK"
+test_gate_check "rtk git reset --hard HEAD~1" "production" "deny" "CEH PRODUCTION LOCK"
+test_gate_check "rtk php artisan migrate:fresh" "production" "deny" "CEH PRODUCTION LOCK"
 
 log_step "2.3 Testing Staging confirmation gate with 2 explicit alerts"
-test_safety_hook "git reset --hard HEAD~1" "staging" "ask" "ALERTA 1/2"
-test_safety_hook "rtk git reset --hard HEAD~1" "staging" "ask" "ALERTA 2/2"
-test_safety_hook "rtk git clean -fdx" "staging" "ask" "ALERTA 1/2"
+test_gate_check "git reset --hard HEAD~1" "staging" "ask" "ALERTA 1/2"
+test_gate_check "rtk git reset --hard HEAD~1" "staging" "ask" "ALERTA 2/2"
+test_gate_check "rtk git clean -fdx" "staging" "ask" "ALERTA 1/2"
 
 log_step "2.4 Testing Development allowance with rollback readiness"
-test_safety_hook "git reset --hard HEAD~1" "development" "allow" "DEV PERMITTED"
-test_safety_hook "rtk git reset --hard HEAD~1" "development" "allow" "DEV PERMITTED"
+test_gate_check "git reset --hard HEAD~1" "development" "allow" "DEV PERMITTED"
+test_gate_check "rtk git reset --hard HEAD~1" "development" "allow" "DEV PERMITTED"
 
 log_step "2.5 Testing Safe commands allowance across all tiers"
-test_safety_hook "npm test" "production" "allow"
-test_safety_hook "git status" "production" "allow"
-test_safety_hook "rtk git status" "production" "allow"
+test_gate_check "npm test" "production" "allow"
+test_gate_check "git status" "production" "allow"
+test_gate_check "rtk git status" "production" "allow"
+
+log_step "2.6 Testing Actual Hook execution via stdin with Cwd in sandbox (AR1)"
+test_actual_hook "git status" "allow" 0
+test_actual_hook "git reset --hard HEAD~1" "allow" 0 "DEV PERMITTED"
+test_actual_hook "rm -rf /" "deny" 2 "CATASTROPHIC BLOCK"
+
+git -C "$SANDBOX_DIR" checkout main >/dev/null 2>&1
+test_actual_hook "git reset --hard HEAD~1" "deny" 2 "CEH PRODUCTION LOCK"
+git -C "$SANDBOX_DIR" checkout dev >/dev/null 2>&1
 
 # ------------------------------------------------------------------------------
 # PHASE 3: Deterministic Test Runner & Auto-Detection

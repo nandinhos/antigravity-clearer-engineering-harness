@@ -306,7 +306,7 @@ if [[ -d ".github/workflows" ]]; then
             CI_WORKFLOWS+=("$(basename "$wf")")
             for s in postgres mysql redis mariadb mongodb; do
                 if grep -qi "image:.*$s" "$wf" 2>/dev/null; then
-                    [[ ! " ${CI_SERVICES_DETECTED[*]:-} " =~ " ${s} " ]] && CI_SERVICES_DETECTED+=("$s")
+                    [[ ! " ${CI_SERVICES_DETECTED[*]:-} " == *" ${s} "* ]] && CI_SERVICES_DETECTED+=("$s")
                 fi
             done
             if grep -q "runs-on:" "$wf" 2>/dev/null; then
@@ -317,7 +317,7 @@ if [[ -d ".github/workflows" ]]; then
                 while IFS= read -r line; do
                     CMD_CLEAN=$(echo "$line" | sed -e 's/^[[:space:]]*run:[[:space:]]*//' -e 's/["'\'' ]*$//' -e 's/^["'\'' ]*//')
                     if [[ "$CMD_CLEAN" =~ (pest|phpunit|artisan[[:space:]]+test|npm[[:space:]]+test|pnpm[[:space:]]+test|yarn[[:space:]]+test|pytest|cargo[[:space:]]+test|go[[:space:]]+test) ]]; then
-                        [[ ! " ${CI_TEST_COMMANDS[*]:-} " =~ " ${CMD_CLEAN} " ]] && CI_TEST_COMMANDS+=("$CMD_CLEAN")
+                        [[ ! " ${CI_TEST_COMMANDS[*]:-} " == *" ${CMD_CLEAN} "* ]] && CI_TEST_COMMANDS+=("$CMD_CLEAN")
                     fi
                 done <<< "$RUN_LINES"
             fi
@@ -356,7 +356,7 @@ if [[ ${#CI_WORKFLOWS[@]} -gt 0 ]]; then
     
     # Bridge recommendation
     if [[ "$RUNTIME_MODE" == "DOCKER_ACTIVE" ]]; then
-        if [[ " ${DOCKER_SERVICES_RUNNING[*]} " =~ " laravel.test " ]]; then
+        if [[ " ${DOCKER_SERVICES_RUNNING[*]} " == *" laravel.test "* ]]; then
             echo "Local Execution:   Ambiente Docker ativo -> Use 'docker compose exec -T laravel.test <cmd>' ou './vendor/bin/sail test'"
         else
             echo "Local Execution:   Ambiente Docker ativo -> Use 'docker compose exec -T ${DOCKER_SERVICES_RUNNING[0]} <cmd>'"

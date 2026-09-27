@@ -115,12 +115,12 @@ jobs:
         run: |
           python3 -m compileall -q clearer-engineering evals
 
-      - name: Run Shellcheck (Informational Baseline)
-        continue-on-error: true
+      - name: Run Shellcheck (Strict Zero Warnings Gate)
         run: |
+          set -o pipefail
           mkdir -p build/reports
           ALL_SH=$(find clearer-engineering/ evals/ -name "*.sh"; echo install.sh; echo uninstall.sh)
-          shellcheck -f gcc $ALL_SH | tee build/reports/shellcheck-report.txt || true
+          shellcheck -f gcc $ALL_SH | tee build/reports/shellcheck-report.txt
           echo "=== Shellcheck Count Summary ==="
           grep -oE "SC[0-9]{4}" build/reports/shellcheck-report.txt | sort | uniq -c || true
 

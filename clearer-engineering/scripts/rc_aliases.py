@@ -122,11 +122,14 @@ def install_rc_content(content, alias_conf_path, aliases_body):
         re.DOTALL
     )
 
+    # Remove legacy headers if present (AP1)
+    content = re.sub(LEGACY_HEADER_REGEX, '', content)
+
     m = pattern.search(content)
     if m:
         p_len = m.group(1) if m.group(1) is not None else 0
         block = f"{START_MARKER}\n# CEH_RC_PREFIX_LEN: {p_len}\n{aliases_body}\n{END_MARKER}\n"
-        return pattern.sub(block, content)
+        return pattern.sub(lambda _: block, content)
 
     # First clean any unblocked orphan aliases without removing user configs
     content = remove_orphan_aliases(content, alias_conf_path)

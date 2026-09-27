@@ -5,10 +5,11 @@
 set -u
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$PLUGIN_DIR"
+cd "$PLUGIN_DIR" || exit 1
 
 TMP_HOME="$(mktemp -d "${TMPDIR:-/tmp}/ceh-alltests-XXXXXX")"
 cleanup_suite() {
+    # shellcheck disable=SC2317 # Invocado indiretamente via trap cleanup_suite EXIT
     rm -rf "$TMP_HOME"
 }
 trap cleanup_suite EXIT

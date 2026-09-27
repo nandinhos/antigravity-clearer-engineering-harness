@@ -65,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed uninstaller error suppression (AN3) ensuring Python errors are surfaced and cause immediate non-zero exit codes.
 - Fixed pipe invocation regression in `install.sh` (AO2) where execution under `set -u` raised `BASH_SOURCE[0]: unbound variable`.
 - Fixed heuristic alias removal (AO1) by strictly scoping cleanup to canonical names and CEH signatures, preventing deletion of user aliases ending in `.sh`.
-- Removed tautological assertions in differential testing mock fixtures.
+- Replaced tautological constant checks in differential testing (`test_gate_differential_fuzz.py`) with real behavioral mutations executing against the evaluation engine.
 
 ### Security
 - Defense-in-depth protection for `.ceh/` directory preventing local certificate tampering (ADR 007).

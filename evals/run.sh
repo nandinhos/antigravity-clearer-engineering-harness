@@ -28,14 +28,10 @@ TOTAL_CRITERIA=5
 COLOR_RESET="\033[0m"
 COLOR_GREEN="\033[0;32m"
 COLOR_RED="\033[0;31m"
-COLOR_YELLOW="\033[0;33m"
-COLOR_CYAN="\033[0;36m"
 COLOR_BOLD="\033[1m"
 
-log_info()  { echo -e "${COLOR_CYAN}[INFO]${COLOR_RESET} $1"; }
 log_pass()  { echo -e "${COLOR_GREEN}[PASS]${COLOR_RESET} $1"; }
 log_fail()  { echo -e "${COLOR_RED}[FAIL]${COLOR_RESET} $1"; }
-log_warn()  { echo -e "${COLOR_YELLOW}[WARN]${COLOR_RESET} $1"; }
 
 # ------------------------------------------------------------------------------
 # 0. Verificação Prévia de Integridade
@@ -107,7 +103,6 @@ execute_fixture() {
 # ------------------------------------------------------------------------------
 run_suite() {
     local target_script="$1"
-    local label="$2"
     local suite_failed=0
 
     # 1. Benigno

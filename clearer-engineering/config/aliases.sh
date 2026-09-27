@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # ==============================================================================
 # CLEARER Engineering Harness (CEH) — Canonical Shell Aliases
 # Fonte única da verdade para aliases do CEH (lido por install.sh e uninstall.sh)
