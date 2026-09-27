@@ -8,11 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Onda 5 (PR-19 — CI Multiplataforma, Shellcheck e Branch de Trabalho)**:
+- **Onda 5 (PR-19 & PR-19a — CI Multiplataforma, Shellcheck, Prova no Bash 3.2 e Branch de Trabalho)**:
   - CI workflow triggers expanded in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) to run on `push` to `claude/**` branches and `workflow_dispatch`, enabling server-side CI verification during active development without requiring PR opening.
   - Multiplatform test matrix across `os: [ubuntu-latest, macos-latest]` and `python-version: ['3.9', '3.12']` (4 matrix jobs total).
   - Informative `shellcheck` step analyzing all 19 `.sh` repository scripts plus `install.sh` and `uninstall.sh` with `continue-on-error: true`, automated baseline SCxxxx counting, and artifact upload (`shellcheck-report.txt`).
   - Automated one-liner pipe installation test steps in CI: offline execution with mock git and local clone execution via `CEH_REPO_URL="file://$GITHUB_WORKSPACE"`.
+  - Fix variable placement in one-liner pipe CI step (`cat ... | CEH_REPO_URL=... bash`), verifying installed assets identity byte-by-byte (`cmp -s`) against the commit workspace (AQ1).
+  - Explicit macOS CI test step validating fail-closed behavior, syntax, and user remediation guidance under native Apple Legacy Bash 3.2 (AQ2).
   - Pinned repository URL support in [`install.sh`](./install.sh) via `CEH_REPO_URL` (defaults to canonical GitHub repo), enabling network-isolated local integration testing.
 
 ### Changed

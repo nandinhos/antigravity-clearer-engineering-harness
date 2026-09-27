@@ -41,6 +41,49 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
 
+      - name: Verify Apple Legacy Bash 3.2 Behavior (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          echo "=== Apple Legacy Bash Version ==="
+          /bin/bash --version
+
+          echo "=== Syntax Check under /bin/bash 3.2 ==="
+          /bin/bash -n install.sh
+          /bin/bash -n uninstall.sh
+
+          echo "=== Fail-Closed Verification under /bin/bash 3.2 ==="
+          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-bash32-XXXXXX")
+          TMP_HOME="$TMP_DIR/home"
+          mkdir -p "$TMP_HOME"
+
+          # 1. Pipe execution under /bin/bash 3.2 must fail with exit code != 0 and log Bash 4.0+ requirement
+          set +e
+          PIPE_OUT=$(cat install.sh | HOME="$TMP_HOME" /bin/bash 2>&1)
+          PIPE_EC=$?
+          set -e
+          echo "Pipe output: $PIPE_OUT"
+          echo "Pipe exit code: $PIPE_EC"
+          if [[ $PIPE_EC -eq 0 ]]; then
+            echo "ERROR: /bin/bash 3.2 pipe install unexpectedly succeeded!"
+            exit 1
+          fi
+          echo "$PIPE_OUT" | grep -F "Bash 4.0+ is required"
+
+          # 2. Direct script execution under /bin/bash 3.2 must fail with exit code != 0 and log Bash 4.0+ requirement
+          set +e
+          DIRECT_OUT=$(HOME="$TMP_HOME" /bin/bash install.sh 2>&1)
+          DIRECT_EC=$?
+          set -e
+          echo "Direct output: $DIRECT_OUT"
+          echo "Direct exit code: $DIRECT_EC"
+          if [[ $DIRECT_EC -eq 0 ]]; then
+            echo "ERROR: /bin/bash 3.2 direct install unexpectedly succeeded!"
+            exit 1
+          fi
+          echo "$DIRECT_OUT" | grep -F "Bash 4.0+ is required"
+
+          rm -rf "$TMP_DIR"
+
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -78,6 +121,8 @@ jobs:
           mkdir -p build/reports
           ALL_SH=$(find clearer-engineering/ evals/ -name "*.sh"; echo install.sh; echo uninstall.sh)
           shellcheck -f gcc $ALL_SH | tee build/reports/shellcheck-report.txt || true
+          echo "=== Shellcheck Count Summary ==="
+          grep -oE "SC[0-9]{4}" build/reports/shellcheck-report.txt | sort | uniq -c || true
 
       - name: Upload Shellcheck Report Artifact
         uses: actions/upload-artifact@v4
@@ -125,8 +170,12 @@ jobs:
           mkdir -p "$TMP_HOME" "$OUTSIDE_DIR"
 
           # Tests real git clone over local filesystem protocol without internet access
-          (cd "$OUTSIDE_DIR" && CEH_REPO_URL="file://$GITHUB_WORKSPACE" cat "$GITHUB_WORKSPACE/install.sh" | HOME="$TMP_HOME" bash)
-          test -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json"
+          (cd "$OUTSIDE_DIR" && cat "$GITHUB_WORKSPACE/install.sh" | CEH_REPO_URL="file://$GITHUB_WORKSPACE" HOME="$TMP_HOME" bash)
+
+          # Verify installed assets origin matches workspace commit exactly
+          cmp -s "$TMP_HOME/.gemini/config/plugins/clearer-engineering/profiles/clearer-harness.agent.md" "$GITHUB_WORKSPACE/clearer-engineering/profiles/clearer-harness.agent.md"
+          cmp -s "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json" "$GITHUB_WORKSPACE/clearer-engineering/plugin.json"
+
           rm -rf "$TMP_DIR"
 
       - name: Run Safety Gate Unit Test Matrix (DEV, STAGING, PROD & RTK)

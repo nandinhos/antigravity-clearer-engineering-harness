@@ -7,7 +7,7 @@ set -u
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PLUGIN_DIR"
 
-TMP_HOME="$(mktemp -d)"
+TMP_HOME="$(mktemp -d "${TMPDIR:-/tmp}/ceh-alltests-XXXXXX")"
 cleanup_suite() {
     rm -rf "$TMP_HOME"
 }
