@@ -304,6 +304,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - AH3: rede de detecção lenta (~42 s).
 - **Próximo:** PR-07d (equivalência de contexto por invariante + cache de branch). Com ele, a Onda 1 fecha.
 
+### 0.33 PR-07d homologado ([Handoff 034](./temp_implementation/handoffs/handoff-034-revisao-pr07d.md))
+
+- **Fechados:** bloco, `env -C`, `sudo -D`, `GIT_DIR`/`GIT_WORK_TREE` e `cd` sem argumento, todos cobertos por invariante de equivalência (falsificabilidade reproduzida). Rede de detecção em 7,8 s. Linha de base em `8da15d7`.
+- **Varredura final G6:**
+  - AI1: troca de branch dentro do comando (`git checkout main && git reset --hard`);
+  - AI2: arquivo de ambiente carregado ou copiado (`source .env.production &&`).
+- **Backlog, alvo opaco:** `npm --prefix` e `make -C`.
+- **Próximo:** PR-07e. Com ele, a Onda 1 fecha.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
