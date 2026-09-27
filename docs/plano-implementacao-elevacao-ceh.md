@@ -446,6 +446,23 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Release v1.3.0 desbloqueada** (desenvolvedor): decidir se o PR-19/19a entra em 1.3.0 ou 1.3.1, e exigir os 4 jobs na branch protection.
 - **Próximo:** PR-19b (limpeza do shellcheck, que passa a bloquear), com carona de AR1 e AP1–AP3.
 
+### 0.44 PR-19b homologado; trilha de CI da Onda 5 encerrada ([Handoff 045](./temp_implementation/handoffs/handoff-045-revisao-pr19b-despacho-pr19c-pr18.md))
+
+- **Shellcheck bloqueante com 0 avisos:**
+  - o controle negativo reprova nos 4 jobs ([run 36333967018](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36333967018));
+  - o HEAD está verde ([run 36340617938](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36340617938)).
+- **Carona resolvida:**
+  - AR1: `test_actual_hook` confere a decisão e o exit via stdin com `Cwd`;
+  - AP1, AP2 e AP3;
+  - SC2251: `! git show-ref` no E2E nunca reprovava.
+- **Linha de base:** `6e0e8de`.
+- **Ressalvas:**
+  - AS1: shellcheck em versões diferentes por SO (`apt` × `brew` 0.11), o que já deixou o CI vermelho sem mudança de código;
+  - AS2: controle negativo misturado com a limpeza na branch de trabalho. Regra: usar uma branch descartável `claude/negctl-*`.
+- **Próximo:**
+  - PR-19c: shellcheck com versão e hash fixados, num job;
+  - PR-18: esquema de frontmatter, catálogo de ferramentas com evidência, links e fuzz do lexer com semente 1337.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
