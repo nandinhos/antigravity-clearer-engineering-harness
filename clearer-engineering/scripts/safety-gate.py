@@ -31,6 +31,7 @@ from ceh_core.lexer import (
     normalize_command_for_evaluation,
     resolve_command_head,
     substitute_positional_args,
+    extract_subshell_command,
 )
 from ceh_core.environment import (
     normalize_env,
@@ -38,6 +39,7 @@ from ceh_core.environment import (
     get_git_branch,
     find_repo_root,
     ENV_SEVERITY,
+    is_unresolved_cd_target,
 )
 from ceh_core.rm import evaluate_rm_command
 from ceh_core.git import evaluate_git_subcommand
@@ -218,29 +220,15 @@ def max_severity_decision(
     d1: tuple[str, str, str, str],
     d2: tuple[str, str, str, str]
 ) -> tuple[str, str, str, str]:
-    """
-    Retorna a decisão de maior severidade: CATASTROPHIC > deny > ask > allow.
-    Em caso de empate em allow, prefere a decisão mais específica sobre GENERAL.
-    """
+    """Retorna a decisão de maior severidade: CATASTROPHIC > deny > ask > allow."""
     def rank(d: tuple[str, str, str, str]) -> int:
         dec, _, _, uc = d
-        if uc == "CATASTROPHIC":
-            return 4
-        if dec == "deny":
-            return 3
-        if dec == "ask":
-            return 2
-        return 1
+        return 4 if uc == "CATASTROPHIC" else {"deny": 3, "ask": 2}.get(dec, 1)
 
     r1, r2 = rank(d1), rank(d2)
-    if r1 > r2:
-        return d1
-    if r2 > r1:
-        return d2
-    # Empate: se d1 é GENERAL e d2 não é GENERAL, prefere d2
-    if d1[3] == "GENERAL" and d2[3] != "GENERAL":
-        return d2
-    return d1
+    if r1 > r2: return d1
+    if r2 > r1: return d2
+    return d2 if (d1[3] == "GENERAL" and d2[3] != "GENERAL") else d1
 
 
 def extract_shell_c_command(cmd_line: str) -> str | None:
@@ -420,8 +408,8 @@ def evaluate_subcommand(
 
         if target_repo and explicit_env is None:
             sub_env, sub_env_evidence = detect_environment(explicit_env=None, target_dir=target_repo)
-            env = sub_env
-            env_evidence = sub_env_evidence
+            if ENV_SEVERITY.get(sub_env, 0) > ENV_SEVERITY.get(env, 0):
+                env, env_evidence = sub_env, sub_env_evidence
 
         if git_subcmd in ("checkout", "restore", "switch"):
             is_dest, desc, use_case_code = evaluate_git_subcommand(git_subcmd, git_args)
@@ -518,41 +506,49 @@ def evaluate_command(
     unresolved_cd = False
 
     for sub in subcommands:
+        sub_inner = extract_subshell_command(sub)
+        if sub_inner is not None:
+            sub_res = evaluate_command(
+                sub_inner,
+                explicit_env=explicit_env,
+                base_cwd=current_cwd,
+                depth=depth + 1,
+                scan_suffixes=scan_suffixes,
+            )
+            evaluations.append(sub_res)
+            continue
+
         sub_tokens = []
         try:
             sub_tokens = shlex.split(sub, posix=True, comments=True)
         except Exception:
             sub_tokens = sub.split()
 
-        # AF1: cd / pushd atualiza o contexto dos subcomandos seguintes
+        # AF1 / AG2: cd / pushd atualiza o contexto dos subcomandos seguintes
         if sub_tokens and sub_tokens[0] in ("cd", "pushd") and len(sub_tokens) > 1:
             raw_target = sub_tokens[1]
-            has_unresolved = bool(re.search(r'\$[\w{]|~', raw_target))
-            target_path = None
-            if not has_unresolved:
+            if is_unresolved_cd_target(raw_target):
+                unresolved_cd = True
+                current_env = "production"
+                current_env_ev = f"Incerteza: cd para destino não resolvível '{raw_target}' (Invariante 7)"
+            else:
                 cand = Path(raw_target)
                 target_path = cand if cand.is_absolute() else (current_cwd / cand).resolve()
-
-            if target_path and target_path.is_dir():
-                current_cwd = target_path
-                new_env, new_ev = detect_environment(explicit_env=explicit_env, target_dir=current_cwd)
-                if ENV_SEVERITY.get(new_env, 0) > ENV_SEVERITY.get(current_env, 0):
-                    current_env = new_env
-                    current_env_ev = new_ev
-            elif has_unresolved:
-                unresolved_cd = True
+                if target_path and target_path.is_dir():
+                    current_cwd = target_path
+                    new_env, new_ev = detect_environment(explicit_env=explicit_env, target_dir=current_cwd)
+                    if ENV_SEVERITY.get(new_env, 0) > ENV_SEVERITY.get(current_env, 0):
+                        current_env, current_env_ev = new_env, new_ev
 
         sub_eval_env, sub_eval_ev = detect_environment(explicit_env=explicit_env, cmd_line=sub, target_dir=current_cwd)
         if ENV_SEVERITY.get(sub_eval_env, 0) > ENV_SEVERITY.get(current_env, 0):
-            effective_env = sub_eval_env
-            effective_ev = sub_eval_ev
+            effective_env, effective_ev = sub_eval_env, sub_eval_ev
         else:
-            effective_env = current_env
-            effective_ev = current_env_ev
+            effective_env, effective_ev = current_env, current_env_ev
 
-        if unresolved_cd and effective_env == "development":
-            effective_env = "staging"
-            effective_ev = "Incerteza: cd para caminho dinâmico não resolvido antes de subcomando"
+        if unresolved_cd and ENV_SEVERITY.get(effective_env, 0) < ENV_SEVERITY.get("production", 0):
+            effective_env = "production"
+            effective_ev = "Incerteza: cd para destino não resolvível (Invariante 7)"
 
         evaluations.append(
             evaluate_subcommand(
@@ -567,18 +563,11 @@ def evaluate_command(
         )
 
     # Precedência estrita: CATASTROPHIC > DENY > ASK > ALLOW
-    catastrophics = [e for e in evaluations if e[0] == "deny" and e[3] == "CATASTROPHIC"]
-    if catastrophics:
-        return catastrophics[0]
-
-    denies = [e for e in evaluations if e[0] == "deny"]
-    if denies:
-        return denies[0]
-
-    asks = [e for e in evaluations if e[0] == "ask"]
-    if asks:
-        return asks[0]
-
+    for e in evaluations:
+        if e[0] == "deny" and e[3] == "CATASTROPHIC": return e
+    for dec in ("deny", "ask"):
+        for e in evaluations:
+            if e[0] == dec: return e
     return evaluations[0]
 
 def handle_hook():

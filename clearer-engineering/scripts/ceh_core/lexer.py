@@ -21,12 +21,8 @@ def split_shell_pipeline(cmd_line: str) -> tuple[list[str] | None, str | None]:
     - Process substitution (<(...) ou >(...))
     - Aspas ou escapes não balanceados
     """
-    tokens = []
-    buf = []
-    i = 0
-    n = len(cmd_line)
-    quote = None
-    escaped = False
+    tokens, buf, i, n = [], [], 0, len(cmd_line)
+    quote, escaped, paren_depth = None, False, 0
 
     while i < n:
         c = cmd_line[i]
@@ -37,10 +33,9 @@ def split_shell_pipeline(cmd_line: str) -> tuple[list[str] | None, str | None]:
             continue
 
         if c == "\\":
-            if quote == "'":  # Em bash, aspas simples não admitem escape
+            if quote == "'":
                 buf.append(c)
             else:
-                # Rejeição Fail-Closed de continuação de linha (\ seguido de newline)
                 if i + 1 < n and cmd_line[i+1] in ("\n", "\r"):
                     return None, "Continuação de linha por barra invertida (line continuation) detectada"
                 escaped = True
@@ -87,12 +82,32 @@ def split_shell_pipeline(cmd_line: str) -> tuple[list[str] | None, str | None]:
         if c in ("<", ">") and i + 1 < n and cmd_line[i+1] == "(":
             return None, "Process substitution (<(...) ou >(...)) detectada"
 
-        # Operadores de controle e terminadores de instrução (;, \n, \r\n)
-        if c in (";", "\n", "\r"):
+        if c == "(" and (i == 0 or cmd_line[i-1] in (" ", "\t", ";", "&", "|", "(", "\n", "\r")):
+            paren_depth += 1
+            buf.append(c)
+            i += 1
+            continue
+        if c == ")" and paren_depth > 0:
+            paren_depth -= 1
+            buf.append(c)
+            i += 1
+            continue
+
+        if paren_depth > 0:
+            buf.append(c)
+            i += 1
+            continue
+
+        def flush():
+            nonlocal buf
             sub = "".join(buf).strip()
             if sub:
                 tokens.append(sub)
             buf = []
+
+        # Operadores de controle e terminadores de instrução (;, \n, \r\n)
+        if c in (";", "\n", "\r"):
+            flush()
             if c == "\r" and i + 1 < n and cmd_line[i+1] == "\n":
                 i += 2
             else:
@@ -101,39 +116,25 @@ def split_shell_pipeline(cmd_line: str) -> tuple[list[str] | None, str | None]:
 
         if c == "&":
             if i + 1 < n and cmd_line[i+1] == "&":
-                sub = "".join(buf).strip()
-                if sub:
-                    tokens.append(sub)
-                buf = []
+                flush()
                 i += 2
                 continue
-            # Verifica se é redirecionamento de descritores: >&, &>, 2>&1, 1>&2
             prev_char = cmd_line[i-1] if i > 0 else ""
             next_char = cmd_line[i+1] if i + 1 < n else ""
             if prev_char == ">" or next_char == ">" or (prev_char in ("1", "2") and i > 1 and cmd_line[i-2] == ">"):
                 buf.append(c)
                 i += 1
                 continue
-            # & isolado é separador de comando em background
-            sub = "".join(buf).strip()
-            if sub:
-                tokens.append(sub)
-            buf = []
+            flush()
             i += 1
             continue
 
         if c == "|":
             if i + 1 < n and cmd_line[i+1] == "|":
-                sub = "".join(buf).strip()
-                if sub:
-                    tokens.append(sub)
-                buf = []
+                flush()
                 i += 2
                 continue
-            sub = "".join(buf).strip()
-            if sub:
-                tokens.append(sub)
-            buf = []
+            flush()
             i += 1
             continue
 
@@ -144,11 +145,38 @@ def split_shell_pipeline(cmd_line: str) -> tuple[list[str] | None, str | None]:
         return None, "Aspas não fechadas na linha de comando"
     if escaped:
         return None, "Caractere de escape pendente no final da linha"
+    if paren_depth != 0:
+        return None, "Parênteses não balanceados na linha de comando"
 
     last_sub = "".join(buf).strip()
     if last_sub:
         tokens.append(last_sub)
     return tokens, None
+
+
+def extract_subshell_command(subcmd: str) -> str | None:
+    """Extrai o comando interno de um subshell ( ... ) preservando contexto."""
+    s = subcmd.strip()
+    if not s.startswith("("):
+        return None
+    depth, quote, escaped = 0, None, False
+    for i, c in enumerate(s):
+        if escaped:
+            escaped = False; continue
+        if c == "\\":
+            if quote != "'": escaped = True
+            continue
+        if quote:
+            if c == quote: quote = None
+            continue
+        if c in ("'", '"'):
+            quote = c; continue
+        if c == "(":
+            depth += 1
+        elif c == ")" and depth > 0:
+            depth -= 1
+            if depth == 0: return s[1:i].strip()
+    return None
 
 
 def normalize_command_for_evaluation(subcmd: str) -> str:
@@ -171,12 +199,10 @@ def _consume_flags(tokens: list[str], idx: int, arg_opts: set[str]) -> int:
         tok = tokens[idx]
         if tok == "--":
             return idx + 1
-        if tok in arg_opts and idx + 1 < n:
+        if (tok in arg_opts or (not tok.startswith("--") and len(tok) > 1 and f"-{tok[-1]}" in arg_opts)) and idx + 1 < n:
             idx += 2
         elif any(tok.startswith(opt + "=") for opt in arg_opts):
             idx += 1
-        elif not tok.startswith("--") and len(tok) > 1 and f"-{tok[-1]}" in arg_opts and idx + 1 < n:
-            idx += 2
         else:
             idx += 1
     return idx
@@ -204,13 +230,11 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
             continue
         if tok == "nice":
             idx = _consume_flags(tokens, idx + 1, {"-n", "--adjustment"})
-            if idx < n and re.match(r"^-\d+$", tokens[idx]):
-                idx += 1
+            if idx < n and re.match(r"^-\d+$", tokens[idx]): idx += 1
             continue
         if tok == "timeout":
             idx = _consume_flags(tokens, idx + 1, {"-k", "--kill-after", "-s", "--signal"})
-            if idx < n and not tokens[idx].startswith("-"):
-                idx += 1
+            if idx < n and not tokens[idx].startswith("-"): idx += 1
             continue
         if tok in ("sudo", "doas"):
             idx = _consume_flags(tokens, idx + 1, {"-u", "-g", "-h", "-p", "-r", "-t", "-T", "-C"})
@@ -218,23 +242,16 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
         if tok == "env":
             for i in range(idx + 1, n):
                 c = tokens[i]
-                if c in ("-S", "--split-string") and i + 1 < n:
-                    return idx, tokens[i + 1]
-                if c.startswith(("-S=", "--split-string=")):
-                    return idx, c.split("=", 1)[1]
-                if c.startswith("-S") and len(c) > 2:
-                    return idx, c[2:]
+                if c in ("-S", "--split-string") and i + 1 < n: return idx, tokens[i + 1]
+                if c.startswith(("-S=", "--split-string=")): return idx, c.split("=", 1)[1]
+                if c.startswith("-S") and len(c) > 2: return idx, c[2:]
             idx += 1
             while idx < n:
                 c = tokens[idx]
-                if c in ("-u", "--unset", "-C", "--chdir") and idx + 1 < n:
-                    idx += 2
-                elif c == "--":
-                    idx += 1; break
-                elif c.startswith("-") or ("=" in c and not c.startswith("=")):
-                    idx += 1
-                else:
-                    break
+                if c in ("-u", "--unset", "-C", "--chdir") and idx + 1 < n: idx += 2
+                elif c == "--": idx += 1; break
+                elif c.startswith("-") or ("=" in c and not c.startswith("=")): idx += 1
+                else: break
             continue
         if tok == "time":
             idx = _consume_flags(tokens, idx + 1, {"-o", "--output", "-f", "--format"})
@@ -244,16 +261,13 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
             idx = _consume_flags(tokens, idx + 1, {"-i", "-o", "-e", "-c", "--cpu-list", "-n", "-p", "-P", "-u"})
             if tok == "taskset":
                 has_cpu = any(t in ("-c", "--cpu-list") or t.startswith(("-c=", "--cpu-list=")) or (t.startswith("-") and not t.startswith("--") and "c" in t) for t in tokens[start_i:idx])
-                if not has_cpu and idx < n and not tokens[idx].startswith("-"):
-                    idx += 1
-            elif tok == "chrt" and idx < n and not tokens[idx].startswith("-"):
-                idx += 1
+                if not has_cpu and idx < n and not tokens[idx].startswith("-"): idx += 1
+            elif tok == "chrt" and idx < n and not tokens[idx].startswith("-"): idx += 1
             continue
         if tok == "xargs":
             idx = _consume_flags(tokens, idx + 1, {"-n", "-P", "-d", "-s", "-E", "-L", "-I"})
             continue
-        if tok == "eval":
-            return idx, " ".join(tokens[idx + 1:])
+        if tok == "eval": return idx, " ".join(tokens[idx + 1:])
         if tok == "su":
             for i in range(idx + 1, n):
                 t = tokens[i]
@@ -263,8 +277,7 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
             break
         if tok == "watch":
             i = _consume_flags(tokens, idx + 1, {"-n", "--interval"})
-            if i < n:
-                return idx, " ".join(tokens[i:])
+            if i < n: return idx, " ".join(tokens[i:])
             break
         break
     return idx, None
@@ -272,15 +285,13 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
 
 def substitute_positional_args(script: str, args: list[str]) -> str:
     """Substitui argumentos posicionais ($0, $1..., ${0}, "$@") em scripts de shell (AB3)."""
-    if not args:
-        return script
+    if not args: return script
     res = script
     if len(args) > 1:
         res = res.replace('"$@"', " ".join(f'"{a}"' for a in args[1:])).replace('$@', " ".join(args[1:]))
     elif len(args) == 1:
         res = res.replace('"$@"', '').replace('$@', '')
     for idx, val in enumerate(args):
-        pat = r'\$\{' + str(idx) + r'\}|\$' + str(idx) + r'(?!\d)'
-        res = re.sub(pat, val, res)
+        res = re.sub(r'\$\{' + str(idx) + r'\}|\$' + str(idx) + r'(?!\d)', val, res)
     return res
 

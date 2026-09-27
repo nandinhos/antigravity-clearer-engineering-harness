@@ -159,6 +159,44 @@ class TestEnvironmentTokens(unittest.TestCase):
         self.assertEqual(decision, "deny", f"AF1 falhou: {cmd} deveria ser deny/production, mas foi {decision} ({reason})")
         self.assertEqual(eval_env, "production", f"AF1 falhou: ambiente deveria ser production, mas foi {eval_env}")
 
+    def test_handoff_032_ag1_subshell_context(self):
+        """Handoff 032 AG1: (cd <repo-main> && git reset --hard) -> deny/production sem vazamento."""
+        repo_dev = self._init_repo("repo_ag1_dev", branch="dev")
+        repo_main = self._init_repo("repo_ag1_main", branch="main")
+
+        # Subshell isolado com comando destrutivo no repo em main -> deny/production
+        cmd = f"(cd {repo_main} && git reset --hard)"
+        decision, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+        self.assertEqual(decision, "deny", f"AG1 falhou: {cmd} deveria ser deny/production, mas foi {decision} ({reason})")
+        self.assertEqual(eval_env, "production", f"AG1 falhou: ambiente deveria ser production, mas foi {eval_env}")
+
+        # Contexto não vaza para fora dos parênteses: se vazasse para repo_main, git reset --hard seria deny
+        cmd_no_leak = f"(cd {repo_main} && git status) && git reset --hard"
+        decision, reason, _, _ = safety_gate.evaluate_command(cmd_no_leak, base_cwd=repo_dev)
+        self.assertEqual(decision, "allow", f"AG1 não vazamento falhou: {cmd_no_leak} deveria ser allow em dev, mas foi {decision} ({reason})")
+
+    def test_handoff_032_ag2_unresolved_cd_escalates(self):
+        """Handoff 032 AG2: cd para destino incerto/dinâmico resulta em contexto production (Invariante 7)."""
+        repo_dev = self._init_repo("repo_ag2_dev", branch="dev")
+
+        # Destino não resolvível seguido de comando destrutivo -> deny / production
+        destructive_cases = [
+            'cd "$PROD_DIR" && git reset --hard',
+            'cd - && git reset --hard',
+            'cd ~nonexistent_user_12345 && git reset --hard',
+            'cd ${PROD_PATH} && git reset --hard',
+        ]
+        for cmd in destructive_cases:
+            decision, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+            self.assertEqual(decision, "deny", f"AG2 falhou: {cmd} deveria ser deny, mas foi {decision} ({reason})")
+            self.assertEqual(eval_env, "production", f"AG2 falhou: {cmd} deveria ser production, mas foi {eval_env}")
+
+        # Custo aceito: comando não destrutivo segue allow
+        cmd_safe = 'cd "$DIR" && npm test'
+        decision, reason, eval_env, _ = safety_gate.evaluate_command(cmd_safe, base_cwd=repo_dev)
+        self.assertEqual(decision, "allow", f"AG2 custo aceito falhou: {cmd_safe} deveria ser allow, mas foi {decision} ({reason})")
+        self.assertEqual(eval_env, "production", f"AG2 custo aceito falhou: ambiente deveria ser production, mas foi {eval_env}")
+
     def test_non_downgrade_invariant(self):
         """
         Invariante 7: Sinais do comando NUNCA reduzem a severidade do ambiente.

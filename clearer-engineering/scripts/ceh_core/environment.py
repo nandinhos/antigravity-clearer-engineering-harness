@@ -126,9 +126,12 @@ def extract_command_environment_tokens(cmd_line: str) -> tuple[str | None, str |
 
         # 5. cd / pushd: diretório de trabalho conta como contexto que só escala
         if tok in ("cd", "pushd") and idx + 1 < n:
-            cd_env = normalize_env(tokens[idx + 1])
+            target = tokens[idx + 1]
+            cd_env = normalize_env(target)
             if cd_env in ("production", "staging"):
-                found_envs.append((cd_env, f"Working directory context {tok} {tokens[idx + 1]}"))
+                found_envs.append((cd_env, f"Working directory context {tok} {target}"))
+            elif is_unresolved_cd_target(target):
+                found_envs.append(("production", f"Unresolved cd target {tok} {target} (Invariante 7)"))
             idx += 2
             continue
 
@@ -138,6 +141,15 @@ def extract_command_environment_tokens(cmd_line: str) -> tuple[str | None, str |
         return None, None
 
     return max(found_envs, key=lambda item: ENV_SEVERITY.get(item[0], 0))
+
+
+def is_unresolved_cd_target(target: str) -> bool:
+    """Verifica se o alvo de cd/pushd é não resolvível/dinâmico (Invariante 7)."""
+    t = target.strip().strip('"').strip("'")
+    if t == "-":
+        return True
+    t_clean = t.replace("${PWD}", "").replace("$PWD", "")
+    return bool(re.search(r'\$[\w{]|~', t_clean))
 
 
 def get_git_branch(target_dir: Path | str | None = None) -> str | None:
