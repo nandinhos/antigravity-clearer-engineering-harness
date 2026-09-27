@@ -127,3 +127,22 @@ Execução da suíte canônica completa em ambiente local:
 - **Testes Aprovados:** 58 (100%)
 - **Testes Reprovados:** 0
 - **Auditoria Documental (`doc-audit.py`):** 7/7 checagens aprovadas.
+- **Redes Diferenciais (`test_gate_differential_fuzz.py`):** 12.048 casos avaliados em 4.67s com 0 relaxamentos.
+
+---
+
+## 6. Resultado Comprovado no Servidor (`OBSERVED`) — 4/4 Jobs Verdes (100%)
+
+No commit oficial [`62208b7`](https://github.com/nandinhos/antigravity-clearer-engineering-harness/commit/62208b75e2a1433d13916134ef3765e49e2f324a), a esteira do GitHub Actions concluiu com **100% de sucesso em todos os 4 jobs da matriz**:
+
+- **Workflow Run:** [Run 36353326429](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36353326429)
+- **Status:** `completed`, **Conclusion:** `success`
+- **Jobs Validados:**
+  1. `Validate (ubuntu-latest - Python 3.12)`: **success** (24 steps em 2m23s — [Job 108716061723](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36353326429/job/108716061723))
+  2. `Validate (ubuntu-latest - Python 3.9)`: **success** (21 steps em 2m58s — [Job 108716061896](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36353326429/job/108716061896))
+  3. `Validate (macos-latest - Python 3.12)`: **success** (22 steps em 16m43s — [Job 108716061809](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36353326429/job/108716061809))
+  4. `Validate (macos-latest - Python 3.9)`: **success** (22 steps em 14m43s — [Job 108716061849](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36353326429/job/108716061849))
+- **Hermeticidade e Robustez Comprovadas:**
+  - O catálogo de ferramentas valida proveniência física para os tipos `payload` e `host_doc` e rotula com transparência as ferramentas `declared`.
+  - A propriedade de ida e volta do analisador léxico (`split_shell_pipeline`) foi testada em 500 permutações in-process com semente 1337 em todos os runners sem falhas.
+  - Zero dependências de terceiros no teste de esquema, rodando nativamente na stdlib do Python 3.9 e 3.12 em Linux e macOS.
