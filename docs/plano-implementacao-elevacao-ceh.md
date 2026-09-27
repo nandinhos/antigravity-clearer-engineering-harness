@@ -375,6 +375,21 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - PR-12: versão 1.3.0, CHANGELOG e perfil extraído;
   - a tag v1.3.0 é decisão do desenvolvedor, depois do merge.
 
+### 0.39 PR-11 homologado com ressalvas ([Handoff 040](./temp_implementation/handoffs/handoff-040-revisao-pr11-despacho-pr11b-pr12.md))
+
+- **PR-11:**
+  - validação honesta do `agy plugin validate`;
+  - autodiagnóstico pós-instalação (3 checagens);
+  - fonte única de aliases (`config/aliases.sh`);
+  - 4 testes no `run-install-verification.sh`;
+  - prova por mutação reproduzida (`|| true` dentro da substituição → Teste 4 reprova).
+- **Linha de base:** `d59c943`.
+- **Ressalvas (`OBSERVED`):**
+  - AN1: o uninstall apaga cegamente `N` caracteres antes do bloco (`export A=1` → `export A=` quando o usuário edita o prefixo);
+  - AN2: a regex de aliases órfãos, sem âncora, comenta linhas do usuário (`# alias ceh=…` + `export B=2` → `# export B=2`);
+  - AN3: o uninstall engole erros.
+- **Próximo:** PR-11b (uninstall seguro) e PR-12 (SemVer/CHANGELOG), cada um no seu commit certificado, e com isso a Onda 3 se encerra.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
