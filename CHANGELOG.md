@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fix variable placement in one-liner pipe CI step (`cat ... | CEH_REPO_URL=... bash`), verifying installed assets identity byte-by-byte (`cmp -s`) against the commit workspace (AQ1).
   - Explicit macOS CI test step validating fail-closed behavior, syntax, and user remediation guidance under native Apple Legacy Bash 3.2 (AQ2).
   - Pinned repository URL support in [`install.sh`](./install.sh) via `CEH_REPO_URL` (defaults to canonical GitHub repo), enabling network-isolated local integration testing.
+- **Onda 5 (PR-19b — Limpeza Semântica do Shellcheck e Shellcheck Bloqueante)**:
+  - Eliminated all 26 warnings across 9 repository shell scripts, establishing a zero-warning clean baseline.
+  - Shellcheck converted to a strict blocking gate in CI workflow without `continue-on-error` or suppressed pipelines.
+  - End-to-end integration test (`run-e2e-simulation.sh`) updated to test safety gates (`test_gate_check`) and actual stdin hook execution (`test_actual_hook`) with sandbox `Cwd`, checking both decision and exit code.
+  - Safe alias substitution in `rc_aliases.py` using lambda replacement (`pattern.sub(lambda _: block, content)`) and legacy header removal in `install.sh`.
+- **Onda 5 (PR-19c — Shellcheck Fixado por Versão e SHA-256 em Job Único)**:
+  - Shellcheck pinned strictly to official upstream binary release `v0.11.0` (Linux x86_64) with cryptographic SHA-256 checksum verification (`8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198`).
+  - Linter step scoped to execute exclusively in a single matrix job (`ubuntu-latest` / Python 3.12), removing `shellcheck` package dependencies from `apt` and `brew` to eliminate cross-platform linter drift and rolling-release regressions.
 
 ### Changed
 - **Bash 3.2 vs Bash 4+ Decision (Formal Architectural Decision)**:

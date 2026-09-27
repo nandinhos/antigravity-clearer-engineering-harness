@@ -22,8 +22,8 @@ A questão central levantada: *Por que a simulação local não capturou essas f
    - No entanto, a checagem estática global de `shellcheck` e `compileall` não fazia parte da pré-condição bloqueante do `test-runner.sh` local, permitindo que alterações com avisos de linter recebessem autorização de voo local.
 
 2. **Linter Drift Multiplataforma (Rolling Release vs Fixed Distribution)**:
-   - **Ubuntu Runner**: Instala o ShellCheck via `apt-get` (versão estável 0.8.0 / 0.9.0), onde a regra `SC2329` ainda não existe ou não é disparada em traps.
-   - **macOS Runner**: Instala o ShellCheck via `brew install shellcheck` (rolling release contínua, versão 0.11.0), introduzindo a nova regra `SC2329` que analisa o grafo de chamada e sinaliza funções invocadas exclusivamente por `trap ... EXIT` como código morto.
+   - **Ubuntu Runner**: Instalava o ShellCheck via `apt-get` na versão estável `0.9.0-1` (distribuição Ubuntu 24.04 Noble), onde a regra `SC2329` ainda não existia.
+   - **macOS Runner**: Instalava o ShellCheck via `brew install shellcheck` (rolling release contínua, versão `0.11.0`), introduzindo a nova regra `SC2329` que analisa o grafo de chamada e sinaliza funções invocadas exclusivamente por `trap ... EXIT` como código morto.
    - **Host Local do Desenvolvedor**: Roda na versão instalada no sistema operacional local, que frequentemente diverge da versão mais recente dos pacotes rolling release dos runners de nuvem.
 
 3. **Heterogeneidade de Sistemas Operacionais**:
@@ -33,9 +33,11 @@ A questão central levantada: *Por que a simulação local não capturou essas f
 
 ## 3. Mitigação em 3 Níveis (Defesa em Profundidade)
 
-### Nível 1: Blindagem de Código contra Linter Drift
-- Substituição de funções auxiliares de uma linha declaradas unicamente para cleanup de saída por comandos diretos inline no `trap` (ex: `trap 'rm -rf "$TMP_DIR"' EXIT`).
-- Elimina a assunção de visibilidade da função pelo analisador estático, tornando o código imune a regras de "uninvoked function" (`SC2329`) em qualquer versão do ShellCheck (0.8.x até 0.11.x+).
+### Nível 1: Versão Fixada de Linter com SHA-256 em Job Único (PR-19c)
+- A análise estática de shell é invariante em relação ao SO e à versão de Python da matriz. O ShellCheck passa a rodar estritamente em um único job (`ubuntu-latest / Python 3.12`), eliminando flutuações decorrentes de rolling release (`brew`).
+- O binário oficial é fixado na versão `v0.11.0` (Linux x86_64) e validado por hash criptográfico SHA-256 (`8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198`) antes da execução.
+- Atualizações de versão do ShellCheck tornam-se PRs explícitos e conscientes de engenharia, nunca quebras acidentais de upstream.
+- Adicionalmente, adota-se a boa prática de comandos inline em traps (`trap 'rm -rf "$TMP_DIR"' EXIT`) para simplificar o grafo de chamada.
 
 ### Nível 2: Paridade de Steps no Orquestrador Local
 - O runner local de testes e o hook de pré-push devem validar a cadeia completa de steps estáticos antes de rodar os testes funcionais:
