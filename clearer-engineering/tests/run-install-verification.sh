@@ -12,10 +12,7 @@ echo "    CEH Installation Verification: Idempotency, Symmetry & Honesty"
 echo "============================================================"
 
 TMP_BASE="$(mktemp -d "${TMPDIR:-/tmp}/ceh-verify-XXXXXX")"
-cleanup() {
-    rm -rf "$TMP_BASE"
-}
-trap cleanup EXIT
+trap 'rm -rf "$TMP_BASE"' EXIT
 
 TMP_HOME="$TMP_BASE/home"
 mkdir -p "$TMP_HOME"

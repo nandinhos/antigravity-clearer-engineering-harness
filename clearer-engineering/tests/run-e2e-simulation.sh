@@ -49,10 +49,7 @@ log_error() {
 
 # Cleanup sandbox on exit
 SANDBOX_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-e2e-sandbox-XXXXXX")
-cleanup() {
-    rm -rf "$SANDBOX_DIR"
-}
-trap cleanup EXIT
+trap 'rm -rf "$SANDBOX_DIR"' EXIT
 
 log_header "🛡️ CLEARER Engineering Harness — High-Level E2E Verification"
 echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"

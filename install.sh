@@ -124,6 +124,7 @@ setup_source_directory() {
     fi
 }
 
+# shellcheck disable=SC2317,SC2329 # Invocado indiretamente via trap cleanup EXIT
 cleanup() {
     if [[ -n "${INSTALL_TMP_DIR:-}" && -d "$INSTALL_TMP_DIR" ]]; then
         rm -rf "$INSTALL_TMP_DIR"
