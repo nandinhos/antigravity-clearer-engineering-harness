@@ -49,7 +49,10 @@ if [ ! -f "$CRITERIA_FILE" ]; then
 fi
 
 if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    if [ -n "$(git -C "$REPO_ROOT" status --porcelain --untracked-files=all)" ]; then
+    DIRTY_OUTPUT=$(git -C "$REPO_ROOT" status --porcelain --untracked-files=all)
+    if [ -n "$DIRTY_OUTPUT" ]; then
+        echo "=== [evals/run.sh] Unclean git status detected ===" >&2
+        echo "$DIRTY_OUTPUT" >&2
         log_fail "INFRA-FAIL: baseline Git não está limpa; execute evals/run.sh em um checkout limpo."
         exit 1
     fi

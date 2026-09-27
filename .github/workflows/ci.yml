@@ -98,8 +98,8 @@ jobs:
 
       - name: Make scripts executable
         run: |
-          chmod +x clearer-engineering/scripts/*
-          chmod +x clearer-engineering/tests/*
+          chmod +x clearer-engineering/scripts/*.sh
+          chmod +x clearer-engineering/tests/*.sh
           chmod +x evals/run.sh
           chmod +x install.sh
           chmod +x uninstall.sh
