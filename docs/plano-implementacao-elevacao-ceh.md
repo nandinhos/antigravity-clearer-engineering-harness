@@ -357,6 +357,24 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - AL2: o E11 não tem controle sem hook, e o "allow" explícito pode estar autoaprovando escritas no agy (como o F6 do Claude).
 - **Próximo:** PR-10b, depois a Onda 3 e a tag v1.3.0.
 
+### 0.38 **Onda 2 encerrada** ([Handoff 039](./temp_implementation/handoffs/handoff-039-encerramento-onda-2-despacho-onda-3.md))
+
+- **PR-10b homologado:**
+  - diretório `.ceh` protegido;
+  - E11 com controle (12 execuções brutas), que junto com o E10 no modo padrão mostra que o allow explícito é **neutro** no agy.
+- **Linha de base:** `dbeaad5`.
+- **Onda 2 fechada:**
+  - G7 (refspecs e deleção remota);
+  - hook fail-closed (PR-09);
+  - G9 (certificado protegido) e ADR 007.
+- **Ressalvas:**
+  - AM1: execução de sonda apagada sem registro;
+  - AM2: falsos positivos em `find -prune`/`--exclude=.ceh`/`du`/`diff` (backlog).
+- **Próximo:** Onda 3.
+  - PR-11: instalador honesto; hoje o `install.sh:199` engole a falha de validação e anuncia sucesso;
+  - PR-12: versão 1.3.0, CHANGELOG e perfil extraído;
+  - a tag v1.3.0 é decisão do desenvolvedor, depois do merge.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
