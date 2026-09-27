@@ -38,7 +38,11 @@ O PR-19a resolve em definitivo todos os apontamentos do [Handoff 043](../handoff
    - **Correção**: Restringido o `chmod +x` estritamente a scripts shell (`*.sh`), preservando as permissões originais dos arquivos Python versionados.
    - Adicionada exibição diagnóstica de arquivos modificados/untracked em `evals/run.sh`.
 
-5. **AQ3 (Processo de Certificação no Servidor Remoto)**:
+5. **Compatibilidade E2E sob `set -e` (`run-e2e-simulation.sh`)**:
+   - **Causa Raiz**: O Step 21 (`run-e2e-simulation.sh`) falhava com exit code 2 no step 2.1 porque o subshell de atribuição em bash com `set -e` abortava imediatamente quando `safety-gate.py` retornava exit code 2 (código de saída normativo para a decisão `deny`). Além disso, o teste chamava o gate com stdin payload genérico sem `Cwd`, ativando o isolamento de contexto para `production` (Invariante 7).
+   - **Correção**: Ajustada a função `test_safety_hook` em `run-e2e-simulation.sh` para invocar a verificação canônica via `--check "$cmd" --env "$env_var" || true`, capturando determininisticamente decisões (`allow`, `ask`, `deny`), razões e alertas de confirmação em todos os 3 tiers sem abortar o interpretador.
+
+6. **AQ3 (Processo de Certificação no Servidor Remoto — 100% GREEN nos 4 Jobs)**:
    - Em cumprimento à regra inegociável do Handoff 043, a entrega técnica deste PR só é declarada após o término comprovado da execução do CI no GitHub Actions com status **success** nos 4 jobs da matriz (`ubuntu-latest` / `macos-latest` × Python 3.9 / 3.12).
 
 ---
@@ -47,10 +51,37 @@ O PR-19a resolve em definitivo todos os apontamentos do [Handoff 043](../handoff
 
 | Verificação | Comando | Resultado Observado | Status |
 |---|---|---|---|
-| **Doc Audit** | `bash clearer-engineering/scripts/doc-audit.sh` | 7/7 checagens aprovadas | **PASS** |
+| **Suíte Canônica Oficial** | `bash clearer-engineering/tests/run-all-tests.sh` | 58/58 testes herméticos aprovados (100%) | **PASS** |
+| **Full E2E Simulation** | `bash clearer-engineering/tests/run-e2e-simulation.sh` | 26/26 checagens verificadas, 0 falhas | **PASS** |
+| **Doc Audit** | `bash clearer-engineering/scripts/doc-audit.sh` | 7/7 checagens estruturais aprovadas | **PASS** |
 | **Install Verification** | `bash clearer-engineering/tests/run-install-verification.sh` | 5/5 testes (100%) aprovados | **PASS** |
 | **Cluster 1 Acceptance** | `python3 clearer-engineering/tests/cluster1_acceptance.py` | 38/38 cenários aprovados | **PASS** |
 | **Cluster 2 Acceptance** | `python3 clearer-engineering/tests/cluster2_acceptance.py` | 3/3 testes aprovados em 4.4s | **PASS** |
 | **Differential Fuzz** | `python3 -m unittest clearer-engineering/tests/test_gate_differential_fuzz.py` | 12.027 casos avaliados em 4.39s, 0 relaxamentos | **PASS** |
 | **Environment Differential** | `python3 -m unittest clearer-engineering/tests/test_environment_differential.py` | 0 divergências entre ambientes | **PASS** |
 | **Smoke Evals** | `bash evals/run.sh` | 5/5 critérios aprovados em 1s | **PASS** |
+
+---
+
+## 3. Certificação Remota no GitHub Actions (`OBSERVED`)
+
+- **Execução Oficial**: [GitHub Actions Run 36329793650](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36329793650)
+- **Commit**: [`1bb0bf6`](https://github.com/nandinhos/antigravity-clearer-engineering-harness/commit/1bb0bf69722dca98dac9324efcd61eb895e3ca09)
+- **Veredito Geral**: **SUCCESS (4/4 Jobs Verdes, 24/24 Steps em cada Job)**
+
+### Matriz de Execução Multiplataforma
+
+| Job | OS Runner | Python | Steps Concluídos | Conclusão | URL do Job |
+|---|---|---|---|---|---|
+| **Validate (ubuntu-latest - Python 3.9)** | `ubuntu-latest` | `3.9` | 24/24 | **`success`** | [Job 108649419098](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36329793650/job/108649419098) |
+| **Validate (ubuntu-latest - Python 3.12)** | `ubuntu-latest` | `3.12` | 24/24 | **`success`** | [Job 108649419114](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36329793650/job/108649419114) |
+| **Validate (macos-latest - Python 3.9)** | `macos-latest` | `3.9` | 24/24 | **`success`** | [Job 108649419047](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36329793650/job/108649419047) |
+| **Validate (macos-latest - Python 3.12)** | `macos-latest` | `3.12` | 24/24 | **`success`** | [Job 108649419060](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36329793650/job/108649419060) |
+
+### Resumo de Evidências Chave no Servidor
+1. **AQ1 (One-Liner Pipe `file://`)**: Aprovado nos 4 jobs com `cmp -s` idêntico ao workspace do commit.
+2. **AQ2 (Apple Legacy Bash 3.2)**: Aprovado nos 2 jobs de macOS com versão nativa 3.2.57 e mensagem `"Bash 4.0+ is required"`.
+3. **Suíte Canônica Hermética (58 testes)**: 100% PASS em Ubuntu e macOS (Python 3.9 e 3.12).
+4. **Shellcheck Summary**: 26 avisos informacionais no baseline, relatório carregado como artefato do workflow.
+5. **E2E Simulation Lifecycle**: 26/26 verificações aprovadas nos 4 ambientes.
+
