@@ -418,3 +418,13 @@ development|deny|H038-AL1-controle|cat /tmp/fake.json > .ceh/last-ci-run.json
 production|allow|H038-controle|cat .ceh/last-ci-run.json
 production|allow|H038-controle|ls .ceh
 production|allow|H038-controle|jq .status .ceh/last-ci-run.json
+
+# H046 — lacunas de detecção encontradas pela sonda da revisão sobre o fuzz do PR-18 (composição íntegra; regra ausente)
+production|deny|PENDENTE:H046-AT3|git stash clear
+production|deny|PENDENTE:H046-AT3|docker volume rm data
+production|deny|PENDENTE:H046-AT3|redis-cli flushall
+production|deny|PENDENTE:H046-AT3|dd if=/dev/zero of=app.db
+production|deny|H046-AT3-ja-coberto|git stash drop --all ; git reset --hard
+production|allow|H046-AT3-controle|git stash list
+production|allow|H046-AT3-controle|docker volume ls
+production|allow|H046-AT3-controle|redis-cli ping

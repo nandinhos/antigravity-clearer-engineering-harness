@@ -463,6 +463,19 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - PR-19c: shellcheck com versão e hash fixados, num job;
   - PR-18: esquema de frontmatter, catálogo de ferramentas com evidência, links e fuzz do lexer com semente 1337.
 
+### 0.45 PR-19c homologado; PR-18 não homologado ([Handoff 046](./temp_implementation/handoffs/handoff-046-revisao-pr19c-pr18-despacho-pr18b.md))
+
+- **PR-19c:**
+  - shellcheck v0.11.0 com SHA-256, num único job;
+  - controle negativo em `claude/negctl-19c` (vermelho) e HEAD verde.
+- **PR-18:**
+  - **aceitos:** esquema de frontmatter (stdlib), skills citadas e links (24 corrigidos);
+  - **AT1:** 14 ferramentas do catálogo citam um `inventory.json` escrito pelo agente dentro de `evidence/host-probe/`, e o teste só confere se o arquivo existe;
+  - **AT2:** o fuzz não detecta a mutação do `||`, nem somada à varredura de sufixos desligada, porque as regras usam `re.search` em qualquer ponto. Ele prova o gate, não o lexer.
+- **AT3:** `git stash clear`, `docker volume rm`, `redis-cli flushall` e `dd of=` saem allow em produção. Registrados como `PENDENTE:H046-AT3` na bateria.
+- **Linha de base:** `dc97ccb`.
+- **Próximo:** PR-18b (proveniência verificável pelo conteúdo, E12, propriedade de ida e volta do lexer), depois o PR de cobertura de regras (AT3 + AM2).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
