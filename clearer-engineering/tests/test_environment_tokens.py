@@ -272,9 +272,36 @@ class TestEnvironmentTokens(unittest.TestCase):
             dec, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
             self.assertEqual(dec, exp_dec, f"Controle falhou: {cmd} deveria ser {exp_dec}, mas foi {dec} ({reason})")
 
+    def test_handoff_034_ai1_and_ai2_context_modification(self):
+        """Handoff 034 AI1 e AI2: troca de branch e arquivo de ambiente como mudança de contexto."""
+        repo_dev = self._init_repo("repo_ai_dev", branch="dev")
+
+        cases_destructive = [
+            ("git switch main && git reset --hard", "deny", "production"),
+            ("git checkout main && git reset --hard", "deny", "production"),
+            ("source .env.production && php artisan migrate:fresh", "deny", "production"),
+            (". ./prod.env && php artisan migrate:fresh", "deny", "production"),
+            ("cp .env.production .env && php artisan migrate:fresh", "deny", "production"),
+            ("echo APP_ENV=production > .env && php artisan db:wipe", "deny", "production"),
+        ]
+        for cmd, exp_dec, exp_env in cases_destructive:
+            dec, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+            self.assertEqual(dec, exp_dec, f"AI1/AI2 falhou: {cmd} deveria ser {exp_dec}, mas foi {dec} ({reason})")
+            self.assertEqual(eval_env, exp_env, f"AI1/AI2 falhou: {cmd} deveria ser {exp_env}, mas foi {eval_env}")
+
+        # Controles
+        cases_safe = [
+            ("git checkout -b hotfix && git reset --hard", "allow"),
+            ("git checkout app/Model.php && git reset --hard", "allow"),
+            ("(git checkout main) && git reset --hard", "allow"),
+        ]
+        for cmd, exp_dec in cases_safe:
+            dec, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+            self.assertEqual(dec, exp_dec, f"Controle AI1 falhou: {cmd} deveria ser {exp_dec}, mas foi {dec} ({reason})")
+
     def test_context_equivalence_invariant(self):
         """
-        Handoff 033 §3.2 Invariante de equivalência de contexto:
+        Handoff 033 / 034 Invariante de equivalência de contexto estendida:
         Para cada comando destrutivo C e forma F, severidade F(<main>, C) >= severidade(cd <main> && C).
         """
         repo_dev = self._init_repo("repo_eq_dev", branch="dev")
@@ -295,6 +322,10 @@ class TestEnvironmentTokens(unittest.TestCase):
             ("sudo_chdir", lambda d, c: f"sudo --chdir={d} {c}"),
             ("git_dir_env", lambda d, c: f"GIT_DIR={d}/.git GIT_WORK_TREE={d} {c}"),
             ("export_git_dir", lambda d, c: f"export GIT_DIR={d}/.git && {c}"),
+            ("git_switch_main", lambda d, c: f"git switch main && {c}"),
+            ("git_checkout_main", lambda d, c: f"git checkout main && {c}"),
+            ("source_env_prod", lambda d, c: f"source .env.production && {c}"),
+            ("cp_env_prod", lambda d, c: f"cp .env.production .env && {c}"),
         ]
 
         dec_sev = {"allow": 0, "ask": 1, "deny": 2}

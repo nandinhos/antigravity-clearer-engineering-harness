@@ -520,15 +520,13 @@ def evaluate_command(
         try: sub_tokens = shlex.split(sub, posix=True, comments=True)
         except Exception: sub_tokens = sub.split()
 
-        eff_cwd, tgt_repo, is_unres, is_persist, clean_toks = resolve_target_context(
+        eff_cwd, tgt_repo, is_unres, is_persist, ctx_env, clean_toks = resolve_target_context(
             sub_tokens, current_cwd, persistent_repo
         )
         if not clean_toks: continue
 
         if is_unres:
             unresolved_cd = True
-            current_env, current_env_ev = "production", "Incerteza: destino não resolvível (Invariante 7)"
-
         if is_persist:
             if eff_cwd and eff_cwd.is_dir(): current_cwd = eff_cwd
             if tgt_repo: persistent_repo = tgt_repo
@@ -569,6 +567,9 @@ def evaluate_command(
                 scan_suffixes=scan_suffixes,
             )
         )
+
+        if ctx_env and ENV_SEVERITY.get(ctx_env, 0) > ENV_SEVERITY.get(current_env, 0):
+            current_env, current_env_ev = ctx_env, f"Context modification: {ctx_env} detected in pipeline"
 
     # Precedência estrita: CATASTROPHIC > DENY > ASK > ALLOW
     for e in evaluations:
