@@ -335,6 +335,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **AJ2:** apagar a `main` remota (`:main`, `--delete`) passa em produção (preexistente).
 - **Próximo:** PR-08b + PR-09 (payload vazio ou sem comando → deny/exit 2; despacho por nome de ferramenta).
 
+### 0.36 PR-08b e PR-09 homologados ([Handoff 037](./temp_implementation/handoffs/handoff-037-revisao-pr08b-pr09-despacho-pr10.md))
+
+- **PR-08b:** teste de push na suíte oficial; checagem de teste órfão no `doc-audit` (mutação reproduzida); deleção remota graduada.
+- **PR-09:** payload vazio, sem ferramenta, sem comando ou com ferramenta desconhecida = deny/exit 2. Linha de base em `2f898d7`.
+- **Ressalvas de processo:**
+  - AK1: commit intermediário `af9c357` vermelho; a regra passa a ser um push por commit certificado;
+  - AK2: relaxamento de staging (`--delete`) não nomeado;
+  - AK3: fixtures `HOOK:agy` com formato sintético.
+- **Próximo:** PR-10 (G9). Hoje, qualquer comando forja `.ceh/last-ci-run.json`. O PR bloqueia a escrita, exceto leituras, e acrescenta as ferramentas de escrita com payload real (E11) e o ADR 007.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
