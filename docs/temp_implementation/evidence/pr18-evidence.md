@@ -87,3 +87,18 @@ Execução da suíte canônica completa em ambiente local limpo:
 - **Testes Aprovados:** 58 (100%)
 - **Testes Reprovados:** 0
 - **Auditoria Documental (`doc-audit.py`):** 7/7 checagens aprovadas.
+
+---
+
+## 5. Resultado Comprovado no Servidor (`OBSERVED`) — 4/4 Jobs Verdes (100%)
+
+No commit oficial [`702b972`](https://github.com/nandinhos/antigravity-clearer-engineering-harness/commit/702b972e0576bca4a427275662b2a2ea7f0bc8cf), a esteira do GitHub Actions concluiu com **100% de sucesso em todos os 4 jobs da matriz**:
+
+- **Workflow Run:** [Run 36350731370](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36350731370)
+- **Status:** `completed`, **Conclusion:** `success`
+- **Jobs Validados:**
+  1. `Validate (ubuntu-latest - Python 3.12)`: **success** (21/21 steps)
+  2. `Validate (ubuntu-latest - Python 3.9)`: **success** (21/21 steps)
+  3. `Validate (macos-latest - Python 3.12)`: **success** (21/21 steps)
+  4. `Validate (macos-latest - Python 3.9)`: **success** (21/21 steps)
+- **Hermeticidade Comprovada:** O parser fallback stdlib permitiu a execução da validação de esquema de conteúdo e do fuzzing do lexer com zero dependências externas em todos os ambientes e versões de runtime.
