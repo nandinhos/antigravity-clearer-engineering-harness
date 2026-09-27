@@ -22,8 +22,6 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 safety_gate = import_module("safety-gate")
 evaluate_command = safety_gate.evaluate_command
 
-from test_pre_push_refspecs import TestPrePushRefspecs
-
 
 def b64(s: str) -> str:
     return base64.b64decode(s).decode("utf-8")

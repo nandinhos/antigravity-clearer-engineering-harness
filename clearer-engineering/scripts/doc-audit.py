@@ -94,6 +94,18 @@ def main():
                 f"esperado '{expected_count_claim}'."
             )
 
+        # Checagem de testes órfãos (Handoff 036 / AJ1)
+        tests_dir = repo_root / "clearer-engineering/tests"
+        test_files = sorted(
+            [f.name for f in tests_dir.glob("test_*.py")] +
+            [f.name for f in tests_dir.glob("cluster*_acceptance.py")]
+        )
+        orphan_tests = [tf for tf in test_files if tf not in suite_text]
+        if orphan_tests:
+            errors.append(
+                f"Testes órfãos detectados: {orphan_tests} não estão citados em run-all-tests.sh."
+            )
+
         achados = {}
         for line in tabela_match.group(2).strip().splitlines():
             cols = [c.strip() for c in line.strip().strip("|").split("|")]

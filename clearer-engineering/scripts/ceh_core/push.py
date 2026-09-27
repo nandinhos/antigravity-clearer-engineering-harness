@@ -254,3 +254,20 @@ def check_pre_push_ci_gate(
         return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado de CI ilegível ({str(e)})."
 
     return "allow", "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual."
+
+
+def is_remote_deletion(push_args: list[str]) -> tuple[bool, str | None]:
+    """
+    Verifica se a invocação de git push é uma deleção remota (:dst, +:dst, --delete dst, -d dst).
+    Retorna (is_deletion, description).
+    """
+    remote, refspecs, flags = parse_git_push_tokens(push_args)
+    if flags.get("delete"):
+        target_branch = refspecs[0] if refspecs else (remote if remote and remote != "origin" else "branch")
+        return True, f"Deleting remote Git branch via delete flag ({target_branch})"
+    for ref in refspecs:
+        clean = ref.lstrip("+")
+        if clean.startswith(":") and len(clean) > 1:
+            dst = clean[1:]
+            return True, f"Deleting remote Git branch via refspec '{ref}' ({dst})"
+    return False, None

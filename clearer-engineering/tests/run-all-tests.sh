@@ -237,6 +237,10 @@ run_test "Environment Tokens: Detecção por token explícito e invariante de n�
 run_test "Environment Differential: Rede diferencial da detecção sem explicit_env (PR-07b)" \
     "python3 '$PLUGIN_DIR/tests/test_environment_differential.py' >/dev/null 2>&1"
 
+# 23. PR-08 Pre-Push CI Refspecs Validation (G7)
+run_test "Pre-Push Refspecs: Validação de refspecs contra o certificado da CI (PR-08 / G7)" \
+    "python3 '$PLUGIN_DIR/tests/test_pre_push_refspecs.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"

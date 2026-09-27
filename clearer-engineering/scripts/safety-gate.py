@@ -43,7 +43,7 @@ from ceh_core.environment import (
     resolve_target_context,
 )
 from ceh_core.rm import evaluate_rm_command
-from ceh_core.push import check_pre_push_ci_gate
+from ceh_core.push import check_pre_push_ci_gate, is_remote_deletion
 from ceh_core.git import evaluate_git_subcommand
 from ceh_core.find import evaluate_find_command
 from ceh_core.interpreters import evaluate_interpreter_command
@@ -401,6 +401,12 @@ def evaluate_subcommand(
             if is_git_push and env == "development":
                 break
             return finalize(build_destructive_decision(env, env_evidence, desc, use_case_code, use_case_label))
+
+    # AJ2: Deleção remota de branch no push graduada como GIT_HISTORY (DEV allow, HML ask, PROD deny)
+    if is_git_push and env in ("production", "staging"):
+        is_del, del_desc = is_remote_deletion(git_args)
+        if is_del:
+            return finalize(build_destructive_decision(env, env_evidence, del_desc, "GIT_HISTORY", "Controle de Versão (Git)"))
 
     # 5. Pre-Push CI Clearance Gate (todo git push, inclusive force push)
     if is_git_push:

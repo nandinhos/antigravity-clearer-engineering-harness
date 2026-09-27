@@ -113,14 +113,29 @@ class TestPrePushRefspecs(unittest.TestCase):
             self.assertIn("não permitida em repositório com CI", reason)
 
     def test_remote_deletion_refspec_and_flag(self):
-        """Deleção remota (:feature ou --delete) não envia commit e segue a regra existente (allow em dev)."""
-        for cmd in (
-            "git push origin :feature",
-            "git push origin --delete feature",
-            "git push -d origin feature",
-        ):
-            dec, reason, env, uc = evaluate_command(cmd, explicit_env="development")
-            self.assertEqual(dec, "allow", f"Deleção '{cmd}' deveria ser allow em dev, obtido '{dec}' ({reason})")
+        """Deleção remota (:dst, +:dst, --delete dst, -d dst) graduada como GIT_HISTORY (DEV allow, HML ask, PROD deny)."""
+        cmds = (
+            "git push origin :main",
+            "git push origin +:main",
+            "git push origin --delete main",
+            "git push origin -d main",
+            "git push -d origin main",
+            "git push origin --del main",
+        )
+        for cmd in cmds:
+            # Em development: allow
+            dec_dev, _, _, uc_dev = evaluate_command(cmd, explicit_env="development")
+            self.assertEqual(dec_dev, "allow", f"Deleção '{cmd}' deveria ser allow em dev, obtido '{dec_dev}'")
+
+            # Em staging: ask (com use_case GIT_HISTORY)
+            dec_sta, _, _, uc_sta = evaluate_command(cmd, explicit_env="staging")
+            self.assertEqual(dec_sta, "ask", f"Deleção '{cmd}' deveria ser ask em staging, obtido '{dec_sta}'")
+            self.assertEqual(uc_sta, "GIT_HISTORY")
+
+            # Em production: deny (com use_case GIT_HISTORY)
+            dec_prod, _, _, uc_prod = evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(dec_prod, "deny", f"Deleção '{cmd}' deveria ser deny em production, obtido '{dec_prod}'")
+            self.assertEqual(uc_prod, "GIT_HISTORY")
 
     def test_abbreviated_force_flag_matches_force(self):
         """--forc tem o mesmo comportamento de --force (allow se commit certificado, deny se não)."""
