@@ -48,3 +48,20 @@ Em conformidade com a ressalva AS2 do Handoff 045, o controle negativo do ShellC
 - **Resultado do Step 10 (`Run Shellcheck`):** `failure` (exit code 1 devido a injeção deliberada de SC2086 em `task-monitor.sh:97`)
 - **Impacto a Jusante:** Todos os steps subsequentes (11 a 21, incluindo o upload do relatório e a suíte canônica) foram sumariamente bloqueados (`skipped`).
 - **Jobs de macOS e Python 3.9:** O step do ShellCheck foi pulado (`skipped`) como esperado pelo filtro de matriz.
+
+---
+
+## 4. Resultado Comprovado no Servidor (`OBSERVED`) — 100% Verde
+
+No commit oficial [`3d1812b`](https://github.com/nandinhos/antigravity-clearer-engineering-harness/commit/3d1812b838286bd90a19404ceeb46464a2da5329), a esteira do GitHub Actions concluiu com **100% de sucesso em todos os 4 jobs da matriz**:
+
+- **Workflow Run:** [Run 36344441316](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36344441316)
+- **Status:** `completed`, **Conclusion:** `success` (21/21 steps por job)
+
+| Job | Plataforma | Python | ShellCheck v0.11 (SHA-256) | E2E & Suíte Canônica | Veredito |
+|---|---|---|---|---|---|
+| [Job 108690703022](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36344441316/job/108690703022) | `ubuntu-latest` | 3.9 | `skipped` (job único) | `success` | **`success`** 🟢 |
+| [Job 108690703011](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36344441316/job/108690703011) | `ubuntu-latest` | 3.12 | `success` (0 avisos) | `success` | **`success`** 🟢 |
+| [Job 108690703031](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36344441316/job/108690703031) | `macos-latest` | 3.9 | `skipped` (job único) | `success` | **`success`** 🟢 |
+| [Job 108690702902](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36344441316/job/108690702902) | `macos-latest` | 3.12 | `skipped` (job único) | `success` | **`success`** 🟢 |
+
