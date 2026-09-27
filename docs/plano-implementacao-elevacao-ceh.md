@@ -403,6 +403,24 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Linha de base:** `0e14a09`.
 - **Próximo:** PR-12b, com testes do pipe sem rede (`git` falso) e o helper único de órfãos. Com ele, a Onda 3 se encerra.
 
+### 0.41 **Onda 3 encerrada** ([Handoff 042](./temp_implementation/handoffs/handoff-042-encerramento-onda-3-release-despacho-pr19.md))
+
+- **PR-12b homologado:**
+  - o one-liner `curl | bash` instala, com e sem `CEH_VERSION` (sem rede, com `git` falso);
+  - a versão fixada nunca é ignorada em silêncio;
+  - o clone que falha dá exit ≠ 0;
+  - há um helper único de aliases, sem heurística;
+  - mutações AO1, AO2 e AO3 reproduzidas.
+- **Linha de base:** `88ac217`.
+- **Onda 3 fechada:** PR-11, PR-11b, PR-12 e PR-12b. O conteúdo da v1.3.0 está completo.
+- **Achado de processo:** o `ci.yml` só dispara em `main`/`staging`/`dev`. O CI do servidor nunca rodou na branch de trabalho, e toda a certificação até aqui foi local.
+- **Release (desenvolvedor):**
+  - PR para `main` → CI verde → branch protection com status check → merge;
+  - tag `v1.3.0` no commit de merge;
+  - teste real do one-liner fixado.
+- **Próximo:** PR-19 (CI em `claude/**`, matriz ubuntu/macOS × Python 3.9/3.12, decisão sobre o bash 3.2, passo do one-liner no CI e shellcheck informativo).
+- **Backlog:** AP1 (cabeçalho legado no install), AP2 (`re.sub` com string de substituição) e AP3 (linha vaga no CHANGELOG).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
