@@ -22,6 +22,8 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 safety_gate = import_module("safety-gate")
 evaluate_command = safety_gate.evaluate_command
 
+from test_pre_push_refspecs import TestPrePushRefspecs
+
 
 def b64(s: str) -> str:
     return base64.b64decode(s).decode("utf-8")
@@ -161,7 +163,6 @@ class Cluster4Acceptance(unittest.TestCase):
     # --------------------------------------------------------------------------
     # G7: Pre-Push CI Refspec Source & Destination Audit (Handoff 011)
     # --------------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_g7_pre_push_ci_refspec_untested_commit_red(self):
         """G7 RED: git push origin outro:main with uncertified commit on 'outro' must be denied (today: allow)"""
         tmp_dir = tempfile.mkdtemp()

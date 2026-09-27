@@ -43,6 +43,7 @@ from ceh_core.environment import (
     resolve_target_context,
 )
 from ceh_core.rm import evaluate_rm_command
+from ceh_core.push import check_pre_push_ci_gate
 from ceh_core.git import evaluate_git_subcommand
 from ceh_core.find import evaluate_find_command
 from ceh_core.interpreters import evaluate_interpreter_command
@@ -166,58 +167,6 @@ def build_destructive_decision(
     )
     return "allow", reason, env, use_case_code
 
-
-def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[str, str] | None:
-    """
-    Zero-Tolerance Pipeline Red Pre-Push Gate:
-    If repository has CI workflows (.github/workflows), enforces that the current HEAD
-    commit has a successful canonical test certificate in .ceh/last-ci-run.json.
-    Applies to every push, force included: force is restricted further by GIT_HISTORY rules.
-    """
-    base_dir = target_dir or Path.cwd()
-    repo_root = find_repo_root(base_dir)
-    if not repo_root:
-        return None
-
-    # Check if repo has CI workflows
-    ci_workflows_dir = repo_root / ".github" / "workflows"
-    has_github_ci = ci_workflows_dir.is_dir() and any(
-        list(ci_workflows_dir.glob("*.yml")) + list(ci_workflows_dir.glob("*.yaml"))
-    )
-    has_gitlab_ci = (repo_root / ".gitlab-ci.yml").is_file()
-
-    if not (has_github_ci or has_gitlab_ci):
-        return None  # No CI pipeline defined; allow standard git push
-
-    # Repo has CI pipeline. Verify last-ci-run.json
-    cert_file = repo_root / ".ceh" / "last-ci-run.json"
-    if not cert_file.is_file():
-        return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: NENHUMA execução prévia comprovada em '.github/workflows'."
-
-    try:
-        data = json.loads(cert_file.read_text(encoding="utf-8"))
-        exit_code, status, cert_commit = data.get("exit_code"), data.get("status", "FAIL"), data.get("commit_hash", "")
-        cmd_executed = str(data.get("command", "")).strip()
-
-        if not cert_commit or cert_commit == "untracked":
-            return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado inválido (commit_hash ausente ou não rastreado)."
-
-        if exit_code != 0 or status != "PASS":
-            return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: suíte FALHOU (Exit Code: {exit_code}, Status: {status}). Comando: {cmd_executed}"
-
-        if data.get("canonical_verified") is not True:
-            return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: O certificado não comprova execução da suíte canônica. Comando: '{cmd_executed}'"
-
-        head_res = subprocess.run(["git", "-C", str(repo_root), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=3)
-        if head_res.returncode == 0:
-            current_head = head_res.stdout.strip()
-            if cert_commit != current_head:
-                return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado por desatualização de testes: HEAD ({current_head[:7]}) != Cert ({cert_commit[:7]})."
-
-    except Exception as e:
-        return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado de CI ilegível ({str(e)})."
-
-    return "allow", "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual."
 
 def max_severity_decision(
     d1: tuple[str, str, str, str],
@@ -455,7 +404,7 @@ def evaluate_subcommand(
 
     # 5. Pre-Push CI Clearance Gate (todo git push, inclusive force push)
     if is_git_push:
-        ci_gate_result = check_pre_push_ci_gate(sub_eval, target_dir=target_repo)
+        ci_gate_result = check_pre_push_ci_gate(sub_eval, target_dir=target_repo, git_args=git_args)
         if ci_gate_result is not None:
             ci_decision, ci_reason = ci_gate_result
             return finalize((ci_decision, ci_reason, env, "PRE_PUSH_CI"))
