@@ -162,13 +162,36 @@ with open('$TMP_HOME_AN1/.bashrc', 'w', encoding='utf-8') as f:
 
 HOME="$TMP_HOME_AN1" bash "$REPO_ROOT/uninstall.sh" >/dev/null
 
-AN1_RESULT=$(cat "$TMP_HOME_AN1/.bashrc")
-if [[ "$AN1_RESULT" != "export A=1" ]]; then
-    echo "ERRO AN1: uninstall.sh corrompeu configuração do usuário quando prefixo foi editado!"
-    echo "Esperado: 'export A=1' | Obtido: '$AN1_RESULT'"
+printf "export A=1" > "$TMP_HOME_AN1/.bashrc.expected"
+if ! cmp -s "$TMP_HOME_AN1/.bashrc" "$TMP_HOME_AN1/.bashrc.expected"; then
+    echo "ERRO AN1: uninstall.sh corrompeu configuração do usuário quando prefixo foi editado (divergência byte a byte)!"
+    echo "Esperado: 'export A=1' | Obtido:"
+    cat "$TMP_HOME_AN1/.bashrc"
     exit 1
 fi
-echo "  • [PASS] AN1: Caracteres do usuário preservados após edição do prefixo."
+echo "  • [PASS] AN1: Caracteres do usuário preservados após edição do prefixo (validação byte a byte cmp)."
+
+# Sub-teste AO1: Aliases customizados do usuário terminando em .sh sobrevivem intactos byte a byte
+TMP_HOME_AO1="$TMP_BASE/home_ao1"
+mkdir -p "$TMP_HOME_AO1"
+cat << 'EOF' > "$TMP_HOME_AO1/.bashrc"
+export FOO=bar
+alias ceh-help='bash ~/bin/help.sh'
+alias ceh-monitor='bash ~/tools/monitor.sh'
+export BAZ=qux
+EOF
+cp "$TMP_HOME_AO1/.bashrc" "$TMP_HOME_AO1/.bashrc.expected"
+touch "$TMP_HOME_AO1/.zshrc"
+
+HOME="$TMP_HOME_AO1" bash "$REPO_ROOT/install.sh" >/dev/null
+HOME="$TMP_HOME_AO1" bash "$REPO_ROOT/uninstall.sh" >/dev/null
+
+if ! cmp -s "$TMP_HOME_AO1/.bashrc" "$TMP_HOME_AO1/.bashrc.expected"; then
+    echo "ERRO AO1: install/uninstall removeu ou modificou aliases do usuário terminando em .sh!"
+    diff -u "$TMP_HOME_AO1/.bashrc.expected" "$TMP_HOME_AO1/.bashrc" || true
+    exit 1
+fi
+echo "  • [PASS] AO1: Aliases customizados com final .sh preservados byte a byte (install e uninstall)."
 
 # Sub-teste AN2: Comentários e aliases customizados do usuário preservados
 TMP_HOME_AN2="$TMP_BASE/home_an2"
@@ -354,6 +377,118 @@ fi
 
 echo "✔ Teste 4 PASS: Validação honesta verificada (exit 42 na falha e exit 0 com --skip-diagnostics)."
 
+# ------------------------------------------------------------------------------
+# Teste 5: One-Liner (Pipe) e Versão Fixada Sem Rede (AO2 / AO3)
+# ------------------------------------------------------------------------------
+echo "[5/5] Teste 5: One-Liner (Pipe) e Versão Fixada Sem Rede (AO2 / AO3)..."
+
+MOCK_GIT_DIR="$TMP_BASE/mock_git"
+mkdir -p "$MOCK_GIT_DIR"
+MOCK_GIT_LOG="$TMP_BASE/mock_git.log"
+touch "$MOCK_GIT_LOG"
+
+cat << EOF > "$MOCK_GIT_DIR/git"
+#!/usr/bin/env bash
+if [[ "\$1" == "clone" ]]; then
+    echo "\$*" >> "$MOCK_GIT_LOG"
+    target_dir=""
+    for arg in "\$@"; do
+        if [[ "\$arg" != -* && "\$arg" != "clone" && "\$arg" != http* ]]; then
+            target_dir="\$arg"
+        fi
+    done
+    mkdir -p "\$target_dir"
+    cp -r "$REPO_ROOT/." "\$target_dir/"
+    exit 0
+else
+    exec /usr/bin/git "\$@"
+fi
+EOF
+chmod +x "$MOCK_GIT_DIR/git"
+
+OUTSIDE_DIR="$TMP_BASE/outside_workspace"
+mkdir -p "$OUTSIDE_DIR"
+
+# 5.1 Pipe simples a partir de fora do repositório
+TMP_HOME_PIPE="$TMP_BASE/home_pipe"
+mkdir -p "$TMP_HOME_PIPE"
+> "$MOCK_GIT_LOG"
+
+pipe_exit=0
+(cd "$OUTSIDE_DIR" && cat "$REPO_ROOT/install.sh" | HOME="$TMP_HOME_PIPE" PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1) || pipe_exit=$?
+
+if [[ "$pipe_exit" -ne 0 ]]; then
+    echo "ERRO AO2: 'cat install.sh | bash' falhou com exit code $pipe_exit"
+    exit 1
+fi
+if [[ ! -f "$TMP_HOME_PIPE/.gemini/config/plugins/clearer-engineering/plugin.json" ]]; then
+    echo "ERRO AO2: plugin.json não foi instalado via pipe!"
+    exit 1
+fi
+if grep -q -- "--branch" "$MOCK_GIT_LOG"; then
+    echo "ERRO: git clone via pipe simples não deveria ter passado --branch!"
+    exit 1
+fi
+echo "  • [PASS] Pipe simples: executou com sucesso (exit 0) e sem --branch."
+
+# 5.2 Pipe com CEH_VERSION=1.3.0
+TMP_HOME_PIPE_V1="$TMP_BASE/home_pipe_v1"
+mkdir -p "$TMP_HOME_PIPE_V1"
+> "$MOCK_GIT_LOG"
+
+pipe_v1_exit=0
+(cd "$OUTSIDE_DIR" && cat "$REPO_ROOT/install.sh" | HOME="$TMP_HOME_PIPE_V1" CEH_VERSION=1.3.0 PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1) || pipe_v1_exit=$?
+
+if [[ "$pipe_v1_exit" -ne 0 ]]; then
+    echo "ERRO AO2: 'cat install.sh | CEH_VERSION=1.3.0 bash' falhou com exit $pipe_v1_exit"
+    exit 1
+fi
+if ! grep -q -- "--branch v1.3.0" "$MOCK_GIT_LOG"; then
+    echo "ERRO AO3: git clone não recebeu '--branch v1.3.0'! Log: $(cat "$MOCK_GIT_LOG")"
+    exit 1
+fi
+echo "  • [PASS] Pipe fixado (CEH_VERSION=1.3.0): git clone recebeu '--branch v1.3.0'."
+
+# 5.3 Pipe com CEH_VERSION=v1.3.0 (já com prefixo v)
+TMP_HOME_PIPE_V2="$TMP_BASE/home_pipe_v2"
+mkdir -p "$TMP_HOME_PIPE_V2"
+> "$MOCK_GIT_LOG"
+
+(cd "$OUTSIDE_DIR" && cat "$REPO_ROOT/install.sh" | HOME="$TMP_HOME_PIPE_V2" CEH_VERSION=v1.3.0 PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1)
+
+if ! grep -q -- "--branch v1.3.0" "$MOCK_GIT_LOG" || grep -q -- "--branch vv1.3.0" "$MOCK_GIT_LOG"; then
+    echo "ERRO AO3: git clone com CEH_VERSION=v1.3.0 formatou branch incorretamente! Log: $(cat "$MOCK_GIT_LOG")"
+    exit 1
+fi
+echo "  • [PASS] Pipe fixado (CEH_VERSION=v1.3.0): normalizou prefixo 'v' sem duplicar."
+
+# 5.4 Pipe executado de DENTRO do repositório com CEH_VERSION
+TMP_HOME_PIPE_INSIDE="$TMP_BASE/home_pipe_inside"
+mkdir -p "$TMP_HOME_PIPE_INSIDE"
+> "$MOCK_GIT_LOG"
+
+(cd "$REPO_ROOT" && cat install.sh | HOME="$TMP_HOME_PIPE_INSIDE" CEH_VERSION=1.3.0 PATH="$MOCK_GIT_DIR:$PATH" bash >/dev/null 2>&1)
+
+if ! grep -q -- "--branch v1.3.0" "$MOCK_GIT_LOG"; then
+    echo "ERRO AO3: Pipe executado dentro do repositório com CEH_VERSION ignorou a versão e não clonou!"
+    exit 1
+fi
+echo "  • [PASS] Pipe dentro de clone com CEH_VERSION: buscou versão pedida via git clone sem ignorar."
+
+# 5.5 Arquivo local executado diretamente com CEH_VERSION emite aviso
+TMP_HOME_LOCAL="$TMP_BASE/home_local"
+mkdir -p "$TMP_HOME_LOCAL"
+local_output=$(HOME="$TMP_HOME_LOCAL" CEH_VERSION=1.3.0 bash "$REPO_ROOT/install.sh" 2>&1 || true)
+
+if ! echo "$local_output" | grep -q "CEH_VERSION='1.3.0' foi informada, mas o script está rodando diretamente de um arquivo local"; then
+    echo "ERRO AO3: Execução direta de arquivo com CEH_VERSION não emitiu aviso explícito de versão ignorada!"
+    echo "Output: $local_output"
+    exit 1
+fi
+echo "  • [PASS] Arquivo local com CEH_VERSION: emitiu aviso explícito no log."
+
+echo "✔ Teste 5 PASS: Todos os 5 cenários de one-liner (pipe) e versão fixada sem rede validados."
+
 echo "============================================================"
-echo "✔ TODOS OS 4 TESTES DE INSTALAÇÃO/DESINSTALAÇÃO PASSARAM (100%)"
+echo "✔ TODOS OS 5 TESTES DE INSTALAÇÃO/DESINSTALAÇÃO PASSARAM (100%)"
 echo "============================================================"

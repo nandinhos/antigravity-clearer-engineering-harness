@@ -84,9 +84,21 @@ check_prerequisites() {
 # 2. Locate or Fetch Source Assets
 setup_source_directory() {
     INSTALL_TMP_DIR=""
-    # Check if run locally within cloned repo
-    if [[ -d "$(dirname "$0")/clearer-engineering" && -f "$(dirname "$0")/clearer-engineering/plugin.json" ]]; then
-        SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
+    local local_candidate=""
+
+    if [[ ${#BASH_SOURCE[@]} -gt 0 && -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        if [[ -d "$script_dir/clearer-engineering" && -f "$script_dir/clearer-engineering/plugin.json" ]]; then
+            local_candidate="$script_dir"
+        fi
+    fi
+
+    if [[ -n "$local_candidate" ]]; then
+        if [[ -n "${CEH_VERSION:-}" ]]; then
+            log_warn "CEH_VERSION='${CEH_VERSION}' foi informada, mas o script está rodando diretamente de um arquivo local ($local_candidate). A versão fixada será ignorada em favor da árvore local."
+        fi
+        SOURCE_DIR="$local_candidate"
         log_info "Using local source directory: $SOURCE_DIR"
     else
         INSTALL_TMP_DIR=$(mktemp -d -t ceh-install-XXXXXX)
@@ -170,15 +182,28 @@ deploy_harness() {
 configure_shell_aliases() {
     log_info "Configuring shell aliases from config/aliases.sh..."
 
-    local SCRIPT_DIR
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     local ALIAS_CONF="$HOME/.gemini/config/plugins/clearer-engineering/config/aliases.sh"
-    if [[ ! -f "$ALIAS_CONF" ]]; then
-        ALIAS_CONF="${SOURCE_DIR:-$SCRIPT_DIR}/clearer-engineering/config/aliases.sh"
+    local RC_ALIASES_PY="$HOME/.gemini/config/plugins/clearer-engineering/scripts/rc_aliases.py"
+
+    local script_dir=""
+    if [[ ${#BASH_SOURCE[@]} -gt 0 && -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    fi
+    local base_src="${SOURCE_DIR:-$script_dir}"
+
+    if [[ ! -f "$ALIAS_CONF" && -n "$base_src" ]]; then
+        ALIAS_CONF="$base_src/clearer-engineering/config/aliases.sh"
+    fi
+    if [[ ! -f "$RC_ALIASES_PY" && -n "$base_src" ]]; then
+        RC_ALIASES_PY="$base_src/clearer-engineering/scripts/rc_aliases.py"
     fi
 
     if [[ ! -f "$ALIAS_CONF" ]]; then
         log_error "Aliases configuration not found at $ALIAS_CONF"
+        exit 1
+    fi
+    if [[ ! -f "$RC_ALIASES_PY" ]]; then
+        log_error "rc_aliases.py not found at $RC_ALIASES_PY"
         exit 1
     fi
 
@@ -187,71 +212,7 @@ configure_shell_aliases() {
 
     for rc_file in "$HOME/.bashrc" "$HOME/.zshrc"; do
         if [[ -f "$rc_file" ]]; then
-            python3 -c "
-import sys, re
-
-rc_path = sys.argv[1]
-aliases_body = sys.argv[2].strip()
-start_m = '# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES'
-end_m = '# END CLEARER ENGINEERING HARNESS (CEH) ALIASES'
-
-try:
-    with open(rc_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-except Exception:
-    sys.exit(0)
-
-# Remove legacy comment if present
-content = re.sub(r'# === CLEARER Engineering Harness \(CEH\) ===\n?', '', content)
-
-if content.endswith('\n\n'):
-    prefix = ''
-elif content.endswith('\n'):
-    prefix = '\n'
-elif len(content) == 0:
-    prefix = ''
-else:
-    prefix = '\n\n'
-
-prefix_len = len(prefix)
-block = f'{start_m}\n# CEH_RC_PREFIX_LEN: {prefix_len}\n{aliases_body}\n{end_m}\n'
-
-pattern = re.compile(rf'{re.escape(start_m)}.*?{re.escape(end_m)}\n?', re.DOTALL)
-m = pattern.search(content)
-if m:
-    pm = re.search(r'# CEH_RC_PREFIX_LEN: (\d+)', m.group(0))
-    p_len = int(pm.group(1)) if pm else 0
-    block = f'{start_m}\n# CEH_RC_PREFIX_LEN: {p_len}\n{aliases_body}\n{end_m}\n'
-    updated = pattern.sub(block, content)
-else:
-    # Remove orphan aliases if any, anchored strictly at line start
-    exact_ceh_lines = {l.strip() for l in aliases_body.splitlines() if l.strip().startswith('alias ')}
-    known_names = set()
-    for l in aliases_body.splitlines():
-        am = re.match(r'alias\s+([a-zA-Z0-9_-]+)=', l.strip())
-        if am:
-            known_names.add(am.group(1))
-
-    lines = content.splitlines(keepends=True)
-    filtered = []
-    for line in lines:
-        stripped = line.strip()
-        is_ceh_orphan = False
-        m_alias = re.match(r'^alias\s+([a-zA-Z0-9_-]+)=(.*)$', line)
-        if m_alias:
-            name = m_alias.group(1)
-            val = m_alias.group(2)
-            if name in known_names:
-                if stripped in exact_ceh_lines or '--agent clearer-harness' in val or 'plugins/clearer-engineering/' in val or re.search(r'(detect|setup-branches|preflight|evals|monitor|task-monitor|doc-audit|conselho-seniores|ceh-help|help)\.sh', val) is not None:
-                    is_ceh_orphan = True
-        if not is_ceh_orphan:
-            filtered.append(line)
-    content = ''.join(filtered)
-    updated = content + prefix + block
-
-with open(rc_path, 'w', encoding='utf-8') as f:
-    f.write(updated)
-" "$rc_file" "$ALIAS_BODY"
+            python3 "$RC_ALIASES_PY" install-rc "$rc_file" "$ALIAS_CONF" "$ALIAS_BODY"
             log_success "Aliases configured in $rc_file"
         fi
     done
@@ -357,6 +318,6 @@ main() {
     echo ""
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ ${#BASH_SOURCE[@]} -eq 0 || "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

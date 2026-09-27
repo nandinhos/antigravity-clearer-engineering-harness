@@ -8,18 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2026-09-27
 
 ### Added
-- **Onda 3 (PR-12)**:
+- **Onda 3 (PR-12 & PR-12b)**:
   - Canonical agent profile extracted from heredoc to [`clearer-engineering/profiles/clearer-harness.agent.md`](./clearer-engineering/profiles/clearer-harness.agent.md) with byte-by-byte identity verification (`cmp -s`) during installation ([Handoff 040](./docs/temp_implementation/handoffs/handoff-040-revisao-pr11-despacho-pr11b-pr12.md)).
-  - Pinned version installation support via `CEH_VERSION=1.3.0` in [`install.sh`](./install.sh) using `--depth 1 --branch "v${CEH_VERSION#v}"`.
+  - Pipe-aware one-liner execution in [`install.sh`](./install.sh) (`cat install.sh | bash`) fixing `BASH_SOURCE[0]: unbound variable` (AO2) and ensuring non-zero exit codes on failure ([Handoff 041](./docs/temp_implementation/handoffs/handoff-041-revisao-pr11b-pr12-despacho-pr12b.md)).
+  - Single canonical rc alias manager in [`clearer-engineering/scripts/rc_aliases.py`](./clearer-engineering/scripts/rc_aliases.py) eliminating regex heuristics and preserving user custom aliases byte by byte (AO1).
+  - Pinned version installation support via `CEH_VERSION=1.3.0` in [`install.sh`](./install.sh) using `--depth 1 --branch "v${CEH_VERSION#v}"` with explicit warnings when local tree is used (AO3).
   - Comprehensive `CHANGELOG.md` in Keep a Changelog format tracking complete project evolution.
 - **Onda 3 (PR-11 & PR-11b)**:
   - Honest CLI validation and post-installation self-diagnosis (3-point check) in [`install.sh`](./install.sh) ([Handoff 040](./docs/temp_implementation/handoffs/handoff-040-revisao-pr11-despacho-pr11b-pr12.md)).
   - Single source of truth for shell aliases in [`clearer-engineering/config/aliases.sh`](./clearer-engineering/config/aliases.sh).
-  - Automated installation verification suite in [`clearer-engineering/tests/run-install-verification.sh`](./clearer-engineering/tests/run-install-verification.sh) covering idempotency, symmetry, file identity, honesty, and safe uninstallation.
+  - Automated installation verification suite in [`clearer-engineering/tests/run-install-verification.sh`](./clearer-engineering/tests/run-install-verification.sh) covering idempotency, symmetry, file identity, honesty, pipe execution, and safe uninstallation.
   - Safe uninstallation engine in [`uninstall.sh`](./uninstall.sh) fixing AN1 (prefix length newline preservation), AN2 (anchored line matching for orphan aliases, preventing corruption of user comments and custom aliases), and AN3 (fail-closed Python block with explicit exit code propagation).
 - **Onda 2 (G7, Hook Fail-Closed & G9 / PR-08 a PR-10b)**:
-  - Pre-Push CI Gate (G7) blocking `git push` on repositories with CI workflows unless full canonical test suite passed on the exact local commit hash (`.ceh/last-ci-run.json`) ([Handoff 035](./docs/temp_implementation/handoffs/handoff-035-encerramento-onda-1-despacho-pr08.md), [Handoff 036](./docs/temp_implementation/handoffs/handoff-036-revisao-pr08-despacho-pr08b-pr09.md), [Handoff 037](./docs/temp_implementation/handoffs/handoff-037-revisao-pr08b-pr09-despacho-pr10.md)).
-  - Non-tamperable certificate protection (G9/AL1) preventing command lines and file operations from fabricating, modifying, or copying certificates into `.ceh/` ([Handoff 038](./docs/temp_implementation/handoffs/handoff-038-revisao-pr10-despacho-pr10b.md), [Handoff 039](./docs/temp_implementation/handoffs/handoff-039-encerramento-onda-2-despacho-onda-3.md)).
+  - Pre-Push CI Gate (G7) checking local canonical test suite execution (`.ceh/last-ci-run.json`) prior to `git push` on repositories with active CI workflows ([Handoff 035](./docs/temp_implementation/handoffs/handoff-035-encerramento-onda-1-despacho-pr08.md), [Handoff 036](./docs/temp_implementation/handoffs/handoff-036-revisao-pr08-despacho-pr08b-pr09.md), [Handoff 037](./docs/temp_implementation/handoffs/handoff-037-revisao-pr08b-pr09-despacho-pr10.md)).
+  - Defense-in-depth protection for `.ceh/` directory preventing terminal commands and agent write tools from overwriting or forging test certificates (ADR 007 — with primary enforcement residing in server branch protection and required status checks) ([Handoff 038](./docs/temp_implementation/handoffs/handoff-038-revisao-pr10-despacho-pr10b.md), [Handoff 039](./docs/temp_implementation/handoffs/handoff-039-encerramento-onda-2-despacho-onda-3.md)).
   - Fail-closed hook evaluation in `agy` pre-execution hook, rejecting malformed, empty, or unparseable payloads.
   - Granular Git refspec parser identifying destructive deletions (`:main`, `--delete main`, `-d origin main`) and branch tracking discrepancies.
 - **Onda 1 (G1–G6 / PR-04 a PR-07e)**:
@@ -32,15 +34,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `clearer-engineering/plugin.json`: Version updated to `1.3.0` as single canonical source of version.
 - `install.sh`: Refactored to eliminate agent profile heredoc in favor of copying from `clearer-engineering/profiles/clearer-harness.agent.md`.
-- `install.sh`: Added support for pinned version clone via `CEH_VERSION`.
+- `install.sh`: Added support for pinned version clone via `CEH_VERSION` with explicit warnings when local tree is used.
+- `install.sh` & `uninstall.sh`: Unified alias management through `clearer-engineering/scripts/rc_aliases.py`.
 - `clearer-engineering/tests/run-all-tests.sh`: Updated Test 30 to inspect canonical profile at `clearer-engineering/profiles/clearer-harness.agent.md`.
 
 ### Fixed
 - Fixed uninstaller regression (AN1) where trailing newline stripping caused deletion of user's characters prior to the marker block.
 - Fixed uninstaller regression (AN2) where unanchored regexes commented out user configurations and deleted user-defined custom aliases.
 - Fixed uninstaller error suppression (AN3) ensuring Python errors are surfaced and cause immediate non-zero exit codes.
-- Fixed mock runner tautologies in differential testing networks.
+- Fixed pipe invocation regression in `install.sh` (AO2) where execution under `set -u` raised `BASH_SOURCE[0]: unbound variable`.
+- Fixed heuristic alias removal (AO1) by strictly scoping cleanup to canonical names and CEH signatures, preventing deletion of user aliases ending in `.sh`.
+- Removed tautological assertions in differential testing mock fixtures.
 
 ### Security
-- Inviolable integrity guarantee for `.ceh/` directory preventing forged certificates.
-- Zero-tolerance pipeline red on repositories with active CI workflows.
+- Defense-in-depth protection for `.ceh/` directory preventing local certificate tampering (ADR 007).
+- Pre-push local verification gate for repositories with active CI pipelines.
