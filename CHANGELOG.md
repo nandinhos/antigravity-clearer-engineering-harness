@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [1.3.0] - 2026-09-27
+
+### Added
 - **Onda 5 (PR-19 & PR-19a — CI Multiplataforma, Shellcheck, Prova no Bash 3.2 e Branch de Trabalho)**:
   - CI workflow triggers expanded in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) to run on `push` to `claude/**` branches and `workflow_dispatch`, enabling server-side CI verification during active development without requiring PR opening.
   - Multiplatform test matrix across `os: [ubuntu-latest, macos-latest]` and `python-version: ['3.9', '3.12']` (4 matrix jobs total).
@@ -24,26 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Onda 5 (PR-19c — Shellcheck Fixado por Versão e SHA-256 em Job Único)**:
   - Shellcheck pinned strictly to official upstream binary release `v0.11.0` (Linux x86_64) with cryptographic SHA-256 checksum verification (`8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198`).
   - Linter step scoped to execute exclusively in a single matrix job (`ubuntu-latest` / Python 3.12), removing `shellcheck` package dependencies from `apt` and `brew` to eliminate cross-platform linter drift and rolling-release regressions.
-- **Onda 5 (PR-18 — Validação de Esquema no Lugar de Grep em Markdown & Fuzzing do Lexer / T3)**:
+- **Onda 5 (PR-18 & PR-18b — Validação de Esquema no Lugar de Grep em Markdown, Catálogo Verificado e Fuzzing do Lexer / T3)**:
   - Formal schema validation in `clearer-engineering/tests/test_content_schema.py` replacing brittle grep assertions for agent profiles, subagents, and YAML frontmatter (`name`, `description`).
-  - Versioned tool catalog [`clearer-engineering/config/tool_catalog.json`](./clearer-engineering/config/tool_catalog.json) cataloging all 23 native Antigravity tools mapped to verified physical evidence files in `docs/temp_implementation/evidence/`.
+  - Versioned tool catalog [`clearer-engineering/config/tool_catalog.json`](./clearer-engineering/config/tool_catalog.json) (v1.1.0) with strict evidence provenance taxonomy: 4 payload-backed (`run_command`, `write_to_file`, `Bash`, `Write`), 1 host-doc-backed (`Edit`), and 18 declared tools transparently labeled with origin and rationale.
   - Resolution check for all `/skill` invocations ensuring every referenced skill resolves to an existing physical `skills/<name>/SKILL.md`.
   - Relative link validator ensuring all relative Markdown links in plugin documentation resolve to valid target files, with fixes for 24 broken relative links in [`clearer-engineering/README_PT.md`](./clearer-engineering/README_PT.md) and [`clearer-engineering/README.md`](./clearer-engineering/README.md).
-  - Deterministic property-based in-process shell lexer fuzzing in `clearer-engineering/tests/test_lexer_fuzz.py` with fixed seed 1337, executing 2,000 composite command permutations in ~0.58s to verify the formal invariant that no destructive command chain can yield an `allow` decision in production.
+  - Mathematical roundtrip property test for the shell lexer (`split(join(segs)) == segs`) in `clearer-engineering/tests/test_lexer_fuzz.py`, supporting delimiters in quotes and subshells as atomic units with strict falsifiability proof.
+  - Deterministic property-based in-process safety gate fuzzing with fixed seed 1337, executing 2,000 composite command permutations in ~0.58s to verify the formal invariant that no destructive command chain can yield an `allow` decision in production.
   - Integration of `test_content_schema.py` and `test_lexer_fuzz.py` directly into `run-all-tests.sh` with physical falsifiability proofs documented.
-
-### Changed
-- **Bash 3.2 vs Bash 4+ Decision (Formal Architectural Decision)**:
-  - The CEH core suite utilizes associative arrays (`declare -A`) in analytical components ([`conselho-seniores.sh`](./clearer-engineering/scripts/conselho-seniores.sh)), requiring Bash 4.0+.
-  - macOS ships with legacy Bash 3.2 by default due to GPLv3 licensing.
-  - Decision: Rather than polyfilling or degrading associative array semantics, [`install.sh`](./install.sh) enforces Bash >= 4 in `check_prerequisites`, providing clear, friendly remediation instructions for macOS users (`brew install bash`).
-  - In CI, the macOS runner installs modern GNU Bash via Homebrew (`brew install bash coreutils shellcheck`), ensuring full compatibility.
-- Replaced non-POSIX `date -Iseconds` with POSIX-compliant `date +"%Y-%m-%dT%H:%M:%S%z"` in [`conselho-seniores.sh`](./clearer-engineering/scripts/conselho-seniores.sh) for macOS/BSD compatibility.
-- Replaced `mktemp -d -t` with standard POSIX syntax `mktemp -d "${TMPDIR:-/tmp}/..."` in [`install.sh`](./install.sh), [`run-adversarial-tests.sh`](./clearer-engineering/tests/run-adversarial-tests.sh), [`run-install-verification.sh`](./clearer-engineering/tests/run-install-verification.sh), and [`run-e2e-simulation.sh`](./clearer-engineering/tests/run-e2e-simulation.sh).
-
-## [1.3.0] - 2026-09-27
-
-### Added
 - **Onda 3 (PR-12 & PR-12b)**:
   - Canonical agent profile extracted from heredoc to [`clearer-engineering/profiles/clearer-harness.agent.md`](./clearer-engineering/profiles/clearer-harness.agent.md) with byte-by-byte identity verification (`cmp -s`) during installation ([Handoff 040](./docs/temp_implementation/handoffs/handoff-040-revisao-pr11-despacho-pr11b-pr12.md)).
   - Pipe-aware one-liner execution in [`install.sh`](./install.sh) (`cat install.sh | bash`) fixing `BASH_SOURCE[0]: unbound variable` (AO2) and ensuring non-zero exit codes on failure ([Handoff 041](./docs/temp_implementation/handoffs/handoff-041-revisao-pr11b-pr12-despacho-pr12b.md)).
@@ -68,6 +66,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Initial foundation, evidence-driven test runner adapter (`NATIVE_HOST` vs `DOCKER_ACTIVE`/`SAIL`), and deterministic smoke-eval suite ([Handoff 001](./docs/temp_implementation/handoffs/handoff-001-reproducao-evidencias-seniors.md) to [Handoff 012](./docs/temp_implementation/handoffs/handoff-012-homologacao-pr02b-e-despacho-pr03.md)).
 
 ### Changed
+- **Bash 3.2 vs Bash 4+ Decision (Formal Architectural Decision)**:
+  - The CEH core suite utilizes associative arrays (`declare -A`) in analytical components ([`conselho-seniores.sh`](./clearer-engineering/scripts/conselho-seniores.sh)), requiring Bash 4.0+.
+  - macOS ships with legacy Bash 3.2 by default due to GPLv3 licensing.
+  - Decision: Rather than polyfilling or degrading associative array semantics, [`install.sh`](./install.sh) enforces Bash >= 4 in `check_prerequisites`, providing clear, friendly remediation instructions for macOS users (`brew install bash`).
+  - In CI, the macOS runner installs modern GNU Bash via Homebrew (`brew install bash coreutils shellcheck`), ensuring full compatibility.
+- Replaced non-POSIX `date -Iseconds` with POSIX-compliant `date +"%Y-%m-%dT%H:%M:%S%z"` in [`conselho-seniores.sh`](./clearer-engineering/scripts/conselho-seniores.sh) for macOS/BSD compatibility.
+- Replaced `mktemp -d -t` with standard POSIX syntax `mktemp -d "${TMPDIR:-/tmp}/..."` in [`install.sh`](./install.sh), [`run-adversarial-tests.sh`](./clearer-engineering/tests/run-adversarial-tests.sh), [`run-install-verification.sh`](./clearer-engineering/tests/run-install-verification.sh), and [`run-e2e-simulation.sh`](./clearer-engineering/tests/run-e2e-simulation.sh).
 - `clearer-engineering/plugin.json`: Version updated to `1.3.0` as single canonical source of version.
 - `install.sh`: Refactored to eliminate agent profile heredoc in favor of copying from `clearer-engineering/profiles/clearer-harness.agent.md`.
 - `install.sh`: Added support for pinned version clone via `CEH_VERSION` with explicit warnings when local tree is used.
@@ -75,6 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `clearer-engineering/tests/run-all-tests.sh`: Updated Test 30 to inspect canonical profile at `clearer-engineering/profiles/clearer-harness.agent.md`.
 
 ### Fixed
+- Corrected 24 broken relative Markdown links in [`clearer-engineering/README_PT.md`](./clearer-engineering/README_PT.md) and [`clearer-engineering/README.md`](./clearer-engineering/README.md).
+- Eliminated all 26 warnings across repository shell scripts, securing a zero-warning blocking Shellcheck gate.
 - Fixed uninstaller regression (AN1) where trailing newline stripping caused deletion of user's characters prior to the marker block.
 - Fixed uninstaller regression (AN2) where unanchored regexes commented out user configurations and deleted user-defined custom aliases.
 - Fixed uninstaller error suppression (AN3) ensuring Python errors are surfaced and cause immediate non-zero exit codes.
@@ -85,3 +92,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Defense-in-depth protection for `.ceh/` directory preventing local certificate tampering (ADR 007).
 - Pre-push local verification gate for repositories with active CI pipelines.
+- Hermetic fixed-version Shellcheck v0.11.0 with SHA-256 integrity verification.
+- Deterministic property-based lexer fuzzing and invariant enforcement in production mode.
+- Formal tool catalog with physical evidence provenance verification.
