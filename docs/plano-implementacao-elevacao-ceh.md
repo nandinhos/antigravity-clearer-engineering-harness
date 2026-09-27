@@ -345,6 +345,18 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - AK3: fixtures `HOOK:agy` com formato sintético.
 - **Próximo:** PR-10 (G9). Hoje, qualquer comando forja `.ceh/last-ci-run.json`. O PR bloqueia a escrita, exceto leituras, e acrescenta as ferramentas de escrita com payload real (E11) e o ADR 007.
 
+### 0.37 PR-10 (G9) homologado com ressalvas ([Handoff 038](./temp_implementation/handoffs/handoff-038-revisao-pr10-despacho-pr10b.md))
+
+- **Certificado protegido:**
+  - escrita pelo terminal bloqueada (inclusive leitura com redirecionamento, caminhos equivalentes e `cd .ceh`);
+  - ferramentas de escrita (agy e Claude) bloqueadas para `.ceh/`, com fail-closed quando o caminho está ausente;
+  - ADR 007 publicado.
+- **Provas:** falsificabilidade reproduzida; linha de base em `2d4af96`.
+- **Ressalvas:**
+  - AL1: substituir o diretório `.ceh` inteiro (`cp -r`, `mv`, `rsync`) passa;
+  - AL2: o E11 não tem controle sem hook, e o "allow" explícito pode estar autoaprovando escritas no agy (como o F6 do Claude).
+- **Próximo:** PR-10b, depois a Onda 3 e a tag v1.3.0.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
