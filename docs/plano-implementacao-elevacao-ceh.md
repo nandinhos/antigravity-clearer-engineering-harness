@@ -421,6 +421,17 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Próximo:** PR-19 (CI em `claude/**`, matriz ubuntu/macOS × Python 3.9/3.12, decisão sobre o bash 3.2, passo do one-liner no CI e shellcheck informativo).
 - **Backlog:** AP1 (cabeçalho legado no install), AP2 (`re.sub` com string de substituição) e AP3 (linha vaga no CHANGELOG).
 
+### 0.42 PR-19 não homologado: o primeiro CI do servidor está vermelho ([Handoff 043](./temp_implementation/handoffs/handoff-043-revisao-pr19-ci-vermelho-despacho-pr19a.md))
+
+- **Primeira execução no servidor** ([run 36326581624](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36326581624)): os 4 jobs quebram no passo `file://`, e a suíte canônica foi **pulada** em todos.
+- **Achados:**
+  - AQ1: `CEH_REPO_URL=… cat | bash` passa a variável para o `cat`, e o clone vai para a `main` do GitHub (reproduzido localmente);
+  - AQ2: a decisão sobre o bash ≥ 4 não tem evidência no `/bin/bash` 3.2;
+  - AQ3: a entrega foi declarada sem o resultado do servidor.
+- **Regra:** uma entrega só é declarada com o CI do servidor concluído no commit enviado.
+- **Linha de base:** `dbf470d`.
+- **Próximo:** PR-19a, com o CI verde nos 4 jobs. A release v1.3.0 espera esse sinal.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
