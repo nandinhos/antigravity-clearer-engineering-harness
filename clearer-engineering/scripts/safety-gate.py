@@ -40,6 +40,7 @@ from ceh_core.environment import (
     find_repo_root,
     ENV_SEVERITY,
     is_unresolved_cd_target,
+    resolve_target_context,
 )
 from ceh_core.rm import evaluate_rm_command
 from ceh_core.git import evaluate_git_subcommand
@@ -69,6 +70,8 @@ def resolve_git_invocation(
 
     idx, _ = resolve_command_head(tokens)
     tokens = tokens[idx:]
+    while tokens and "=" in tokens[0] and not tokens[0].startswith(("-", "=")):
+        tokens = tokens[1:]
 
     if not tokens or tokens[0] != "git":
         return False, None, [], None, cmd_line, None
@@ -501,61 +504,66 @@ def evaluate_command(
 
     evaluations = []
     current_cwd = Path(base_cwd).resolve() if base_cwd else Path.cwd()
-    current_env = env
-    current_env_ev = env_evidence
+    current_env, current_env_ev = env, env_evidence
+    persistent_repo: Path | None = None
     unresolved_cd = False
 
     for sub in subcommands:
         sub_inner = extract_subshell_command(sub)
         if sub_inner is not None:
-            sub_res = evaluate_command(
-                sub_inner,
-                explicit_env=explicit_env,
-                base_cwd=current_cwd,
-                depth=depth + 1,
-                scan_suffixes=scan_suffixes,
-            )
-            evaluations.append(sub_res)
+            evaluations.append(evaluate_command(
+                sub_inner, explicit_env=explicit_env, base_cwd=current_cwd,
+                depth=depth + 1, scan_suffixes=scan_suffixes,
+            ))
             continue
 
-        sub_tokens = []
-        try:
-            sub_tokens = shlex.split(sub, posix=True, comments=True)
-        except Exception:
-            sub_tokens = sub.split()
+        try: sub_tokens = shlex.split(sub, posix=True, comments=True)
+        except Exception: sub_tokens = sub.split()
 
-        # AF1 / AG2: cd / pushd atualiza o contexto dos subcomandos seguintes
-        if sub_tokens and sub_tokens[0] in ("cd", "pushd") and len(sub_tokens) > 1:
-            raw_target = sub_tokens[1]
-            if is_unresolved_cd_target(raw_target):
-                unresolved_cd = True
-                current_env = "production"
-                current_env_ev = f"Incerteza: cd para destino não resolvível '{raw_target}' (Invariante 7)"
-            else:
-                cand = Path(raw_target)
-                target_path = cand if cand.is_absolute() else (current_cwd / cand).resolve()
-                if target_path and target_path.is_dir():
-                    current_cwd = target_path
-                    new_env, new_ev = detect_environment(explicit_env=explicit_env, target_dir=current_cwd)
-                    if ENV_SEVERITY.get(new_env, 0) > ENV_SEVERITY.get(current_env, 0):
-                        current_env, current_env_ev = new_env, new_ev
+        eff_cwd, tgt_repo, is_unres, is_persist, clean_toks = resolve_target_context(
+            sub_tokens, current_cwd, persistent_repo
+        )
+        if not clean_toks: continue
 
-        sub_eval_env, sub_eval_ev = detect_environment(explicit_env=explicit_env, cmd_line=sub, target_dir=current_cwd)
-        if ENV_SEVERITY.get(sub_eval_env, 0) > ENV_SEVERITY.get(current_env, 0):
+        if is_unres:
+            unresolved_cd = True
+            current_env, current_env_ev = "production", "Incerteza: destino não resolvível (Invariante 7)"
+
+        if is_persist:
+            if eff_cwd and eff_cwd.is_dir(): current_cwd = eff_cwd
+            if tgt_repo: persistent_repo = tgt_repo
+            new_env, new_ev = detect_environment(explicit_env=explicit_env, target_dir=current_cwd)
+            if ENV_SEVERITY.get(new_env, 0) > ENV_SEVERITY.get(current_env, 0):
+                current_env, current_env_ev = new_env, new_ev
+
+        eval_cwd = eff_cwd if (eff_cwd and eff_cwd.is_dir()) else current_cwd
+        sub_eval_env, sub_eval_ev = detect_environment(explicit_env=explicit_env, cmd_line=sub, target_dir=eval_cwd)
+        if tgt_repo:
+            repo_env, repo_ev = detect_environment(explicit_env=None, target_dir=tgt_repo)
+            if ENV_SEVERITY.get(repo_env, 0) > ENV_SEVERITY.get(sub_eval_env, 0):
+                sub_eval_env, sub_eval_ev = repo_env, repo_ev
+
+        effective_env, effective_ev = current_env, current_env_ev
+        if ENV_SEVERITY.get(sub_eval_env, 0) > ENV_SEVERITY.get(effective_env, 0):
             effective_env, effective_ev = sub_eval_env, sub_eval_ev
-        else:
-            effective_env, effective_ev = current_env, current_env_ev
 
-        if unresolved_cd and ENV_SEVERITY.get(effective_env, 0) < ENV_SEVERITY.get("production", 0):
-            effective_env = "production"
-            effective_ev = "Incerteza: cd para destino não resolvível (Invariante 7)"
+        if (unresolved_cd or is_unres) and ENV_SEVERITY.get(effective_env, 0) < ENV_SEVERITY.get("production", 0):
+            effective_env, effective_ev = "production", "Incerteza: destino não resolvível (Invariante 7)"
 
+        sub_to_eval = sub.strip()
+        while sub_to_eval.startswith("{ ") or sub_to_eval == "{":
+            sub_to_eval = sub_to_eval[1:].strip()
+        while sub_to_eval.endswith(" }") or sub_to_eval.endswith(";}") or sub_to_eval.endswith("; }") or sub_to_eval == "}":
+            if sub_to_eval.endswith("; }"): sub_to_eval = sub_to_eval[:-3].strip()
+            elif sub_to_eval.endswith((";}", " }")): sub_to_eval = sub_to_eval[:-2].strip()
+            elif sub_to_eval == "}": sub_to_eval = ""
+        if not sub_to_eval: continue
         evaluations.append(
             evaluate_subcommand(
-                sub,
+                sub_to_eval,
                 effective_env,
                 effective_ev,
-                base_cwd=current_cwd,
+                base_cwd=eval_cwd,
                 explicit_env=explicit_env,
                 depth=depth,
                 scan_suffixes=scan_suffixes,

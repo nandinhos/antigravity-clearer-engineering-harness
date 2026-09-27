@@ -256,35 +256,34 @@ json.dump(results, sys.stdout)
         cls.baseline_results = {}
         cls.current_results = {}
 
-        # Executa workers isolados por repositório
-        for branch, r_path in cls.repos.items():
-            # Baseline worker (subprocesso isolado com sys.path da baseline)
+        import concurrent.futures
+
+        def _evaluate_branch(item):
+            branch, r_path = item
             p_base = subprocess.Popen(
                 [sys.executable, "-c", worker_code, baseline_scripts],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                cwd=str(r_path),
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True, cwd=str(r_path),
             )
             out_base, err_base = p_base.communicate(input=json.dumps(cls.all_commands))
             if p_base.returncode != 0:
                 raise RuntimeError(f"Falha no worker da baseline ({branch}): {err_base}")
-            cls.baseline_results[branch] = json.loads(out_base)
 
-            # Current gate worker (subprocesso isolado com scripts_dir atual)
             p_cur = subprocess.Popen(
                 [sys.executable, "-c", worker_code, str(SCRIPTS_DIR)],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                cwd=str(r_path),
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True, cwd=str(r_path),
             )
             out_cur, err_cur = p_cur.communicate(input=json.dumps(cls.all_commands))
             if p_cur.returncode != 0:
                 raise RuntimeError(f"Falha no worker do gate atual ({branch}): {err_cur}")
-            cls.current_results[branch] = json.loads(out_cur)
+
+            return branch, json.loads(out_base), json.loads(out_cur)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            for branch, res_base, res_cur in executor.map(_evaluate_branch, cls.repos.items()):
+                cls.baseline_results[branch] = res_base
+                cls.current_results[branch] = res_cur
 
     @classmethod
     def tearDownClass(cls):

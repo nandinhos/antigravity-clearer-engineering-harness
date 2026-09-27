@@ -239,6 +239,88 @@ class TestEnvironmentTokens(unittest.TestCase):
                         f"Violação da Invariante: '{mod_cmd}' rebaixou severidade de {base_env} ({base_sev}) para {mod_env} ({mod_sev}) no repo {repo.name}"
                     )
 
+    def test_handoff_033_ah1_and_ah2_context_equivalence(self):
+        """Handoff 033 AH1 e AH2: formas alternativas de contexto produzem mesmo efeito que cd X &&."""
+        repo_dev = self._init_repo("repo_ah1_dev", branch="dev")
+        repo_main = self._init_repo("repo_ah1_main", branch="main")
+
+        cases_destructive = [
+            (f"{{ cd {repo_main}; git checkout -- .; }}", "deny", "production"),
+            (f"env -C {repo_main} git reset --hard", "deny", "production"),
+            (f"env --chdir={repo_main} git reset --hard", "deny", "production"),
+            (f"sudo -D {repo_main} git reset --hard", "deny", "production"),
+            (f"sudo --chdir={repo_main} git reset --hard", "deny", "production"),
+            (f"GIT_DIR={repo_main}/.git GIT_WORK_TREE={repo_main} git reset --hard", "deny", "production"),
+            (f"export GIT_DIR={repo_main}/.git && git reset --hard", "deny", "production"),
+            ("cd && git reset --hard", "deny", "production"),
+            ("cd ~ && git reset --hard", "deny", "production"),
+            (f"(cd {repo_main} && git reset --hard)", "deny", "production"),
+        ]
+        for cmd, exp_dec, exp_env in cases_destructive:
+            dec, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+            self.assertEqual(dec, exp_dec, f"AH1/AH2 falhou: {cmd} deveria ser {exp_dec}, mas foi {dec} ({reason})")
+            self.assertEqual(eval_env, exp_env, f"AH1/AH2 falhou: {cmd} deveria ser {exp_env}, mas foi {eval_env}")
+
+        # Controles inócuos e não-vazamento (Handoff 033: controles do subshell sem vazamento seguem allow)
+        cases_safe = [
+            (f"(cd {repo_main}) && git reset --hard", "allow"),
+            ('cd "$DIR" && npm test', "allow"),
+            (f"env -C {repo_main} npm test", "allow"),
+            (f"sudo -D {repo_main} npm test", "allow"),
+        ]
+        for cmd, exp_dec in cases_safe:
+            dec, reason, eval_env, _ = safety_gate.evaluate_command(cmd, base_cwd=repo_dev)
+            self.assertEqual(dec, exp_dec, f"Controle falhou: {cmd} deveria ser {exp_dec}, mas foi {dec} ({reason})")
+
+    def test_context_equivalence_invariant(self):
+        """
+        Handoff 033 §3.2 Invariante de equivalência de contexto:
+        Para cada comando destrutivo C e forma F, severidade F(<main>, C) >= severidade(cd <main> && C).
+        """
+        repo_dev = self._init_repo("repo_eq_dev", branch="dev")
+        repo_main = self._init_repo("repo_eq_main", branch="main")
+
+        destructive_commands = [
+            "git reset --hard HEAD~1",
+            "git checkout -- .",
+            "git clean -fdx",
+            "php artisan migrate:fresh",
+        ]
+
+        forms = [
+            ("brace_block", lambda d, c: f"{{ cd {d}; {c}; }}"),
+            ("env_C", lambda d, c: f"env -C {d} {c}"),
+            ("env_chdir", lambda d, c: f"env --chdir={d} {c}"),
+            ("sudo_D", lambda d, c: f"sudo -D {d} {c}"),
+            ("sudo_chdir", lambda d, c: f"sudo --chdir={d} {c}"),
+            ("git_dir_env", lambda d, c: f"GIT_DIR={d}/.git GIT_WORK_TREE={d} {c}"),
+            ("export_git_dir", lambda d, c: f"export GIT_DIR={d}/.git && {c}"),
+        ]
+
+        dec_sev = {"allow": 0, "ask": 1, "deny": 2}
+
+        for cmd in destructive_commands:
+            baseline_cmd = f"cd {repo_main} && {cmd}"
+            base_dec, base_reas, base_env, _ = safety_gate.evaluate_command(baseline_cmd, base_cwd=repo_dev)
+            base_d_sev = dec_sev.get(base_dec, 0)
+
+            for form_name, form_fn in forms:
+                mod_cmd = form_fn(repo_main, cmd)
+                mod_dec, mod_reas, mod_env, _ = safety_gate.evaluate_command(mod_cmd, base_cwd=repo_dev)
+                mod_d_sev = dec_sev.get(mod_dec, 0)
+
+                self.assertGreaterEqual(
+                    mod_d_sev,
+                    base_d_sev,
+                    f"Invariante de equivalência violada por {form_name}: '{mod_cmd}' ({mod_dec}) < '{baseline_cmd}' ({base_dec})"
+                )
+                self.assertEqual(
+                    mod_env,
+                    "production",
+                    f"Invariante de equivalência violada: {form_name} não detectou production para {mod_cmd} (obteve {mod_env})"
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
+
