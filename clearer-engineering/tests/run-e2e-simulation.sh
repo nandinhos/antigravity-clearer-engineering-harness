@@ -124,11 +124,8 @@ test_safety_hook() {
     local expected_decision="$3"
     local extra_check="${4:-}"
 
-    local payload
-    payload=$(jq -n --arg cmd "$cmd" '{"toolCall": {"name": "run_command", "args": {"CommandLine": $cmd}}}')
-
     local result
-    result=$(env CEH_ENV="$env_var" APP_ENV="$env_var" python3 "$PLUGIN_DIR/scripts/safety-gate.py" <<< "$payload")
+    result=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "$cmd" --env "$env_var" || true)
     local decision
     decision=$(echo "$result" | jq -r '.decision')
 
