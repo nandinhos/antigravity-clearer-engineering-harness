@@ -476,6 +476,23 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Linha de base:** `dc97ccb`.
 - **Próximo:** PR-18b (proveniência verificável pelo conteúdo, E12, propriedade de ida e volta do lexer), depois o PR de cobertura de regras (AT3 + AM2).
 
+### 0.46 PR-18b homologado; T3 resolvido ([Handoff 047](./temp_implementation/handoffs/handoff-047-revisao-pr18b-despacho-pr22.md))
+
+- **Catálogo v1.1.0, conferido pelo conteúdo por script independente:**
+  - 4 `payload` e 1 `host_doc`;
+  - 18 `declared`, rotulados, sem `host-probe/`;
+  - mutação da evidência → o teste reprova.
+- **Lexer:** a propriedade de ida e volta reprova com a mutação do `||`.
+- **Servidor:** [run 36353326429](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36353326429) verde.
+- **Linha de base:** `d6bf922`.
+- **Bateria:**
+  - `PENDENTE:H047-AT3`: `git stash drop`, `docker volume prune`, `docker compose down -v`, `redis-cli FLUSHDB`, `prisma migrate reset`;
+  - `PENDENTE:H039-AM2`: leituras e exclusões de `.ceh` negadas por engano.
+- **Próximo:** PR-22, que é aperto (AT3) e relaxamento justificado (AM2) no gate, com corpus diff linha a linha.
+- **Carona do PR-21:**
+  - AU1: `doc-audit` só casa `/home/<u>/projects/`;
+  - AU4: ausência de conselheiro registrada pelo script.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
