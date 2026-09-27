@@ -273,11 +273,29 @@ if m:
     block = f'{start_m}\n# CEH_RC_PREFIX_LEN: {p_len}\n{aliases_body}\n{end_m}\n'
     updated = pattern.sub(block, content)
 else:
-    # Remove orphan aliases if any
-    for line in aliases_body.splitlines():
-        am = re.match(r'alias\s+([a-zA-Z0-9_-]+)=', line.strip())
+    # Remove orphan aliases if any, anchored strictly at line start
+    exact_ceh_lines = {l.strip() for l in aliases_body.splitlines() if l.strip().startswith('alias ')}
+    known_names = set()
+    for l in aliases_body.splitlines():
+        am = re.match(r'alias\s+([a-zA-Z0-9_-]+)=', l.strip())
         if am:
-            content = re.sub(rf'alias {re.escape(am.group(1))}=.*?\n', '', content)
+            known_names.add(am.group(1))
+
+    lines = content.splitlines(keepends=True)
+    filtered = []
+    for line in lines:
+        stripped = line.strip()
+        is_ceh_orphan = False
+        m_alias = re.match(r'^alias\s+([a-zA-Z0-9_-]+)=(.*)$', line)
+        if m_alias:
+            name = m_alias.group(1)
+            val = m_alias.group(2)
+            if name in known_names:
+                if stripped in exact_ceh_lines or '--agent clearer-harness' in val or 'plugins/clearer-engineering/' in val or re.search(r'(detect|setup-branches|preflight|evals|monitor|task-monitor|doc-audit|conselho-seniores|ceh-help|help)\.sh', val) is not None:
+                    is_ceh_orphan = True
+        if not is_ceh_orphan:
+            filtered.append(line)
+    content = ''.join(filtered)
     updated = content + prefix + block
 
 with open(rc_path, 'w', encoding='utf-8') as f:

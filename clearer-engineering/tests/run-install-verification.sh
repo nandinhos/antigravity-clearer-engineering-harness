@@ -134,6 +134,117 @@ fi
 echo "✔ Teste 2 PASS: Simetria byte a byte comprovada (hashes idênticos e 0 resíduos)."
 
 # ------------------------------------------------------------------------------
+# Teste 2b: Uninstall Seguro contra Regressões AN1, AN2 e AN3
+# ------------------------------------------------------------------------------
+echo "[2b/4] Teste 2b: Uninstall Seguro (AN1: prefixo editado; AN2: comentários/aliases customizados; AN3: fail-closed)..."
+
+# Sub-teste AN1: Usuário edita linha em branco antes do bloco
+TMP_HOME_AN1="$TMP_BASE/home_an1"
+mkdir -p "$TMP_HOME_AN1"
+printf "export A=1" > "$TMP_HOME_AN1/.bashrc"
+touch "$TMP_HOME_AN1/.zshrc"
+
+HOME="$TMP_HOME_AN1" bash "$REPO_ROOT/install.sh" >/dev/null
+
+# Simula formatador ou usuário apagando a linha em branco antes do bloco
+python3 -c "
+with open('$TMP_HOME_AN1/.bashrc', 'r', encoding='utf-8') as f:
+    c = f.read()
+c = c.replace('\n\n# BEGIN', '\n# BEGIN')
+with open('$TMP_HOME_AN1/.bashrc', 'w', encoding='utf-8') as f:
+    f.write(c)
+"
+
+HOME="$TMP_HOME_AN1" bash "$REPO_ROOT/uninstall.sh" >/dev/null
+
+AN1_RESULT=$(cat "$TMP_HOME_AN1/.bashrc")
+if [[ "$AN1_RESULT" != "export A=1" ]]; then
+    echo "ERRO AN1: uninstall.sh corrompeu configuração do usuário quando prefixo foi editado!"
+    echo "Esperado: 'export A=1' | Obtido: '$AN1_RESULT'"
+    exit 1
+fi
+echo "  • [PASS] AN1: Caracteres do usuário preservados após edição do prefixo."
+
+# Sub-teste AN2: Comentários e aliases customizados do usuário preservados
+TMP_HOME_AN2="$TMP_BASE/home_an2"
+mkdir -p "$TMP_HOME_AN2"
+cat << 'EOF' > "$TMP_HOME_AN2/.zshrc"
+# alias ceh=antigo
+alias ceh='meu-script'
+export B=2
+EOF
+touch "$TMP_HOME_AN2/.bashrc"
+
+HOME="$TMP_HOME_AN2" bash "$REPO_ROOT/install.sh" >/dev/null
+HOME="$TMP_HOME_AN2" bash "$REPO_ROOT/uninstall.sh" >/dev/null
+
+if ! grep -q "^# alias ceh=antigo" "$TMP_HOME_AN2/.zshrc"; then
+    echo "ERRO AN2: Linha comentada '# alias ceh=antigo' foi alterada ou removida!"
+    exit 1
+fi
+if ! grep -q "^alias ceh='meu-script'" "$TMP_HOME_AN2/.zshrc"; then
+    echo "ERRO AN2: Alias customizado do usuário 'alias ceh=meu-script' foi removido!"
+    exit 1
+fi
+if ! grep -q "^export B=2" "$TMP_HOME_AN2/.zshrc"; then
+    echo "ERRO AN2: Linha 'export B=2' foi corrompida ou removida!"
+    exit 1
+fi
+echo "  • [PASS] AN2: Comentários e aliases customizados não-CEH preservados."
+
+# Sub-teste AN2 (órfão legítimo CEH): Alias antigo sem bloco delimitado é limpo
+TMP_HOME_ORPHAN="$TMP_BASE/home_orphan"
+mkdir -p "$TMP_HOME_ORPHAN"
+cat << 'EOF' > "$TMP_HOME_ORPHAN/.bashrc"
+export X=1
+alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
+export Y=2
+EOF
+touch "$TMP_HOME_ORPHAN/.zshrc"
+
+HOME="$TMP_HOME_ORPHAN" bash "$REPO_ROOT/uninstall.sh" >/dev/null
+
+if grep -q "alias ceh-help=" "$TMP_HOME_ORPHAN/.bashrc"; then
+    echo "ERRO AN2: Alias órfão legítimo do CEH não foi removido pelo uninstall!"
+    exit 1
+fi
+if ! grep -q "^export X=1" "$TMP_HOME_ORPHAN/.bashrc" || ! grep -q "^export Y=2" "$TMP_HOME_ORPHAN/.bashrc"; then
+    echo "ERRO AN2: Linhas vizinhas do alias órfão foram corrompidas!"
+    exit 1
+fi
+echo "  • [PASS] AN2 (órfão legítimo): Alias CEH órfão removido com sucesso sem tocar em vizinhos."
+
+# Sub-teste AN3: Fail-closed do uninstall (falha de python sai com exit ≠ 0)
+TMP_HOME_AN3="$TMP_BASE/home_an3"
+mkdir -p "$TMP_HOME_AN3"
+touch "$TMP_HOME_AN3/.bashrc" "$TMP_HOME_AN3/.zshrc"
+
+MOCK_PY_DIR="$TMP_BASE/mock_py"
+mkdir -p "$MOCK_PY_DIR"
+cat << 'EOF' > "$MOCK_PY_DIR/python3"
+#!/usr/bin/env bash
+echo "MOCK PYTHON FAILURE" >&2
+exit 1
+EOF
+chmod +x "$MOCK_PY_DIR/python3"
+
+uninst_exit=0
+uninst_out=$(HOME="$TMP_HOME_AN3" PATH="$MOCK_PY_DIR:$PATH" bash "$REPO_ROOT/uninstall.sh" 2>&1) || uninst_exit=$?
+
+if [[ "$uninst_exit" -eq 0 ]]; then
+    echo "ERRO AN3: uninstall.sh retornou exit 0 mesmo com falha do python3!"
+    echo "Output: $uninst_out"
+    exit 1
+fi
+if echo "$uninst_out" | grep -q "uninstalled successfully"; then
+    echo "ERRO AN3: uninstall.sh anunciou falso sucesso durante falha!"
+    exit 1
+fi
+echo "  • [PASS] AN3: Falha no runner resulta em exit code não-zero e não anuncia sucesso."
+
+echo "✔ Teste 2b PASS: Todas as 4 salvaguardas de uninstall seguro (AN1, AN2, AN3) verificadas com sucesso."
+
+# ------------------------------------------------------------------------------
 # Teste 3: Todo alias aponta para arquivo existente na árvore instalada
 # ------------------------------------------------------------------------------
 echo "[3/4] Teste 3: Todo alias aponta para script existente na árvore instalada..."
