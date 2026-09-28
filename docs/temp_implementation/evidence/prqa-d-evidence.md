@@ -105,3 +105,38 @@ Executado `bash clearer-engineering/scripts/doc-audit.sh`:
   - `Validate (macos-latest - Python 3.12)`: Concluído em 31m42s (ID 108946706286) — `success`
   - `Validate (macos-latest - Python 3.9)`: Concluído em 32m29s (ID 108946707022) — `success`
 
+---
+
+## 7. Resolução de Aliases AST (Achado D02 / PR-QA-D3)
+
+### Contexto & Motivação (Handoff 052)
+No Handoff 052, o Revisor constatou que o teste estrutural avaliava chamadas a `shlex.split` e `normpath` apenas em suas formas canônicas literais, permitindo que mutações com aliases (`from shlex import split as shell_lexer` e `from os.path import normpath as path_normalizer`) escapassem sem detecção.
+
+### Implementação Cirúrgica
+Em `clearer-engineering/tests/test_normalization_structural.py`, a análise textual e o visitor pontual foram unificados no `NormalizationAstVisitor(ast.NodeVisitor)`:
+1. **Rastreamento de Importações e Aliases (`collect_imports`):**
+   - Mapeia `import mod as alias` e `from mod import func as alias` em nós `ast.Import` e `ast.ImportFrom`.
+   - Resolve aliases de módulos (`shlex`, `os`, `os.path`, `posixpath`) e de funções individuais (`split`, `normpath`).
+2. **Resolução Dinâmica de Chamadas (`is_shlex_split_call` e `is_normpath_call`):**
+   - Intercepta invocações diretas de nome (`Call(func=Name(id=...))`), atributos simples (`Call(func=Attribute(value=Name(...), attr=...))`) e acessos encadeados (`os.path.normpath`).
+   - Reconhece e resolve qualquer alias apontando para as origens restritas.
+3. **Testes Unitários Permanentes:**
+   - Adicionados `test_ast_analyzer_resolves_shlex_split_aliases` e `test_ast_analyzer_resolves_normpath_aliases` cobrindo 11 variantes sintáticas.
+   - `test_normalization_structural.py` passa com 6/6 testes em ~0.1s.
+
+### Prova de Falsificabilidade por Mutação Hermética (10/10 Cenários Reprovados)
+Script de verificação: `scratch/run_d3_mutation_proof.py`:
+- **Cenário 1 (D01):** Mutação em nível de módulo em `rules.py` (`shlex.split`) → **Exit 1 (Reprovado)**
+- **Cenário 2 (D01):** Excesso de chamadas no call-site autorizado `is_cert_tampering` → **Exit 1 (Reprovado)**
+- **Cenário 3 (D01):** Definição de `normalize_custom_branch` em `git.py` → **Exit 1 (Reprovado)**
+- **Cenário 4 (D01):** Uso direto de `os.path.normpath` em `find.py` → **Exit 1 (Reprovado)**
+- **Cenário 5 (D02 - Revisor):** `from shlex import split as shell_lexer` em `rules.py` → **Exit 1 (Reprovado)**
+- **Cenário 6 (D02 - Revisor):** `from os.path import normpath as path_normalizer` em `find.py` → **Exit 1 (Reprovado)**
+- **Cenário 7 (D02):** `import shlex as sx; sx.split` em `git.py` → **Exit 1 (Reprovado)**
+- **Cenário 8 (D02):** `import posixpath as ppath; ppath.normpath` em `push.py` → **Exit 1 (Reprovado)**
+- **Cenário 9 (D02):** `from os import path as osp; osp.normpath` em `environment.py` → **Exit 1 (Reprovado)**
+- **Cenário 10 (D02):** `from posixpath import normpath; normpath` em `rm.py` → **Exit 1 (Reprovado)**
+
+**Resultado:** 10/10 mutações rigorosamente falsificadas e reprovadas. Zero brechas para aliases.
+
+
