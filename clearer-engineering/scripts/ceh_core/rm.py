@@ -187,12 +187,23 @@ def evaluate_rm_command(
     unresolved_targets = [t for t in targets if has_unresolved_env_var(t)]
     if unresolved_targets:
         if env == "production":
-            reason = f"[CEH PRODUCTION LOCK] Alvo incerto com variável não resolvida: '{unresolved_targets[0]}'."
+            reason = (
+                f"[CEH PRODUCTION LOCK] Alvo incerto com variável não resolvida: '{unresolved_targets[0]}'.\n"
+                f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence})."
+            )
             return "deny", reason, env, "FILESYSTEM"
         if env == "staging":
-            reason = f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE]\n⚠️ ALERTA 1/2: Alvo incerto '{unresolved_targets[0]}'.\n⚠️ ALERTA 2/2: Confirmar rollback."
+            reason = (
+                f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE]\n"
+                f"⚠️ ALERTA 1/2: Alvo incerto '{unresolved_targets[0]}'. Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+                f"⚠️ ALERTA 2/2: Confirmar rollback."
+            )
             return "ask", reason, env, "FILESYSTEM"
-        reason = f"[CEH UNCERTAIN TARGET] Variável de ambiente não resolvida no alvo ('{unresolved_targets[0]}')."
+        reason = (
+            f"[CEH UNCERTAIN TARGET]\n"
+            f"⚠️ ALERTA: Variável de ambiente não resolvida no alvo ('{unresolved_targets[0]}'). "
+            f"Ambiente: {env.upper()} (Evidência: {env_evidence}). Confirma a execução?"
+        )
         return "ask", reason, env, "FILESYSTEM"
 
     if not is_recursive and not is_force:
@@ -204,29 +215,31 @@ def evaluate_rm_command(
 
     # 3. Exclusão recursiva ou forçada fora do atalho seguro
     if is_recursive or is_force:
+        desc = "Recursive or forced file deletion (rm -rf)"
         if env == "production":
             reason = (
-                "[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
-                "(Caso de Uso: Sistema de Arquivos): Recursive or forced file deletion (rm -rf).\n"
-                "Ambiente detectado: PRODUCTION.\n"
-                "Execução bloqueada para prevenir perda de dados e indisponibilidade."
+                f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
+                f"(Caso de Uso: Sistema de Arquivos): {desc}.\n"
+                f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+                f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
             )
             return "deny", reason, env, "FILESYSTEM"
 
         if env == "staging":
             reason = (
-                "[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: Sistema de Arquivos]\n"
-                "⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural (Recursive or forced file deletion (rm -rf)).\n"
-                f"   Ambiente detectado: STAGING.\n"
-                "⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
-                "foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
-                "Confirma a execução com rollback assegurado?"
+                f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: Sistema de Arquivos]\n"
+                f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural ({desc}).\n"
+                f"   Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+                f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
+                f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
+                f"Confirma a execução com rollback assegurado?"
             )
             return "ask", reason, env, "FILESYSTEM"
 
         reason = (
-            "[CEH DEV PERMITTED - Caso de Uso: Sistema de Arquivos] Comando destrutivo liberado para ambiente de "
-            "desenvolvimento/teste, condicionado à prontidão de backup e estratégia de rollback."
+            f"[CEH DEV PERMITTED - Caso de Uso: Sistema de Arquivos] Comando destrutivo liberado para ambiente de "
+            f"DESENVOLVIMENTO/TESTE ({desc}). Ambiente: {env.upper()} (Evidência: {env_evidence}).\n"
+            f"Assegure a disponibilidade de backup e rollback para fins de correção."
         )
         return "allow", reason, env, "FILESYSTEM"
 

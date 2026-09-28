@@ -254,6 +254,11 @@ run_test "Data & Infra Rules: Cobertura de regras de dados, infraestrutura e int
 run_test "Help Options Contract: Contrato de opções de escrita a partir do --help (PR-QA-C)" \
     "python3 '$PLUGIN_DIR/tests/test_help_contract.py' >/dev/null 2>&1"
 
+# 28. PR-QA-B Reason Invariant Suite
+run_test "Reason Invariant: Invariante do motivo sobre corpus e bateria (PR-QA-B)" \
+    "python3 '$PLUGIN_DIR/tests/test_reason_invariant.py' >/dev/null 2>&1"
+
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"
