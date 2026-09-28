@@ -90,3 +90,16 @@ Executado `bash clearer-engineering/scripts/doc-audit.sh`:
 - `ceh_core/rules.py`: 225 linhas (Teto: 300)
 
 **Resultado:** 7/7 checagens aprovadas. Todos os 12 componentes rigorosamente dentro do orçamento.
+
+---
+
+## 6. Homologação no CI Remoto (GitHub Actions)
+
+- **Commit**: `0cd93dacddafe68c6ed335e4def0e0bf31f479b5`
+- **Run ID**: [36428018017](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36428018017)
+- **Status Remoto**: `success` (4/4 jobs concluídos com sucesso)
+  - `Validate (ubuntu-latest - Python 3.9)`: Concluído em 2m1s (ID 108946706678) — `success`
+  - `Validate (ubuntu-latest - Python 3.12)`: Concluído em 2m46s (ID 108946706735) — `success`
+  - `Validate (macos-latest - Python 3.12)`: Concluído em 31m42s (ID 108946706286) — `success`
+  - `Validate (macos-latest - Python 3.9)`: Concluído em 32m29s (ID 108946707022) — `success`
+
