@@ -6,7 +6,7 @@
 **Linha de Base Homologada:** `d4bb909` (Handoff 049)  
 **Status da Suíte Canônica Local:** **60/60 testes aprovados (100% PASS)**  
 **Certificado de CI:** Emitido em `.ceh/last-ci-run.json`  
-**CI do Servidor (GitHub Actions):** [Aguardando push para URL de run]
+**CI do Servidor (GitHub Actions):** [Run 36369910415](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36369910415) (4/4 jobs concluídos com sucesso: Ubuntu/macOS × Python 3.9/3.12)  
 
 ---
 
