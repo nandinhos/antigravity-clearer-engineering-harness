@@ -64,8 +64,7 @@ def has_unresolved_env_var(target: str) -> bool:
 
 def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[bool, str]:
     """Verifica se um alvo é catastrófico (bloqueado incondicionalmente em qualquer ambiente)."""
-    cwd_path = Path.cwd().resolve() if cwd is None else Path(cwd).resolve()
-    cwd_str = str(cwd_path)
+    cwd_str = str(cwd) if cwd is not None else str(Path.cwd().resolve())
 
     t = strip_all_quotes(target)
     if not t:
@@ -116,10 +115,9 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
 
 def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None) -> bool:
     """S1: Atalho seguro restrito a diretórios no cwd, arquivo único ou /tmp/."""
-    cwd_path = Path.cwd().resolve() if cwd is None else Path(cwd).resolve()
-    cwd_str = str(cwd_path)
+    cwd_str = str(cwd) if cwd is not None else str(Path.cwd().resolve())
 
-    if has_unresolved_env_var(target) or is_target_catastrophic(target, cwd_path)[0]:
+    if has_unresolved_env_var(target) or is_target_catastrophic(target, cwd_str)[0]:
         return False
 
     t = strip_all_quotes(target)

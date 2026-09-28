@@ -138,7 +138,7 @@ def normalize_path(
     if not p_str:
         return ""
 
-    cwd_str = str(Path(cwd).resolve()) if cwd is not None else str(Path.cwd().resolve())
+    cwd_str = os.path.normpath(str(cwd)) if cwd is not None else str(Path.cwd().resolve())
 
     # Substituição de $PWD e ${PWD}
     p_str = p_str.replace("${PWD}", cwd_str).replace("$PWD", cwd_str)

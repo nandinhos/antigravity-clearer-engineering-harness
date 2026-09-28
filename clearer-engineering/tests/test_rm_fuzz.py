@@ -34,8 +34,8 @@ class TestRmFuzz(unittest.TestCase):
 
     def test_rm_path_fuzz_invariants(self):
         rng = random.Random(20260926)
-        cwd = Path("/home/user/workspace/project").resolve()
-        cwd_str = str(cwd)
+        cwd_str = "/home/user/workspace/project"
+        cwd = Path(cwd_str)
         home_dir = "/home/user"
 
         safe_prefixes = ["dist", "build", "coverage", "scratch", ".tmp", "tmp", "node_modules/.cache"]

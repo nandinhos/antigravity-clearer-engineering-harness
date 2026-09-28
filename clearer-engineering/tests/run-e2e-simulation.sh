@@ -285,13 +285,17 @@ log_step "5.3 Safety Gate Unit Matrix (including RTK)"
 python3 "$PLUGIN_DIR/tests/test_safety_matrix.py" >/dev/null
 log_ok "Safety Gate Unit Matrix passed."
 
-log_step "5.4 Adversarial Test Suite"
-bash "$PLUGIN_DIR/tests/run-adversarial-tests.sh" >/dev/null
-log_ok "Adversarial Suite passed."
+if [[ -n "${CI:-}" ]]; then
+    log_ok "Ambiente CI detectado: as suítes Canônica e Adversarial já foram executadas em steps dedicados (eliminada duplicação redundante)."
+else
+    log_step "5.4 Adversarial Test Suite"
+    bash "$PLUGIN_DIR/tests/run-adversarial-tests.sh" >/dev/null
+    log_ok "Adversarial Suite passed."
 
-log_step "5.5 Comprehensive General Test Suite"
-bash "$PLUGIN_DIR/tests/run-all-tests.sh" >/dev/null
-log_ok "General Test Suite passed."
+    log_step "5.5 Comprehensive General Test Suite"
+    bash "$PLUGIN_DIR/tests/run-all-tests.sh" >/dev/null
+    log_ok "General Test Suite passed."
+fi
 
 # ------------------------------------------------------------------------------
 # FINAL REPORT
