@@ -518,12 +518,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Validação observada em `0e5eb38`:** suíte 60/60, smoke-evals 5/5, `evidence-report --strict` = `VERIFICADO`, CI remoto 4/4 e checagem separada do gate = `allow`; base avançada para `c247c79`.
 - **Próximo despacho:** PR-QA-B e PR-QA-D, conforme Handoff 050.
 
-### 0.50 Revisão PR-QA-B/D: B homologado; D pendente de teste estrutural ([Handoff 051](./temp_implementation/handoffs/handoff-051-revisao-prqa-b-d-despacho-prqa-d2.md))
+### 0.50 PR-QA-D2: D01 corrigido; nova lacuna D02 no detector AST ([Handoff 051](./temp_implementation/handoffs/handoff-051-revisao-prqa-b-d-despacho-prqa-d2.md))
 
-- **Estado observado em `7999273`:** PR-QA-B satisfaz os critérios de cobertura do invariante e falsificabilidade; CI remoto 36422792664, 4/4 jobs verdes. PR-QA-D centraliza a API de normalização e preserva as decisões observadas no snapshot, fuzz e matriz diferencial documentados; CI remoto 36428018017, 4/4 jobs verdes.
-- **D01 (médio):** `test_normalization_structural.py` libera `shlex.split` por nome de arquivo (`rules.py`), embora a exceção descrita seja somente a chamada de fail-closed em `is_cert_tampering`. Em clone, acrescentar outra chamada `shlex.split` em `rules.py` manteve os 4 testes estruturais verdes. A exceção não está limitada à ocorrência autorizada.
-- **Veredito:** PR-QA-B homologado; PR-QA-D **não homologado** até restringir e falsificar a exceção estrutural. A suíte completa e smoke-evals passaram localmente, o que não neutraliza D01. Baseline diferencial do PR-QA-D: `c247c79`.
-- **Próximo:** PR-QA-D2 deve limitar a exceção a uma ocorrência semanticamente identificada e provar, em clone, que chamada adicional no mesmo arquivo reprova. PR-20 fica retido até D2 cumprir o critério estrutural. Não avançar baseline de comportamento.
+- **D01 corrigido em `c433606`:** a exceção de `shlex.split` agora é limitada a `("rules.py", "is_cert_tampering")`, com teto de uma chamada. Reproduzi em clone os quatro cenários da evidência: chamada no módulo, chamada excedente no call-site autorizado, nova função `normalize_*` e `normpath` direto; todos foram detectados.
+- **D02 (médio):** a varredura estrutural não resolve aliases de imports. Em clones, `from shlex import split as shell_lexer; shell_lexer(...)` e `from os.path import normpath as path_normalizer; path_normalizer(...)` mantiveram o teste estrutural verde (4/4). A centralização pode voltar a ser violada por importações idiomáticas sem detecção.
+- **Validação observada:** suíte canônica 62/62 e smoke-evals 5/5 em `c433606`. No CI 36440671039, os dois jobs Ubuntu terminaram `success`; os dois jobs macOS estavam `in_progress` quando a revisão foi registrada.
+- **Veredito:** PR-QA-D2 **não homologado** por D02; PR-20 continua retido. A correção específica D01 está aceita, mas a garantia estrutural ainda permite normalização/tokenização fora do módulo único.
+- **Próximo:** PR-QA-D3 deve reconhecer aliases AST para `shlex.split`, `os.path.normpath` e `posixpath.normpath` (incluindo aliases nos imports), com mutações de importação nomeada e de módulo renomeado. Reexecutar também os quatro cenários D2, snapshot/differential contra `c247c79`, suíte e evals; exigir CI 4/4 verde antes da próxima revisão. Não alterar decisões de runtime nem baseline.
 
 
 ## 1. Objetivo
