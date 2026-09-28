@@ -512,13 +512,18 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalvas baixas:** AW1 (`r8sync`, erro de digitação do Handoff 048, e `find` na lista de `--exclude`), AW2 (link do servidor fora da evidência versionada).
 - **Próximo:** PR-QA-C, contrato de opções de escrita a partir do `--help`, que fecha a classe do AV1.
 
-### 0.49 PR-QA-C não homologado: contrato não executável ([Handoff 050](./temp_implementation/handoffs/handoff-050-revisao-prqa-c.md))
+### 0.49 PR-QA-C2 homologado; despacho de B/D ([Handoff 050](./temp_implementation/handoffs/handoff-050-revisao-prqa-c-despacho-prqa-b-d.md))
 
-- **Validação observada em `c247c79`:** suíte canônica 60/60, smoke-evals 5/5, `evidence-report --strict` = `VERIFICADO`, CI do servidor 4/4 e checagem separada do gate = `allow`.
-- **C01 (médio):** `test_help_contract.py` verifica que cada comando tem uma entrada e que o arquivo de help existe, mas não percorre `write_options` para exigir que cada opção catalogada seja negada. Em clone, adicionar `--invented-output` ao contrato de `cat` manteve os 5 testes verdes. O vínculo entre inventário e proteção continua manual.
-- **C01 (precisão da fonte):** o contrato lista `git diff --output-directory` em `write_options.json`, mas a opção não aparece no `git-diff.txt` citado; o snippet referenciado é `--output=<file>`. O teste não valida as linhas ou snippets das fontes.
-- **Veredito:** PR-QA-C **não homologado**; os testes atuais cobrem as opções codificadas manualmente, mas não o critério de cobertura futura definido no Handoff 049. Linha de base mantida em `d4bb909`.
-- **Próximo:** PR-QA-C2 deve derivar/validar os casos a partir do JSON e conferir cada `help_line`/`help_snippet` na fonte versionada, com mutações para opção sem tratamento e referência de help inválida.
+- **Correção do estado anterior:** PR-QA-C2 fechou C01 ao derivar as verificações do `write_options.json`, validar referências `help_line`/`help_snippet` contra as fontes versionadas e reprovar mutações de opção sem tratamento e referência inválida. A evidência está em `docs/temp_implementation/evidence/prqa-c-evidence.md`.
+- **Validação observada em `0e5eb38`:** suíte 60/60, smoke-evals 5/5, `evidence-report --strict` = `VERIFICADO`, CI remoto 4/4 e checagem separada do gate = `allow`; base avançada para `c247c79`.
+- **Próximo despacho:** PR-QA-B e PR-QA-D, conforme Handoff 050.
+
+### 0.50 Revisão PR-QA-B/D: B homologado; D pendente de teste estrutural ([Handoff 051](./temp_implementation/handoffs/handoff-051-revisao-prqa-b-d-despacho-prqa-d2.md))
+
+- **Estado observado em `7999273`:** PR-QA-B satisfaz os critérios de cobertura do invariante e falsificabilidade; CI remoto 36422792664, 4/4 jobs verdes. PR-QA-D centraliza a API de normalização e preserva as decisões observadas no snapshot, fuzz e matriz diferencial documentados; CI remoto 36428018017, 4/4 jobs verdes.
+- **D01 (médio):** `test_normalization_structural.py` libera `shlex.split` por nome de arquivo (`rules.py`), embora a exceção descrita seja somente a chamada de fail-closed em `is_cert_tampering`. Em clone, acrescentar outra chamada `shlex.split` em `rules.py` manteve os 4 testes estruturais verdes. A exceção não está limitada à ocorrência autorizada.
+- **Veredito:** PR-QA-B homologado; PR-QA-D **não homologado** até restringir e falsificar a exceção estrutural. A suíte completa e smoke-evals passaram localmente, o que não neutraliza D01. Baseline diferencial do PR-QA-D: `c247c79`.
+- **Próximo:** PR-QA-D2 deve limitar a exceção a uma ocorrência semanticamente identificada e provar, em clone, que chamada adicional no mesmo arquivo reprova. PR-20 fica retido até D2 cumprir o critério estrutural. Não avançar baseline de comportamento.
 
 
 ## 1. Objetivo
