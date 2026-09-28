@@ -262,6 +262,9 @@ run_test "Reason Invariant: Invariante do motivo sobre corpus e bateria (PR-QA-B
 run_test "Normalization Structural: Validação de ponto único de normalização (PR-QA-D)" \
     "python3 '$PLUGIN_DIR/tests/test_normalization_structural.py' >/dev/null 2>&1"
 
+# 30. PR-20a Conselho Output Directory Behavioral Regression (D05)
+run_test "Conselho Output Dir: Ancoragem de atas ao repo do usuário e fallback sem git (3/3 cenários)" \
+    "python3 '$PLUGIN_DIR/tests/test_conselho_output_dir.py' >/dev/null 2>&1"
 
 
 echo ""

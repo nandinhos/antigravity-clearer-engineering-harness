@@ -13,7 +13,7 @@ Este diretório contém os Registros de Decisões Arquiteturais (*Architecture D
 | **003** | Adoção da Epistemologia System One e Qualificação "Like a Jev" | **Aprovado** | [`system-one-epistemology.md`](./system-one-epistemology.md) |
 | **004** | Governança de CI Mandatória e Pre-Push Safety Gate (*Zero-Tolerance Pipeline Red*) | **Aprovado** | [`ci-governance-policy.md`](./ci-governance-policy.md) |
 | **005** | Desacoplamento entre Estratégia de CI e Runtime Local (Host Nativo vs. Docker/Sail) | **Aprovado** | [`runtime-and-ci-adapters.md`](./runtime-and-ci-adapters.md) |
-| **006** | Separação entre Núcleo Portável (Stdlib-Only) e Adaptadores de Host | **Aprovado** | [`adr-006-nucleo-e-adaptadores.md`](./adr-006-nucleo-e-adaptadores.md) |
+| **006** | Separação entre Núcleo Portável (Stdlib-Only) e Adaptadores de Host | **Aceito** | [`adr-006-nucleo-e-adaptadores.md`](./adr-006-nucleo-e-adaptadores.md) |
 | **007** | Proteção de Integridade do Certificado de CI e Modelo de Ameaças | **Aprovado** | [`adr-007-protecao-certificado-modelo-ameacas.md`](./adr-007-protecao-certificado-modelo-ameacas.md) |
 
 ---
@@ -26,6 +26,6 @@ As decisões de arquitetura de **ADR 001** (concepção do acrônimo CLEARER, di
 
 ## Princípios Arquiteturais Inegociáveis do CEH
 
-1. **Stdlib-Only no Núcleo**: O núcleo de avaliação de regras opera exclusivamente com a biblioteca padrão (Python 3.9+ e Bash POSIX), sem dependências externas.
+1. **Stdlib-Only no Núcleo**: O núcleo de avaliação de regras opera exclusivamente com a biblioteca padrão (Python 3.9+ stdlib e scripts Bash 3.2+), sem dependências externas.
 2. **Evidência Física sobre Suposição**: Nenhuma alegação de funcionamento ou compatibilidade é aceita sem prova observada (`OBSERVED`) com comando executado e exit code documentado.
 3. **Fail-Closed on Real Hazards**: Diante de ambiguidade, incerteza léxica ou caminhos desconhecidos em ambientes protegidos, o harness sempre assume a postura mais segura (`CATASTROPHIC > DENY > ASK > ALLOW`).

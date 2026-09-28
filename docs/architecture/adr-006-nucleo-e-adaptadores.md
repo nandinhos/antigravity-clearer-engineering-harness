@@ -1,30 +1,25 @@
 # ADR 006: Separação entre Núcleo Portável (Stdlib-Only) e Adaptadores de Host
 
 ## Status
-**APROVADO** (Implementado no CEH v1.3.0+)
+**ACEITO** (Direção arquitetural adotada; núcleo implementado em `ceh_core/` e adaptador Antigravity ativo; adaptadores adicionais e suíte de conformidade multi-host planejados para a Onda 4 / v2.0.0)
 
 ---
 
 ## Contexto & Problema
 
-O **CLEARER Engineering Harness (CEH)** nasceu originalmente como um plugin de governança acoplado ao ecossistema do Google Antigravity. Entretanto, o objetivo estratégico do harness é atuar como um **núcleo de comportamento e segurança portável**, capaz de prover as mesmas garantias determinísticas (Safety Gate, classificação de ambientes, governança de CI e auditoria de evidências) em múltiplos hosts:
-- Google Antigravity (IDE e CLI)
-- Claude Code / Anthropic Agent
-- OpenAI Codex / CLI
-- Cursor / Windsurf / DSH
-- Ambientes de Terminal puro e CI/CD
+O **CLEARER Engineering Harness (CEH)** foi inicialmente concebido como um plugin de governança acoplado ao ecossistema do Google Antigravity. O objetivo de evolução arquitetural do harness é estruturar as políticas de segurança e engenharia sob um **núcleo de comportamento desacoplado**, a partir do qual adaptadores para diferentes ambientes (Antigravity, Claude Code, Cursor, Codex, terminal) possam ser integrados mantendo regras equivalentes.
 
-Se o código de segurança, parsing de shell e avaliação de regras depender de APIs proprietárias, SDKs de hosts específicos ou bibliotecas externas não padronizadas, a replicação do harness para outros ambientes resultará em divergência semântica e potenciais brechas de segurança.
+Se a lógica de segurança, parsing de shell e avaliação de regras depender de APIs proprietárias de um único host ou de dependências externas pesadas, a replicação do harness para outros ambientes resultará em divergência semântica e complexidade de manutenção.
 
 ---
 
 ## Decisão Arquitetural
 
-Adotamos a **Arquitetura de Núcleo Limpo e Adaptadores Desacoplados (Hexagonal / Ports and Adapters)**:
+Adotamos a **Separação Arquitetural entre Núcleo e Adaptadores de Host**:
 
-### 1. Núcleo Autocontido (*Core Policy Engine* — Stdlib-Only)
+### 1. Núcleo de Políticas (*Core Policy Engine* — Python Stdlib-Only)
 - Localizado em `clearer-engineering/scripts/ceh_core/` e acionado via `safety-gate.py` e `test-runner.sh`.
-- **Restrição Inegociável**: Operação 100% restrita à biblioteca padrão (`stdlib-only` Python 3.9+ e Bash POSIX). Zero dependências via `pip`, zero frameworks externos.
+- **Restrição Inegociável**: Operação do código Python do núcleo 100% restrita à biblioteca padrão (`stdlib-only` Python 3.9+), sem dependências via `pip`. Scripts auxiliares de shell utilizam Bash (compatíveis com a matriz testada: Apple Legacy Bash 3.2 no macOS e Bash 5+ no Ubuntu).
 - Responsabilidades do Núcleo:
   - Lexer e tokenizer determinístico de shell (`ceh_core/lexer.py`).
   - Ponto único de normalização de caminhos e comandos (`ceh_core/normalize.py`).
@@ -33,16 +28,19 @@ Adotamos a **Arquitetura de Núcleo Limpo e Adaptadores Desacoplados (Hexagonal 
   - Certificação local e hermética de CI (`.ceh/last-ci-run.json`).
 
 ### 2. Adaptadores de Host (*Host Adapters*)
-- Os adaptadores são camadas finas responsáveis unicamente por traduzir o protocolo específico de cada host para a interface canônica do núcleo (`safety-gate.py --check <cmd>` ou JSON stdin/stdout):
-  - **Antigravity Hook Adapter**: `hooks.json` intercepta `PreToolUse` e invoca `safety-gate.py`.
-  - **CLI Adapter**: Scripts executáveis como `agy-ceh` e `ceh-branches`.
-  - **Claude Code / Cursor Adapters**: Hooks de pré-execução que despacham chamadas para o motor Python do CEH.
-- Os adaptadores **NÃO** reimplementam regras de segurança, não contêm lógica de bypass e nunca afrouxam as decisões do núcleo.
+Os adaptadores são camadas de integração responsáveis por traduzir o protocolo de interceptação de ferramentas específico de cada host para a interface canônica do núcleo:
+
+- **Adaptadores Implementados e Validados**:
+  - **Antigravity Hook Adapter**: `hooks.json` intercepta chamadas de ferramenta e invoca `safety-gate.py`.
+  - **Terminal / CLI Adapter**: Scripts executáveis como `agy-ceh` e `ceh-branches`.
+- **Adaptadores Planejados (Trabalho Futuro — Onda 4 / v2.0.0)**:
+  - Adaptadores dedicados para Claude Code (`hosts/claude-code/`), Cursor e outros ambientes, conforme cronograma da Onda 4.
+  - Suíte formal de conformidade multi-host para demonstrar empiricamente a equivalência de vereditos entre os diferentes adaptadores antes de declarar paridade funcional.
 
 ---
 
-## Consequências e Benefícios
+## Consequências e Benefícios Observados
 
-- **Portabilidade Total**: O mesmo motor de regras avalia comandos localmente, em containers ou na esteira de CI com comportamento idêntico.
-- **Auditoria Centralizada**: Toda evolução, correção de brechas ou adição de comandos ocorre no núcleo `ceh_core`, propagando-se automaticamente a todos os adaptadores.
-- **Baixa Pegada de Memória & Inicialização Instantânea**: Sem dependências pesadas, o Safety Gate executa em poucos milissegundos (< 50ms).
+- **Desacoplamento Arquitetural**: A política de segurança reside centralizada no núcleo `ceh_core/`, separada dos pontos de injeção e hooks do host.
+- **Auditoria e Evolução Centralizadas**: Correções de regras, novos bloqueios e ajustes léxicos ocorrem em ponto único do repositório.
+- **Baixa Latência de Inicialização**: A execução do Safety Gate opera estritamente com módulos nativos da biblioteca padrão Python, sem a sobrecarga de inicialização de frameworks externos.
