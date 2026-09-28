@@ -512,6 +512,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalvas baixas:** AW1 (`r8sync`, erro de digitação do Handoff 048, e `find` na lista de `--exclude`), AW2 (link do servidor fora da evidência versionada).
 - **Próximo:** PR-QA-C, contrato de opções de escrita a partir do `--help`, que fecha a classe do AV1.
 
+### 0.49 PR-QA-C homologado ([Handoff 050](./temp_implementation/handoffs/handoff-050-revisao-prqa-c-despacho-prqa-b-d.md))
+
+- **Contrato de opções de escrita** (`config/write_options.json`) cobre os 19 comandos de leitura, com o `--help` real versionado. O gate trata as opções que gravam ou executam (`less -o/-O`, `git --output/--ext-diff/--textconv`, `json.tool outfile`), só com apertos.
+- **Garantia estrutural:** um comando na lista de leitura sem contrato reprova o teste (mutação reproduzida com `nl`). Fecha a classe do AV1.
+- **Servidor:** [run 36369910415](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36369910415) verde. AW1 e AW2 resolvidos.
+- **Linha de base:** `c247c79`.
+- **Ressalvas baixas:** AX1 (`--help` capturado no ambiente local, não no CI), AX2 (duas citações que não nomeiam a opção).
+- **Próximo:** PR-QA-B (invariante do motivo) e PR-QA-D (normalização única, sem mudança de decisão).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
