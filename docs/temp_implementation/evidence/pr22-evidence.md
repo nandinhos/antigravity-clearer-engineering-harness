@@ -146,3 +146,28 @@ A suíte geral foi executada via `test-runner.sh`, gerando o certificado assinad
 - **Aprovados:** 59 (100%)
 - **Falhas:** 0
 - **Exit Code:** 0
+
+---
+
+## 7. Execução Remota no Servidor (CI 4/4 Verde — Run 36361871642)
+
+- **URL do Run Oficial:** [GitHub Actions Run 36361871642](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36361871642)
+- **Commit:** `21b440baf15b0c1eda34738ed617e6e21f23b1b2`
+- **Status Geral:** **SUCCESS (4/4 jobs concluídos com sucesso)**
+
+| Job | Ambiente | Duração | ID do Job | Conclusão |
+|---|---|---|---|---|
+| `Validate (macos-latest - Python 3.9)` | macOS 14 / Py 3.9 | 21m38s | [108740487872](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36361871642/job/108740487872) | **success** ✓ |
+| `Validate (ubuntu-latest - Python 3.9)` | Ubuntu 24.04 / Py 3.9 | 2m12s | [108740487983](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36361871642/job/108740487983) | **success** ✓ |
+| `Validate (macos-latest - Python 3.12)` | macOS 14 / Py 3.12 | 15m1s | [108740488024](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36361871642/job/108740488024) | **success** ✓ |
+| `Validate (ubuntu-latest - Python 3.12)` | Ubuntu 24.04 / Py 3.12 | 2m25s | [108740488032](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36361871642/job/108740488032) | **success** ✓ |
+
+---
+
+## 8. Verificação do Git Worktree (`git status --porcelain`)
+
+```bash
+$ git status --porcelain
+(saída vazia — zero arquivos modificados ou untracked)
+```
+
