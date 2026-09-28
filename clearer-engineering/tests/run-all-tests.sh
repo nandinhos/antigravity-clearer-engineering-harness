@@ -250,6 +250,10 @@ run_test "Install Verification: Idempotência, simetria byte a byte e validaçã
 run_test "Data & Infra Rules: Cobertura de regras de dados, infraestrutura e integridade de .ceh (PR-22)" \
     "python3 '$PLUGIN_DIR/tests/test_rules_data_infra.py' >/dev/null 2>&1"
 
+# 27. PR-QA-C Help Options Contract Suite
+run_test "Help Options Contract: Contrato de opções de escrita a partir do --help (PR-QA-C)" \
+    "python3 '$PLUGIN_DIR/tests/test_help_contract.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"

@@ -1,0 +1,240 @@
+{
+  "contract_version": "1.0.0",
+  "description": "Contrato formal de opções de escrita/execução para comandos autorizados em listas de leitura do Safety Gate (PR-QA-C).",
+  "commands": {
+    "cat": {
+      "command": "cat",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/cat.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Concatena arquivos exclusivamente para stdout. Nenhuma opção de gravação em arquivo ou execução externa presente no --help."
+    },
+    "diff": {
+      "command": "diff",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/diff.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Compara arquivos e escreve exclusivamente em stdout. Opções -D/--ifdef geram diff formatado em stdout sem gravar arquivos."
+    },
+    "du": {
+      "command": "du",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/du.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Estima uso de espaço em disco em stdout. Nenhuma opção de escrita de arquivos ou execução externa."
+    },
+    "egrep": {
+      "command": "egrep",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/egrep.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Busca padrões regex em arquivos com saída para stdout. Sem opções de escrita."
+    },
+    "fgrep": {
+      "command": "fgrep",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/fgrep.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Busca strings fixas em arquivos com saída para stdout. Sem opções de escrita."
+    },
+    "grep": {
+      "command": "grep",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/grep.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Filtro de busca em texto com saída para stdout. Sem opções de escrita."
+    },
+    "head": {
+      "command": "head",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/head.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Imprime primeiras linhas para stdout. Sem opções de escrita."
+    },
+    "jq": {
+      "command": "jq",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/jq.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Processador JSON para stdout. Filtros e flags operam sem efeitos colaterais de gravação."
+    },
+    "less": {
+      "command": "less",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/less.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "-o",
+          "help_line": 171,
+          "help_snippet": "-o [file]  .  --log-file=[file]  Copy input also to given file (only when input is a pipe)",
+          "type": "file_write"
+        },
+        {
+          "flag": "-O",
+          "help_line": 173,
+          "help_snippet": "-O [file]  .  --LOG-FILE=[file]  Copy to log file (unconditionally overwrite)",
+          "type": "file_write"
+        },
+        {
+          "flag": "--log-file",
+          "help_line": 171,
+          "help_snippet": "-o [file]  .  --log-file=[file]",
+          "type": "file_write"
+        },
+        {
+          "flag": "--LOG-FILE",
+          "help_line": 173,
+          "help_snippet": "-O [file]  .  --LOG-FILE=[file]",
+          "type": "file_write"
+        }
+      ],
+      "rationale": "Possui opções de cópia para arquivo de log (-o/-O/--log-file/--LOG-FILE) que gravam em disco."
+    },
+    "ls": {
+      "command": "ls",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/ls.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Lista diretórios para stdout. Flag -o oculta grupo em stdout sem gravar arquivo."
+    },
+    "more": {
+      "command": "more",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/more.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Pager de paginação para stdout. Sem opções de escrita."
+    },
+    "stat": {
+      "command": "stat",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/stat.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Exibe metadados de arquivos em stdout. Sem opções de escrita."
+    },
+    "tail": {
+      "command": "tail",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/tail.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Imprime últimas linhas para stdout. Sem opções de escrita."
+    },
+    "wc": {
+      "command": "wc",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/wc.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Conta linhas/palavras/bytes para stdout. Sem opções de escrita."
+    },
+    "git-status": {
+      "command": "git status",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-status.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "rationale": "Subcomando de status do git. Sem flags de escrita de arquivos ou execução externa."
+    },
+    "git-diff": {
+      "command": "git diff",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-diff.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "--output",
+          "help_line": 170,
+          "help_snippet": "--output=<file>       Output to a specific file instead of stdout.",
+          "type": "file_write"
+        },
+        {
+          "flag": "--output-directory",
+          "help_line": 170,
+          "help_snippet": "--output=<file>       Output to a specific file instead of stdout.",
+          "type": "file_write"
+        },
+        {
+          "flag": "--ext-diff",
+          "help_line": 994,
+          "help_snippet": "--ext-diff            Allow an external diff helper to be executed.",
+          "type": "external_exec"
+        },
+        {
+          "flag": "--textconv",
+          "help_line": 1004,
+          "help_snippet": "--textconv, --no-textconv  Allow (or disallow) external text conversion filters to be run.",
+          "type": "external_exec"
+        }
+      ],
+      "rationale": "Subcomando de diff do git que permite escrita direcionada (--output) e execução de filtros externos (--ext-diff, --textconv)."
+    },
+    "git-log": {
+      "command": "git log",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-log.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "--output",
+          "help_line": 2304,
+          "help_snippet": "--output=<file>       Output to a specific file instead of stdout.",
+          "type": "file_write"
+        },
+        {
+          "flag": "-o",
+          "help_line": 2304,
+          "help_snippet": "--output=<file>       Output to a specific file instead of stdout.",
+          "type": "file_write"
+        },
+        {
+          "flag": "--ext-diff",
+          "help_line": 3126,
+          "help_snippet": "--ext-diff            Allow an external diff helper to be executed.",
+          "type": "external_exec"
+        },
+        {
+          "flag": "--textconv",
+          "help_line": 3136,
+          "help_snippet": "--textconv, --no-textconv  Allow (or disallow) external text conversion filters to be run.",
+          "type": "external_exec"
+        }
+      ],
+      "rationale": "Subcomando de log do git com suporte a escrita direta (--output/-o) e execução de helpers externos."
+    },
+    "git-show": {
+      "command": "git show",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-show.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "--output",
+          "help_line": 994,
+          "help_snippet": "--output=<file>       Output to a specific file instead of stdout.",
+          "type": "file_write"
+        },
+        {
+          "flag": "--ext-diff",
+          "help_line": 1816,
+          "help_snippet": "--ext-diff            Allow an external diff helper to be executed.",
+          "type": "external_exec"
+        },
+        {
+          "flag": "--textconv",
+          "help_line": 1826,
+          "help_snippet": "--textconv, --no-textconv  Allow (or disallow) external text conversion filters to be run.",
+          "type": "external_exec"
+        }
+      ],
+      "rationale": "Subcomando show do git com suporte a escrita direta (--output) e execução de filtros externos."
+    },
+    "python-json-tool": {
+      "command": "python3 -m json.tool",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/python-json-tool.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "[outfile]",
+          "help_line": 16,
+          "help_snippet": "outfile            write the output of infile to outfile",
+          "type": "file_write"
+        }
+      ],
+      "rationale": "Módulo utilitário do Python que aceita argumento posicional de destino gravando em arquivo."
+    }
+  }
+}

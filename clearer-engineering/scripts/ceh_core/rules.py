@@ -81,7 +81,7 @@ ALLOWED_READ_CMDS = {
 }
 
 ALLOWED_GIT_READ_SUBCMDS = {"status", "log", "diff", "show"}
-EXCLUDE_SUPPORTED_CMDS = {"tar", "rsync", "r8sync", "grep", "rg", "find"}
+EXCLUDE_SUPPORTED_CMDS = {"tar", "rsync", "grep", "rg"}
 
 def _extract_base_command(cmd: str) -> str:
     """Extrai o comando executável base desconsiderando wrappers transparentes e variáveis de ambiente."""
@@ -111,9 +111,9 @@ def _extract_base_command(cmd: str) -> str:
 
 def strip_ceh_exclusions(cmd: str) -> str:
     """
-    Remove argumentos de exclusão benignos onde .ceh/ é explicitamente ignorado (AM2 / AV2).
+    Remove argumentos de exclusão benignos onde .ceh/ é explicitamente ignorado (AM2 / AV2 / AW1).
     Restringe estritamente a comandos que suportam exclusão sintática:
-    - --exclude para tar, rsync, r8sync, grep, rg, find
+    - --exclude para tar, rsync, grep, rg
     - -path ... -prune para find
     """
     base_cmd = _extract_base_command(cmd)
@@ -126,14 +126,14 @@ def strip_ceh_exclusions(cmd: str) -> str:
 
 def is_git_read_subcommand(args: list[str]) -> bool:
     """
-    Verifica se os argumentos de invocação do git constituem subcomando de leitura pura (AM2 / AV1).
-    Fail-closed: se qualquer token for flag de escrita (-o, -O, --output, --output=, --output-*),
-    não é leitura pura, retornando False para barrar gravação no certificado (G9).
+    Verifica se os argumentos de invocação do git constituem subcomando de leitura pura (AM2 / AV1 / PR-QA-C).
+    Fail-closed: se qualquer token for flag de escrita ou execução (-o, -O, --output, --output=, --output-*,
+    --ext-diff, --textconv), não é leitura pura, retornando False para barrar gravação ou execução externa (G9).
     """
     for arg in args:
-        if arg in ("-o", "-O", "--output"):
+        if arg in ("-o", "-O", "--output", "--ext-diff", "--textconv"):
             return False
-        if arg.startswith(("--output=", "--output-")):
+        if arg.startswith(("--output=", "--output-", "--ext-diff", "--textconv")):
             return False
         if (arg.startswith("-o") or arg.startswith("-O")) and len(arg) > 2:
             return False
@@ -164,7 +164,7 @@ def is_cert_tampering(cmd: str) -> tuple[bool, str]:
     """
     Detecta tentativas de alteração ou escrita nos certificados de CI ou no diretório .ceh/.
     Regra fail-closed: qualquer menção aos arquivos protegidos ou ao diretório .ceh é bloqueada (DENY),
-    EXCETO leituras puras sem redirecionamento de escrita (Handoff 037 G9 / Handoff 038 AL1 / Handoff 047 AM2).
+    EXCETO leituras puras sem redirecionamento de escrita ou opções de saída em arquivo (Handoff 037 G9 / Handoff 049 PR-QA-C).
     """
     if not mentions_ceh_or_certs(cmd):
         return False, ""
@@ -202,18 +202,24 @@ def is_cert_tampering(cmd: str) -> tuple[bool, str]:
 
     # Leituras puras permitidas (ls .ceh, cat .ceh/last-ci-run.json, du -sh .ceh, diff ...)
     if base_cmd in ALLOWED_READ_CMDS:
+        # less possui opções de log (-o/-O/--log-file) que gravam em arquivo (PR-QA-C)
+        if base_cmd == "less":
+            if any(a in ("-o", "-O") or a.startswith(("--log-file", "--LOG-FILE")) or ((a.startswith("-o") or a.startswith("-O")) and len(a) > 2) for a in args):
+                return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ less com opção de escrita de log (-o/--log-file) mencionando .ceh/ ou certificado de CI."
         return False, ""
 
-    # git status|log|diff|show sem redirecionamento (AM2)
+    # git status|log|diff|show sem redirecionamento ou opções de escrita/execução (AM2 / PR-QA-C)
     if base_cmd == "git" and is_git_read_subcommand(args):
         return False, ""
     if base_cmd == "rtk" and args and args[0] == "git" and is_git_read_subcommand(args[1:]):
         return False, ""
 
-    # python3 -m json.tool .ceh/last-ci-run.json (leitura pura)
+    # python3 -m json.tool .ceh/last-ci-run.json (leitura pura se não houver segundo posicional outfile)
     if base_cmd in ("python", "python3") and len(args) >= 2:
         if args[0] == "-m" and args[1] == "json.tool":
-            return False, ""
+            pos_args = [a for a in args[2:] if not a.startswith("-")]
+            if len(pos_args) <= 1:
+                return False, ""
 
     return True, f"[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Tentativa de escrita/modificação de .ceh/ ou certificado de CI ({base_cmd}). Apenas leituras puras são permitidas."
 
