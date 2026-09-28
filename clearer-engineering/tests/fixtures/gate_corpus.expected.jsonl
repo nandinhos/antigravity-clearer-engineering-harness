@@ -346,9 +346,9 @@
 {"command": "npx prisma migrate deploy", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-115-dev", "type": "command", "use_case": "GENERAL"}
 {"command": "npx prisma migrate deploy", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-115-sta", "type": "command", "use_case": "GENERAL"}
 {"command": "npx prisma migrate deploy", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-115-pro", "type": "command", "use_case": "GENERAL"}
-{"command": "npx prisma migrate reset", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-116-dev", "type": "command", "use_case": "GENERAL"}
-{"command": "npx prisma migrate reset", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-116-sta", "type": "command", "use_case": "GENERAL"}
-{"command": "npx prisma migrate reset", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-116-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "npx prisma migrate reset", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-116-dev", "type": "command", "use_case": "DATABASE"}
+{"command": "npx prisma migrate reset", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-116-sta", "type": "command", "use_case": "DATABASE"}
+{"command": "npx prisma migrate reset", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-116-pro", "type": "command", "use_case": "DATABASE"}
 {"command": "alembic upgrade head", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-117-dev", "type": "command", "use_case": "GENERAL"}
 {"command": "alembic upgrade head", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-117-sta", "type": "command", "use_case": "GENERAL"}
 {"command": "alembic upgrade head", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-117-pro", "type": "command", "use_case": "GENERAL"}

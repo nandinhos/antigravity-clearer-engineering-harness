@@ -246,6 +246,10 @@ run_test "Certificate Integrity: Proteção contra alteração ou forja de certi
 run_test "Install Verification: Idempotência, simetria byte a byte e validação honesta (PR-11)" \
     "bash '$PLUGIN_DIR/tests/run-install-verification.sh' >/dev/null 2>&1"
 
+# 26. PR-22 Data & Infrastructure Rules & .ceh Integrity (AT3 / AM2)
+run_test "Data & Infra Rules: Cobertura de regras de dados, infraestrutura e integridade de .ceh (PR-22)" \
+    "python3 '$PLUGIN_DIR/tests/test_rules_data_infra.py' >/dev/null 2>&1"
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"
