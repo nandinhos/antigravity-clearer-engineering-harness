@@ -512,14 +512,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalvas baixas:** AW1 (`r8sync`, erro de digitação do Handoff 048, e `find` na lista de `--exclude`), AW2 (link do servidor fora da evidência versionada).
 - **Próximo:** PR-QA-C, contrato de opções de escrita a partir do `--help`, que fecha a classe do AV1.
 
-### 0.49 PR-QA-C homologado ([Handoff 050](./temp_implementation/handoffs/handoff-050-revisao-prqa-c-despacho-prqa-b-d.md))
+### 0.49 PR-QA-C não homologado: contrato não executável ([Handoff 050](./temp_implementation/handoffs/handoff-050-revisao-prqa-c.md))
 
-- **Contrato de opções de escrita** (`config/write_options.json`) cobre os 19 comandos de leitura, com o `--help` real versionado. O gate trata as opções que gravam ou executam (`less -o/-O`, `git --output/--ext-diff/--textconv`, `json.tool outfile`), só com apertos.
-- **Garantia estrutural:** um comando na lista de leitura sem contrato reprova o teste (mutação reproduzida com `nl`). Fecha a classe do AV1.
-- **Servidor:** [run 36369910415](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36369910415) verde. AW1 e AW2 resolvidos.
-- **Linha de base:** `c247c79`.
-- **Ressalvas baixas:** AX1 (`--help` capturado no ambiente local, não no CI), AX2 (duas citações que não nomeiam a opção).
-- **Próximo:** PR-QA-B (invariante do motivo) e PR-QA-D (normalização única, sem mudança de decisão).
+- **Validação observada em `c247c79`:** suíte canônica 60/60, smoke-evals 5/5, `evidence-report --strict` = `VERIFICADO`, CI do servidor 4/4 e checagem separada do gate = `allow`.
+- **C01 (médio):** `test_help_contract.py` verifica que cada comando tem uma entrada e que o arquivo de help existe, mas não percorre `write_options` para exigir que cada opção catalogada seja negada. Em clone, adicionar `--invented-output` ao contrato de `cat` manteve os 5 testes verdes. O vínculo entre inventário e proteção continua manual.
+- **C01 (precisão da fonte):** o contrato lista `git diff --output-directory` em `write_options.json`, mas a opção não aparece no `git-diff.txt` citado; o snippet referenciado é `--output=<file>`. O teste não valida as linhas ou snippets das fontes.
+- **Veredito:** PR-QA-C **não homologado**; os testes atuais cobrem as opções codificadas manualmente, mas não o critério de cobertura futura definido no Handoff 049. Linha de base mantida em `d4bb909`.
+- **Próximo:** PR-QA-C2 deve derivar/validar os casos a partir do JSON e conferir cada `help_line`/`help_snippet` na fonte versionada, com mutações para opção sem tratamento e referência de help inválida.
+
 
 ## 1. Objetivo
 
