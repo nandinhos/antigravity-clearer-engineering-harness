@@ -539,6 +539,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Veredito:** PR-20 não homologado até a revisão documental do ADR-006. O ajuste do diretório de atas e os READMEs não apresentaram achado bloqueante nesta rodada. D04 continua pendente, independente, e impede a homologação geral/merge da branch.
 - **Próximo:** PR-20a deve corrigir escopo/status e remover ou ancorar as promessas não demonstradas; depois, repetir o relatório estrito, a suíte, evals e CI remoto no commit corrigido.
 
+### 0.53 PR-20a entregue e validado; ADR-006 e testes do Conselho ([Handoff 055](./temp_implementation/handoffs/handoff-055-pr20a-correcao-adr006-e-testes-conselho.md))
+
+- **D05 corrigido em `c80b831`:** ADR-006 marcado como decisão `Aceito`, escopo delimitado (núcleo e hook Antigravity implementados, adaptadores e suíte de conformidade mantidos como trabalho futuro), requisitos alinhados para Python 3.9+ e Bash 3.2+, claims quantitativos e universais removidos.
+- **Teste comportamental do Conselho:** criado `clearer-engineering/tests/test_conselho_output_dir.py` cobrindo 3 cenários (repo do usuário, instalação externa, fallback sem git) com normalização canônica de caminhos e symlinks multi-plataforma.
+- **Validações observadas:** suíte canônica 63/63 PASS (exit code 0), smoke-evals 5/5 PASS, auditoria documental 7/7 PASS, evidence-report estrito VERIFICADO. CI remoto Run 36475885529 concluiu 4/4 jobs com sucesso (Ubuntu/macOS × Python 3.9/3.12).
+- **Veredito:** PR-20a pronto para homologação formal pelo Revisor Independente. D04 permanece aberto como gate separado para a homologação geral da branch.
+
+
 
 ## 1. Objetivo
 
