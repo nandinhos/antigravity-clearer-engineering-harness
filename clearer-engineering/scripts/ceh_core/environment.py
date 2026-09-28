@@ -6,6 +6,7 @@ from pathlib import Path
 from ceh_core.normalize import (
     STAGING_SEGMENTS,
     normalize_env,
+    normalize_path,
     classify_branch_name,
     strip_quotes,
     strip_all_quotes,
@@ -33,7 +34,7 @@ def is_unresolved_cd_target(target: str) -> bool:
 def _parse_target_path(raw: str, cwd: Path) -> tuple[Path | None, bool]:
     clean = raw.strip("'\"")
     if is_unresolved_cd_target(clean): return None, True
-    p = Path(clean) if Path(clean).is_absolute() else (cwd / Path(clean)).resolve()
+    p = Path(clean) if Path(clean).is_absolute() else Path(normalize_path(cwd / Path(clean), resolve_home=False))
     return (p.parent if p.name == ".git" else p), False
 
 def _extract_git_branch_arg(args: list[str]) -> str | None:
@@ -113,7 +114,7 @@ def extract_command_environment_tokens(cmd_line: str) -> tuple[str | None, str |
     return max(found, key=lambda item: ENV_SEVERITY.get(item[0], 0)) if found else (None, None)
 
 def get_git_branch(target_dir: Path | str | None = None) -> str | None:
-    key = str(Path(target_dir).resolve()) if target_dir else str(Path.cwd().resolve())
+    key = normalize_path(target_dir, resolve_home=False) if target_dir else str(Path.cwd().resolve())
     if key in _BRANCH_CACHE: return _BRANCH_CACHE[key]
     try:
         res = subprocess.run(["git", "branch", "--show-current"], cwd=Path(key), capture_output=True, text=True, timeout=2)
@@ -123,7 +124,7 @@ def get_git_branch(target_dir: Path | str | None = None) -> str | None:
     _BRANCH_CACHE[key] = None; return None
 
 def find_repo_root(start_dir: Path) -> Path | None:
-    key = str(start_dir.resolve())
+    key = normalize_path(start_dir, resolve_home=False)
     if key in _REPO_ROOT_CACHE: return _REPO_ROOT_CACHE[key]
     current = Path(key)
     for parent in [current] + list(current.parents):
@@ -241,7 +242,7 @@ def detect_environment(
 
     if not found_var:
         try:
-            curr = Path(target_dir).resolve() if target_dir else Path.cwd()
+            curr = Path(normalize_path(target_dir, resolve_home=False)) if target_dir else Path.cwd().resolve()
             for d in [curr, *curr.parents]:
                 if (d / ".env.production").is_file(): context_env, context_evidence = "production", f"Configuration file {d / '.env.production'}"; break
                 if (d / ".env.staging").is_file() or (d / ".env.homolog").is_file(): context_env, context_evidence = "staging", f"Configuration file in {d}"; break

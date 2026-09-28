@@ -28,7 +28,7 @@ def is_cwd_subpath(target: str, cwd: Path | str | None = None) -> bool:
     t = strip_all_quotes(target)
     if t in (".", "./", ".//", ""):
         return True
-    cwd_path = Path.cwd().resolve() if cwd is None else Path(cwd).resolve()
+    cwd_path = Path.cwd().resolve() if cwd is None else Path(normalize_path(cwd, resolve_home=False))
     cwd_str = str(cwd_path)
     if ".." in t.split(os.sep) or t.startswith("/") or t.startswith("~"):
         return False

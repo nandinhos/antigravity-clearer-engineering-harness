@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from ceh_core.environment import find_repo_root
-from ceh_core.normalize import resolve_long_options, tokenize_command
+from ceh_core.normalize import normalize_path, resolve_long_options, tokenize_command
 
 # Opções canônicas de git push extraídas de git push --help
 PUSH_LONG_OPTS = (
@@ -29,7 +29,7 @@ def extract_push_args_from_cmd(cmd_line: str, base_cwd: Path | None = None) -> t
     """Extrai diretório alvo (via -C) e argumentos do subcomando push a partir de cmd_line."""
     tokens = tokenize_command(cmd_line, posix=True)
 
-    cwd = (base_cwd or Path.cwd()).resolve()
+    cwd = Path(normalize_path(base_cwd, resolve_home=False)) if base_cwd else Path.cwd().resolve()
     i = 0
     while i < len(tokens):
         t = tokens[i]
@@ -37,11 +37,11 @@ def extract_push_args_from_cmd(cmd_line: str, base_cwd: Path | None = None) -> t
             i += 1
             continue
         if t == "-C" and i + 1 < len(tokens):
-            cwd = (cwd / tokens[i + 1]).resolve()
+            cwd = Path(normalize_path(cwd / tokens[i + 1], resolve_home=False))
             i += 2
             continue
         if t.startswith("-C") and len(t) > 2:
-            cwd = (cwd / t[2:]).resolve()
+            cwd = Path(normalize_path(cwd / t[2:], resolve_home=False))
             i += 1
             continue
         if t == "push":

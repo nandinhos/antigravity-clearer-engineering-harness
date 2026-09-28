@@ -34,7 +34,7 @@ from ceh_core.lexer import (
     substitute_positional_args,
     extract_subshell_command,
 )
-from ceh_core.normalize import tokenize_command
+from ceh_core.normalize import normalize_path, tokenize_command
 from ceh_core.environment import (
     normalize_env,
     detect_environment,
@@ -79,7 +79,7 @@ def resolve_git_invocation(
     if not tokens or tokens[0] != "git":
         return False, None, [], None, cmd_line, None
 
-    current_dir = Path.cwd().resolve() if base_cwd is None else Path(base_cwd).resolve()
+    current_dir = Path.cwd().resolve() if base_cwd is None else Path(normalize_path(base_cwd, resolve_home=False))
     subcommand = None
     remaining_args = []
     i = 1
@@ -92,12 +92,12 @@ def resolve_git_invocation(
     while i < len(tokens):
         token = tokens[i]
         if token == "-C" and i + 1 < len(tokens):
-            current_dir = (current_dir / tokens[i+1]).resolve()
+            current_dir = Path(normalize_path(current_dir / tokens[i+1], resolve_home=False))
             i += 2
             continue
         elif token.startswith("-C") and len(token) > 2:
             path_part = token[2:]
-            current_dir = (current_dir / path_part).resolve()
+            current_dir = Path(normalize_path(current_dir / path_part, resolve_home=False))
             i += 1
             continue
         elif token.startswith("--git-dir") or token.startswith("--work-tree") or token == "-c" or token.startswith("-c="):
@@ -459,7 +459,7 @@ def evaluate_command(
         return "allow", "Empty command after decomposition", env, "GENERAL"
 
     evaluations = []
-    current_cwd = Path(base_cwd).resolve() if base_cwd else Path.cwd()
+    current_cwd = Path(normalize_path(base_cwd, resolve_home=False)) if base_cwd else Path.cwd().resolve()
     current_env, current_env_ev = env, env_evidence
     persistent_repo: Path | None = None
     unresolved_cd = False
