@@ -1,18 +1,3 @@
 # Lista de relaxamentos de segurança autorizados em relação à linha de base (gate_baseline.txt)
 # Formato: env|comando|de->para|ID-do-achado
-# Handoff 047 / PR-22: Relaxamentos AM2 autorizados de leituras e exclusões inofensivas de .ceh
-development|diff .ceh/last-ci-run.json /tmp/x|deny->allow|H039-AM2
-development|du -sh .ceh|deny->allow|H039-AM2
-development|find . -path ./.ceh -prune -o -name '*.py' -print|deny->allow|H039-AM2
-development|git status --ignored .ceh|deny->allow|H039-AM2
-development|tar czf out.tgz --exclude=.ceh .|deny->allow|H039-AM2
-production|diff .ceh/last-ci-run.json /tmp/x|deny->allow|H039-AM2
-production|du -sh .ceh|deny->allow|H039-AM2
-production|find . -path ./.ceh -prune -o -name '*.py' -print|deny->allow|H039-AM2
-production|git status --ignored .ceh|deny->allow|H039-AM2
-production|tar czf out.tgz --exclude=.ceh .|deny->allow|H039-AM2
-staging|diff .ceh/last-ci-run.json /tmp/x|deny->allow|H039-AM2
-staging|du -sh .ceh|deny->allow|H039-AM2
-staging|find . -path ./.ceh -prune -o -name '*.py' -print|deny->allow|H039-AM2
-staging|git status --ignored .ceh|deny->allow|H039-AM2
-staging|tar czf out.tgz --exclude=.ceh .|deny->allow|H039-AM2
+# Zerada a cada avanço da linha de base pela revisão (Handoff 049: linha de base d4bb909).

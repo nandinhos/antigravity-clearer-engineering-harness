@@ -503,6 +503,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Release:** a tag v1.3.0 (14510c7) é anterior ao PR-22 e não tem o AV1; está a salvo. A `main` ainda não tem o conteúdo desta branch (one-liner antigo).
 - **Próximo:** PR-22b, que fecha a escrita por `--output`/`-o`, restringe o strip de exclusão e cobre as formas no corpus.
 
+### 0.48 PR-22b homologado; PR-22 aceito como um todo ([Handoff 049](./temp_implementation/handoffs/handoff-049-revisao-pr22b-despacho-prqa-c.md))
+
+- **AV1 fechado:** flags de escrita (`-o`, `--output…`) desqualificam a leitura pura do git; leituras legítimas seguem allow. Abreviações de `--output` conferidas: o git as rejeita.
+- **AV2 fechado:** o strip de exclusão só age em comandos com semântica de exclusão.
+- **Prova por mutação** reproduzida num clone (bateria H048-AV1 e `test_cert_protection` reprovam). CI do servidor verde ([run 36367128683](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36367128683)).
+- **Linha de base:** `d4bb909`, justificativas zeradas (os 5 relaxamentos AM2 passam a ser a base).
+- **Ressalvas baixas:** AW1 (`r8sync`, erro de digitação do Handoff 048, e `find` na lista de `--exclude`), AW2 (link do servidor fora da evidência versionada).
+- **Próximo:** PR-QA-C, contrato de opções de escrita a partir do `--help`, que fecha a classe do AV1.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
