@@ -38,35 +38,16 @@ def _is_relative_to(path: Path, base: Path) -> bool:
 def _extract_output_dir_from_script(
     *, cwd: str, script_path: Optional[Path] = None, env_override: Optional[dict] = None
 ) -> Path:
-    """Run a Bash snippet that sources the REPO_ROOT / OUTPUT_DIR logic from
-    conselho-seniores.sh and prints the resolved OUTPUT_DIR, without actually
-    executing the full script (which requires agents in PATH).
-
-    We replicate lines 25-26 and 197-199 faithfully — this is the exact logic
-    the production script uses to resolve the output directory.
+    """Execute the production conselho-seniores.sh script directly with --print-output-dir.
+    This ensures that any change or regression in the production script's REPO_ROOT or
+    OUTPUT_DIR resolution logic is tested directly, without synthetic Bash snippets.
     """
     target_script = script_path if script_path is not None else SCRIPT_PATH
-    bash_snippet = f"""
-set -euo pipefail
-
-# --- Replicate lines 25-26 of conselho-seniores.sh ---
-SCRIPT_DIR="$(cd "$(dirname "{target_script}")" && pwd)"
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || pwd)"
-
-# --- Replicate lines 197-199 ---
-OUTPUT_DIR=""
-if [[ -z "$OUTPUT_DIR" ]]; then
-  TIMESTAMP="$(date +'%Y%m%d_%H%M%S')"
-  OUTPUT_DIR="$REPO_ROOT/docs/temp_implementation/conselho/$TIMESTAMP"
-fi
-
-echo "$OUTPUT_DIR"
-"""
     env = os.environ.copy()
     if env_override:
         env.update(env_override)
     proc = subprocess.run(
-        ["bash", "-c", bash_snippet],
+        ["bash", str(target_script), "--print-output-dir"],
         capture_output=True,
         text=True,
         cwd=cwd,
@@ -75,7 +56,7 @@ echo "$OUTPUT_DIR"
     )
     if proc.returncode != 0:
         raise RuntimeError(
-            f"Bash snippet failed (exit {proc.returncode}):\n"
+            f"conselho-seniores.sh --print-output-dir failed (exit {proc.returncode}):\n"
             f"stdout: {proc.stdout}\nstderr: {proc.stderr}"
         )
     return Path(proc.stdout.strip()).resolve()

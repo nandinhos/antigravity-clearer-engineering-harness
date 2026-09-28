@@ -19,7 +19,10 @@ Adotamos a **Separação Arquitetural entre Núcleo e Adaptadores de Host**:
 
 ### 1. Núcleo de Políticas (*Core Policy Engine* — Python Stdlib-Only)
 - Localizado em `clearer-engineering/scripts/ceh_core/` e acionado via `safety-gate.py` e `test-runner.sh`.
-- **Restrição Inegociável**: Operação do código Python do núcleo 100% restrita à biblioteca padrão (`stdlib-only` Python 3.9+), sem dependências via `pip`. Scripts auxiliares de shell utilizam Bash (compatíveis com a matriz testada: Apple Legacy Bash 3.2 no macOS e Bash 5+ no Ubuntu).
+- **Restrição Inegociável**: Operação do código Python do núcleo 100% restrita à biblioteca padrão (`stdlib-only` Python 3.9+), sem dependências via `pip`.
+- **Requisitos de Runtime de Shell**:
+  - Scripts do ciclo de vida de instalação (`install.sh`, `uninstall.sh`): compatíveis com Apple Legacy Bash 3.2+ (com verificação estrita de sintaxe e recusa fail-closed defensivo no CI macOS).
+  - Scripts de orquestração avançada e ferramentas auxiliares (como `conselho-seniores.sh`): requerem Bash 4.3+ (uso de `local -n` e arrays associativas `declare -A`; no macOS CI, executados sob Bash Homebrew 5+).
 - Responsabilidades do Núcleo:
   - Lexer e tokenizer determinístico de shell (`ceh_core/lexer.py`).
   - Ponto único de normalização de caminhos e comandos (`ceh_core/normalize.py`).

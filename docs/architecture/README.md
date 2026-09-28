@@ -26,6 +26,6 @@ As decisões de arquitetura de **ADR 001** (concepção do acrônimo CLEARER, di
 
 ## Princípios Arquiteturais Inegociáveis do CEH
 
-1. **Stdlib-Only no Núcleo**: O núcleo de avaliação de regras opera exclusivamente com a biblioteca padrão (Python 3.9+ stdlib e scripts Bash 3.2+), sem dependências externas.
+1. **Stdlib-Only no Núcleo**: O núcleo de avaliação de regras opera exclusivamente com a biblioteca padrão (Python 3.9+ stdlib), sem dependências externas via pip. Scripts de instalação suportam Bash 3.2+ (fail-closed); orquestradores avançados requerem Bash 4.3+.
 2. **Evidência Física sobre Suposição**: Nenhuma alegação de funcionamento ou compatibilidade é aceita sem prova observada (`OBSERVED`) com comando executado e exit code documentado.
 3. **Fail-Closed on Real Hazards**: Diante de ambiguidade, incerteza léxica ou caminhos desconhecidos em ambientes protegidos, o harness sempre assume a postura mais segura (`CATASTROPHIC > DENY > ASK > ALLOW`).

@@ -25,6 +25,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || pwd)"
 
+# Resolução de saída padrão
+resolve_default_output_dir() {
+  local repo_root="${1:-$REPO_ROOT}"
+  local timestamp="${2:-$(date +'%Y%m%d_%H%M%S')}"
+  echo "$repo_root/docs/temp_implementation/conselho/$timestamp"
+}
+
 # Configurações padrão
 TIMEOUT_SECS=90
 REQUESTED_AGENTS=()
@@ -66,6 +73,7 @@ Opções de Contexto:
   --file <caminho>      Arquivo contendo especificação, plano ou código a avaliar
   --timeout <segundos>  Timeout máximo por agente em segundos (padrão: 90s)
   --output-dir <dir>    Diretório para salvar a ata e os pareceres individuais
+  --print-output-dir    Imprime o diretório de saída padrão calculado e sai
   --dry-run             Exibe os prompts e comandos montados sem disparar os CLIs
   -h, --help            Exibe esta ajuda
 
@@ -146,6 +154,10 @@ while [[ $# -gt 0 ]]; do
       OUTPUT_DIR="$2"
       shift 2
       ;;
+    --print-output-dir)
+      resolve_default_output_dir "$REPO_ROOT"
+      exit 0
+      ;;
     --dry-run)
       DRY_RUN=true
       shift
@@ -195,8 +207,7 @@ fi
 
 # Diretório de saída padrão
 if [[ -z "$OUTPUT_DIR" ]]; then
-  TIMESTAMP="$(date +'%Y%m%d_%H%M%S')"
-  OUTPUT_DIR="$REPO_ROOT/docs/temp_implementation/conselho/$TIMESTAMP"
+  OUTPUT_DIR="$(resolve_default_output_dir "$REPO_ROOT")"
 fi
 mkdir -p "$OUTPUT_DIR"
 
