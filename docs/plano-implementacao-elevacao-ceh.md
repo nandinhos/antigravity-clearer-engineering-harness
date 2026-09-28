@@ -554,6 +554,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Veredito:** PR-20a não homologado até restringir o claim Bash e ligar o teste à lógica real do Conselho. CI remoto 36475885529 corresponde a `c80b831` e passou 4/4; o certificado local de suíte em `7452b30` está válido, mas o certificado de evals observado estava em `c80b831` e precisava ser reemitido para o HEAD revisado.
 - **Próximo:** PR-20b deve corrigir D05/D06. Para D04, solicitar ao responsável uma rota explicitamente aprovada pelo hook para ensaio em diretórios temporários; não executar novamente por outro canal enquanto o bloqueio permanecer.
 
+### 0.55 PR-20b entregue; execução real do Conselho e requisitos de shell ([Handoff 057](./temp_implementation/handoffs/handoff-057-pr20b-conselho-producao-e-requisitos-shell.md))
+
+- **D05 corrigido:** ADR-006 e architecture/README delimitam que instaladores (`install.sh`/`uninstall.sh`) suportam Apple Legacy Bash 3.2+ com fail-closed defensivo, enquanto orquestradores avançados (`conselho-seniores.sh`) exigem Bash 4.3+ (`local -n` e arrays associativas).
+- **D06 corrigido:** `conselho-seniores.sh` isola `resolve_default_output_dir` e expõe `--print-output-dir`; `test_conselho_output_dir.py` executa o script real de produção via subprocesso. Prova de mutação em `conselho-seniores.sh` reprova a suíte com exit code 1.
+- **Certificados reemitidos:** suíte 63/63 PASS e evals 5/5 reexecutados no HEAD commit; evidence-report --strict VERIFICADO.
+- **D04:** mantido formalmente isolado aguardando autorização/rota expressamente aprovada pelo responsável da política para ensaios com symlink.
+- **Veredito:** PR-20b concluído e pronto para homologação formal.
+
+
 
 
 ## 1. Objetivo
