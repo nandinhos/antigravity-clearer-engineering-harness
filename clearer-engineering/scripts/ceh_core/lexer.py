@@ -179,18 +179,7 @@ def extract_subshell_command(subcmd: str) -> str | None:
     return None
 
 
-def normalize_command_for_evaluation(subcmd: str) -> str:
-    """
-    Remove aspas superficiais de palavras de comando (quote-removal) para prevenir evasões
-    como p''hp artisan migrate:fresh. Se shlex falhar, retorna o subcomando original.
-    """
-    try:
-        tokens = shlex.split(subcmd, posix=True)
-        if tokens:
-            return " ".join(tokens)
-    except Exception:
-        pass
-    return subcmd
+from ceh_core.normalize import normalize_command_for_evaluation
 
 
 def _consume_flags(tokens: list[str], idx: int, arg_opts: set[str]) -> int:

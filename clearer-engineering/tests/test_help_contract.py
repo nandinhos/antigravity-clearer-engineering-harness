@@ -96,6 +96,13 @@ class TestHelpContract(unittest.TestCase):
                     f"  Snippet esperado: {snippet!r}\n"
                     f"  Linha real:       {actual_line!r}"
                 )
+                self.assertIn(
+                    flag,
+                    snippet,
+                    f"Precisão de citação (AX2): help_snippet em {name} ({help_rel}:{line_no}) deve conter o próprio flag '{flag}'.\n"
+                    f"  Flag:    {flag!r}\n"
+                    f"  Snippet: {snippet!r}"
+                )
 
                 test_cmds = opt.get("test_commands", [])
                 self.assertTrue(

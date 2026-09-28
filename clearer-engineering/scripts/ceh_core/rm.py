@@ -8,6 +8,13 @@ import re
 import shlex
 from pathlib import Path
 
+from ceh_core.normalize import (
+    normalize_path,
+    expand_home_prefix,
+    strip_all_quotes,
+    tokenize_command,
+)
+
 SYSTEM_ROOTS = {
     "/etc", "/usr", "/var", "/bin", "/sbin", "/boot",
     "/home", "/lib", "/lib64", "/opt", "/root", "/srv",
@@ -60,7 +67,7 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
     cwd_path = Path.cwd().resolve() if cwd is None else Path(cwd).resolve()
     cwd_str = str(cwd_path)
 
-    t = target.replace('"', "").replace("'", "").strip()
+    t = strip_all_quotes(target)
     if not t:
         return False, ""
 
@@ -68,14 +75,7 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
     t = t.replace("${PWD}", cwd_str).replace("$PWD", cwd_str)
     home_dir = os.environ.get("HOME", "/home/user")
     t = t.replace("${HOME}", home_dir).replace("$HOME", home_dir)
-
-    if t.startswith("~"):
-        if t in ("~", "~/") or t.startswith("~/"):
-            t = home_dir + t[1:]
-        elif t.startswith("~root"):
-            t = "/root" + t[5:]
-        else:
-            t = os.path.expanduser(t)
+    t = expand_home_prefix(t, home_dir=home_dir)
 
     is_glob = False
     if t in ("*", "./*"):
@@ -87,8 +87,7 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
     else:
         base = t
 
-    base = re.sub(r"/+", "/", base)
-    norm = os.path.normpath(base) if os.path.isabs(base) else os.path.normpath(os.path.join(cwd_str, base))
+    norm = normalize_path(base, cwd=cwd_str, resolve_home=False)
 
     # (a) Raiz /
     if norm == "/":
@@ -97,7 +96,7 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
     if norm in SYSTEM_ROOTS:
         return True, f"Attempting recursive deletion of protected directory '{target}'."
     # (c) Exatamente /home/<nome> ou o HOME resolvido
-    resolved_home = os.path.normpath(home_dir)
+    resolved_home = normalize_path(home_dir, cwd=cwd_str, resolve_home=False)
     if norm == resolved_home:
         return True, "Attempting recursive deletion of home directory '~'."
     if norm.startswith("/home/") and norm.count("/") == 2:
@@ -123,10 +122,8 @@ def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None) -
     if has_unresolved_env_var(target) or is_target_catastrophic(target, cwd_path)[0]:
         return False
 
-    t = target.replace('"', "").replace("'", "").strip()
-    t = re.sub(r"/+", "/", t.replace("${PWD}", cwd_str).replace("$PWD", cwd_str))
-
-    norm_full = os.path.normpath(t if os.path.isabs(t) else os.path.join(cwd_str, t))
+    t = strip_all_quotes(target)
+    norm_full = normalize_path(t, cwd=cwd_str, resolve_home=False)
 
     # (c) Caminhos absolutos: apenas sob /tmp/ normalizado é permitido como atalho seguro
     if os.path.isabs(t):
@@ -164,11 +161,7 @@ def evaluate_rm_command(
     base_cwd: Path | str | None = None
 ) -> tuple[str, str, str, str] | None:
     """Avalia a segurança de comandos 'rm' por tokens."""
-    try:
-        tokens = shlex.split(cmd_line, posix=True)
-    except Exception:
-        return None
-
+    tokens = tokenize_command(cmd_line, posix=True)
     if not tokens or tokens[0] != "rm":
         return None
 

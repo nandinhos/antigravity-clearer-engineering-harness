@@ -3,8 +3,17 @@ from __future__ import annotations
 import os, re, shlex, subprocess
 from pathlib import Path
 
+from ceh_core.normalize import (
+    STAGING_SEGMENTS,
+    normalize_env,
+    classify_branch_name,
+    strip_quotes,
+    strip_all_quotes,
+    tokenize_command,
+)
+
 PROD_SEGMENTS = set(["prod", "production", "prd", "live"]) | {"preprod"}
-STAGING_SEGMENTS = {"stage", "staging", "homolog", "homologacao", "homologação", "uat", "qa"}
+
 ENV_SEVERITY = {"development": 0, "staging": 1, "production": 2}
 ENV_KEY_SEGMENTS = {"env", "environment", "stage", "profile", "context", "target"}
 TARGET_OPTS = {"env", "environment", "stage", "profile", "context", "kube-context", "target"}
@@ -14,19 +23,6 @@ _REPO_ROOT_CACHE: dict[str, Path | None] = {}
 
 def clear_environment_caches() -> None:
     _BRANCH_CACHE.clear(); _REPO_ROOT_CACHE.clear()
-
-def normalize_env(val: str) -> str:
-    """Normalizes environment string to: 'production', 'staging', or 'development'."""
-    segments = set(s for s in re.split(r'[^\w]+', val.strip().lower()) if s)
-    if any(t in segments for t in PROD_SEGMENTS): return "production"
-    if any(t in segments for t in STAGING_SEGMENTS): return "staging"
-    return "development"
-
-def classify_branch_name(b: str) -> str | None:
-    """Classifica se o nome de branch representa ambiente de produção ou staging (AI1)."""
-    segments = set(s for s in re.split(r'[^\w]+', b.strip("'\"").lower()) if s)
-    if any(s in ("main", "master", "production", "prod") for s in segments) or any(s in PROD_SEGMENTS for s in segments): return "production"
-    return "staging" if any(s in STAGING_SEGMENTS for s in segments) else None
 
 def is_unresolved_cd_target(target: str) -> bool:
     """Verifica se o alvo de cd/pushd é não resolvível/dinâmico (Invariante 7)."""
@@ -50,8 +46,7 @@ def _extract_git_branch_arg(args: list[str]) -> str | None:
 def extract_command_environment_tokens(cmd_line: str) -> tuple[str | None, str | None]:
     """Extrai sinais de ambiente na linha de comando por forma (Handoff 031 §3.1, Handoff 034)."""
     if not cmd_line: return None, None
-    try: tokens = shlex.split(cmd_line, posix=True, comments=True)
-    except Exception: tokens = cmd_line.split()
+    tokens = tokenize_command(cmd_line, posix=True, comments=True)
 
     found: list[tuple[str, str]] = []
     n, idx, paren_depth = len(tokens), 0, 0

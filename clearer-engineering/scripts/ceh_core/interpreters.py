@@ -12,6 +12,8 @@ import shlex
 from pathlib import Path
 from typing import Callable, Any
 
+from ceh_core.normalize import tokenize_command
+
 from .rm import is_target_catastrophic
 from .lexer import resolve_command_head
 from .interpreters_extra import (
@@ -171,10 +173,7 @@ def evaluate_interpreter_command(
     eval_fn: Callable[..., tuple[str, str, str, str]] | None = None,
     depth: int = 0
 ) -> tuple[str, str, str, str] | None:
-    try:
-        tokens = shlex.split(cmd_line, posix=True)
-    except Exception:
-        return None
+    tokens = tokenize_command(cmd_line, posix=True)
     if not tokens:
         return None
 

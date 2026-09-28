@@ -258,6 +258,11 @@ run_test "Help Options Contract: Contrato de opções de escrita a partir do --h
 run_test "Reason Invariant: Invariante do motivo sobre corpus e bateria (PR-QA-B)" \
     "python3 '$PLUGIN_DIR/tests/test_reason_invariant.py' >/dev/null 2>&1"
 
+# 29. PR-QA-D Normalization Structural Suite
+run_test "Normalization Structural: Validação de ponto único de normalização (PR-QA-D)" \
+    "python3 '$PLUGIN_DIR/tests/test_normalization_structural.py' >/dev/null 2>&1"
+
+
 
 echo ""
 echo "============================================================"

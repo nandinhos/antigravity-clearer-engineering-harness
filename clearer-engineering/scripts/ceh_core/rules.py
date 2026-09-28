@@ -72,6 +72,8 @@ import os
 import re
 import shlex
 
+from ceh_core.normalize import strip_all_quotes, tokenize_command
+
 CERT_FILES_REGEX = re.compile(
     r"(?:^|[\s\"'/])(?:\.ceh/)?(last-ci-run\.json|last-ci-run\.log|last-evals-run\.json)(?:[\s\"';&|]|$)"
 )
@@ -85,10 +87,7 @@ EXCLUDE_SUPPORTED_CMDS = {"tar", "rsync", "grep", "rg"}
 
 def _extract_base_command(cmd: str) -> str:
     """Extrai o comando executável base desconsiderando wrappers transparentes e variáveis de ambiente."""
-    try:
-        tokens = shlex.split(cmd)
-    except Exception:
-        tokens = cmd.strip().split()
+    tokens = tokenize_command(cmd, posix=True)
     idx = 0
     while idx < len(tokens):
         tok = os.path.basename(tokens[idx])
@@ -155,7 +154,7 @@ def mentions_ceh_or_certs(cmd: str) -> bool:
     clean_target = strip_ceh_exclusions(cmd)
     if CERT_FILES_REGEX.search(clean_target):
         return True
-    clean = clean_target.replace("\"", "").replace("\x27", "").strip()
+    clean = strip_all_quotes(clean_target)
     if re.search(r"(?:^|[\s/=])(?:[^\s/]+/)*\.ceh(?:[/\s;&|*]|$)", clean, re.I):
         return True
     return False

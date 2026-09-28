@@ -37,22 +37,18 @@ RESTORE_VAL_OPTS = ("--conflict", "--source", "--pathspec-from-file")
 SWITCH_VAL_OPTS = ("--conflict", "--create", "--orphan", "--force-create")
 
 
-def strip_quotes(s: str) -> str:
-    """Remove aspas simples ou duplas externas de um token."""
-    s = s.strip()
-    if len(s) >= 2 and (
-        (s.startswith('"') and s.endswith('"')) or
-        (s.startswith("'") and s.endswith("'"))
-    ):
-        return s[1:-1]
-    return s
+from ceh_core.normalize import (
+    strip_quotes,
+    normalize_posix_path,
+    resolve_long_options,
+)
 
 
 def _is_broad_subpath(sub: str) -> bool:
     """Valida se um subcaminho normalizado alcança além ou possui glob/variável."""
     if not sub or sub in (".", "") or "$" in sub or sub.startswith("~"):
         return True
-    norm = posixpath.normpath(sub)
+    norm = normalize_posix_path(sub)
     if norm in (".", "..") or norm.startswith("../"):
         return True
     return any(c in norm.split("/")[0] for c in ("*", "?", "["))
@@ -139,8 +135,7 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
                 i += 1
                 continue
             if tok.startswith("--"):
-                opt_name = tok.split("=")[0]
-                matches = [o for o in CHECKOUT_LONG_OPTS if o.startswith(opt_name)]
+                matches = resolve_long_options(tok, CHECKOUT_LONG_OPTS)
                 # W2: abreviação só aperta
                 if any(m == "--force" for m in matches):
                     has_force = True
@@ -205,8 +200,7 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
                 if tok == "--staged":
                     has_staged = True
 
-                opt_name = tok.split("=")[0]
-                matches = [o for o in RESTORE_LONG_OPTS if o.startswith(opt_name)]
+                matches = resolve_long_options(tok, RESTORE_LONG_OPTS)
                 # W2: abreviação só aperta
                 if any(m == "--worktree" for m in matches):
                     has_worktree = True
@@ -252,8 +246,7 @@ def evaluate_git_subcommand(subcmd: str, args: list[str]) -> tuple[bool, str | N
             if tok == "--":
                 break
             if tok.startswith("--"):
-                opt_name = tok.split("=")[0]
-                matches = [o for o in SWITCH_LONG_OPTS if o.startswith(opt_name)]
+                matches = resolve_long_options(tok, SWITCH_LONG_OPTS)
                 # W2: abreviação só aperta
                 if any(m == "--force" for m in matches):
                     has_force = True

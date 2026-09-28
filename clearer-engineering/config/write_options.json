@@ -334,7 +334,7 @@
       "has_write_options": true,
       "write_options": [
         {
-          "flag": "[outfile]",
+          "flag": "outfile",
           "help_line": 16,
           "help_snippet": "outfile            write the output of infile to outfile",
           "type": "file_write",

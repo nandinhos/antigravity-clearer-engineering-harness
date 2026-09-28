@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from ceh_core.environment import find_repo_root
+from ceh_core.normalize import resolve_long_options, tokenize_command
 
 # Opções canônicas de git push extraídas de git push --help
 PUSH_LONG_OPTS = (
@@ -26,10 +27,7 @@ PUSH_VAL_LONG_OPTS = ("--push-option", "--receive-pack", "--exec", "--repo")
 
 def extract_push_args_from_cmd(cmd_line: str, base_cwd: Path | None = None) -> tuple[Path | None, list[str]]:
     """Extrai diretório alvo (via -C) e argumentos do subcomando push a partir de cmd_line."""
-    try:
-        tokens = shlex.split(cmd_line, posix=True)
-    except Exception:
-        tokens = cmd_line.split()
+    tokens = tokenize_command(cmd_line, posix=True)
 
     cwd = (base_cwd or Path.cwd()).resolve()
     i = 0
@@ -78,7 +76,7 @@ def parse_git_push_tokens(args: list[str]) -> tuple[str | None, list[str], dict[
             continue
         if tok.startswith("--"):
             opt_name = tok.split("=")[0]
-            matches = [o for o in PUSH_LONG_OPTS if o.startswith(opt_name)]
+            matches = resolve_long_options(tok, PUSH_LONG_OPTS)
             if any(m == "--all" for m in matches):
                 has_all = True
                 blocked_opt = opt_name

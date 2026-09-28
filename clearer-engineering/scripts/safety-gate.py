@@ -34,6 +34,7 @@ from ceh_core.lexer import (
     substitute_positional_args,
     extract_subshell_command,
 )
+from ceh_core.normalize import tokenize_command
 from ceh_core.environment import (
     normalize_env,
     detect_environment,
@@ -186,10 +187,7 @@ def max_severity_decision(
 
 def extract_shell_c_command(cmd_line: str) -> str | None:
     """Extrai o comando executado via flag -c em shells conhecidos (AD2, Handoff 028)."""
-    try:
-        tokens = shlex.split(cmd_line, posix=True)
-    except Exception:
-        return None
+    tokens = tokenize_command(cmd_line, posix=True)
     if not tokens:
         return None
 
@@ -261,10 +259,7 @@ def evaluate_subcommand(
     candidate: tuple[str, str, str, str] | None = None
 
     # AA2/AB1: Desembrulho recursivo de shells (sh -c, bash -c) e executores de string (eval, su -c, watch)
-    try:
-        sub_tokens = shlex.split(sub_raw, posix=True)
-    except Exception:
-        sub_tokens = []
+    sub_tokens = tokenize_command(sub_raw, posix=True)
 
     if sub_tokens:
         h_idx, string_exec = resolve_command_head(sub_tokens)
@@ -478,8 +473,7 @@ def evaluate_command(
             ))
             continue
 
-        try: sub_tokens = shlex.split(sub, posix=True, comments=True)
-        except Exception: sub_tokens = sub.split()
+        sub_tokens = tokenize_command(sub, posix=True, comments=True)
 
         eff_cwd, tgt_repo, is_unres, is_persist, ctx_env, clean_toks = resolve_target_context(
             sub_tokens, current_cwd, persistent_repo

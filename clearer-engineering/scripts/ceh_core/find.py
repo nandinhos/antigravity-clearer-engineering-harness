@@ -9,6 +9,11 @@ import shlex
 from pathlib import Path
 from typing import Callable, Any
 
+from ceh_core.normalize import (
+    strip_all_quotes,
+    normalize_path,
+    tokenize_command,
+)
 from .rm import is_target_catastrophic
 from .lexer import resolve_command_head
 
@@ -20,14 +25,14 @@ SHELL_CMDS = {"sh", "bash", "zsh", "dash"}
 
 def is_cwd_subpath(target: str, cwd: Path | str | None = None) -> bool:
     """Verifica se o alvo é o próprio diretório de trabalho atual (cwd)."""
-    t = target.replace('"', "").replace("'", "").strip()
+    t = strip_all_quotes(target)
     if t in (".", "./", ".//", ""):
         return True
     cwd_path = Path.cwd().resolve() if cwd is None else Path(cwd).resolve()
     cwd_str = str(cwd_path)
     if ".." in t.split(os.sep) or t.startswith("/") or t.startswith("~"):
         return False
-    norm = os.path.normpath(os.path.join(cwd_str, t))
+    norm = normalize_path(t, cwd=cwd_str, resolve_home=False)
     return norm == cwd_str
 
 
@@ -129,11 +134,7 @@ def evaluate_find_command(
     depth: int = 0
 ) -> tuple[str, str, str, str] | None:
     """Avalia a segurança de comandos 'find' por tokens."""
-    try:
-        tokens = shlex.split(cmd_line, posix=True)
-    except Exception:
-        return None
-
+    tokens = tokenize_command(cmd_line, posix=True)
     if not tokens:
         return None
 
