@@ -1,58 +1,53 @@
-# PR-QA-C — Evidência de Implementação e Verificação (`OBSERVED`)
+# PR-QA-C / PR-QA-C2 — Evidência de Implementação e Verificação (`OBSERVED`)
 
-**Data/Hora:** 2026-09-27T23:25:00-03:00  
-**PR:** PR-QA-C (`test(gate): contrato de opções de escrita a partir do --help`)  
+**Data/Hora:** 2026-09-28T07:15:00-03:00  
+**PR:** PR-QA-C2 (`test(gate): contrato de opções executável v1.1.0 e validação estrita de help (C01)`)  
 **Branch:** `claude/code-review-technical-analysis-kfwcdl`  
 **Linha de Base Homologada:** `d4bb909` (Handoff 049)  
 **Status da Suíte Canônica Local:** **60/60 testes aprovados (100% PASS)**  
 **Certificado de CI:** Emitido em `.ceh/last-ci-run.json`  
-**CI do Servidor (GitHub Actions):** [Run 36369910415](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36369910415) (4/4 jobs concluídos com sucesso: Ubuntu/macOS × Python 3.9/3.12)  
+**CI do Servidor (GitHub Actions):** [Run 36369910415](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36369910415) e [Run 36371154717](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36371154717) (4/4 jobs concluídos com sucesso em ambas as runs: Ubuntu/macOS × Python 3.9/3.12)  
 
 ---
 
-## 1. Escopo e Objetivos do PR-QA-C
+## 1. Escopo e Objetivos do PR-QA-C2 (Resolução do Handoff 050 / C01)
 
-Conforme despachado no [Handoff 049](../handoffs/handoff-049-revisao-pr22b-despacho-prqa-c.md), o PR-QA-C ataca a causa raiz das regressões de segurança ao admitir comandos em listas de leitura:
-1. **Inventário de `--help` Real:** Captura e versionamento em `docs/temp_implementation/evidence/help-contracts/<cmd>.txt` do `--help` real de cada comando e subcomando em listas de leitura/permissão do gate, incluindo metadados com versão do binário e timestamp UTC.
-2. **Contrato Formal de Opções (`write_options.json`):** Mapeamento exaustivo em `clearer-engineering/config/write_options.json` de cada comando, identificando se possui opções de gravação ou execução de helpers, citando número de linha exato e snippet textual do help.
-3. **Proteção Granular no Gate (`rules.py`):**
-   - Interceptação de todas as opções de escrita/execução mapeadas quando o alvo for `.ceh/...` em todos os ambientes (`dev`, `staging`, `prod`) sob `deny/CERTIFICATE_INTEGRITY`.
-   - Adicionadas proteções contra flags de escrita e execução de helpers para:
-     - `git diff`: `--output`, `--output-directory`, `--ext-diff`, `--textconv`.
-     - `git log`: `--output`, `-o`, `--ext-diff`, `--textconv`.
-     - `git show`: `--output`, `--ext-diff`, `--textconv`.
-     - `less`: `-o`, `-O`, `--log-file`, `--LOG-FILE`.
-     - `python3 -m json.tool`: argumento posicional de saída (`[outfile]`).
-4. **Resolução de Carona AW1 (Handoff 049):**
-   - Removidos `r8sync` (erro de digitação inofensivo copiado do Handoff 048) e `find` (que não aceita `--exclude`) de `EXCLUDE_SUPPORTED_CMDS` em `ceh_core/rules.py`, restando o conjunto estrito: `{"tar", "rsync", "grep", "rg"}`.
-5. **Automação Test 60 (`test_help_contract.py`):**
-   - Teste automatizado integrado em `run-all-tests.sh` que falha se qualquer comando for adicionado a `ALLOWED_READ_CMDS` ou `ALLOWED_GIT_READ_SUBCMDS` sem entrada correspondente e auditada em `write_options.json`, ou se suas opções de escrita não forem categoricamente negadas diante de `.ceh/`.
+Conforme apontado no [Handoff 050](../handoffs/handoff-050-revisao-prqa-c.md), o PR-QA-C2 resolve as seguintes lacunas:
+1. **Contrato Dirige a Execução dos Testes (Resolução C01):**
+   - O arquivo `write_options.json` foi elevado para a versão **1.1.0**, passando a ser a fonte de verdade dinâmica de execução de todos os testes de gate.
+   - Foram eliminadas as listas manuais hardcoded em `test_help_contract.py`. O teste itera compulsoriamente sobre cada opção de escrita e cada leitura pura registradas no JSON.
+2. **Precisão Estrita da Fonte (`--help` Real):**
+   - Removida a entrada `--output-directory` de `git-diff` e `-o` de `git-log`, que não existem no help dos respectivos comandos.
+   - Implementada normalização de terminal (`_\b` do `less`) e verificação linha a linha: o teste agora valida que o `help_snippet` existe fisicamente na `help_line` indicada do arquivo versionado em `docs/temp_implementation/evidence/help-contracts/`.
+3. **Comandos de Teste Declarados por Opção:**
+   - Toda opção de escrita declara explicitamente sua lista `test_commands`, avaliada nos três ambientes (`development`, `staging`, `production`) sob exigência inegociável de `(deny, CERTIFICATE_INTEGRITY)`.
+   - Toda leitura pura declara sua lista `pure_read_test_commands`, avaliada nos três ambientes sob `(allow, GENERAL)`.
 
 ---
 
-## 2. Inventário de Comandos e Contrato de Opções (`OBSERVED`)
+## 2. Inventário de Comandos e Contrato de Opções v1.1.0 (`OBSERVED`)
 
-| Comando / Subcomando | Arquivo de Help | Versão Capturada | Opções de Gravação / Execução | Linhas Citadas no Help | Rationale / Bloqueio no Gate |
-|---|---|---|---|---|---|
-| `cat` | `cat.txt` | cat (GNU coreutils) 9.4 | Nenhuma | — | Leitura pura. |
-| `less` | `less.txt` | less 633 | `-o`, `-O`, `--log-file`, `--LOG-FILE` | 171, 173 | Grava cópia de entrada em arquivo de log. Bloqueado quando visa `.ceh/`. |
-| `more` | `more.txt` | more from util-linux 2.39.3 | Nenhuma | — | Leitura pura. |
-| `head` | `head.txt` | head (GNU coreutils) 9.4 | Nenhuma | — | Leitura pura. |
-| `tail` | `tail.txt` | tail (GNU coreutils) 9.4 | Nenhuma | — | Leitura pura. |
-| `jq` | `jq.txt` | jq-1.7.1 | Nenhuma (stdout apenas) | — | Leitura/transformação em stdout. |
-| `grep` | `grep.txt` | grep (GNU grep) 3.11 | Nenhuma | — | Leitura pura em stdout. |
-| `egrep` | `egrep.txt` | grep (GNU grep) 3.11 | Nenhuma | — | Leitura pura em stdout. |
-| `fgrep` | `fgrep.txt` | grep (GNU grep) 3.11 | Nenhuma | — | Leitura pura em stdout. |
-| `ls` | `ls.txt` | ls (GNU coreutils) 9.4 | Nenhuma | — | Leitura pura de metadados. |
-| `stat` | `stat.txt` | stat (GNU coreutils) 9.4 | Nenhuma | — | Leitura pura de metadados. |
-| `wc` | `wc.txt` | wc (GNU coreutils) 9.4 | Nenhuma | — | Leitura pura de contagem. |
-| `du` | `du.txt` | du (GNU coreutils) 9.4 | Nenhuma | — | Leitura pura de uso em disco. |
-| `diff` | `diff.txt` | diff (GNU diffutils) 3.10 | Nenhuma (stdout apenas) | — | Leitura pura em stdout. |
-| `git status` | `git-status.txt` | git version 2.43.0 | Nenhuma | — | Leitura pura de estado. |
-| `git log` | `git-log.txt` | git version 2.43.0 | `--output`, `-o`, `--ext-diff`, `--textconv` | 2304, 3126, 3136 | `--output` grava em arquivo; `--ext-diff`/`--textconv` executam helpers. Bloqueados quando visam `.ceh/`. |
-| `git diff` | `git-diff.txt` | git version 2.43.0 | `--output`, `--output-directory`, `--ext-diff`, `--textconv` | 170, 994, 1004 | `--output` grava em arquivo; `--ext-diff`/`--textconv` executam helpers. Bloqueados quando visam `.ceh/`. |
-| `git show` | `git-show.txt` | git version 2.43.0 | `--output`, `--ext-diff`, `--textconv` | 994, 1816, 1826 | `--output` grava em arquivo; `--ext-diff`/`--textconv` executam helpers. Bloqueados quando visam `.ceh/`. |
-| `python3 -m json.tool` | `python-json-tool.txt` | Python 3.12.3 | `outfile` (posicional opcional) | 16 | Segundo argumento posicional grava JSON formatado no arquivo alvo. Bloqueado quando visa `.ceh/`. |
+| Comando / Subcomando | Arquivo de Help | Versão Capturada | Opções de Gravação / Execução | Linhas Citadas no Help | Snippet no Help | Bloqueio no Gate |
+|---|---|---|---|---|---|---|
+| `cat` | `cat.txt` | cat 9.4 | Nenhuma | — | — | Leitura pura. |
+| `less` | `less.txt` | less 633 | `-o`, `-O`, `--log-file`, `--LOG-FILE` | 171, 173 | `-o [file]`, `-O [file]`, `--log-file=[file]`, `--LOG-FILE=[file]` | Bloqueado quando visa `.ceh/`. |
+| `more` | `more.txt` | more 2.39.3 | Nenhuma | — | — | Leitura pura. |
+| `head` | `head.txt` | head 9.4 | Nenhuma | — | — | Leitura pura. |
+| `tail` | `tail.txt` | tail 9.4 | Nenhuma | — | — | Leitura pura. |
+| `jq` | `jq.txt` | jq-1.7.1 | Nenhuma (stdout apenas) | — | — | Leitura/transformação em stdout. |
+| `grep` | `grep.txt` | grep 3.11 | Nenhuma | — | — | Leitura pura em stdout. |
+| `egrep` | `egrep.txt` | grep 3.11 | Nenhuma | — | — | Leitura pura em stdout. |
+| `fgrep` | `fgrep.txt` | grep 3.11 | Nenhuma | — | — | Leitura pura em stdout. |
+| `ls` | `ls.txt` | ls 9.4 | Nenhuma | — | — | Leitura pura de metadados. |
+| `stat` | `stat.txt` | stat 9.4 | Nenhuma | — | — | Leitura pura de metadados. |
+| `wc` | `wc.txt` | wc 9.4 | Nenhuma | — | — | Leitura pura de contagem. |
+| `du` | `du.txt` | du 9.4 | Nenhuma | — | — | Leitura pura de uso em disco. |
+| `diff` | `diff.txt` | diff 3.10 | Nenhuma (stdout apenas) | — | — | Leitura pura em stdout. |
+| `git status` | `git-status.txt` | git 2.43.0 | Nenhuma | — | — | Leitura pura de estado. |
+| `git log` | `git-log.txt` | git 2.43.0 | `--output`, `--ext-diff`, `--textconv` | 2304, 3126, 3136 | `--output=<file>`, `--ext-diff`, `--textconv, --no-textconv` | Bloqueados quando visam `.ceh/`. |
+| `git diff` | `git-diff.txt` | git 2.43.0 | `--output`, `--ext-diff`, `--textconv` | 170, 994, 1004 | `--output=<file>`, `--ext-diff`, `--textconv, --no-textconv` | Bloqueados quando visam `.ceh/`. |
+| `git show` | `git-show.txt` | git 2.43.0 | `--output`, `--ext-diff`, `--textconv` | 994, 1816, 1826 | `--output=<file>`, `--ext-diff`, `--textconv, --no-textconv` | Bloqueados quando visam `.ceh/`. |
+| `python3 -m json.tool` | `python-json-tool.txt` | Python 3.12.3 | `[outfile]` (posicional opcional) | 16 | `outfile            write the output of infile to outfile` | Bloqueado quando visa `.ceh/`. |
 
 ---
 
@@ -73,29 +68,42 @@ Conforme despachado no [Handoff 049](../handoffs/handoff-049-revisao-pr22b-despa
 
 ## 4. Provas de Falsificabilidade por Mutação em Clone Isolado (`/tmp`)
 
-Executado exclusivamente em clones temporários descartáveis criados em `/tmp/ceh-falsify-prqa-c-*`, preservando a árvore de trabalho principal limpa:
+Executado exclusivamente em clones temporários descartáveis criados em `/tmp/ceh-falsify-prqa-c2-*`, preservando a árvore de trabalho principal limpa:
 
-### 4.1 Mutação A: Remoção da Checagem de `--output` do Gate
-- **Intervenção:** No arquivo `ceh_core/rules.py` do clone, a checagem `if arg.startswith(("--output=", ...)): return False` em `is_git_read_subcommand` foi substituída por `pass`.
-- **Comando Avaliado pelo Teste:** `git diff --output=.ceh/last-ci-run.json`
+### 4.1 Mutação 1 (C01 do Handoff 050): Adição de Opção Fictícia em `cat`
+- **Intervenção:** Adicionado `--invented-output` como opção de escrita de `cat` em `write_options.json`, sem alterar o Safety Gate.
 - **Resultado:** O teste `test_help_contract.py` **FALHOU** imediatamente com exit code 1:
   ```
   AssertionError: 'allow' != 'deny'
   - allow
   + deny
-   : 'git diff --output=.ceh/last-ci-run.json' deve ser deny no ambiente development
+   : Opção de escrita '--invented-output' (cat) em 'cat --invented-output .ceh/last-ci-run.json' DEVE ser deny no ambiente development. Obtido: allow
+  FAILED (failures=1)
+  ```
+- **Conclusão:** É impossível registrar uma nova opção de escrita no JSON sem que o teste exija e comprove o bloqueio no gate. O achado C01 está 100% resolvido.
+
+### 4.2 Mutação 2: Remoção da Defesa de `--output` do Gate
+- **Intervenção:** No arquivo `ceh_core/rules.py` do clone, a checagem `if arg.startswith(("--output=", ...)): return False` em `is_git_read_subcommand` foi substituída por `pass`.
+- **Resultado:** O teste `test_help_contract.py` **FALHOU** imediatamente com exit code 1:
+  ```
+  AssertionError: 'allow' != 'deny'
+  - allow
+  + deny
+   : Opção de escrita '--output' (git-diff) em 'git diff --output=.ceh/last-ci-run.json' DEVE ser deny no ambiente development. Obtido: allow
   FAILED (failures=1)
   ```
 - **Conclusão:** A proteção contra adulteração de certificado via `--output` é determinística e falsificável.
 
-### 4.2 Mutação B: Adição de Comando em Lista de Leitura sem Contrato
-- **Intervenção:** Adicionado o comando `"unregistered_read_cmd"` a `ALLOWED_READ_CMDS` em `ceh_core/rules.py` do clone, sem cadastrá-lo em `write_options.json`.
+### 4.3 Mutação 3: Corrupção de Snippet de Help no Contrato
+- **Intervenção:** No arquivo `write_options.json`, o snippet da linha 170 de `git diff` foi alterado para `--corrupted-snippet-invented`.
 - **Resultado:** O teste `test_help_contract.py` **FALHOU** imediatamente com exit code 1:
   ```
-  AssertionError: ['unregistered_read_cmd'] is not false : Comandos em ALLOWED_READ_CMDS sem contrato formal em write_options.json: ['unregistered_read_cmd']
+  AssertionError: False is not true : Divergência na fonte em git-diff (docs/temp_implementation/evidence/help-contracts/git-diff.txt:170) para flag '--output'.
+    Snippet esperado: '--corrupted-snippet-invented'
+    Linha real:       '       --output=<file>'
   FAILED (failures=1)
   ```
-- **Conclusão:** Nenhum comando pode entrar em listas de leitura sem auditoria prévia do seu `--help` e formalização do contrato de opções.
+- **Conclusão:** Toda opção no contrato é ancorada com exatidão física na linha real do help versionado.
 
 ---
 
