@@ -562,6 +562,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **D04:** mantido formalmente isolado aguardando autorização/rota expressamente aprovada pelo responsável da política para ensaios com symlink.
 - **Veredito:** PR-20b concluído e pronto para homologação formal.
 
+### 0.56 PR-20b homologado; D04 permanece gate de integração ([Handoff 058](./temp_implementation/handoffs/handoff-058-homologacao-pr20b-despacho-d04.md))
+
+- **D05 homologado:** ADR-006 e o índice distinguem scripts de instalação, cujo CI testa a recusa fail-closed no Apple Bash 3.2, de `conselho-seniores.sh` e orquestradores que exigem Bash 4.3+.
+- **D06 homologado:** o teste invoca o script de produção via `--print-output-dir`; revisor repetiu os três cenários e uma mutação da função em clone isolado, que passou na base e falhou com a mutação.
+- **Evidência final observada:** suíte 63/63, evals 5/5, doc-audit 7/7 e `evidence-report --strict` VERIFICADO no commit `0fcd686`; CI Run 36479192752 concluiu 4/4 jobs no mesmo SHA.
+- **Veredito:** PR-20b homologado. D04 não foi homologado nem resolvido; a tentativa anterior foi bloqueada pelo PreToolUse. Permanece gate separado antes de qualquer homologação geral/merge da branch.
+- **Próximo:** obter rota expressamente permitida para provar D04 em diretórios temporários; não transferir nem reformular a tentativa para contornar o bloqueio do hook.
+
 
 
 
