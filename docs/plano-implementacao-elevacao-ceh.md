@@ -546,6 +546,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Validações observadas:** suíte canônica 63/63 PASS (exit code 0), smoke-evals 5/5 PASS, auditoria documental 7/7 PASS, evidence-report estrito VERIFICADO. CI remoto Run 36475885529 concluiu 4/4 jobs com sucesso (Ubuntu/macOS × Python 3.9/3.12).
 - **Veredito:** PR-20a pronto para homologação formal pelo Revisor Independente. D04 permanece aberto como gate separado para a homologação geral da branch.
 
+### 0.54 PR-20a não homologado; D05 parcial, D06 aberto e D04 sem prova dinâmica ([Handoff 056](./temp_implementation/handoffs/handoff-056-pr20a-nao-homologado-despacho-correcoes.md))
+
+- **D05 permanece parcial:** a alegação de compatibilidade Bash 3.2+ não é sustentada para todo o Conselho; `conselho-seniores.sh` usa `local -n` e arrays associativas, enquanto o job macOS instala Bash Homebrew 5+ antes da suíte. A verificação Apple Bash 3.2 cobre sintaxe/recusa fail-closed de `install.sh` e `uninstall.sh`.
+- **D06 (médio):** `test_conselho_output_dir.py` repete em string as expressões de `REPO_ROOT`/`OUTPUT_DIR`; não executa o script real, portanto alteração da lógica de produção pode não ser detectada pelo teste.
+- **D04:** tentativa de prova controlada somente em temporários foi bloqueada pelo PreToolUse com ambiente `unknown` e alerta de ação destrutiva; não houve execução nem contorno. A hipótese segue `INFERRED`, sem prova dinâmica.
+- **Veredito:** PR-20a não homologado até restringir o claim Bash e ligar o teste à lógica real do Conselho. CI remoto 36475885529 corresponde a `c80b831` e passou 4/4; o certificado local de suíte em `7452b30` está válido, mas o certificado de evals observado estava em `c80b831` e precisava ser reemitido para o HEAD revisado.
+- **Próximo:** PR-20b deve corrigir D05/D06. Para D04, solicitar ao responsável uma rota explicitamente aprovada pelo hook para ensaio em diretórios temporários; não executar novamente por outro canal enquanto o bloqueio permanecer.
+
 
 
 ## 1. Objetivo
