@@ -56,12 +56,14 @@ A refatoração preservou integralmente o comportamento do Safety Gate contra a 
 Criado o teste `clearer-engineering/tests/test_normalization_structural.py` (integrado como Teste 29 do `run-all-tests.sh`, totalizando 62 testes canônicos):
 1. **Verificação AST:** Garante que nenhuma função reservada de normalização ou com prefixo `normalize_` seja definida fora de `ceh_core/normalize.py`.
 2. **Varredura de Normpath:** Garante que `os.path.normpath` e `posixpath.normpath` sejam invocados exclusivamente em `normalize.py`.
-3. **Varredura de Shlex:** Garante que chamadas a `shlex.split` residam exclusivamente em `normalize.py` (com exceção justificada documentada em `rules.py:175` para captura de `ValueError` em `is_cert_tampering`).
+3. **Varredura de Shlex por AST (D01 / PR-QA-D2):** Garante que chamadas a `shlex.split` residam exclusivamente em `normalize.py`. A única exceção admitida no contrato arquitetural é estritamente restrita ao call-site `("rules.py", "is_cert_tampering")` (máximo de 1 chamada para captura de `ValueError` fail-closed de certificado G9/AL1). Chamadas adicionais no mesmo arquivo ou fora de função falham compulsoriamente.
 4. **Exportação de Símbolos:** Garante a presença e executabilidade de todos os 9 símbolos da API canônica.
 
-### Prova de Falsificabilidade por Mutação (Executada em Clone Isolado)
-- **Mutação A:** Adição de `def normalize_custom_branch(b)` em `git.py` → O teste reprovou imediatamente com AssertionError citando expressamente `git.py`.
-- **Mutação B:** Invocação direta de `os.path.normpath` em `find.py` → O teste reprovou imediatamente com AssertionError citando expressamente `find.py`.
+### Prova de Falsificabilidade por Mutação (Executada em Clone Isolado — 4/4 Cenários Aprovados)
+- **Cenário 1 (Mutação D01 do Revisor):** Adição de `extra_tokens = shlex.split("git status")` no nível de módulo em `rules.py` → O teste reprovou imediatamente com AssertionError (`rules.py:228 invoca shlex.split fora do módulo canônico e sem exceção de call-site: função '<module>'`).
+- **Cenário 2 (Excesso de chamadas no call-site autorizado):** Adição de uma segunda chamada a `shlex.split` dentro de `is_cert_tampering` em `rules.py` → O teste reprovou imediatamente (`rules.py:175 excede o limite de chamadas (2 > 1) para shlex.split na função 'is_cert_tampering'`).
+- **Cenário 3:** Adição de `def normalize_custom_branch(b)` em `git.py` → O teste reprovou imediatamente com AssertionError citando expressamente `git.py`.
+- **Cenário 4:** Invocação direta de `os.path.normpath` em `find.py` → O teste reprovou imediatamente com AssertionError citando expressamente `find.py`.
 
 ---
 
