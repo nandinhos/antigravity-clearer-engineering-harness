@@ -1010,3 +1010,15 @@
 {"command": "git checkout -- ':/config/database.php'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-343-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
 {"command": "git checkout -- ':/config/database.php'", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-343-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
 {"command": "git checkout -- ':/config/database.php'", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-343-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "git diff --output=.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-344-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git diff --output=.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-344-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git diff --output=.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-344-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git log -1 --output=.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-345-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git log -1 --output=.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-345-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git log -1 --output=.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-345-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git show --output=.ceh/last-ci-run.json HEAD", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-346-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git show --output=.ceh/last-ci-run.json HEAD", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-346-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git show --output=.ceh/last-ci-run.json HEAD", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-346-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git log -1 -o .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-347-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git log -1 -o .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-347-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "git log -1 -o .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-347-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}

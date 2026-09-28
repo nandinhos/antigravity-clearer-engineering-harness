@@ -363,3 +363,9 @@ RAW:git checkout -- ':/:app/x'
 RAW:git checkout -- ':^/src'
 RAW:git restore ':!/app/Services'
 RAW:git checkout -- ':/config/database.php'
+# PR-22b AV3: Cobertura de escrita em .ceh via flags de output do git (G9)
+RAW:git diff --output=.ceh/last-ci-run.json
+RAW:git log -1 --output=.ceh/last-ci-run.json
+RAW:git show --output=.ceh/last-ci-run.json HEAD
+RAW:git log -1 -o .ceh/last-ci-run.json
+

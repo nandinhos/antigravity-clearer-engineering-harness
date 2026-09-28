@@ -81,15 +81,63 @@ ALLOWED_READ_CMDS = {
 }
 
 ALLOWED_GIT_READ_SUBCMDS = {"status", "log", "diff", "show"}
+EXCLUDE_SUPPORTED_CMDS = {"tar", "rsync", "r8sync", "grep", "rg", "find"}
+
+def _extract_base_command(cmd: str) -> str:
+    """Extrai o comando executável base desconsiderando wrappers transparentes e variáveis de ambiente."""
+    try:
+        tokens = shlex.split(cmd)
+    except Exception:
+        tokens = cmd.strip().split()
+    idx = 0
+    while idx < len(tokens):
+        tok = os.path.basename(tokens[idx])
+        if tok in ("sudo", "env", "nohup", "time", "nice", "doas", "command", "builtin", "exec"):
+            idx += 1
+            continue
+        if tok == "rtk":
+            idx += 2 if (idx + 1 < len(tokens) and tokens[idx + 1] == "proxy") else 1
+            continue
+        if tok.startswith("-") and "=" in tok:
+            idx += 1
+            continue
+        if "=" in tok and not tok.startswith("-"):
+            idx += 1
+            continue
+        break
+    if idx < len(tokens):
+        return os.path.basename(tokens[idx])
+    return ""
 
 def strip_ceh_exclusions(cmd: str) -> str:
-    """Remove argumentos de exclusão benignos onde .ceh/ é explicitamente ignorado (Handoff 039/047 AM2)."""
-    s = re.sub(r"--exclude(?:=|\s+)['\"]?(?:\./)?\.ceh/?['\"]?", " ", cmd)
-    s = re.sub(r"-path\s+['\"]?(?:\./)?\.ceh/?['\"]?\s+-prune", " ", s)
+    """
+    Remove argumentos de exclusão benignos onde .ceh/ é explicitamente ignorado (AM2 / AV2).
+    Restringe estritamente a comandos que suportam exclusão sintática:
+    - --exclude para tar, rsync, r8sync, grep, rg, find
+    - -path ... -prune para find
+    """
+    base_cmd = _extract_base_command(cmd)
+    s = cmd
+    if base_cmd in EXCLUDE_SUPPORTED_CMDS:
+        s = re.sub(r"--exclude(?:=|\s+)['\"]?(?:\./)?\.ceh/?['\"]?", " ", s)
+    if base_cmd == "find":
+        s = re.sub(r"-path\s+['\"]?(?:\./)?\.ceh/?['\"]?\s+-prune", " ", s)
     return s
 
 def is_git_read_subcommand(args: list[str]) -> bool:
-    """Verifica se os argumentos de invocação do git constituem subcomando de leitura pura (AM2)."""
+    """
+    Verifica se os argumentos de invocação do git constituem subcomando de leitura pura (AM2 / AV1).
+    Fail-closed: se qualquer token for flag de escrita (-o, -O, --output, --output=, --output-*),
+    não é leitura pura, retornando False para barrar gravação no certificado (G9).
+    """
+    for arg in args:
+        if arg in ("-o", "-O", "--output"):
+            return False
+        if arg.startswith(("--output=", "--output-")):
+            return False
+        if (arg.startswith("-o") or arg.startswith("-O")) and len(arg) > 2:
+            return False
+
     i = 0
     while i < len(args):
         arg = args[i]

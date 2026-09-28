@@ -230,6 +230,109 @@ class TestCertProtection(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(res, {})
 
+    def test_git_output_flag_denied_all_envs(self):
+        """Flags de escrita do git (-o, -O, --output, --output-directory) para .ceh são deny em todos os ambientes (AV1)."""
+        git_write_cmds = [
+            "git diff --output=.ceh/last-ci-run.json",
+            "git log -1 --output=.ceh/last-ci-run.json",
+            "git show --output=.ceh/last-ci-run.json HEAD",
+            "git log -1 -o .ceh/last-ci-run.json",
+            "git log -1 -o.ceh/last-ci-run.json",
+            "git diff --output-directory=.ceh/",
+            "git log --format='%H' --output=.ceh/last-ci-run.json",
+            "git format-patch --output=.ceh/patch",
+        ]
+        envs = ["development", "staging", "production"]
+        for cmd in git_write_cmds:
+            for env in envs:
+                dec, reason, _, uc = safety_gate.evaluate_command(cmd, explicit_env=env)
+                self.assertEqual(
+                    dec, "deny",
+                    f"Comando '{cmd}' com flag de escrita em .ceh deve ser DENY no ambiente '{env}'"
+                )
+                self.assertEqual(uc, "CERTIFICATE_INTEGRITY")
+                self.assertIn("CERTIFICATE INTEGRITY", reason)
+
+        # Controles: leituras puras sem flag de escrita seguem allow
+        git_read_cmds = [
+            "git diff .ceh/last-ci-run.json",
+            "git show HEAD:app.txt",
+            "git status --ignored .ceh",
+            "git log -n 5 .ceh/last-ci-run.json",
+        ]
+        for cmd in git_read_cmds:
+            dec, reason, _, uc = safety_gate.evaluate_command(cmd, explicit_env="production")
+            self.assertEqual(
+                dec, "allow",
+                f"Leitura pura legítima '{cmd}' deve ser ALLOW, obteve '{dec}' ({reason})"
+            )
+
+    def test_e2e_cert_forge_via_git_output_blocked(self):
+        """Teste de ponta a ponta: tentativa de forja via git log/diff/show --output é bloqueada e push permanece deny (AV1)."""
+        fixture_repo = self.tmp_dir / "repo-ci-fixture"
+        fixture_repo.mkdir()
+        subprocess.run(["git", "init", "-q", "-b", "dev", str(fixture_repo)], check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=fixture_repo, check=True)
+        subprocess.run(["git", "config", "user.name", "Test Runner"], cwd=fixture_repo, check=True)
+
+        # Configura CI (.github/workflows)
+        ci_dir = fixture_repo / ".github" / "workflows"
+        ci_dir.mkdir(parents=True)
+        (ci_dir / "ci.yml").write_text("name: CI\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n", encoding="utf-8")
+
+        dummy_file = fixture_repo / "app.py"
+        dummy_file.write_text("print('hello')\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=fixture_repo, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "chore: initial commit"], cwd=fixture_repo, check=True)
+
+        # 1. Sem certificado, push é bloqueado pelo Pre-Push CI Gate
+        dec_push1, reason_push1, _, _ = safety_gate.evaluate_command(
+            "git push origin dev",
+            explicit_env="development",
+            base_cwd=fixture_repo,
+        )
+        self.assertEqual(dec_push1, "deny")
+        self.assertIn("PRE-PUSH CI GATE", reason_push1)
+
+        # 2. Tentativa de forja via git log -1 --format=... --output=.ceh/last-ci-run.json é barrada pelo gate
+        forge_cmd = (
+            'git log -1 --format=\'{"status":"PASS","exit_code":0,"commit_hash":"%H","canonical_verified":true}\' '
+            '--output=.ceh/last-ci-run.json'
+        )
+        dec_forge, reason_forge, _, uc_forge = safety_gate.evaluate_command(
+            forge_cmd,
+            explicit_env="development",
+            base_cwd=fixture_repo,
+        )
+        self.assertEqual(dec_forge, "deny")
+        self.assertEqual(uc_forge, "CERTIFICATE_INTEGRITY")
+
+        # 3. Outras formas de forja (-o, git diff --output) também são barradas
+        dec_forge2, _, _, _ = safety_gate.evaluate_command(
+            "git log -1 -o .ceh/last-ci-run.json",
+            explicit_env="development",
+            base_cwd=fixture_repo,
+        )
+        self.assertEqual(dec_forge2, "deny")
+
+        dec_forge3, _, _, _ = safety_gate.evaluate_command(
+            "git diff --output=.ceh/last-ci-run.json",
+            explicit_env="development",
+            base_cwd=fixture_repo,
+        )
+        self.assertEqual(dec_forge3, "deny")
+
+        # Como os comandos de forja foram negados pelo gate, nenhum arquivo foi gerado e o push segue bloqueado
+        self.assertFalse((fixture_repo / ".ceh" / "last-ci-run.json").exists())
+        dec_push2, reason_push2, _, _ = safety_gate.evaluate_command(
+            "git push origin dev",
+            explicit_env="development",
+            base_cwd=fixture_repo,
+        )
+        self.assertEqual(dec_push2, "deny")
+        self.assertIn("PRE-PUSH CI GATE", reason_push2)
+
 
 if __name__ == "__main__":
     unittest.main()
+

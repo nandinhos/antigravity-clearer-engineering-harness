@@ -448,3 +448,12 @@ production|allow|H039-AM2|diff .ceh/last-ci-run.json /tmp/x
 production|allow|H039-AM2|git status --ignored .ceh
 development|deny|H039-AM2-controle|tar xf evil.tar -C .ceh
 development|deny|H039-AM2-controle|rsync -a /tmp/fake/ .ceh/
+
+# H048 — AV1: git diff|log|show com --output/.ceh é escrita no certificado (reabertura do G9 no PR-22, fechado no PR-22b)
+production|deny|H048-AV1|git diff --output=.ceh/last-ci-run.json
+production|deny|H048-AV1|git log -1 --output=.ceh/last-ci-run.json
+production|deny|H048-AV1|git show --output=.ceh/last-ci-run.json HEAD
+production|allow|H048-AV1-controle|git show HEAD:app.txt
+production|deny|H048-AV1-controle|git format-patch --output=.ceh/patch
+
+
