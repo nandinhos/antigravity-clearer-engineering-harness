@@ -84,3 +84,16 @@ Executada de forma determinística via script isolado clonando o repositório em
    ```
 4. **Conclusão:**
    A prova confirma que qualquer alteração de motivo para texto neutro ou sem marcadores reconhecidos reprova imediatamente a suíte, citando o comando.
+
+---
+
+## 5. Validação de CI Remoto (GitHub Actions)
+
+- **Commit:** `6a9217d`
+- **Run ID:** `36422792664`
+- **Link Canônico:** [run 36422792664](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36422792664)
+- **Status:** `completed` / `conclusion: success` (4/4 jobs aprovados)
+  - `Validate (ubuntu-latest - Python 3.12)`: **success**
+  - `Validate (ubuntu-latest - Python 3.9)`: **success**
+  - `Validate (macos-latest - Python 3.12)`: **success**
+  - `Validate (macos-latest - Python 3.9)`: **success**
