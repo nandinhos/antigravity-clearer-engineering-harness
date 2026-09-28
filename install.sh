@@ -55,6 +55,21 @@ check_prerequisites() {
         fi
     done
 
+    if command -v python3 >/dev/null 2>&1; then
+        if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
+            log_error "Python 3.9+ is required. Found: $(python3 -V 2>&1)"
+            missing=1
+        fi
+    fi
+
+    if [[ -n "${BASH_VERSINFO[0]:-}" && "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+        log_error "Bash 4.0+ is required. Detected: Bash ${BASH_VERSION}."
+        if [[ "$(uname -s)" == "Darwin" ]]; then
+            log_error "macOS includes outdated Bash 3.2 by default. Install modern Bash via Homebrew: 'brew install bash' and ensure it takes precedence in your PATH."
+        fi
+        missing=1
+    fi
+
     if ! command -v agy >/dev/null 2>&1; then
         log_warn "'agy' (Antigravity CLI) was not found in PATH."
         log_warn "If Antigravity is installed in a non-standard location, ensure ~/.local/bin is in your PATH."
@@ -77,19 +92,39 @@ check_prerequisites() {
 # 2. Locate or Fetch Source Assets
 setup_source_directory() {
     INSTALL_TMP_DIR=""
-    # Check if run locally within cloned repo
-    if [[ -d "$(dirname "$0")/clearer-engineering" && -f "$(dirname "$0")/clearer-engineering/plugin.json" ]]; then
-        SOURCE_DIR="$(cd "$(dirname "$0")" && pwd)"
+    local local_candidate=""
+
+    if [[ ${#BASH_SOURCE[@]} -gt 0 && -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+        local script_dir
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        if [[ -d "$script_dir/clearer-engineering" && -f "$script_dir/clearer-engineering/plugin.json" ]]; then
+            local_candidate="$script_dir"
+        fi
+    fi
+
+    if [[ -n "$local_candidate" ]]; then
+        if [[ -n "${CEH_VERSION:-}" ]]; then
+            log_warn "CEH_VERSION='${CEH_VERSION}' foi informada, mas o script está rodando diretamente de um arquivo local ($local_candidate). A versão fixada será ignorada em favor da árvore local."
+        fi
+        SOURCE_DIR="$local_candidate"
         log_info "Using local source directory: $SOURCE_DIR"
     else
-        log_info "Fetching latest CEH release from GitHub..."
-        INSTALL_TMP_DIR=$(mktemp -d -t ceh-install-XXXXXX)
-        git clone --depth 1 https://github.com/nandinhos/antigravity-clearer-engineering-harness.git "$INSTALL_TMP_DIR" -q
+        INSTALL_TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-install-XXXXXX")
+        local repo_url="${CEH_REPO_URL:-https://github.com/nandinhos/antigravity-clearer-engineering-harness.git}"
+        if [[ -n "${CEH_VERSION:-}" ]]; then
+            local TARGET_REF="v${CEH_VERSION#v}"
+            log_info "Fetching CEH version $TARGET_REF from GitHub..."
+            git clone --depth 1 --branch "$TARGET_REF" "$repo_url" "$INSTALL_TMP_DIR" -q
+        else
+            log_info "Fetching latest CEH release from GitHub..."
+            git clone --depth 1 "$repo_url" "$INSTALL_TMP_DIR" -q
+        fi
         SOURCE_DIR="$INSTALL_TMP_DIR"
         log_success "Repository cloned to temporary directory."
     fi
 }
 
+# shellcheck disable=SC2317,SC2329 # Invocado indiretamente via trap cleanup EXIT
 cleanup() {
     if [[ -n "${INSTALL_TMP_DIR:-}" && -d "$INSTALL_TMP_DIR" ]]; then
         rm -rf "$INSTALL_TMP_DIR"
@@ -120,153 +155,150 @@ deploy_harness() {
     chmod +x "$TARGET_PLUGIN_DIR/scripts"/*
     chmod +x "$TARGET_PLUGIN_DIR/tests"/*
 
-
-    # Copy Agent Profile
-    cat << "AGENT_EOF" > "$TARGET_AGENT_DIR/agent.md"
----
-name: clearer-harness
-description: >-
-  CLEARER Engineering Harness (CEH) Orchestrator para Google Antigravity. Conduz o ciclo de
-  engenharia orientado a evidências com Risk Dial (LOW, MEDIUM, HIGH), semântica OBSERVED/INFERRED/UNKNOWN,
-  revisão adversarial de diffs e auditoria estrita de claims.
-tools:
-  - run_command
-  - write_to_file
-  - replace_file_content
-  - multi_replace_file_content
-  - view_file
-  - list_dir
-  - grep_search
-  - find_by_name
-  - search_web
-  - read_url_content
-  - manage_task
-  - schedule
-  - generate_image
-  - ask_question
-  - invoke_subagent
-  - define_subagent
-  - manage_subagents
-  - send_message
----
-
-# CLEARER Engineering Harness (Antigravity Profile)
-
-Você é o perfil oficial **CLEARER Engineering Harness (`clearer-harness`)** para o **Google Antigravity**.
-Seu papel é atuar como **Engineering Orchestrator** orientado por evidências, garantindo precisão, blast radius mínimo, testes determinísticos e auditoria rigorosa de claims.
-
----
-
-## 1. O Protocolo CLEARER
-- **C — Concrete Goal**: Objetivo concreto, arquivos envolvidos, restrições e condição de parada.
-- **L — Load Context**: *Inspect before edit*. Descobrir a stack, entrypoints e testes antes de editar.
-- **E — Explicit Boundaries**: Delimitar escopo rígido e blast radius mínimo.
-- **A — Anchors and Examples**: Código real, schemas e testes como única fonte da verdade.
-- **R — Response Contract**: Toda entrega gera um contrato verificável de saída.
-- **E — Enable Evidence and Tools**: Observação direta sobre suposição.
-- **R — Review and Validate**: Seguir o ciclo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT → REPORT`.
-
-## 2. Risk Dial & Automação de Execução
-- **LOW**: Baixa sobrecarga, execução ágil.
-- **MEDIUM**: Execução Contínua em Turno Único (Inspeção → Plano → Implementação → Testes → Diff Audit → Response Contract).
-- **HIGH**: Investigação profunda, subagentes especializados, revisão adversarial, auditoria formal e aprovação humana.
-
-
-## 3. Subagentes Especializados
-1. `ceh-investigator`: Exploração read-only e Evidence Pack.
-2. `ceh-architect`: Análise de blast radius e Implementation Plan.
-3. `ceh-implementer`: Edição precisa e cirúrgica do código.
-4. `ceh-test-engineer`: Execução de testes determinísticos e evidência não-mascarada.
-5. `ceh-reviewer`: Revisão adversarial do Git diff.
-6. `ceh-evidence-auditor`: Confronto final `CLAIM ↔ EVIDENCE`.
-
-## 4. Skills Integradas
-`/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-refactor`, `/clearer-review`, `/clearer-audit`, `/clearer-map`, `/clearer-test`, `/clearer-adhd`, `/conselho-seniores`.
-AGENT_EOF
+    # Copy Agent Profile from canonical source
+    local AGENT_PROFILE_SRC="$SOURCE_DIR/clearer-engineering/profiles/clearer-harness.agent.md"
+    if [[ -f "$AGENT_PROFILE_SRC" ]]; then
+        cp "$AGENT_PROFILE_SRC" "$TARGET_AGENT_DIR/agent.md"
+    else
+        log_error "Agent profile source not found at $AGENT_PROFILE_SRC"
+        exit 1
+    fi
 
     log_success "Assets installed to $GEMINI_CONFIG_DIR"
 
     # Register and validate via agy CLI if available
     if command -v agy >/dev/null 2>&1; then
         log_info "Validating plugin with Antigravity CLI..."
-        agy plugin validate "$TARGET_PLUGIN_DIR" >/dev/null 2>&1 || true
-        log_success "Plugin validated and active in Antigravity."
+        local validate_output
+        local validate_status=0
+        validate_output=$(agy plugin validate "$TARGET_PLUGIN_DIR" 2>&1) || validate_status=$?
+        echo "$validate_output"
+        if [[ $validate_status -eq 0 ]]; then
+            log_success "Plugin validated and active in Antigravity."
+        else
+            log_error "Plugin validation failed with exit code $validate_status."
+            if [[ "${SKIP_DIAGNOSTICS:-0}" -eq 1 ]]; then
+                log_warn "Proceeding despite validation failure because --skip-diagnostics is active."
+            else
+                log_error "Aborting installation due to plugin validation failure. (Pass --skip-diagnostics to bypass)."
+                exit "$validate_status"
+            fi
+        fi
     fi
 }
 
 
 # 4. Configure Shell Aliases Idempotently
 configure_shell_aliases() {
-    log_info "Configuring shell aliases (agy-ceh, agy-ceh-yolo, ceh-evals)..."
+    log_info "Configuring shell aliases from config/aliases.sh..."
 
-    local START_MARKER="# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES"
-    local END_MARKER="# END CLEARER ENGINEERING HARNESS (CEH) ALIASES"
-    local ALIAS_BLOCK="$START_MARKER
-alias agy-ceh='agy --agent clearer-harness'
-alias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'
-alias ceh='agy --agent clearer-harness'
-alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'
-alias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'
-alias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'
-alias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'
-alias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'
-alias ceh-doc-audit='bash ~/.gemini/config/plugins/clearer-engineering/scripts/doc-audit.sh'
-alias ceh-conselho='bash ~/.gemini/config/plugins/clearer-engineering/scripts/conselho-seniores.sh'
-alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'
-$END_MARKER"
+    local ALIAS_CONF="$HOME/.gemini/config/plugins/clearer-engineering/config/aliases.sh"
+    local RC_ALIASES_PY="$HOME/.gemini/config/plugins/clearer-engineering/scripts/rc_aliases.py"
+
+    local script_dir=""
+    if [[ ${#BASH_SOURCE[@]} -gt 0 && -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    fi
+    local base_src="${SOURCE_DIR:-$script_dir}"
+
+    if [[ ! -f "$ALIAS_CONF" && -n "$base_src" ]]; then
+        ALIAS_CONF="$base_src/clearer-engineering/config/aliases.sh"
+    fi
+    if [[ ! -f "$RC_ALIASES_PY" && -n "$base_src" ]]; then
+        RC_ALIASES_PY="$base_src/clearer-engineering/scripts/rc_aliases.py"
+    fi
+
+    if [[ ! -f "$ALIAS_CONF" ]]; then
+        log_error "Aliases configuration not found at $ALIAS_CONF"
+        exit 1
+    fi
+    if [[ ! -f "$RC_ALIASES_PY" ]]; then
+        log_error "rc_aliases.py not found at $RC_ALIASES_PY"
+        exit 1
+    fi
+
+    local ALIAS_BODY
+    ALIAS_BODY=$(grep '^alias ' "$ALIAS_CONF")
 
     for rc_file in "$HOME/.bashrc" "$HOME/.zshrc"; do
         if [[ -f "$rc_file" ]]; then
-            python3 -c "
-import sys, re
-
-rc_path = sys.argv[1]
-new_block = sys.argv[2].strip()
-start_m = '# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES'
-end_m = '# END CLEARER ENGINEERING HARNESS (CEH) ALIASES'
-
-try:
-    with open(rc_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-except Exception:
-    sys.exit(0)
-
-# Remove legacy/orphan CEH comment and lines if present
-content = re.sub(r'# === CLEARER Engineering Harness \(CEH\) ===\n?', '', content)
-
-pattern = re.compile(rf'{re.escape(start_m)}.*?{re.escape(end_m)}\n?', re.DOTALL)
-if pattern.search(content):
-    updated = pattern.sub(new_block + '\n', content)
-else:
-    for a in ['agy-ceh', 'agy-ceh-yolo', 'ceh', 'ceh-env', 'ceh-branches', 'ceh-preflight', 'ceh-evals', 'ceh-monitor', 'ceh-help']:
-        content = re.sub(rf'alias {a}=.*?\n', '', content)
-    updated = content.rstrip() + '\n\n' + new_block + '\n'
-
-with open(rc_path, 'w', encoding='utf-8') as f:
-    f.write(updated)
-" "$rc_file" "$ALIAS_BLOCK"
+            python3 "$RC_ALIASES_PY" install-rc "$rc_file" "$ALIAS_CONF" "$ALIAS_BODY"
             log_success "Aliases configured in $rc_file"
         fi
     done
 }
 
-# 5. Run Self-Diagnostics
+# 5. Run Post-Installation Self-Diagnostics
 run_self_diagnostics() {
-    log_info "Running post-installation self-diagnostics..."
-    local TEST_SCRIPT="$HOME/.gemini/config/plugins/clearer-engineering/tests/run-all-tests.sh"
-    local ADVERSARIAL_SCRIPT="$HOME/.gemini/config/plugins/clearer-engineering/tests/run-adversarial-tests.sh"
+    log_info "Running post-installation self-diagnostics from installed harness..."
+    local TARGET_PLUGIN_DIR="$HOME/.gemini/config/plugins/clearer-engineering"
+    local GATE_SCRIPT="$TARGET_PLUGIN_DIR/scripts/safety-gate.py"
 
-    if [[ -x "$TEST_SCRIPT" && -x "$ADVERSARIAL_SCRIPT" ]]; then
-        if bash "$TEST_SCRIPT" >/dev/null 2>&1 && bash "$ADVERSARIAL_SCRIPT" >/dev/null 2>&1; then
-            log_success "All harness components and adversarial tests passed (100%)."
+    if [[ ! -f "$GATE_SCRIPT" ]]; then
+        log_error "Installed safety-gate.py not found at $GATE_SCRIPT"
+        if [[ "${SKIP_DIAGNOSTICS:-0}" -eq 1 ]]; then
+            log_warn "Proceeding because --skip-diagnostics is active."
+            return 0
         else
-            log_warn "Diagnostics completed with warnings. Check plugin configurations."
+            exit 1
         fi
     fi
+
+    # 1. Test catastrophic deny
+    log_info "Diagnosing safety-gate: catastrophic command check (rm -rf /)..."
+    local out1
+    out1=$(python3 "$GATE_SCRIPT" --check "rm -rf /" 2>&1 || true)
+    if ! echo "$out1" | grep -qi "deny" || ! echo "$out1" | grep -qi "CATASTROPHIC"; then
+        log_error "Self-diagnostic failed: 'rm -rf /' did not trigger deny/CATASTROPHIC. Output: $out1"
+        if [[ "${SKIP_DIAGNOSTICS:-0}" -eq 1 ]]; then
+            log_warn "Proceeding because --skip-diagnostics is active."
+        else
+            exit 1
+        fi
+    fi
+
+    # 2. Test benign allow
+    log_info "Diagnosing safety-gate: benign command check (ls)..."
+    local out2
+    out2=$(python3 "$GATE_SCRIPT" --check "ls" 2>&1 || true)
+    if ! echo "$out2" | grep -qi "allow"; then
+        log_error "Self-diagnostic failed: 'ls' did not evaluate to allow. Output: $out2"
+        if [[ "${SKIP_DIAGNOSTICS:-0}" -eq 1 ]]; then
+            log_warn "Proceeding because --skip-diagnostics is active."
+        else
+            exit 1
+        fi
+    fi
+
+    # 3. Test hook fail-closed on empty stdin (PR-09: exit code 2)
+    log_info "Diagnosing hook fail-closed: empty payload handling..."
+    local hook_exit=0
+    echo "" | python3 "$GATE_SCRIPT" >/dev/null 2>&1 || hook_exit=$?
+    if [[ "$hook_exit" -ne 2 ]]; then
+        log_error "Self-diagnostic failed: empty stdin did not return exit code 2 (got $hook_exit)"
+        if [[ "${SKIP_DIAGNOSTICS:-0}" -eq 1 ]]; then
+            log_warn "Proceeding because --skip-diagnostics is active."
+        else
+            exit 1
+        fi
+    fi
+
+    log_success "Post-installation self-diagnostics passed (3/3 checks verified)."
 }
 
 # Main Execution Flow
 main() {
+    local skip_diag=0
+    for arg in "$@"; do
+        if [[ "$arg" == "--skip-diagnostics" ]]; then
+            skip_diag=1
+        fi
+    done
+    export SKIP_DIAGNOSTICS="$skip_diag"
+    if [[ "$SKIP_DIAGNOSTICS" -eq 1 ]]; then
+        log_info "Flag --skip-diagnostics detected: strict validation and diagnostics will not abort on failure."
+    fi
+
     print_banner
     check_prerequisites
     setup_source_directory
@@ -296,6 +328,6 @@ main() {
     echo ""
 }
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ ${#BASH_SOURCE[@]} -eq 0 || "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

@@ -1,0 +1,12 @@
+{"exp_id": "E11-ctrl-write-padrao", "arm": "controle", "tool": "write", "mode": "padrao", "exit_code": 0, "file_created": true, "hook_fired": false, "elapsed_seconds": 8.38, "output_snippet": "CRIADO "}
+{"exp_id": "E11-allow-write-padrao", "arm": "allow", "tool": "write", "mode": "padrao", "exit_code": 0, "file_created": true, "hook_fired": true, "elapsed_seconds": 8.91, "output_snippet": "CRIADO "}
+{"exp_id": "E11-vazio-write-padrao", "arm": "vazio", "tool": "write", "mode": "padrao", "exit_code": 0, "file_created": false, "hook_fired": true, "elapsed_seconds": 9.91, "output_snippet": "BLOQUEADO "}
+{"exp_id": "E11-ctrl-write-yolo", "arm": "controle", "tool": "write", "mode": "yolo", "exit_code": 0, "file_created": true, "hook_fired": false, "elapsed_seconds": 12.0, "output_snippet": "CRIADO "}
+{"exp_id": "E11-allow-write-yolo", "arm": "allow", "tool": "write", "mode": "yolo", "exit_code": 0, "file_created": true, "hook_fired": true, "elapsed_seconds": 10.8, "output_snippet": "CRIADO "}
+{"exp_id": "E11-vazio-write-yolo", "arm": "vazio", "tool": "write", "mode": "yolo", "exit_code": 0, "file_created": false, "hook_fired": true, "elapsed_seconds": 9.12, "output_snippet": "BLOQUEADO "}
+{"exp_id": "E11-ctrl-shell-padrao", "arm": "controle", "tool": "shell", "mode": "padrao", "exit_code": 0, "file_created": true, "hook_fired": false, "elapsed_seconds": 7.94, "output_snippet": "EXECUTADO "}
+{"exp_id": "E11-allow-shell-padrao", "arm": "allow", "tool": "shell", "mode": "padrao", "exit_code": 0, "file_created": true, "hook_fired": true, "elapsed_seconds": 10.31, "output_snippet": "EXECUTADO "}
+{"exp_id": "E11-vazio-shell-padrao", "arm": "vazio", "tool": "shell", "mode": "padrao", "exit_code": 0, "file_created": false, "hook_fired": true, "elapsed_seconds": 8.94, "output_snippet": "BLOQUEADO "}
+{"exp_id": "E11-ctrl-shell-yolo", "arm": "controle", "tool": "shell", "mode": "yolo", "exit_code": 0, "file_created": true, "hook_fired": false, "elapsed_seconds": 10.43, "output_snippet": "EXECUTADO "}
+{"exp_id": "E11-allow-shell-yolo", "arm": "allow", "tool": "shell", "mode": "yolo", "exit_code": 0, "file_created": true, "hook_fired": true, "elapsed_seconds": 11.87, "output_snippet": "EXECUTADO "}
+{"exp_id": "E11-vazio-shell-yolo", "arm": "vazio", "tool": "shell", "mode": "yolo", "exit_code": 0, "file_created": false, "hook_fired": true, "elapsed_seconds": 12.72, "output_snippet": "BLOQUEADO "}

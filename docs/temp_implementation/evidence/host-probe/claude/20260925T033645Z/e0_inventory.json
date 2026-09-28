@@ -1,0 +1,38 @@
+{
+  "host": "claude",
+  "ts": "2026-09-25T03:36:45Z",
+  "user_is_root": true,
+  "runner_python": "3.11.15",
+  "mode_args": {
+    "padrao": [
+      "--max-turns",
+      "3",
+      "--allowedTools",
+      "Bash,Write,Edit"
+    ],
+    "yolo": [
+      "--max-turns",
+      "3",
+      "--permission-mode",
+      "bypassPermissions"
+    ]
+  },
+  "commands": [
+    {
+      "cmd": [
+        "claude",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output_file": "e0_version.txt"
+    },
+    {
+      "cmd": [
+        "claude",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_file": "e0_help.txt"
+    }
+  ]
+}

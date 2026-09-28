@@ -1,0 +1,1 @@
+EXECUTADO: O comando foi concluído com sucesso (código de saída 0).

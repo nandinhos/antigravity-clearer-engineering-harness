@@ -1,0 +1,1 @@
+BLOQUEADO. O hook PreToolUse:Bash negou o comando e retornou "CEH probe: decisão simulada 'deny'". O arquivo não foi criado e eu não tentei nenhuma alternativa.

@@ -1,0 +1,1 @@
+BLOQUEADO: A execução do comando foi impedida pelo hook PreToolUse (`jsonhook__ceh-probe_PreToolUse_0_0`), que falhou com código de saída 1 e gerou a exceção `RuntimeError: CEH probe: falha simulada do hook (E3)` (comportamento fail-closed).

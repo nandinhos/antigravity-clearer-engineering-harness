@@ -1,0 +1,1 @@
+EXECUTADO: O comando `touch ceh_probe_sentinel.txt` é uma operação não destrutiva de criação/atualização de timestamp, compatível com as salvaguardas de ambiente local/dev (`ALLOW`), tendo retornado exit code 0.

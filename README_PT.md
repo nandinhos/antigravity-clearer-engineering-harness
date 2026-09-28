@@ -30,7 +30,7 @@ Em vez de depender de prompts vagos ou suposições não comprovadas, o CEH oper
 - **Topologias Canônicas Flexíveis**: Suporte nativo a **Modo Enterprise (3 branches: `dev` ➔ `staging` ➔ `main`)** e **Modo Clássico (2 branches: `dev` ➔ `main`)**, com assistente interativo `ceh-branches`.
 - **Execução Contínua em Nível MEDIUM**: Ciclo completo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` conduzido de ponta a ponta em **turno único (Single-Turn End-to-End)**.
 - **Deliberação Multi-Modelo (Add-on Conselho de Seniores)**: Banca multi-agente dinâmica que despacha consultas não-interativas para os CLIs de fronteira disponíveis (`claude`, `codex`, `muse`, `hermes`, `agy`, `agent`) fornecendo apoio analítico 360º.
-- **Zero Hallucination & Zero Fake Pass**: Proíbe a criação de código especulativo e garante que toda alegação de sucesso seja sustentada por comandos reais e logs executados em `OBSERVED`.
+- **Prevenção Ativa de Alucinações & Zero Fake Pass**: Proíbe a criação de código especulativo e garante que toda alegação técnica seja estritamente sustentada por comandos reais, testes e logs observados em `OBSERVED`.
 
 ---
 
@@ -39,7 +39,11 @@ Em vez de depender de prompts vagos ou suposições não comprovadas, o CEH oper
 Instale ou atualize o CEH no Linux, macOS ou WSL executando no terminal:
 
 ```bash
+# Versão estável mais recente
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
+
+# Versão fixada (SemVer — disponível após publicação da tag v1.3.0)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v1.3.0/install.sh | CEH_VERSION=1.3.0 bash
 ```
 
 ---
@@ -89,7 +93,7 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 3. **Compressão de Shell com Degradação Graciosa (RTK - Rust Token Killer)**:
    - Suporte nativo ao [**RTK**](https://github.com/rtk-ai/rtk): proxy CLI compilado em Rust que intercepta saídas de terminal (`git`, `npm test`, `pytest`, `cargo test`, `docker`, `ruff`) reduzindo o volume de bash lido pelo agente em 60-90%.
    - **Automação no Runner**: O `test-runner.sh` envelopa automaticamente comandos de teste quando `rtk` está no `$PATH`.
-   - **Segurança Imune a Evasão**: O `safety-gate.py` desliga o prefixo `rtk` antes da avaliação de regras para barrar operações destrutivas em produção e homologação.
+   - **Safety Gate Tokenizado e Resiliente a Evasões**: O `safety-gate.py` remove prefixos de proxy e normaliza a decomposição de tokens antes de avaliar regras para barrar operações destrutivas em produção e homologação.
    - **Escape Hatch**: Acesso a logs brutos via `rtk proxy <cmd>` ou flag `-vvv`. Se o RTK não estiver instalado, a esteira degrada graciosamente sem travas.
 4. **Higiene de Contexto & Sandbox (context-mode)**:
    - Mantém dados brutos e histórico fora da janela direta de contexto via SQLite+FTS5, promovendo a mentalidade "think in code".

@@ -6,6 +6,7 @@ Enforces environment-aware safety policy across 3 tiers:
 - Homologação / Staging: Confirmation required (ASK) with 2 explicit alerts + backup & rollback mandate.
 - Produção: Destructive commands strictly prohibited (DENY - fora de cogitação).
 """
+from __future__ import annotations
 
 import sys
 import os
@@ -16,445 +17,328 @@ import subprocess
 import shlex
 from pathlib import Path
 
-# Catastrophic patterns that MUST be BLOCKED in ANY environment (including dev)
-CATASTROPHIC_PATTERNS = [
-    (r"\brm\s+-[rRfF]*[rR][rRfF]*\s+/(?:\s|$)", "Hard block: Attempting recursive deletion of root directory '/'."),
-    (r"\brm\s+-[rRfF]*[rR][rRfF]*\s+~(?:\s|/|$)", "Hard block: Attempting recursive deletion of home directory '~'."),
-    (r"\brm\s+-[rRfF]*[rR][rRfF]*\s+\.\.(?:\s|/|$)", "Hard block: Attempting recursive deletion of parent directory '..'."),
-    (r"\brm\s+-[rRfF]*[rR][rRfF]*\s+\*(?:\s|$)", "Hard block: Blind wildcard recursive deletion 'rm -rf *'."),
-    (r"\bmkfs\b", "Hard block: Filesystem formatting command detected."),
-    (r"\bdd\s+if=.*of=/dev/", "Hard block: Direct disk writing via dd detected."),
-    (r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:", "Hard block: Fork bomb detected."),
-    (r"\bgcloud\s+projects\s+delete\b", "Hard block: Deleting GCP project detected."),
-]
+_SCRIPTS_DIR = str(Path(__file__).resolve().parent)
+if _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
 
-# Safe development patterns explicitly allowed (ALLOW bypass over generic checks)
-SAFE_DEV_PATTERNS = [
-    # Safe temporary/scratch cleanup
-    r"\brm\s+-[rRfF]+\s+(?:/tmp/|tmp/|\.tmp/|scratch/|\.cache/|dist/|build/|storage/framework/cache/|coverage/)",
-    # Safe single file removal
-    r"\brm\s+-[rRfF]*[fF][rRfF]*\s+[a-zA-Z0-9_\-\.\/]+\.[a-zA-Z0-9]+(?:\s|$)",
-    # Safe git checkout/restore of specific files (not '.' or whole tree)
-    r"\bgit\s+checkout\s+(?![\.\-]\s*$)[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
-    r"\bgit\s+restore\s+(?![\.\-]\s*$)[a-zA-Z0-9_\-\.\/]+(?:\s|$)",
-]
+from ceh_core.rules import (
+    CATASTROPHIC_PATTERNS,
+    SAFE_DEV_PATTERNS,
+    USE_CASE_DESTRUCTIVE_PATTERNS,
+    is_cert_tampering,
+)
+from ceh_core.lexer import (
+    split_shell_pipeline,
+    normalize_command_for_evaluation,
+    resolve_command_head,
+    substitute_positional_args,
+    extract_subshell_command,
+)
+from ceh_core.normalize import normalize_path, tokenize_command
+from ceh_core.environment import (
+    normalize_env,
+    detect_environment,
+    get_git_branch,
+    find_repo_root,
+    ENV_SEVERITY,
+    is_unresolved_cd_target,
+    resolve_target_context,
+)
+from ceh_core.rm import evaluate_rm_command
+from ceh_core.push import check_pre_push_ci_gate, is_remote_deletion
+from ceh_core.git import evaluate_git_subcommand
+from ceh_core.find import evaluate_find_command
+from ceh_core.interpreters import evaluate_interpreter_command
 
-# Destructive patterns categorized by Use Case
-# Tuple format: (pattern, description, use_case_code, use_case_label)
-USE_CASE_DESTRUCTIVE_PATTERNS = [
-    # Database / Migrations
-    (r"\bDROP\s+DATABASE\b", "DROP DATABASE statement", "DATABASE", "Banco de Dados"),
-    (r"\bDROP\s+SCHEMA\b", "DROP SCHEMA statement", "DATABASE", "Banco de Dados"),
-    (r"\bDROP\s+TABLE\b", "Destructive SQL: DROP TABLE", "DATABASE", "Banco de Dados"),
-    (r"\bDROP\s+VIEW\b", "Destructive SQL: DROP VIEW", "DATABASE", "Banco de Dados"),
-    (r"\bTRUNCATE(?:\s+TABLE)?\b", "Destructive SQL: TRUNCATE TABLE", "DATABASE", "Banco de Dados"),
-    (r"\bDELETE\s+FROM\s+\w+\s*(?:;\s*$|$)", "Destructive SQL: Unconditional DELETE without WHERE clause", "DATABASE", "Banco de Dados"),
-    (r"\bDELETE\s+FROM\s+\w+\s+WHERE\s+1\s*=\s*1", "Destructive SQL: DELETE with always-true WHERE 1=1", "DATABASE", "Banco de Dados"),
-    (r"\b(?:artisan|php\s+artisan)\s+migrate:(?:fresh|reset)\b", "Destructive Laravel migration (migrate:fresh / migrate:reset)", "DATABASE", "Banco de Dados"),
-    (r"\b(?:artisan|php\s+artisan)\s+db:wipe\b", "Destructive database wipe (artisan db:wipe)", "DATABASE", "Banco de Dados"),
 
-    # Git Version Control / History
-    (r"\bgit\s+reset\s+--hard\b", "Destructive Git reset discarding uncommitted changes (git reset --hard)", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+clean\s+-[a-zA-Z]*f", "Git clean discarding untracked files (git clean -f)", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+restore\s+(?:\.|\s+--staged\s+\.)\b", "Git restore discarding all working tree changes", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+checkout\s+--\s+\.\b", "Git checkout discarding all modified files", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+checkout\s+\.\b", "Git checkout discarding all working tree files", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+branch\s+-[dD]\b", "Force deleting a Git branch", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+push\s+.*--force\b", "Force pushing to remote repository (git push --force)", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+push\s+.*-f\b", "Force pushing to remote repository (git push -f)", "GIT_HISTORY", "Controle de Versão (Git)"),
-    (r"\bgit\s+push\s+.*\+[a-zA-Z0-9_\-\/]+", "Force pushing with refspec '+'", "GIT_HISTORY", "Controle de Versão (Git)"),
-
-    # Filesystem / Bulk Deletion
-    (r"\brm\s+-[rRfF]+", "Recursive or forced file deletion (rm -rf)", "FILESYSTEM", "Sistema de Arquivos"),
-
-    # Infrastructure & Cloud Resources
-    (r"\bterraform\s+destroy\b", "Destroying cloud infrastructure via Terraform", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
-    (r"\bkubectl\s+delete\s+(?:namespace|ns|deployment|statefulset|svc|all)\b", "Deleting Kubernetes infrastructure resources", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
-    (r"\bdocker\s+system\s+prune\s+-a\b", "Pruning all unused Docker images, volumes and containers", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
-    (r"\bgsutil\s+rm\s+-r\b", "Recursive deletion in Google Cloud Storage", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
-
-    # Packages & Registries
-    (r"\b(?:npm|pnpm|yarn)\s+publish\b", "Publishing packages to public registry", "PACKAGE", "Pacotes e Registros"),
-]
-
-def normalize_env(val: str) -> str:
-    """Normalizes environment string to: 'production', 'staging', or 'development'."""
-    val_clean = val.strip().lower()
-    if any(term in val_clean for term in ["prod", "production", "prd", "live"]):
-        return "production"
-    if any(term in val_clean for term in ["stage", "staging", "homolog", "homologacao", "homologação", "uat", "qa"]):
-        return "staging"
-    return "development"
-
-def get_git_branch() -> str | None:
-    """Attempts to get current git branch name."""
-    try:
-        res = subprocess.run(
-            ["git", "branch", "--show-current"],
-            capture_output=True,
-            text=True,
-            timeout=2
-        )
-        if res.returncode == 0 and res.stdout.strip():
-            return res.stdout.strip()
-    except Exception:
-        pass
-    return None
-
-def find_repo_root(start_dir: Path) -> Path | None:
-    """Finds git repository root directory traversing upwards."""
-    current = start_dir.resolve()
-    for parent in [current] + list(current.parents):
-        if (parent / ".git").exists():
-            return parent
-    return None
-
-def resolve_git_invocation(cmd_line: str, base_cwd: Path) -> tuple[bool, Path | None, str, str | None]:
+def resolve_git_invocation(
+    cmd_line: str,
+    base_cwd: Path | str | None = None
+) -> tuple[bool, str | None, list[str], Path | None, str, str | None]:
     """
-    Analisa a invocação do Git:
-    1. Identifica se é comando git.
-    2. Acumula iterativamente flags -C <path> e -C<path>, resolvendo espaços.
-    3. Rejeita em Fail-Closed opções não homologadas que alterem o repositório (--git-dir, --work-tree).
-    4. Localiza a raiz do repositório via find_repo_root().
-    5. Reconstrói o comando de forma canônica: 'git push <args restantes>'.
-    Retorna: (is_git_push, target_repo_root, canonical_cmd, error_reason)
+    Analisa e canonicaliza a invocação do Git para qualquer subcomando (G3 / R5):
+    1. Identifica se é comando git (com suporte opcional a prefixos rtk / proxy).
+    2. Acumula iterativamente flags -C <path> e -C<path>, resolvendo caminhos.
+    3. Remove opções globais inócuas (--no-pager, -p, --paginate, --no-replace-objects, --literal-pathspecs, --bare).
+    4. Rejeita em Fail-Closed opções não homologadas (--git-dir, --work-tree, -c e variantes).
+    5. Localiza a raiz do repositório via find_repo_root() a partir do diretório resultante de -C.
+    6. Reconstrói o comando de forma canônica: 'git <subcomando> <args restantes>'.
+    Retorna: (is_git, subcommand, remaining_args, target_repo_root, canonical_cmd, error_reason)
     """
     import shlex
     try:
         tokens = shlex.split(cmd_line, posix=True)
     except Exception as e:
-        return False, None, cmd_line, f"Erro de parsing na linha git: {e}"
+        return False, None, [], None, cmd_line, f"Erro de parsing na linha git: {e}"
 
-    # Remove prefixo de RTK se presente
-    if tokens and tokens[0] == "rtk":
-        tokens = tokens[1:]
-    if tokens and tokens[0] == "proxy":
+    idx, _ = resolve_command_head(tokens)
+    tokens = tokens[idx:]
+    while tokens and "=" in tokens[0] and not tokens[0].startswith(("-", "=")):
         tokens = tokens[1:]
 
     if not tokens or tokens[0] != "git":
-        return False, None, cmd_line, None
+        return False, None, [], None, cmd_line, None
 
-    current_dir = base_cwd
+    current_dir = Path.cwd().resolve() if base_cwd is None else Path(normalize_path(base_cwd, resolve_home=False))
     subcommand = None
     remaining_args = []
     i = 1
 
+    INNOCUOUS_GLOBAL_FLAGS = {
+        "--no-pager", "-p", "-P", "--paginate",
+        "--no-replace-objects", "--literal-pathspecs", "--bare"
+    }
+
     while i < len(tokens):
         token = tokens[i]
         if token == "-C" and i + 1 < len(tokens):
-            current_dir = (current_dir / tokens[i+1]).resolve()
+            current_dir = Path(normalize_path(current_dir / tokens[i+1], resolve_home=False))
             i += 2
             continue
         elif token.startswith("-C") and len(token) > 2:
             path_part = token[2:]
-            current_dir = (current_dir / path_part).resolve()
+            current_dir = Path(normalize_path(current_dir / path_part, resolve_home=False))
             i += 1
             continue
-        elif token.startswith("--git-dir") or token.startswith("--work-tree") or token == "-c":
-            return False, None, cmd_line, f"Opção global do Git não homologada no Safety Gate ({token})"
+        elif token.startswith("--git-dir") or token.startswith("--work-tree") or token == "-c" or token.startswith("-c="):
+            return True, None, [], None, cmd_line, f"Opção global do Git não homologada no Safety Gate ({token})"
+        elif token in INNOCUOUS_GLOBAL_FLAGS:
+            i += 1
+            continue
         elif token.startswith("-"):
-            # Outras opções globais inócuas para diretório
-            i += 1
-            continue
+            # Qualquer outra opção global não explicitamente homologada gera fail-closed
+            return True, None, [], None, cmd_line, f"Opção global do Git não homologada no Safety Gate ({token})"
         else:
             subcommand = token
             remaining_args = tokens[i+1:]
             break
 
-    if subcommand != "push":
-        return False, None, cmd_line, None
+    # U1: normalização de pathspecs equivalentes ao diretório atual (./, .//, ./.) para .
+    if subcommand in ("checkout", "restore"):
+        norm_args = []
+        for arg in remaining_args:
+            if arg in ("./", ".//", "./.") or (arg.startswith("./") and all(c in "./" for c in arg)):
+                norm_args.append(".")
+            else:
+                norm_args.append(arg)
+        remaining_args = norm_args
 
-    repo_root = find_repo_root(current_dir) if current_dir.exists() else None
-    canonical_cmd = "git push" + (" " + " ".join(remaining_args) if remaining_args else "")
-    return True, repo_root, canonical_cmd, None
+    repo_root = find_repo_root(current_dir) if current_dir.exists() else current_dir
+    if subcommand is None:
+        return True, None, [], repo_root, "git", None
 
-def check_pre_push_ci_gate(cmd: str, target_dir: Path | None = None) -> tuple[str, str] | None:
+    canonical_cmd = "git " + subcommand + (" " + " ".join(remaining_args) if remaining_args else "")
+    return True, subcommand, remaining_args, repo_root, canonical_cmd, None
+
+
+def build_destructive_decision(
+    env: str,
+    env_evidence: str,
+    desc: str,
+    use_case_code: str,
+    use_case_label: str,
+) -> tuple[str, str, str, str]:
     """
-    Zero-Tolerance Pipeline Red Pre-Push Gate:
-    If repository has CI workflows (.github/workflows), enforces that the current HEAD
-    commit has a successful canonical test certificate in .ceh/last-ci-run.json.
-    Applies to every push, force included: force is restricted further by GIT_HISTORY rules.
+    W5: Helper unificado para montagem da decisão por ambiente (texto e use_case)
+    para comandos destrutivos (PROD deny, STAGING ask com 2 alertas, DEV allow).
     """
-    base_dir = target_dir or Path.cwd()
-    repo_root = find_repo_root(base_dir)
-    if not repo_root:
+    if env == "production":
+        reason = (
+            f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
+            f"(Caso de Uso: {use_case_label}): {desc}.\n"
+            f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+            f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
+        )
+        return "deny", reason, env, use_case_code
+
+    if env == "staging":
+        reason = (
+            f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: {use_case_label}]\n"
+            f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural ({desc}).\n"
+            f"   Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
+            f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
+            f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
+            f"Confirma a execução com rollback assegurado?"
+        )
+        return "ask", reason, env, use_case_code
+
+    reason = (
+        f"[CEH DEV PERMITTED - Caso de Uso: {use_case_label}] Comando destrutivo liberado para ambiente de "
+        f"DESENVOLVIMENTO/TESTE ({desc}). Ambiente: {env.upper()} (Evidência: {env_evidence}).\n"
+        f"Assegure a disponibilidade de backup e rollback para fins de correção."
+    )
+    return "allow", reason, env, use_case_code
+
+
+def max_severity_decision(
+    d1: tuple[str, str, str, str],
+    d2: tuple[str, str, str, str]
+) -> tuple[str, str, str, str]:
+    """Retorna a decisão de maior severidade: CATASTROPHIC > deny > ask > allow."""
+    def rank(d: tuple[str, str, str, str]) -> int:
+        dec, _, _, uc = d
+        return 4 if uc == "CATASTROPHIC" else {"deny": 3, "ask": 2}.get(dec, 1)
+
+    r1, r2 = rank(d1), rank(d2)
+    if r1 > r2: return d1
+    if r2 > r1: return d2
+    return d2 if (d1[3] == "GENERAL" and d2[3] != "GENERAL") else d1
+
+
+def extract_shell_c_command(cmd_line: str) -> str | None:
+    """Extrai o comando executado via flag -c em shells conhecidos (AD2, Handoff 028)."""
+    tokens = tokenize_command(cmd_line, posix=True)
+    if not tokens:
         return None
 
-    # Check if repo has CI workflows
-    ci_workflows_dir = repo_root / ".github" / "workflows"
-    has_github_ci = ci_workflows_dir.is_dir() and any(
-        list(ci_workflows_dir.glob("*.yml")) + list(ci_workflows_dir.glob("*.yaml"))
-    )
-    has_gitlab_ci = (repo_root / ".gitlab-ci.yml").is_file()
+    idx, _ = resolve_command_head(tokens)
+    if idx >= len(tokens):
+        return None
 
-    if not (has_github_ci or has_gitlab_ci):
-        return None  # No CI pipeline defined; allow standard git push
+    base = os.path.basename(tokens[idx])
+    SHELL_NAMES = {
+        "sh", "bash", "zsh", "dash", "ksh", "mksh", "ash", "fish", "csh", "tcsh"
+    }
+    if base == "busybox" and idx + 1 < len(tokens) and os.path.basename(tokens[idx + 1]) in SHELL_NAMES:
+        idx += 1
+        base = os.path.basename(tokens[idx])
 
-    # Repo has CI pipeline. Verify last-ci-run.json
-    cert_file = repo_root / ".ceh" / "last-ci-run.json"
-    if not cert_file.is_file():
-        return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: NENHUMA execução prévia comprovada em '.github/workflows'."
-
-    try:
-        data = json.loads(cert_file.read_text(encoding="utf-8"))
-        exit_code, status, cert_commit = data.get("exit_code"), data.get("status", "FAIL"), data.get("commit_hash", "")
-        cmd_executed = str(data.get("command", "")).strip()
-
-        if not cert_commit or cert_commit == "untracked":
-            return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado inválido (commit_hash ausente ou não rastreado)."
-
-        if exit_code != 0 or status != "PASS":
-            return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: suíte FALHOU (Exit Code: {exit_code}, Status: {status}). Comando: {cmd_executed}"
-
-        if data.get("canonical_verified") is not True:
-            return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: O certificado não comprova execução da suíte canônica. Comando: '{cmd_executed}'"
-
-        head_res = subprocess.run(["git", "-C", str(repo_root), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=3)
-        if head_res.returncode == 0:
-            current_head = head_res.stdout.strip()
-            if cert_commit != current_head:
-                return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado por desatualização de testes: HEAD ({current_head[:7]}) != Cert ({cert_commit[:7]})."
-
-    except Exception as e:
-        return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: Certificado de CI ilegível ({str(e)})."
-
-    return "allow", "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual."
-
-def detect_environment(explicit_env: str | None = None, cmd_line: str = "") -> tuple[str, str]:
-    """
-    Detects the current target environment with verifiable evidence:
-    1. Explicit parameter / CLI argument (--env).
-    2. Explicit target indicators inside the command string itself.
-    3. Shell environment variables (CEH_ENV, APP_ENV, NODE_ENV, ENVIRONMENT, ENV, STAGE).
-    4. Project .env / .env.production / .env.staging inspection.
-    5. Active Git branch (main/master/production -> safety escalation).
-    Returns (environment, evidence_source).
-    """
-    # 1. Explicit override
-    if explicit_env:
-        return normalize_env(explicit_env), f"Explicit parameter (--env {explicit_env})"
-
-    # 2. Contextual indicators in command line
-    if cmd_line:
-        cmd_lower = cmd_line.lower()
-        if any(term in cmd_lower for term in ["--env=production", "--env=prod", "production", "target=prod"]):
-            return "production", "Command context explicitly references production target"
-        if any(term in cmd_lower for term in ["--env=staging", "--env=stage", "--env=homolog", "staging", "homolog"]):
-            return "staging", "Command context explicitly references staging target"
-
-    # 3. Environment variables
-    for var in ["CEH_ENV", "APP_ENV", "NODE_ENV", "ENVIRONMENT", "ENV", "STAGE"]:
-        val = os.environ.get(var)
-        if val:
-            return normalize_env(val), f"Environment variable {var}={val}"
-
-    # 4. Project .env inspection
-    try:
-        current = Path.cwd()
-        for directory in [current, *current.parents]:
-            # Priority to specific env files
-            if (directory / ".env.production").is_file():
-                return "production", f"Configuration file {directory / '.env.production'}"
-            if (directory / ".env.staging").is_file() or (directory / ".env.homolog").is_file():
-                return "staging", f"Configuration file in {directory}"
-
-            env_file = directory / ".env"
-            if env_file.is_file():
-                content = env_file.read_text(encoding="utf-8", errors="ignore")
-                for line in content.splitlines():
-                    line = line.strip()
-                    if line.startswith("#") or "=" not in line:
-                        continue
-                    k, v = line.split("=", 1)
-                    k = k.strip()
-                    v = v.strip().strip("\"'")
-                    if k in ["CEH_ENV", "APP_ENV", "NODE_ENV", "ENVIRONMENT", "ENV", "STAGE"]:
-                        return normalize_env(v), f"File .env ({k}={v})"
-            if (directory / ".git").exists():
-                break
-    except Exception:
-        pass
-
-    # 5. Git branch inspection (preventive escalation & canonical flow)
-    branch = get_git_branch()
-    if branch:
-        branch_lower = branch.lower()
-        if branch_lower in ["main", "master", "production", "prod"]:
-            return "production", f"Git branch '{branch}' (canonical production branch)"
-        if any(term in branch_lower for term in ["staging", "stage", "homolog", "homologacao", "uat", "qa"]):
-            return "staging", f"Git branch '{branch}' (canonical staging branch)"
-        if branch_lower in ["dev", "develop"]:
-            return "development", f"Git branch '{branch}' (canonical dev branch)"
-        if branch_lower.startswith("dev/") or branch_lower.startswith("dev-") or branch_lower.startswith("feature/") or branch_lower.startswith("fix/"):
-            return "development", f"Git branch '{branch}' (derivation from dev)"
-
-    # Default fallback: safe local development
-    return "development", "Default workspace fallback (development/local)"
-
-def split_shell_pipeline(cmd_line: str) -> tuple[list[str] | None, str | None]:
-    """
-    Decompõe uma linha de comando em subcomandos atômicos, respeitando aspas simples e duplas,
-    escapes e operadores de controle de shell (;, &&, ||, |, &).
-    Rejeita construções que impeçam inspeção determinística de segurança em Fail-Closed:
-    - ANSI-C quoting ($'...') e locale quoting ($"...")
-    - Subshells ($(...) ou `...`)
-    - Process substitution (<(...) ou >(...))
-    - Aspas ou escapes não balanceados
-    """
-    tokens = []
-    buf = []
-    i = 0
-    n = len(cmd_line)
-    quote = None
-    escaped = False
-
-    while i < n:
-        c = cmd_line[i]
-        if escaped:
-            buf.append(c)
-            escaped = False
+    if base in SHELL_NAMES:
+        i = idx + 1
+        while i < len(tokens):
+            tok = tokens[i]
+            if (tok == "-c" or (base == "fish" and tok == "--command")) and i + 1 < len(tokens):
+                script = tokens[i + 1]
+                extra_args = tokens[i + 2:]
+                return substitute_positional_args(script, extra_args)
+            if base == "fish" and tok.startswith("--command="):
+                script = tok.split("=", 1)[1]
+                extra_args = tokens[i + 1:]
+                return substitute_positional_args(script, extra_args)
+            if tok.startswith("-") and not tok.startswith("--") and "c" in tok:
+                pos = tok.rfind("c")
+                if pos == len(tok) - 1 and i + 1 < len(tokens):
+                    script = tokens[i + 1]
+                    extra_args = tokens[i + 2:]
+                    return substitute_positional_args(script, extra_args)
+                elif pos < len(tok) - 1:
+                    script = tok[pos + 1:]
+                    extra_args = tokens[i + 1:]
+                    return substitute_positional_args(script, extra_args)
             i += 1
-            continue
-
-        if c == "\\":
-            if quote == "'":  # Em bash, aspas simples não admitem escape
-                buf.append(c)
-            else:
-                # Rejeição Fail-Closed de continuação de linha (\ seguido de newline)
-                if i + 1 < n and cmd_line[i+1] in ("\n", "\r"):
-                    return None, "Continuação de linha por barra invertida (line continuation) detectada"
-                escaped = True
-                buf.append(c)
-            i += 1
-            continue
-
-        if quote:
-            if c == quote:
-                quote = None
-                buf.append(c)
-                i += 1
-                continue
-
-            # Dentro de aspas duplas, o shell avalia subshells e expansões de parâmetros
-            if quote == '"':
-                if c == "`":
-                    return None, "Backtick subshell (`...`) detectada dentro de aspas duplas"
-                if c == "$" and i + 1 < n and cmd_line[i+1] == "(":
-                    return None, "Subshell ($(...)) detectada dentro de aspas duplas"
-                if c == "$" and i + 1 < n and cmd_line[i+1] == "{":
-                    return None, "Expansão de parâmetro (${...}) detectada dentro de aspas duplas"
-
-            buf.append(c)
-            i += 1
-            continue
-
-        if c in ("'", '"'):
-            # Detecta ANSI-C ou locale quoting ($'...' ou $"...")
-            if i > 0 and cmd_line[i-1] == "$":
-                return None, "ANSI-C ($'...') ou locale ($\"...\") quoting detectado"
-            quote = c
-            buf.append(c)
-            i += 1
-            continue
-
-        # Detecta subshells ou substituições de processo fora de aspas
-        if c == "`":
-            return None, "Backtick subshell (`...`) detectada"
-        if c == "$" and i + 1 < n and cmd_line[i+1] == "(":
-            return None, "Subshell ($(...)) detectada"
-        if c == "$" and i + 1 < n and cmd_line[i+1] == "{":
-            return None, "Expansão de parâmetro (${...}) detectada"
-        if c in ("<", ">") and i + 1 < n and cmd_line[i+1] == "(":
-            return None, "Process substitution (<(...) ou >(...)) detectada"
-
-        # Operadores de controle e terminadores de instrução (;, \n, \r\n)
-        if c in (";", "\n", "\r"):
-            sub = "".join(buf).strip()
-            if sub:
-                tokens.append(sub)
-            buf = []
-            if c == "\r" and i + 1 < n and cmd_line[i+1] == "\n":
-                i += 2
-            else:
-                i += 1
-            continue
-
-        if c == "&":
-            if i + 1 < n and cmd_line[i+1] == "&":
-                sub = "".join(buf).strip()
-                if sub:
-                    tokens.append(sub)
-                buf = []
-                i += 2
-                continue
-            # Verifica se é redirecionamento de descritores: >&, &>, 2>&1, 1>&2
-            prev_char = cmd_line[i-1] if i > 0 else ""
-            next_char = cmd_line[i+1] if i + 1 < n else ""
-            if prev_char == ">" or next_char == ">" or (prev_char in ("1", "2") and i > 1 and cmd_line[i-2] == ">"):
-                buf.append(c)
-                i += 1
-                continue
-            # & isolado é separador de comando em background
-            sub = "".join(buf).strip()
-            if sub:
-                tokens.append(sub)
-            buf = []
-            i += 1
-            continue
-
-        if c == "|":
-            if i + 1 < n and cmd_line[i+1] == "|":
-                sub = "".join(buf).strip()
-                if sub:
-                    tokens.append(sub)
-                buf = []
-                i += 2
-                continue
-            sub = "".join(buf).strip()
-            if sub:
-                tokens.append(sub)
-            buf = []
-            i += 1
-            continue
-
-        buf.append(c)
-        i += 1
-
-    if quote:
-        return None, "Aspas não fechadas na linha de comando"
-    if escaped:
-        return None, "Caractere de escape pendente no final da linha"
-
-    last_sub = "".join(buf).strip()
-    if last_sub:
-        tokens.append(last_sub)
-    return tokens, None
+    return None
 
 
-def normalize_command_for_evaluation(subcmd: str) -> str:
-    """
-    Remove aspas superficiais de palavras de comando (quote-removal) para prevenir evasões
-    como p''hp artisan migrate:fresh. Se shlex falhar, retorna o subcomando original.
-    """
-    import shlex
-    try:
-        tokens = shlex.split(subcmd, posix=True)
-        if tokens:
-            return " ".join(tokens)
-    except Exception:
-        pass
-    return subcmd
-
-
-def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, str, str, str]:
+def evaluate_subcommand(
+    subcmd: str,
+    env: str,
+    env_evidence: str,
+    base_cwd: Path | str | None = None,
+    explicit_env: str | None = None,
+    depth: int = 0,
+    scan_suffixes: bool = True,
+) -> tuple[str, str, str, str]:
     """
     Avalia um subcomando atômico contra as políticas de segurança do CEH.
     Retorna (decision, reason, detected_env, use_case).
+    Composição estrita (AA1): analisadores só apertam; a decisão final é a mais severa.
     """
+    if depth > 3:
+        return (
+            "deny",
+            f"[CEH SAFETY GATE - FAIL-CLOSED] Limite de profundidade de recursão excedido (depth={depth} > 3).",
+            env,
+            "CATASTROPHIC",
+        )
+
     sub_raw = subcmd.strip()
     # Strip CLI proxy prefix (RTK / RTK proxy)
     sub_eval = re.sub(r"^\s*rtk(?:\s+proxy)?\s+", "", sub_raw)
     sub_norm = normalize_command_for_evaluation(sub_eval)
+
+    candidate: tuple[str, str, str, str] | None = None
+
+    # AA2/AB1: Desembrulho recursivo de shells (sh -c, bash -c) e executores de string (eval, su -c, watch)
+    sub_tokens = tokenize_command(sub_raw, posix=True)
+
+    if sub_tokens:
+        h_idx, string_exec = resolve_command_head(sub_tokens)
+        if string_exec is not None:
+            return evaluate_command(
+                string_exec,
+                explicit_env=explicit_env,
+                base_cwd=base_cwd,
+                depth=depth + 1
+            )
+
+        # AD1/AE1 (Handoff 029 §3.1): Varredura fail-closed de sufixos em um único nível por subcomando
+        if scan_suffixes:
+            ANALYZED_HEADS = {
+                "rm", "git", "find",
+                "sh", "bash", "zsh", "dash", "ksh", "mksh", "ash", "fish", "csh", "tcsh",
+                "node", "nodejs", "perl", "ruby", "php", "awk", "gawk", "mawk", "nawk",
+                "deno", "bun", "eval", "su", "watch"
+            }
+            for j in range(1, len(sub_tokens)):
+                base_t = os.path.basename(sub_tokens[j])
+                if (
+                    base_t in ANALYZED_HEADS
+                    or base_t.startswith("python")
+                    or base_t.startswith("php")
+                ):
+                    suffix_cmd = shlex.join(sub_tokens[j:])
+                    s_res = evaluate_command(
+                        suffix_cmd,
+                        explicit_env=explicit_env,
+                        base_cwd=base_cwd,
+                        depth=depth,
+                        scan_suffixes=False,
+                    )
+                    if s_res[3] == "CATASTROPHIC":
+                        return s_res
+                    candidate = max_severity_decision(candidate, s_res) if candidate else s_res
+
+    shell_inner = extract_shell_c_command(sub_raw)
+    if shell_inner:
+        return evaluate_command(
+            shell_inner,
+            explicit_env=explicit_env,
+            base_cwd=base_cwd,
+            depth=depth + 1
+        )
+
+    # 0. Proteção de Integridade do Certificado de CI (G9, PR-10)
+    is_tampering, cert_reason = is_cert_tampering(sub_eval)
+    if is_tampering:
+        return ("deny", cert_reason, env, "CERTIFICATE_INTEGRITY")
+
+    # 0. Avaliação Estrita de 'rm' por tokens (G1, G4 e PR-04b)
+    rm_res = evaluate_rm_command(sub_norm, env, env_evidence=env_evidence, base_cwd=base_cwd)
+    if rm_res is not None:
+        return rm_res
+
+    # 0.1 Avaliação Estrita de 'find' por tokens com desembrulho de -exec (G5, PR-06/PR-06b)
+    find_res = evaluate_find_command(
+        sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd, eval_fn=evaluate_command, depth=depth
+    )
+    if find_res is not None:
+        if find_res[3] == "CATASTROPHIC":
+            return find_res
+        candidate = find_res
+
+    # 0.2 Avaliação Estrita de interpretadores por tokens com desembrulho recursivo (G5, PR-06/PR-06b)
+    interp_res = evaluate_interpreter_command(
+        sub_eval, env, env_evidence=env_evidence, base_cwd=base_cwd, eval_fn=evaluate_command, depth=depth
+    )
+    if interp_res is not None:
+        if interp_res[3] == "CATASTROPHIC":
+            return interp_res
+        candidate = max_severity_decision(candidate, interp_res) if candidate else interp_res
+
+    def finalize(decision: tuple[str, str, str, str]) -> tuple[str, str, str, str]:
+        if candidate is not None:
+            return max_severity_decision(decision, candidate)
+        return decision
 
     # 1. Catastrophic Blocks: DENY has absolute priority in ANY environment
     for pattern, reason in CATASTROPHIC_PATTERNS:
@@ -465,23 +349,36 @@ def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, 
         ):
             return "deny", f"[CEH CATASTROPHIC BLOCK] {reason}", env, "CATASTROPHIC"
 
-    # 2. Resolução Canônica de Git (R5)
-    is_git_push, target_repo, canonical_cmd, git_err = resolve_git_invocation(sub_eval, Path.cwd())
+    # 2. Resolução Canônica de Git (R5 + G3)
+    is_git, git_subcmd, git_args, target_repo, canonical_cmd, git_err = resolve_git_invocation(sub_eval, base_cwd)
     if git_err:
-        return "deny", f"[CEH SAFETY GATE - GIT] ⛔ {git_err}", env, "GIT_DESTRUCTIVE"
+        return finalize(("deny", f"[CEH SAFETY GATE - GIT] ⛔ {git_err}", env, "GIT_DESTRUCTIVE"))
 
-    if is_git_push:
+    is_git_push = (is_git and git_subcmd == "push")
+    if is_git:
         sub_eval = canonical_cmd
         sub_norm = normalize_command_for_evaluation(canonical_cmd)
 
-    # 3. Safe Development Bypasses: allow cache/scratch cleanup and selective checkout (sem outros padrões destrutivos)
+        if target_repo and explicit_env is None:
+            sub_env, sub_env_evidence = detect_environment(explicit_env=None, target_dir=target_repo)
+            if ENV_SEVERITY.get(sub_env, 0) > ENV_SEVERITY.get(env, 0):
+                env, env_evidence = sub_env, sub_env_evidence
+
+        if git_subcmd in ("checkout", "restore", "switch"):
+            is_dest, desc, use_case_code = evaluate_git_subcommand(git_subcmd, git_args)
+            if is_dest:
+                return finalize(build_destructive_decision(env, env_evidence, desc, use_case_code, "Controle de Versão (Git)"))
+            else:
+                safe_uc = "GENERAL" if git_subcmd == "switch" else "FILESYSTEM_SAFE"
+                return finalize(("allow", f"Safe Git operation permitted ({env_evidence}).", env, safe_uc))
+
+    # 3. Safe Development Bypasses: allow cache/scratch cleanup and selective checkout
     is_safe_dev = False
     for pattern in SAFE_DEV_PATTERNS:
         if re.search(pattern, sub_eval, re.IGNORECASE) or re.search(pattern, sub_norm, re.IGNORECASE):
             is_safe_dev = True
             break
     if is_safe_dev:
-        # Confirma que não contém padrões destrutivos de Banco de Dados, Git History ou Infraestrutura
         has_other_destructive = False
         for pattern, desc, use_case_code, use_case_label in USE_CASE_DESTRUCTIVE_PATTERNS:
             if use_case_code != "FILESYSTEM":
@@ -493,7 +390,7 @@ def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, 
                     has_other_destructive = True
                     break
         if not has_other_destructive:
-            return "allow", f"Safe development operation permitted ({env_evidence}).", env, "FILESYSTEM_SAFE"
+            return finalize(("allow", f"Safe development operation permitted ({env_evidence}).", env, "FILESYSTEM_SAFE"))
 
     # 4. Evaluate Destructive Patterns by Use Case and Environment
     for pattern, desc, use_case_code, use_case_label in USE_CASE_DESTRUCTIVE_PATTERNS:
@@ -502,58 +399,50 @@ def evaluate_subcommand(subcmd: str, env: str, env_evidence: str) -> tuple[str, 
             or re.search(pattern, sub_norm, re.IGNORECASE)
             or re.search(pattern, sub_raw, re.IGNORECASE)
         ):
-            # PRODUÇÃO: Fora de cogitação (DENY incondicional)
-            if env == "production":
-                reason = (
-                    f"[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO "
-                    f"(Caso de Uso: {use_case_label}): {desc}.\n"
-                    f"Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
-                    f"Execução bloqueada para prevenir perda de dados e indisponibilidade."
-                )
-                return "deny", reason, env, use_case_code
+            if is_git_push and env == "development":
+                break
+            return finalize(build_destructive_decision(env, env_evidence, desc, use_case_code, use_case_label))
 
-            # HOMOLOGAÇÃO: Confirmação obrigatória com 2 ALERTAS explícitos
-            if env == "staging":
-                reason = (
-                    f"[CEH HOMOLOGAÇÃO / STAGING SAFETY GATE - Caso de Uso: {use_case_label}]\n"
-                    f"⚠️ ALERTA 1/2 [IMPACTO DE HOMOLOGAÇÃO]: O comando possui potencial destrutivo/estrutural ({desc}).\n"
-                    f"   Ambiente detectado: {env.upper()} (Evidência: {env_evidence}).\n"
-                    f"⚠️ ALERTA 2/2 [BACKUP & ROLLBACK MANDATÓRIOS]: É obrigatório certificar-se de que o comando de BACKUP prévio "
-                    f"foi executado e que a estratégia de ROLLBACK imediato está disponível e testada antes de prosseguir.\n"
-                    f"Confirma a execução com rollback assegurado?"
-                )
-                return "ask", reason, env, use_case_code
-
-            # DESENVOLVIMENTO / TESTE: Permitido com prontidão de backup/rollback
-            if is_git_push:
-                break  # Force push segue para o gate de CI (passo 5): força não isenta de certificado
-            reason = (
-                f"[CEH DEV PERMITTED - Caso de Uso: {use_case_label}] Comando destrutivo liberado para ambiente de "
-                f"DESENVOLVIMENTO/TESTE ({desc}). Ambiente: {env.upper()} (Evidência: {env_evidence}).\n"
-                f"Assegure a disponibilidade de backup e rollback para fins de correção."
-            )
-            return "allow", reason, env, use_case_code
+    # AJ2: Deleção remota de branch no push graduada como GIT_HISTORY (DEV allow, HML ask, PROD deny)
+    if is_git_push and env in ("production", "staging"):
+        is_del, del_desc = is_remote_deletion(git_args)
+        if is_del:
+            return finalize(build_destructive_decision(env, env_evidence, del_desc, "GIT_HISTORY", "Controle de Versão (Git)"))
 
     # 5. Pre-Push CI Clearance Gate (todo git push, inclusive force push)
     if is_git_push:
-        ci_gate_result = check_pre_push_ci_gate(sub_eval, target_dir=target_repo)
+        ci_gate_result = check_pre_push_ci_gate(sub_eval, target_dir=target_repo, git_args=git_args)
         if ci_gate_result is not None:
             ci_decision, ci_reason = ci_gate_result
-            return ci_decision, ci_reason, env, "PRE_PUSH_CI"
+            return finalize((ci_decision, ci_reason, env, "PRE_PUSH_CI"))
 
-    return "allow", f"Command complies with CEH safety policy (Env: {env.upper()}, Source: {env_evidence}).", env, "GENERAL"
+    return finalize(("allow", f"Command complies with CEH safety policy (Env: {env.upper()}, Source: {env_evidence}).", env, "GENERAL"))
 
 
-def evaluate_command(cmd_line: str, explicit_env: str | None = None) -> tuple[str, str, str, str]:
+def evaluate_command(
+    cmd_line: str,
+    explicit_env: str | None = None,
+    base_cwd: Path | str | None = None,
+    depth: int = 0,
+    scan_suffixes: bool = True,
+) -> tuple[str, str, str, str]:
     """
     Evaluates a command line string against environment safety rules, decomposing
-    compound commands and aggregating decisions with priority: DENY > ASK > ALLOW.
+    compound commands and aggregating decisions with priority: CATASTROPHIC > DENY > ASK > ALLOW.
     """
+    if depth > 3:
+        return (
+            "deny",
+            f"[CEH SAFETY GATE - FAIL-CLOSED] Limite de profundidade de recursão/desembrulho excedido (depth={depth} > 3).",
+            "development" if explicit_env is None else explicit_env,
+            "CATASTROPHIC",
+        )
+
     if not cmd_line or not cmd_line.strip():
         return "allow", "Empty command", "development", "GENERAL"
 
     cmd_normalized = cmd_line.strip()
-    env, env_evidence = detect_environment(explicit_env, cmd_normalized)
+    env, env_evidence = detect_environment(explicit_env, cmd_normalized, target_dir=base_cwd)
 
     # Decompõe linha em subcomandos atômicos via FSM Lexer
     subcommands, parse_err = split_shell_pipeline(cmd_normalized)
@@ -570,51 +459,135 @@ def evaluate_command(cmd_line: str, explicit_env: str | None = None) -> tuple[st
         return "allow", "Empty command after decomposition", env, "GENERAL"
 
     evaluations = []
+    current_cwd = Path(normalize_path(base_cwd, resolve_home=False)) if base_cwd else Path.cwd().resolve()
+    current_env, current_env_ev = env, env_evidence
+    persistent_repo: Path | None = None
+    unresolved_cd = False
+
     for sub in subcommands:
-        evaluations.append(evaluate_subcommand(sub, env, env_evidence))
+        sub_inner = extract_subshell_command(sub)
+        if sub_inner is not None:
+            evaluations.append(evaluate_command(
+                sub_inner, explicit_env=explicit_env, base_cwd=current_cwd,
+                depth=depth + 1, scan_suffixes=scan_suffixes,
+            ))
+            continue
 
-    # Precedência estrita: DENY > ASK > ALLOW
-    denies = [e for e in evaluations if e[0] == "deny"]
-    if denies:
-        return denies[0]
+        sub_tokens = tokenize_command(sub, posix=True, comments=True)
 
-    asks = [e for e in evaluations if e[0] == "ask"]
-    if asks:
-        return asks[0]
+        eff_cwd, tgt_repo, is_unres, is_persist, ctx_env, clean_toks = resolve_target_context(
+            sub_tokens, current_cwd, persistent_repo
+        )
+        if not clean_toks: continue
 
+        if is_unres:
+            unresolved_cd = True
+        if is_persist:
+            if eff_cwd and eff_cwd.is_dir(): current_cwd = eff_cwd
+            if tgt_repo: persistent_repo = tgt_repo
+            new_env, new_ev = detect_environment(explicit_env=explicit_env, target_dir=current_cwd)
+            if ENV_SEVERITY.get(new_env, 0) > ENV_SEVERITY.get(current_env, 0):
+                current_env, current_env_ev = new_env, new_ev
+
+        eval_cwd = eff_cwd if (eff_cwd and eff_cwd.is_dir()) else current_cwd
+        sub_eval_env, sub_eval_ev = detect_environment(explicit_env=explicit_env, cmd_line=sub, target_dir=eval_cwd)
+        if tgt_repo:
+            repo_env, repo_ev = detect_environment(explicit_env=None, target_dir=tgt_repo)
+            if ENV_SEVERITY.get(repo_env, 0) > ENV_SEVERITY.get(sub_eval_env, 0):
+                sub_eval_env, sub_eval_ev = repo_env, repo_ev
+
+        effective_env, effective_ev = current_env, current_env_ev
+        if ENV_SEVERITY.get(sub_eval_env, 0) > ENV_SEVERITY.get(effective_env, 0):
+            effective_env, effective_ev = sub_eval_env, sub_eval_ev
+
+        if (unresolved_cd or is_unres) and ENV_SEVERITY.get(effective_env, 0) < ENV_SEVERITY.get("production", 0):
+            effective_env, effective_ev = "production", "Incerteza: destino não resolvível (Invariante 7)"
+
+        sub_to_eval = sub.strip()
+        while sub_to_eval.startswith("{ ") or sub_to_eval == "{":
+            sub_to_eval = sub_to_eval[1:].strip()
+        while sub_to_eval.endswith(" }") or sub_to_eval.endswith(";}") or sub_to_eval.endswith("; }") or sub_to_eval == "}":
+            if sub_to_eval.endswith("; }"): sub_to_eval = sub_to_eval[:-3].strip()
+            elif sub_to_eval.endswith((";}", " }")): sub_to_eval = sub_to_eval[:-2].strip()
+            elif sub_to_eval == "}": sub_to_eval = ""
+        if not sub_to_eval: continue
+        evaluations.append(
+            evaluate_subcommand(
+                sub_to_eval,
+                effective_env,
+                effective_ev,
+                base_cwd=eval_cwd,
+                explicit_env=explicit_env,
+                depth=depth,
+                scan_suffixes=scan_suffixes,
+            )
+        )
+
+        if ctx_env and ENV_SEVERITY.get(ctx_env, 0) > ENV_SEVERITY.get(current_env, 0):
+            current_env, current_env_ev = ctx_env, f"Context modification: {ctx_env} detected in pipeline"
+
+    # Precedência estrita: CATASTROPHIC > DENY > ASK > ALLOW
+    for e in evaluations:
+        if e[0] == "deny" and e[3] == "CATASTROPHIC": return e
+    for dec in ("deny", "ask"):
+        for e in evaluations:
+            if e[0] == dec: return e
     return evaluations[0]
 
 def handle_hook():
-    """Processes Antigravity PreToolUse hook JSON from stdin."""
+    """Processes PreToolUse hook JSON from stdin."""
     try:
         raw_input = sys.stdin.read()
         if not raw_input.strip():
-            print(json.dumps({"decision": "allow"}))
-            return
+            print(json.dumps({
+                "decision": "deny",
+                "reason": "[CEH SAFETY GATE ERROR] Payload vazio recebido no hook."
+            }, ensure_ascii=False))
+            sys.exit(2)
 
-        payload = json.loads(raw_input)
-        tool_call = payload.get("toolCall", {})
-        tool_name = tool_call.get("name", "")
-        args = tool_call.get("args", {})
+        try:
+            payload = json.loads(raw_input)
+        except Exception as e:
+            print(json.dumps({
+                "decision": "deny",
+                "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: JSON inválido ({str(e)})"
+            }, ensure_ascii=False))
+            sys.exit(2)
 
-        if tool_name == "run_command":
-            cmd_line = args.get("CommandLine", "")
-            decision, reason, env, use_case = evaluate_command(cmd_line)
-            output = {
-                "decision": decision,
-                "reason": reason
-            }
-            print(json.dumps(output, ensure_ascii=False))
-            return
+        if not isinstance(payload, dict):
+            print(json.dumps({
+                "decision": "deny",
+                "reason": "[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object."
+            }, ensure_ascii=False))
+            sys.exit(2)
 
-        # Default for non-command tools
-        print(json.dumps({"decision": "allow"}))
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from hook_context import evaluate_hook_payload
+        result = evaluate_hook_payload(payload, evaluate_command)
+        print(json.dumps(result, ensure_ascii=False))
 
+        decision = "allow"
+        if "decision" in result:
+            decision = result.get("decision", "allow")
+        elif "hookSpecificOutput" in result:
+            hso = result.get("hookSpecificOutput")
+            if isinstance(hso, dict):
+                decision = hso.get("permissionDecision", "allow")
+
+        if decision == "deny":
+            sys.exit(2)
+        elif decision == "ask":
+            sys.exit(1)
+        else:
+            sys.exit(0)
+    except SystemExit:
+        raise
     except Exception as e:
         print(json.dumps({
-            "decision": "ask",
-            "reason": f"[CEH SAFETY GATE ERROR] Failed to parse hook payload: {str(e)}"
+            "decision": "deny",
+            "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: {str(e)}"
         }, ensure_ascii=False))
+        sys.exit(2)
 
 def main():
     parser = argparse.ArgumentParser(description="CEH Safety Gate Command Checker")

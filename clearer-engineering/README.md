@@ -15,6 +15,9 @@
 
 ---
 
+> [!NOTE]
+> **Canonical Documentation Notice**: This document provides an operational overview of the Antigravity plugin package. Complete, canonical, and version-controlled architectural specifications and guides reside in the [Root Repository README](../README.md) and [`docs/`](../docs/).
+
 ## 📖 Overview
 
 The **CLEARER Engineering Harness (CEH)** is a production-grade software engineering harness natively engineered for **Google Antigravity** (IDE and `agy` CLI).
@@ -24,7 +27,7 @@ Rather than relying on vague prompts or unverified model assumptions, CEH operat
 - **Ponytail Mode & AST First Philosophy**: "Understand deeply, build concisely, deliver correctly". 5-step decision ladder, minimal functional diffs, and relational AST navigation with graceful fallback.
 - **Flexible Canonical Topologies**: Native support for **Enterprise Mode (3 branches: `dev` ➔ `staging` ➔ `main`)** and **Classic Mode (2 branches: `dev` ➔ `main`)**, with interactive `ceh-branches` helper.
 - **Continuous Execution for MEDIUM Risk**: The complete `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` cycle is conducted end-to-end in a **Single-Turn**.
-- **Zero Hallucination & Zero Fake Pass**: Prohibits speculative code creation and guarantees every claim is backed by real execution logs in `OBSERVED`.
+- **Anti-Hallucination Guardrails & Zero Fake Pass**: Prohibits speculative code creation and enforces that every technical claim must be substantiated by concrete execution logs or code references in `OBSERVED`.
 
 ---
 
@@ -79,7 +82,7 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 3. **Shell Output Compression with Graceful Fallback (RTK - Rust Token Killer)**:
    - Native integration with [**RTK**](https://github.com/rtk-ai/rtk): high-performance Rust proxy CLI that compresses bash output (`git`, `npm test`, `pytest`, `cargo test`, `docker`, `ruff`) by 60-90% before the agent reads it.
    - **Runner Automation**: `test-runner.sh` automatically wraps detected test suites with `rtk` when present in `$PATH`.
-   - **Evasion-Immune Safety Gate**: `safety-gate.py` strips `rtk` prefixes before evaluating rules to enforce strict protection across production and staging.
+   - **Evasion-Resistant Tokenized Safety Gate**: `safety-gate.py` strips proxy prefixes and normalizes tokenized invocations before evaluating security rules across production and staging.
    - **Escape Hatch**: Full raw logs remain accessible via `rtk proxy <cmd>` or `-vvv`. If RTK is not installed, the harness gracefully executes standard commands without friction.
 4. **Context Hygiene & Sandbox (context-mode)**:
    - Keeps heavy tool output and history out of the direct LLM context window via SQLite+FTS5, promoting a "think in code" approach.
@@ -98,16 +101,16 @@ Deep dive into CEH principles, architectures, and guidelines:
 
 | Document | Description |
 |---|---|
-| 📜 [**CLEARER Protocol Guide**](./docs/clearer_protocol.md) | Complete explanation of the 7-step engineering cycle (*Concrete Goal*, *Load Context*, etc.). |
-| 💎 [**Coding Standards & Craftsmanship**](./docs/coding_standards.md) | Staff engineering standards: Clean Code, SOLID, strict typing, resilience, and tests. |
-| 🎚️ [**Risk Dial Specification**](./docs/risk_dial.md) | **Continuous Execution** dynamics for MEDIUM and the 4 exception checkpoint gates. |
-| ⚖️ [**Evidence Semantics & Claims**](./docs/evidence_semantics.md) | Epistemic classification (`OBSERVED`, `INFERRED`, `UNKNOWN`) and claim auditing (`SUPPORTED`). |
-| 🏗️ [**System Architecture**](./docs/architecture.md) | Unified pipelines, topologies, data contracts, and Antigravity hook integration. |
-| 🤖 [**Specialized Agents Guide**](./docs/agents_guide.md) | Role descriptions and I/O contracts for Investigator, Architect, Implementer, Test Engineer, Reviewer, and Auditor. |
-| 🛠️ [**Skills & Commands Manual**](./docs/skills_and_commands.md) | How to use `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
-| 🛡️ [**Safety Gate Guide**](./docs/safety_gate.md) | How `PreToolUse` hooks intercept destructive commands with `DENY > ASK > ALLOW`. |
-| 💻 [**Installation & Troubleshooting**](./docs/installation.md) | Global installation, environment prerequisites, and uninstallation. |
-| 💡 [**Practical Examples**](./docs/examples.md) | Real-world workflows across TypeScript, PHP/Laravel, and Python/FastAPI. |
+| 📜 [**CLEARER Protocol Guide**](../docs/clearer_protocol.md) | Complete explanation of the 7-step engineering cycle (*Concrete Goal*, *Load Context*, etc.). |
+| 💎 [**Coding Standards & Craftsmanship**](../docs/coding_standards.md) | Staff engineering standards: Clean Code, SOLID, strict typing, resilience, and tests. |
+| 🎚️ [**Risk Dial Specification**](../docs/risk_dial.md) | **Continuous Execution** dynamics for MEDIUM and the 4 exception checkpoint gates. |
+| ⚖️ [**Evidence Semantics & Claims**](../docs/evidence_semantics.md) | Epistemic classification (`OBSERVED`, `INFERRED`, `UNKNOWN`) and claim auditing (`SUPPORTED`). |
+| 🏗️ [**System Architecture**](../docs/architecture.md) | Unified pipelines, topologies, data contracts, and Antigravity hook integration. |
+| 🤖 [**Specialized Agents Guide**](../docs/agents_guide.md) | Role descriptions and I/O contracts for Investigator, Architect, Implementer, Test Engineer, Reviewer, and Auditor. |
+| 🛠️ [**Skills & Commands Manual**](../docs/skills_and_commands.md) | How to use `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
+| 🛡️ [**Safety Gate Guide**](../docs/safety_gate.md) | How `PreToolUse` hooks intercept destructive commands with `DENY > ASK > ALLOW`. |
+| 💻 [**Installation & Troubleshooting**](../docs/installation.md) | Global installation, environment prerequisites, and uninstallation. |
+| 💡 [**Practical Examples**](../docs/examples.md) | Real-world workflows across TypeScript, PHP/Laravel, and Python/FastAPI. |
 
 ---
 
@@ -180,11 +183,11 @@ CEH provides rigorous end-to-end verification, including infrastructure mutation
 ./evals/run.sh
 ```
 
-See [`evals/CRITERIA.md`](./evals/CRITERIA.md) for the formal 5-criteria matrix (RFC 2119).
+See [`evals/CRITERIA.md`](../evals/CRITERIA.md) for the formal 5-criteria matrix (RFC 2119).
 
 ---
 
 ## 📄 License
 
-Distributed under the **Apache License 2.0**. See [`LICENSE`](./LICENSE) for details.
+Distributed under the **Apache License 2.0**. See [`LICENSE`](../LICENSE) for details.
 

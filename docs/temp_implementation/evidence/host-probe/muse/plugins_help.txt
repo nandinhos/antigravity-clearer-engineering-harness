@@ -1,0 +1,30 @@
+usage: muse plugins <command>
+
+Commands:
+  install <path> [--scope user|project] [--json]
+                               Install a local plugin bundle into the cache
+  install <plugin>@<marketplace> [--json]
+                               Install a plugin from a configured marketplace snapshot
+  list [--available] [--json]  List installed or available plugins
+  inspect <id> [--json]       Inspect one installed plugin and its runtime capabilities
+  approve <plugin-id[[:kind]:capability-id] | stable-id> [--json]
+                               Trust and enable current runtime capability definitions
+  reject <plugin-id[[:kind]:capability-id] | stable-id> [--json]
+                               Trust and disable current runtime capability definitions
+  hook test <plugin-id>:<hook-id> | plugin:<plugin-id>:hook:<hook-id> --fixture <path> [--json]
+                               Run one installed plugin hook against a fixture
+  marketplace add <name> <source> [--json]
+                               Add a local file/directory or Git marketplace source and store a snapshot
+  marketplace list [--json]   List configured marketplaces
+  marketplace update <name> [--json]
+                               Refresh a marketplace snapshot explicitly
+  marketplace remove <name> [--json]
+                               Remove a marketplace source and snapshot
+  enable <id> [--json]        Enable an installed plugin for future runtime loads
+  disable <id> [--json]       Disable an installed plugin
+  update <id> [--json]        Refresh an installed local plugin from its source
+  remove <id> [--delete-data] [--json]
+                               Remove an installed plugin record and cached package
+  validate <path> [--json]    Validate a local plugin bundle without installing or executing it
+
+usage: muse plugins validate <path> [--json]

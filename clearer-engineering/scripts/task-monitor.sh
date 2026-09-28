@@ -44,6 +44,7 @@ render_monitor() {
 
     # Encontrar processos ativos de teste / build / harness
     local active_procs
+    # shellcheck disable=SC2009 # Necessário ps -eo pid,etime,args para extrair tempo de execução formatado na tabela
     active_procs=$(ps -eo pid,etime,args | grep -E "(artisan test|pest|phpunit|pytest|npm test|pnpm test|yarn test|cargo test|go test|safety-gate|diff-audit)" | grep -v "grep" | grep -v "task-monitor" || true)
 
     if [[ -z "$active_procs" ]]; then

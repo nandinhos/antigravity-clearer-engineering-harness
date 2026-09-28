@@ -1,0 +1,1 @@
+BLOQUEADO: Chamada de ferramenta negada pelo pre-tool hook (CEH probe: decisão simulada 'deny').

@@ -85,15 +85,25 @@ def main():
         suite_script = repo_root / "clearer-engineering/tests/run-all-tests.sh"
         suite_text = suite_script.read_text(encoding="utf-8")
         declared_runs = len(re.findall(r"^\s*run_test\s+", suite_text, re.MULTILINE))
-        # The suite contains two mutually exclusive if/else pairs; only one test
-        # from each pair is counted at runtime.
-        suite_total = declared_runs - 2
+        suite_total = declared_runs
         plan_header = "\n".join(plano_text.splitlines()[:8])
         expected_count_claim = f"{suite_total}/{suite_total} testes aprovados"
         if expected_count_claim not in plan_header:
             errors.append(
                 "A contagem atual da suíte geral não está sincronizada no cabeçalho do plano: "
                 f"esperado '{expected_count_claim}'."
+            )
+
+        # Checagem de testes órfãos (Handoff 036 / AJ1)
+        tests_dir = repo_root / "clearer-engineering/tests"
+        test_files = sorted(
+            [f.name for f in tests_dir.glob("test_*.py")] +
+            [f.name for f in tests_dir.glob("cluster*_acceptance.py")]
+        )
+        orphan_tests = [tf for tf in test_files if tf not in suite_text]
+        if orphan_tests:
+            errors.append(
+                f"Testes órfãos detectados: {orphan_tests} não estão citados em run-all-tests.sh."
             )
 
         achados = {}
@@ -163,19 +173,31 @@ def main():
     # ---------------------------------------------------------
     # 4. Portabilidade de links (zero file:/// ou /home/<user>/)
     # ---------------------------------------------------------
-    print("[4/7] Verificando portabilidade de links na documentação...")
+    print("[4/7] Verificando portabilidade de links e ausência de session IDs na documentação...")
     abs_links_found = []
-    for md_file in docs_dir.rglob("*.md"):
-        content = md_file.read_text(encoding="utf-8")
+    session_ids_found = []
+    target_files = list(docs_dir.rglob("*.md"))
+    conselho_dir = docs_dir / "temp_implementation" / "conselho"
+    if conselho_dir.is_dir():
+        target_files.extend(conselho_dir.rglob("*.txt"))
+
+    for target_file in target_files:
+        content = target_file.read_text(encoding="utf-8")
         matches = re.findall(r"(file:///home/[^\s\)\"'>]+|/home/\w+/projects/[^\s\)\"'>]+)", content)
         if matches:
-            abs_links_found.append((md_file.relative_to(repo_root), matches))
+            abs_links_found.append((target_file.relative_to(repo_root), matches))
+        sess_matches = re.findall(r"session\s+id:\s+[0-9a-f\-]{36}", content, re.IGNORECASE)
+        if sess_matches:
+            session_ids_found.append((target_file.relative_to(repo_root), sess_matches))
 
     if abs_links_found:
         for f, m in abs_links_found:
             errors.append(f"Caminho absoluto local detectado em {f}: {m}")
-    else:
-        print("  • Zero caminhos absolutos locais detectados em toda a pasta docs/.")
+    if session_ids_found:
+        for f, m in session_ids_found:
+            errors.append(f"Session ID de ferramenta detectado em {f}: {m}")
+    if not abs_links_found and not session_ids_found:
+        print("  • Zero caminhos absolutos locais ou session IDs recentes detectados em docs/.")
         checks_passed += 1
 
     # ---------------------------------------------------------
@@ -240,7 +262,19 @@ def main():
     if runner_lines > 200:
         errors.append(f"test-runner.sh excedeu o orçamento: {runner_lines} > 200 linhas")
 
-    if not (gate_lines > 650 or runner_lines > 200):
+    core_dir = repo_root / "clearer-engineering/scripts/ceh_core"
+    core_ok = True
+    if core_dir.is_dir():
+        for mod in sorted(core_dir.glob("*.py")):
+            if mod.name == "__init__.py":
+                continue
+            mod_lines = len(mod.read_text(encoding="utf-8").splitlines())
+            print(f"  • ceh_core/{mod.name}: {mod_lines} linhas (Teto: 300)")
+            if mod_lines > 300:
+                errors.append(f"ceh_core/{mod.name} excedeu o orçamento: {mod_lines} > 300 linhas")
+                core_ok = False
+
+    if not (gate_lines > 650 or runner_lines > 200 or not core_ok):
         checks_passed += 1
 
     print("-" * 50)
