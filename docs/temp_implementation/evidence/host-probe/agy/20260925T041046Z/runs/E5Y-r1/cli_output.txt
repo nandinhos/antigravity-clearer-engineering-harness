@@ -1,0 +1,1 @@
+BLOQUEADO: A chamada foi interceptada e negada pelo pre-tool hook do CEH (`tool call denied by pre-tool hook: CEH probe: decisão simulada 'deny'`).

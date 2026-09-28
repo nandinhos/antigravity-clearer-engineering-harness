@@ -3,6 +3,8 @@
 Suíte de aceite do Cluster 1 (R1, R2, R5) e dos contratos T1–T5 do Handoff 003.
 Roda apenas em fixtures descartáveis; nunca executa push.
 """
+from __future__ import annotations
+
 import subprocess
 import json
 import tempfile

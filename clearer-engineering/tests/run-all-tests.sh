@@ -5,7 +5,11 @@
 set -u
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$PLUGIN_DIR"
+cd "$PLUGIN_DIR" || exit 1
+
+TMP_HOME="$(mktemp -d "${TMPDIR:-/tmp}/ceh-alltests-XXXXXX")"
+trap 'rm -rf "$TMP_HOME"' EXIT
+export HOME="$TMP_HOME"
 
 TOTAL_TESTS=0
 PASSED_TESTS=0
@@ -41,14 +45,9 @@ echo "Plugin Directory: $PLUGIN_DIR"
 echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo ""
 
-# 1. Plugin Validation Test via Antigravity CLI or Native JSON Spec
-if command -v agy >/dev/null 2>&1; then
-    run_test "Antigravity CLI plugin validation" \
-        "agy plugin validate '$PLUGIN_DIR' >/dev/null"
-else
-    run_test "Plugin Manifest & Structure validation (Native CI fallback)" \
-        "test -f '$PLUGIN_DIR/plugin.json' && python3 -c \"import json; json.load(open('$PLUGIN_DIR/plugin.json'))\""
-fi
+# 1. Plugin Manifest & Structure validation
+run_test "Plugin Manifest & Structure validation" \
+    "test -f '$PLUGIN_DIR/plugin.json' && python3 -c \"import json; json.load(open('$PLUGIN_DIR/plugin.json'))\""
 
 # 2. Safety Gate Unit & Environment Tests
 run_test "Safety Gate: Hard block catastrophic 'rm -rf /' (DENY in any env)" \
@@ -126,39 +125,30 @@ run_test "Script: preflight.sh execution" \
 run_test "Script: diff-audit.sh execution" \
     "bash '$PLUGIN_DIR/scripts/diff-audit.sh' | grep 'CEH Diff & Blast Radius Audit' >/dev/null"
 
-run_test "Script: evidence-report.sh output format" \
-    "bash '$PLUGIN_DIR/scripts/evidence-report.sh' | grep '## RESULT' >/dev/null && bash '$PLUGIN_DIR/scripts/evidence-report.sh' | grep '## CONFIDENCE' >/dev/null"
+run_test "Script: evidence-report canônico (seções do Response Contract e veredito calculado por evidência)" \
+    "python3 '$PLUGIN_DIR/tests/test_evidence_report.py' >/dev/null 2>&1"
 
 # 5. Deterministic Test Runner & Non-Masking Tests
 run_test "Test Runner: Success scenario returns exit code 0" \
-    "bash '$PLUGIN_DIR/scripts/test-runner.sh' 'true' | grep 'STATUS:    PASS' >/dev/null"
+    "TMP=\$(mktemp -d); (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep 'STATUS:    PASS' >/dev/null); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
 run_test "Test Runner: Failing test correctly reports FAIL without masking" \
-    "RUNNER_OUTPUT=\$(bash '$PLUGIN_DIR/scripts/test-runner.sh' 'false' 2>&1); RUNNER_EXIT=\$?; [[ \$RUNNER_EXIT -ne 0 && \"\$RUNNER_OUTPUT\" == *'STATUS:    FAIL'* ]]"
+    "TMP=\$(mktemp -d); RUNNER_OUTPUT=\$(cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'false' 2>&1); RUNNER_EXIT=\$?; rm -rf \"\$TMP\"; [[ \$RUNNER_EXIT -ne 0 && \"\$RUNNER_OUTPUT\" == *'STATUS:    FAIL'* ]]"
 
 run_test "Test Runner: Runtime Adapter gracefully handles stopped containers on native host" \
     "TMP=\$(mktemp -d); touch \"\$TMP/docker-compose.yml\"; (cd \"\$TMP\" && bash \"$PLUGIN_DIR/scripts/test-runner.sh\" 'true' | grep -q 'Executando diretamente no Host Nativo'); RES=\$?; rm -rf \"\$TMP\"; test \$RES -eq 0"
 
-# 6. Global Agent Profile Availability & Tools Configuration
-if command -v agy >/dev/null 2>&1; then
-    run_test "Antigravity Agent Profile 'clearer-harness' is recognized" \
-        "agy agent | grep 'clearer-harness' >/dev/null"
-fi
+# 6. Content Schema & Tool Catalog Validation (PR-18 / T3)
+run_test "Tool Catalog: Catálogo versionado com 23 ferramentas mapeadas para evidências físicas (PR-18)" \
+    "python3 -c \"import json, sys; from pathlib import Path; cat = json.loads(Path('$PLUGIN_DIR/config/tool_catalog.json').read_text()); assert len(cat['tools']) >= 23; sys.exit(0)\""
 
-if [[ -f "$HOME/.gemini/config/agents/clearer-harness/agent.md" ]]; then
-    run_test "Agent Profile 'clearer-harness' has write and execution tools declared" \
-        "grep -q 'write_to_file' '$HOME/.gemini/config/agents/clearer-harness/agent.md' && grep -q 'run_command' '$HOME/.gemini/config/agents/clearer-harness/agent.md'"
-else
-    run_test "Agent Profile template in install.sh has write and execution tools declared" \
-        "grep -q 'write_to_file' '$PLUGIN_DIR/../install.sh' && grep -q 'run_command' '$PLUGIN_DIR/../install.sh'"
-fi
+run_test "Content Schema: Perfis, subagentes e links relativos validados formalmente (PR-18)" \
+    "python3 '$PLUGIN_DIR/tests/test_content_schema.py' >/dev/null"
 
-run_test "Plugin Subagent 'ceh-implementer' has code editing tools" \
-    "grep -q 'write_to_file' '$PLUGIN_DIR/agents/implementer/agent.md' && grep -q 'replace_file_content' '$PLUGIN_DIR/agents/implementer/agent.md'"
+run_test "Lexer Fuzzing: Fuzzing determinístico in-process com 2.000 casos (PR-18)" \
+    "python3 '$PLUGIN_DIR/tests/test_lexer_fuzz.py' >/dev/null"
 
-run_test "Plugin Subagent 'ceh-test-engineer' has execution and editing tools" \
-    "grep -q 'run_command' '$PLUGIN_DIR/agents/test-engineer/agent.md' && grep -q 'write_to_file' '$PLUGIN_DIR/agents/test-engineer/agent.md'"
-
+# Validações textuais contratuais deliberadas (políticas e design patterns declarados em Markdown)
 run_test "Skill: clearer-bugfix implements Systematic Debugging 5 Blocking Gates" \
     "grep -q 'Gate 0 — TRIAGE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 1 — REPRODUCE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 2 — ISOLATE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 3 — ROOT CAUSE' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md' && grep -q 'Gate 4 — FIX & HARDEN' '$PLUGIN_DIR/skills/clearer-bugfix/SKILL.md'"
 
@@ -175,11 +165,11 @@ run_test "Skill: clearer-adhd packaged with Ponytail UX 10 Heuristics & Break-Ru
     "test -f '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Lead with Action' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Break-Rules' '$PLUGIN_DIR/skills/clearer-adhd/SKILL.md' && grep -q 'Ponytail UX' '$PLUGIN_DIR/rules/AGENTS.md'"
 
 # 7. Shell Aliases Configuration
-run_test "Shell alias 'agy-ceh' configured in shell rc" \
-    "(test -f ~/.bashrc && grep -q 'alias agy-ceh=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias agy-ceh=' ~/.zshrc)"
+run_test "Shell alias template in config/aliases.sh declares 'agy-ceh'" \
+    "grep -q \"^alias agy-ceh='agy --agent clearer-harness'\" '$PLUGIN_DIR/config/aliases.sh'"
 
-run_test "Shell alias 'ceh-evals' configured in shell rc" \
-    "(test -f ~/.bashrc && grep -q 'alias ceh-evals=' ~/.bashrc) || (test -f ~/.zshrc && grep -q 'alias ceh-evals=' ~/.zshrc)"
+run_test "Shell alias template in config/aliases.sh declares 'ceh-evals'" \
+    "grep -q '^alias ceh-evals=' '$PLUGIN_DIR/config/aliases.sh'"
 
 # 8. Deterministic Smoke-Eval Suite
 run_test "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)" \
@@ -197,9 +187,89 @@ run_test "Cluster 2 Acceptance: contratos R6-R8" \
 run_test "Cluster 3 Acceptance: contratos R3, R4, R9, R10" \
     "python3 '$PLUGIN_DIR/tests/cluster3_acceptance.py' >/dev/null"
 
-# 12. Bounded structural documentation checks
+# 12. PR-00 Hook Context Target Resolution Suite (6 cenários normativos)
+run_test "Hook Context: Resolução de diretório alvo e isolamento de plugin (6/6 cenários)" \
+    "python3 '$PLUGIN_DIR/tests/test_hook_context.py' >/dev/null"
+
+# 13. Conselho de Seniores extraction fixtures
+run_test "Conselho de Seniores: Extração de veredito e certeza sem fallback espúrio (3/3 fixtures)" \
+    "python3 '$PLUGIN_DIR/tests/test_conselho_extraction.py' >/dev/null"
+
+# 14. Bounded structural documentation checks
 run_test "Documentation Audit: 7 checagens estruturais de estados, cabeçalhos, links, commits e contagem" \
     "bash '$PLUGIN_DIR/scripts/doc-audit.sh' >/dev/null"
+
+# 15. Golden Corpus Snapshot Consistency
+run_test "Golden Corpus: Snapshot de decisões do Safety Gate (diff vazio)" \
+    "python3 '$PLUGIN_DIR/tests/tools/snapshot_gate.py' --check >/dev/null"
+
+# 16. Cluster 4 Acceptance Suite (G1-G5, G7 baseline em RED)
+run_test "Cluster 4 Acceptance: linha de base G1-G5 e G7 em RED (4 expected failures)" \
+    "python3 '$PLUGIN_DIR/tests/cluster4_acceptance.py' >/dev/null"
+
+# 17. PR-04b/c/d RM Target Normalization & Anti-Regression Suite
+run_test "RM Targets: Normalização estrita de caminhos e controles de falsos positivos (PR-04b/c/d)" \
+    "python3 '$PLUGIN_DIR/tests/test_rm_targets.py' >/dev/null"
+
+# 18. PR-04d RM Path Fuzzing Property Test (Invariantes 1 e 2)
+run_test "RM Fuzz: Teste de propriedade com fuzzing determinístico (≥ 2000 casos, Invariantes 1 e 2)" \
+    "python3 '$PLUGIN_DIR/tests/test_rm_fuzz.py' >/dev/null"
+
+# 19. PR-05 Git Canonicalization Suite (G2 + G3)
+run_test "Git Canonicalization: Generalização de opções globais e bloqueio de pathspec amplo (G2/G3)" \
+    "python3 '$PLUGIN_DIR/tests/test_git_canonicalization.py' >/dev/null"
+
+run_test "Review Batteries: baterias adversariais das revisões (pendências em xfail estrito)" \
+    "python3 '$PLUGIN_DIR/tests/test_review_batteries.py' >/dev/null 2>&1"
+
+# 20. PR-QA-A Differential Fuzzing vs Baseline
+run_test "Differential Fuzz: Comparação automática contra baseline e detecção de relaxamentos (PR-QA-A)" \
+    "python3 '$PLUGIN_DIR/tests/test_gate_differential_fuzz.py' >/dev/null 2>&1"
+
+# 21. PR-07 Environment Tokens & Non-Downgrade Invariant
+run_test "Environment Tokens: Detecção por token explícito e invariante de não rebaixamento (PR-07)" \
+    "python3 '$PLUGIN_DIR/tests/test_environment_tokens.py' >/dev/null 2>&1"
+
+# 22. PR-07b Environment Differential Network
+run_test "Environment Differential: Rede diferencial da detecção sem explicit_env (PR-07b)" \
+    "python3 '$PLUGIN_DIR/tests/test_environment_differential.py' >/dev/null 2>&1"
+
+# 23. PR-08 Pre-Push CI Refspecs Validation (G7)
+run_test "Pre-Push Refspecs: Validação de refspecs contra o certificado da CI (PR-08 / G7)" \
+    "python3 '$PLUGIN_DIR/tests/test_pre_push_refspecs.py' >/dev/null 2>&1"
+
+# 24. PR-10 Certificate Integrity Protection (G9)
+run_test "Certificate Integrity: Proteção contra alteração ou forja de certificados de CI (PR-10 / G9)" \
+    "python3 '$PLUGIN_DIR/tests/test_cert_protection.py' >/dev/null 2>&1"
+
+# 25. PR-11 Install Verification Suite (Idempotência, Simetria e Validação Honesta)
+run_test "Install Verification: Idempotência, simetria byte a byte e validação honesta (PR-11)" \
+    "bash '$PLUGIN_DIR/tests/run-install-verification.sh' >/dev/null 2>&1"
+
+# 26. PR-22 Data & Infrastructure Rules & .ceh Integrity (AT3 / AM2)
+run_test "Data & Infra Rules: Cobertura de regras de dados, infraestrutura e integridade de .ceh (PR-22)" \
+    "python3 '$PLUGIN_DIR/tests/test_rules_data_infra.py' >/dev/null 2>&1"
+
+# 27. PR-QA-C Help Options Contract Suite
+run_test "Help Options Contract: Contrato de opções de escrita a partir do --help (PR-QA-C)" \
+    "python3 '$PLUGIN_DIR/tests/test_help_contract.py' >/dev/null 2>&1"
+
+# 28. PR-QA-B Reason Invariant Suite
+run_test "Reason Invariant: Invariante do motivo sobre corpus e bateria (PR-QA-B)" \
+    "python3 '$PLUGIN_DIR/tests/test_reason_invariant.py' >/dev/null 2>&1"
+
+# 29. PR-QA-D Normalization Structural Suite
+run_test "Normalization Structural: Validação de ponto único de normalização (PR-QA-D)" \
+    "python3 '$PLUGIN_DIR/tests/test_normalization_structural.py' >/dev/null 2>&1"
+
+# 30. PR-20a Conselho Output Directory Behavioral Regression (D05)
+run_test "Conselho Output Dir: Ancoragem de atas ao repo do usuário e fallback sem git (3/3 cenários)" \
+    "python3 '$PLUGIN_DIR/tests/test_conselho_output_dir.py' >/dev/null 2>&1"
+
+# 31. D04 Symlink Environment and Safety Gate Resolution
+run_test "Symlink Environment: Detecção de ambiente em ancestral físico e proteção do Safety Gate (D04)" \
+    "python3 '$PLUGIN_DIR/tests/test_symlink_environment.py' >/dev/null 2>&1"
+
 
 echo ""
 echo "============================================================"

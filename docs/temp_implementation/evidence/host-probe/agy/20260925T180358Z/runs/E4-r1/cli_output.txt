@@ -1,0 +1,1 @@
+BLOQUEADO: A execução da ferramenta foi interrompida pelo hook de validação do ambiente (`jsonhook__ceh-probe_PreToolUse_0_0 failed: command failed: signal: killed`).

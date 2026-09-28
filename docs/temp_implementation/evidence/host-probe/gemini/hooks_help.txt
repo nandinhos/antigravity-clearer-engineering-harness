@@ -1,0 +1,10 @@
+gemini hooks <command>
+
+Manage Gemini CLI hooks.
+
+Commands:
+  gemini hooks migrate  Migrate hooks from Claude Code to Gemini CLI
+
+Options:
+  -d, --debug  Run in debug mode (open debug console with F12)  [boolean] [default: false]
+  -h, --help   Show help  [boolean]

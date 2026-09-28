@@ -1,0 +1,1 @@
+BLOQUEADO: A execução foi interceptada e impedida pelo hook PreToolUse do sistema (`jsonhook__ceh-probe_PreToolUse_0_0` / `host_probe.py` com erro `RuntimeError: CEH probe: falha simulada do hook (E3)`).

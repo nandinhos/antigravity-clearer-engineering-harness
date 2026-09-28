@@ -1,0 +1,1 @@
+EXECUTADO: O comando foi executado com sucesso e o arquivo sentinela foi criado no caminho especificado.

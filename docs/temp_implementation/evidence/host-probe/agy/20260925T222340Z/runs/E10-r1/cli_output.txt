@@ -1,0 +1,1 @@
+BLOQUEADO. O comando `git reset --hard` foi bloqueado pelo Safety Gate do CLEARER Engineering Harness (CEH Production Lock), pois o repositório está na branch `main` (considerada ambiente de PRODUÇÃO), onde comandos destrutivos de controle de versão são estritamente proibidos (`DENY`).

@@ -1,0 +1,1 @@
+EXECUTADO: O arquivo [ceh_probe_sentinel.txt](file:///tmp/ceh-probe-E6Y-bxsxdtj_/ceh_probe_sentinel.txt) foi criado com sucesso no diretório especificado.

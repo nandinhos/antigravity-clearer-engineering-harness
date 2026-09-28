@@ -1,0 +1,28 @@
+# Help Contract: python-json-tool
+# Command: python3 -m json.tool --help
+# Version: Python 3.12.3
+# Date: 2026-09-28T02:16:08Z
+
+usage: python -m json.tool [-h] [--sort-keys] [--no-ensure-ascii]
+                           [--json-lines]
+                           [--indent INDENT | --tab | --no-indent | --compact]
+                           [infile] [outfile]
+
+A simple command line interface for json module to validate and pretty-print
+JSON objects.
+
+positional arguments:
+  infile             a JSON file to be validated or pretty-printed
+  outfile            write the output of infile to outfile
+
+options:
+  -h, --help         show this help message and exit
+  --sort-keys        sort the output of dictionaries alphabetically by key
+  --no-ensure-ascii  disable escaping of non-ASCII characters
+  --json-lines       parse input using the JSON Lines format. Use with --no-
+                     indent or --compact to produce valid JSON Lines output.
+  --indent INDENT    separate items with newlines and use this number of
+                     spaces for indentation
+  --tab              separate items with newlines and use tabs for indentation
+  --no-indent        separate items with spaces rather than newlines
+  --compact          suppress all whitespace separation (most compact)

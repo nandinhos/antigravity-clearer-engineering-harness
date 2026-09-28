@@ -28,7 +28,7 @@ class Cluster2Acceptance(unittest.TestCase):
         (repo / "clearer-engineering" / "scripts").mkdir(parents=True)
         shutil.copy2(EVALS_DIR / "run.sh", repo / "evals" / "run.sh")
         shutil.copy2(EVALS_DIR / "CRITERIA.md", repo / "evals" / "CRITERIA.md")
-        shutil.copy2(SAFETY_GATE, repo / "clearer-engineering" / "scripts" / "safety-gate.py")
+        shutil.copytree(SAFETY_GATE.parent, repo / "clearer-engineering" / "scripts", dirs_exist_ok=True)
         subprocess.run(["git", "init", "-q", "-b", "dev"], cwd=repo, check=True)
         subprocess.run(["git", "config", "user.name", "CEH Cluster2 Test"], cwd=repo, check=True)
         subprocess.run(["git", "config", "user.email", "cluster2@example.invalid"], cwd=repo, check=True)

@@ -1,0 +1,1 @@
+BLOQUEADO: A execução da ferramenta de escrita de arquivos foi negada pelo hook de pré-execução (`pre-tool hook: CEH probe: decisão simulada 'deny'`).
