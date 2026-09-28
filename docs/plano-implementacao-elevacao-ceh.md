@@ -518,13 +518,19 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Validação observada em `0e5eb38`:** suíte 60/60, smoke-evals 5/5, `evidence-report --strict` = `VERIFICADO`, CI remoto 4/4 e checagem separada do gate = `allow`; base avançada para `c247c79`.
 - **Próximo despacho:** PR-QA-B e PR-QA-D, conforme Handoff 050.
 
-### 0.50 PR-QA-D2: D01 corrigido; nova lacuna D02 no detector AST ([Handoff 051](./temp_implementation/handoffs/handoff-051-revisao-prqa-b-d-despacho-prqa-d2.md))
+### 0.50 PR-QA-D2: D01 corrigido; despacho D3 registrado ([Handoff 052](./temp_implementation/handoffs/handoff-052-revisao-prqa-d2-nao-homologado-despacho-prqa-d3.md))
 
-- **D01 corrigido em `c433606`:** a exceção de `shlex.split` agora é limitada a `("rules.py", "is_cert_tampering")`, com teto de uma chamada. Reproduzi em clone os quatro cenários da evidência: chamada no módulo, chamada excedente no call-site autorizado, nova função `normalize_*` e `normpath` direto; todos foram detectados.
-- **D02 (médio):** a varredura estrutural não resolve aliases de imports. Em clones, `from shlex import split as shell_lexer; shell_lexer(...)` e `from os.path import normpath as path_normalizer; path_normalizer(...)` mantiveram o teste estrutural verde (4/4). A centralização pode voltar a ser violada por importações idiomáticas sem detecção.
-- **Validação observada:** suíte canônica 62/62 e smoke-evals 5/5 em `c433606`. No CI 36440671039, os dois jobs Ubuntu terminaram `success`; os dois jobs macOS estavam `in_progress` quando a revisão foi registrada.
-- **Veredito:** PR-QA-D2 **não homologado** por D02; PR-20 continua retido. A correção específica D01 está aceita, mas a garantia estrutural ainda permite normalização/tokenização fora do módulo único.
-- **Próximo:** PR-QA-D3 deve reconhecer aliases AST para `shlex.split`, `os.path.normpath` e `posixpath.normpath` (incluindo aliases nos imports), com mutações de importação nomeada e de módulo renomeado. Reexecutar também os quatro cenários D2, snapshot/differential contra `c247c79`, suíte e evals; exigir CI 4/4 verde antes da próxima revisão. Não alterar decisões de runtime nem baseline.
+- **D01 corrigido em `c433606`:** a exceção de `shlex.split` está limitada a `("rules.py", "is_cert_tampering")`, com teto de uma chamada. Os quatro cenários de mutação foram reproduzidos e detectados.
+- **D02 (médio) encontrado:** detector não resolvia aliases para `shlex.split` e `normpath`; duas mutações equivalentes passaram. Por isso D2 não foi homologado e PR-20 ficou retido até D3.
+- **Estado seguinte:** PR-QA-D3 foi entregue em `cfed862`; veredito independente e validação da otimização de CI estão registrados no Handoff 053.
+
+### 0.51 PR-QA-D3 e otimização CI homologados; D04 lexical/symlink pendente ([Handoff 053](./temp_implementation/handoffs/handoff-053-homologacao-prqa-d3-ci-otimizacao-despacho-pr20.md))
+
+- **D3 homologado em `cfed862`:** o visitor AST resolve aliases de import para `shlex.split` e `normpath`; reproduzi quatro variantes mutantes e todas foram detectadas. A evidência do agente registra 10/10 mutações reprovadas.
+- **Otimização CI homologada em `21fb574`:** o workflow executa as suítes canônica e adversarial em etapas próprias antes do E2E; o E2E evita repeti-las quando `CI` está definido. Run 36457271311 concluiu 4/4 jobs em `9fd4c72`.
+- **Validação local em `9fd4c72`:** suíte canônica 62/62, smoke-evals 5/5 e auditoria documental 7/7.
+- **D04 (médio, INFERRED):** a resolução física de caminhos foi substituída por normalização lexical em detecção de ambiente e regras de `rm`. Para um `target_dir` via symlink, a cadeia de pais lexicais pode não conter a configuração existente nos pais físicos; o caminho avaliado também pode diferir do caminho físico usado pelo comando. Uma tentativa de reprodução dinâmica foi bloqueada pelo PreToolUse por referência a produção e não foi contornada.
+- **Veredito e sequência:** D3 e a otimização CI homologados. PR-20 pode avançar como trabalho documental, conforme Handoff 052. D04 deve ser resolvido antes de homologação geral/merge; o despacho pede uma prova de regressão permitida para cwd via symlink sem mudar o contrato de caminhos sintéticos.
 
 
 ## 1. Objetivo
