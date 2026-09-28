@@ -570,6 +570,18 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Veredito:** PR-20b homologado. D04 não foi homologado nem resolvido; a tentativa anterior foi bloqueada pelo PreToolUse. Permanece gate separado antes de qualquer homologação geral/merge da branch.
 - **Próximo:** obter rota expressamente permitida para provar D04 em diretórios temporários; não transferir nem reformular a tentativa para contornar o bloqueio do hook.
 
+### 0.57 D04 resolvido e comprovado in-process; branch pronta para homologação geral ([Handoff 059](./temp_implementation/handoffs/handoff-059-d04-resolvido-prova-symlink.md))
+
+- **D04 resolvido:** `ceh_core/environment.py` (`detect_environment`, `find_repo_root`, `get_git_branch`) e `ceh_core/rm.py` (`is_target_catastrophic`, `is_target_safe`) agora adotam a resolução física híbrida: se o caminho existe fisicamente em disco, resolve symlinks com `.resolve()` para inspecionar os ancestrais físicos reais (`.env.production`, `.git`, proteção contra exclusão de cwd/ancestrais). Se o caminho for puramente sintético (não existe em disco), preserva estritamente a normalização lexical (`normalize_path`), mantendo 100% de compatibilidade com os testes de fuzzing.
+- **Prova hermética in-process:** Criado `clearer-engineering/tests/test_symlink_environment.py` cobrindo conjuntamente os 4 requisitos:
+  1. Classificação do ambiente como `production` através de ancestral físico acessado via symlink.
+  2. Identificação de repositório Git e branch corrente através de symlink.
+  3. Decisão do Safety Gate para comandos `rm` sob symlink (`deny`/`FILESYSTEM` e bloqueio catastrófico), sem executar deleção real no SO.
+  4. Preservação de caminhos sintéticos e compatibilidade de normalização.
+- **Prova de falsificabilidade:** A mutação de reversão em `detect_environment` (removendo `.resolve()`) falhou imediatamente 2 testes com `AssertionError: 'development' != 'production'`, provando que a suíte é sensível e detecta regressões.
+- **Suíte Canônica:** Expandida para 64/64 testes verdes (exit code 0); `doc-audit.py` validado com 7/7 checagens aprovadas.
+- **Veredito:** D04 resolvido e comprovado. Branch apta para homologação geral e merge.
+
 
 
 

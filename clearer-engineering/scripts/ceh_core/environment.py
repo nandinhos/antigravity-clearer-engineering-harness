@@ -117,7 +117,9 @@ def get_git_branch(target_dir: Path | str | None = None) -> str | None:
     key = normalize_path(target_dir, resolve_home=False) if target_dir else str(Path.cwd().resolve())
     if key in _BRANCH_CACHE: return _BRANCH_CACHE[key]
     try:
-        res = subprocess.run(["git", "branch", "--show-current"], cwd=Path(key), capture_output=True, text=True, timeout=2)
+        p = Path(key)
+        cwd_p = p.resolve() if p.exists() else p
+        res = subprocess.run(["git", "branch", "--show-current"], cwd=cwd_p, capture_output=True, text=True, timeout=2)
         if res.returncode == 0 and res.stdout.strip():
             _BRANCH_CACHE[key] = res.stdout.strip(); return _BRANCH_CACHE[key]
     except Exception: pass
@@ -127,6 +129,11 @@ def find_repo_root(start_dir: Path) -> Path | None:
     key = normalize_path(start_dir, resolve_home=False)
     if key in _REPO_ROOT_CACHE: return _REPO_ROOT_CACHE[key]
     current = Path(key)
+    try:
+        if current.exists():
+            current = current.resolve()
+    except Exception:
+        pass
     for parent in [current] + list(current.parents):
         if (parent / ".git").exists():
             _REPO_ROOT_CACHE[key] = parent; return parent
@@ -242,7 +249,14 @@ def detect_environment(
 
     if not found_var:
         try:
-            curr = Path(normalize_path(target_dir, resolve_home=False)) if target_dir else Path.cwd().resolve()
+            if target_dir:
+                raw_p = Path(normalize_path(target_dir, resolve_home=False))
+                try:
+                    curr = raw_p.resolve() if raw_p.exists() else raw_p
+                except Exception:
+                    curr = raw_p
+            else:
+                curr = Path.cwd().resolve()
             for d in [curr, *curr.parents]:
                 if (d / ".env.production").is_file(): context_env, context_evidence = "production", f"Configuration file {d / '.env.production'}"; break
                 if (d / ".env.staging").is_file() or (d / ".env.homolog").is_file(): context_env, context_evidence = "staging", f"Configuration file in {d}"; break

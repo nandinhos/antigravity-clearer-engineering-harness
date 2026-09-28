@@ -266,6 +266,10 @@ run_test "Normalization Structural: Validação de ponto único de normalizaçã
 run_test "Conselho Output Dir: Ancoragem de atas ao repo do usuário e fallback sem git (3/3 cenários)" \
     "python3 '$PLUGIN_DIR/tests/test_conselho_output_dir.py' >/dev/null 2>&1"
 
+# 31. D04 Symlink Environment and Safety Gate Resolution
+run_test "Symlink Environment: Detecção de ambiente em ancestral físico e proteção do Safety Gate (D04)" \
+    "python3 '$PLUGIN_DIR/tests/test_symlink_environment.py' >/dev/null 2>&1"
+
 
 echo ""
 echo "============================================================"

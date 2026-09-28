@@ -110,6 +110,28 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
             return True, "Attempting recursive deletion of parent directory '..'."
         return True, f"Attempting recursive deletion of protected directory '{target}'."
 
+    # (e) Proteção física de symlinks para diretório de sistema, cwd ou ancestral
+    try:
+        norm_p = Path(norm)
+        cwd_p = Path(cwd_str)
+        if norm_p.exists() and cwd_p.exists():
+            res_norm = str(norm_p.resolve())
+            res_cwd = str(cwd_p.resolve())
+            if res_norm == "/" or res_norm in SYSTEM_ROOTS:
+                return True, f"Attempting recursive deletion of protected directory '{target}'."
+            if resolved_home and res_norm == resolved_home:
+                return True, "Attempting recursive deletion of home directory '~'."
+            if res_norm == res_cwd:
+                if is_glob or target in ("*", "./*") or target.endswith("/*"):
+                    return True, "Attempting recursive deletion of wildcard '*'."
+                return True, f"Attempting recursive deletion of protected directory '{target}'."
+            if res_cwd.startswith(res_norm + "/"):
+                if target in ("..", "../"):
+                    return True, "Attempting recursive deletion of parent directory '..'."
+                return True, f"Attempting recursive deletion of protected directory '{target}'."
+    except Exception:
+        pass
+
     return False, ""
 
 
@@ -122,6 +144,16 @@ def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None) -
 
     t = strip_all_quotes(target)
     norm_full = normalize_path(t, cwd=cwd_str, resolve_home=False)
+
+    # Bloqueio de escape se o alvo for um symlink apontando para fora do cwd
+    try:
+        full_p = Path(norm_full)
+        if full_p.is_symlink():
+            res_full = str(full_p.resolve())
+            if not res_full.startswith(cwd_str + "/") and not (res_full == "/tmp" or res_full.startswith("/tmp/")):
+                return False
+    except Exception:
+        pass
 
     # (c) Caminhos absolutos: apenas sob /tmp/ normalizado é permitido como atalho seguro
     if os.path.isabs(t):
