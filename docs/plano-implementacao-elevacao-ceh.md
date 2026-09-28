@@ -493,6 +493,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   - AU1: `doc-audit` só casa `/home/<u>/projects/`;
   - AU4: ausência de conselheiro registrada pelo script.
 
+### 0.47 PR-22 não homologado: o AM2 reabriu a escrita do certificado ([Handoff 048](./temp_implementation/handoffs/handoff-048-revisao-pr22-regressao-g9-despacho-pr22b.md))
+
+- **AT3 correto:** git stash, docker volume/compose down -v, redis flush, prisma reset, dd of=arquivo, todos deny graduado, em todas as variações sondadas.
+- **AV1 (alto, regressão do G9):** `git diff|log|show --output=.ceh/last-ci-run.json` passou de deny (base) para allow, porque a leitura pura do git ignora as flags. Forja de certificado de ponta a ponta reproduzida: forja + push = allow.
+- **AV2 (médio):** `strip_ceh_exclusions` remove `--exclude .ceh` de qualquer comando, e libera um `python3 … copytree … --exclude .ceh` que era deny.
+- **AV3 (método):** AV1 e AV2 não estão na lista de relaxamentos e a rede diferencial não os viu, porque o corpus não tem `--output=`. "0 não autorizados" = 0 dentro do corpus (lição AK2).
+- **Linha de base mantida em `d6bf922`** (não homologado). AV1 especificado no handoff, fora da bateria (versioná-lo deixaria a rede diferencial vermelha; entra com o fix do PR-22b).
+- **Release:** a tag v1.3.0 (14510c7) é anterior ao PR-22 e não tem o AV1; está a salvo. A `main` ainda não tem o conteúdo desta branch (one-liner antigo).
+- **Próximo:** PR-22b, que fecha a escrita por `--output`/`-o`, restringe o strip de exclusão e cobre as formas no corpus.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
