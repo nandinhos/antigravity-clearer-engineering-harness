@@ -532,6 +532,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **D04 (médio, INFERRED):** a resolução física de caminhos foi substituída por normalização lexical em detecção de ambiente e regras de `rm`. Para um `target_dir` via symlink, a cadeia de pais lexicais pode não conter a configuração existente nos pais físicos; o caminho avaliado também pode diferir do caminho físico usado pelo comando. Uma tentativa de reprodução dinâmica foi bloqueada pelo PreToolUse por referência a produção e não foi contornada.
 - **Veredito e sequência:** D3 e a otimização CI homologados. PR-20 pode avançar como trabalho documental, conforme Handoff 052. D04 deve ser resolvido antes de homologação geral/merge; o despacho pede uma prova de regressão permitida para cwd via symlink sem mudar o contrato de caminhos sintéticos.
 
+### 0.52 PR-20 revisado; ADR-006 precisa de correção antes da homologação ([Handoff 054](./temp_implementation/handoffs/handoff-054-pr20-nao-homologado-despacho-correcao-adr006.md))
+
+- **OBSERVED:** commit `5330e56` adiciona o índice de ADRs e ADR-006, ajusta a raiz usada pelo Conselho e revisa os READMEs. CI remoto Run 36468331286 corresponde ao commit e concluiu 4/4 jobs com sucesso; validação local observada nesta revisão: suíte canônica 62/62, smoke-evals 5/5 e auditoria documental 7/7.
+- **D05 (médio):** ADR-006 declara como implementados adaptadores Claude Code/Cursor e promete portabilidade idêntica entre hosts, embora a sequência do plano ainda descreva a criação dos adaptadores e da suíte de conformidade como trabalho futuro. Também registra Bash POSIX e inicialização `<50ms` sem fonte ou medição vinculada. Corrigir o status para distinguir decisão aceita de implementação entregue e restringir benefícios a evidências observadas.
+- **Veredito:** PR-20 não homologado até a revisão documental do ADR-006. O ajuste do diretório de atas e os READMEs não apresentaram achado bloqueante nesta rodada. D04 continua pendente, independente, e impede a homologação geral/merge da branch.
+- **Próximo:** PR-20a deve corrigir escopo/status e remover ou ancorar as promessas não demonstradas; depois, repetir o relatório estrito, a suíte, evals e CI remoto no commit corrigido.
+
 
 ## 1. Objetivo
 
