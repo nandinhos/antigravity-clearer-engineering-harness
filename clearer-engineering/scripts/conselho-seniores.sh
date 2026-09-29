@@ -226,10 +226,19 @@ fi
 
 if [[ "$USE_DIFF" == true ]]; then
   CONTEXT_PAYLOAD+="=== TRIPÉ DE GIT DIFF (INSPEÇÃO ADVERSARIAL) ===\n"
-  
-  DIFF_UNSTAGED="$(git -C "$REPO_ROOT" diff 2>/dev/null || true)"
-  DIFF_STAGED="$(git -C "$REPO_ROOT" diff --cached 2>/dev/null || true)"
-  DIFF_HEAD="$(git -C "$REPO_ROOT" diff HEAD~1..HEAD 2>/dev/null || true)"
+
+  DIFF_EXCLUDES=(
+    ":(exclude).env*"
+    ":(exclude)*.pem"
+    ":(exclude)*.key"
+    ":(exclude)*secret*"
+    ":(exclude)*id_rsa*"
+    ":(exclude)*id_ed25519*"
+  )
+
+  DIFF_UNSTAGED="$(git -C "$REPO_ROOT" diff -- . "${DIFF_EXCLUDES[@]}" 2>/dev/null || true)"
+  DIFF_STAGED="$(git -C "$REPO_ROOT" diff --cached -- . "${DIFF_EXCLUDES[@]}" 2>/dev/null || true)"
+  DIFF_HEAD="$(git -C "$REPO_ROOT" diff HEAD~1..HEAD -- . "${DIFF_EXCLUDES[@]}" 2>/dev/null || true)"
 
   if [[ -n "$DIFF_UNSTAGED" ]]; then
     CONTEXT_PAYLOAD+="--- [1/3] WORKING TREE (UNSTAGED) ---\n$DIFF_UNSTAGED\n\n"
@@ -249,6 +258,11 @@ fi
 if [[ -z "$CONTEXT_PAYLOAD" ]]; then
   CONTEXT_PAYLOAD="Avaliar o estado atual da branch $(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'desconhecida') e o último commit $(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'desconhecido')."
 fi
+
+# Redação preventiva de segurança (PR-21 / Handoff 062)
+# Mascara tokens de nuvem/git/auth e substitui caminhos absolutos de home (/home/<u>/ e /Users/<u>/) por ~
+PYTHON_BIN="$(command -v python3 || echo "python")"
+CONTEXT_PAYLOAD="$(printf "%b" "$CONTEXT_PAYLOAD" | "$PYTHON_BIN" "$SCRIPT_DIR/ceh_core/redact.py")"
 
 get_agent_role() {
   local agent="$1"
@@ -382,7 +396,6 @@ for agent in "${TARGET_AGENTS[@]}"; do
       exit_code=$?
       ;;
     *)
-      echo "Agente desconhecido: $agent" > "$resp_file"
       exit_code=1
       ;;
   esac
@@ -397,6 +410,11 @@ for agent in "${TARGET_AGENTS[@]}"; do
     echo -e "${YELLOW}Aviso: $agent finalizou com código $exit_code (verifique $resp_file).${RESET}"
     AGENT_STATUS["$agent"]="ERRO_EXECUCAO"
     AGENT_VERDICTS["$agent"]="INCONCLUSIVO"
+    AGENT_CONFIDENCE["$agent"]="0.0"
+  elif [[ ! -s "$resp_file" ]]; then
+    echo -e "${YELLOW}Aviso: $agent finalizou sem emitir parecer (saída vazia).${RESET}"
+    AGENT_STATUS["$agent"]="SEM_RESPOSTA"
+    AGENT_VERDICTS["$agent"]="SEM_RESPOSTA"
     AGENT_CONFIDENCE["$agent"]="0.0"
   else
     # Extrai a última linha de veredito/certeza (evitando capturar o template do prompt repetido pelo modelo)
@@ -468,7 +486,16 @@ for agent in "${TARGET_AGENTS[@]}"; do
     *REJEITADO*)  ((TOTAL_REJEITADO++)) || true; ((TOTAL_VOTANTES++)) || true ;;
   esac
 
-  echo "| **\`$agent\`** | $role | \`$status\` | **$verdict** | $cert | [Ver Parecer](parecer_${agent}.md) |" >> "$ATA_FILE"
+  parecer_col="[Ver Parecer](parecer_${agent}.md)"
+  if [[ "$status" == "TIMEOUT" ]]; then
+    parecer_col="*Conselheiro excedeu timeout de ${TIMEOUT_SECS}s*"
+  elif [[ "$status" == "ERRO_EXECUCAO" ]]; then
+    parecer_col="*Falha na execução do CLI*"
+  elif [[ "$status" == "SEM_RESPOSTA" ]]; then
+    parecer_col="*Sem parecer emitido pelo modelo*"
+  fi
+
+  echo "| **\`$agent\`** | $role | \`$status\` | **$verdict** | $cert | $parecer_col |" >> "$ATA_FILE"
 done
 
 VEREDITO_COLETIVO="HOMOLOGADO"
@@ -496,7 +523,7 @@ cat <<EOF >> "$ATA_FILE"
 
 ## 3. Despacho Soberano do Desenvolvedor
 
-Esta ata consolida pareceres técnicos de apoio para oferecer uma perspectiva 360º de alto nível. A decisão final, aprovação de handoffs e direção da arquitetura pertencem exclusivamente ao Desenvolvedor (\`nandodev\`).
+Esta ata consolida pareceres técnicos de apoio para oferecer uma perspectiva 360º de alto nível. A decisão final, aprovação de handoffs e direção da arquitetura pertencem exclusivamente ao Desenvolvedor.
 EOF
 
 echo -e "\n${BOLD}${GREEN}======================================================================${RESET}"

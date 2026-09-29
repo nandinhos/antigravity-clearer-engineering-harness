@@ -270,6 +270,10 @@ run_test "Conselho Output Dir: Ancoragem de atas ao repo do usuário e fallback 
 run_test "Symlink Environment: Detecção de ambiente em ancestral físico e proteção do Safety Gate (D04)" \
     "python3 '$PLUGIN_DIR/tests/test_symlink_environment.py' >/dev/null 2>&1"
 
+# 32. PR-21 Conselho Redaction and Secret Masking
+run_test "Conselho Redaction: Redação de segredos, caminhos locais e exclusões no diff (PR-21)" \
+    "python3 '$PLUGIN_DIR/tests/test_conselho_redaction.py' >/dev/null 2>&1"
+
 
 echo ""
 echo "============================================================"
