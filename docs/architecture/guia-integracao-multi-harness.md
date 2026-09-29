@@ -15,8 +15,9 @@ Para o passo a passo detalhado e contratos de execução, consulte o playbook co
    - Ponto único de verdade para parsing de shell, classificação de ambiente (`DEV`/`STAGING`/`PROD`) e governança de comandos destrutivos (`rm`, `git`, `push`).
 
 2. **Interceptação no Host (Safety Gate):**
-   - Invocação via CLI: `python3 safety-gate.py --check "<comando>" [--env <ENV>]`.
-   - Códigos de saída universais: `0 = ALLOW`, `1 = ASK` (exige aprovação humana), `2 = DENY` (bloqueio incondicional).
+   - Invocação via CLI: `python3 safety-gate.py --check "<comando>"` (ou `--command "<comando>"`) `[--env <ENV>]` `[--cwd <DIR>]`.
+   - Códigos de saída universais no modo `--check`/`--command`: `0 = ALLOW`, `1 = ASK` (exige aprovação humana), `2 = DENY` (bloqueio incondicional).
+   - Invocação via Hook (stdin): Envia payload JSON via pipe; veredito emitido em linha ou em JSON estruturado com fail-closed.
 
 3. **Instruções de Sistema (Protocolo CLEARER):**
    - Adotar [`clearer-engineering/rules/AGENTS.md`](../../clearer-engineering/rules/AGENTS.md) como prompt de sistema no harness de destino.

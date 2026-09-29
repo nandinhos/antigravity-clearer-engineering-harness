@@ -444,6 +444,16 @@ def evaluate_command(
     cmd_normalized = cmd_line.strip()
     env, env_evidence = detect_environment(explicit_env, cmd_normalized, target_dir=base_cwd)
 
+    # 0. Early Catastrophic Check sobre a linha completa antes de decomposição léxica
+    # Previne que comandos compostos ou fork bombs contendo ;, |, & sejam fatiados
+    # e evadam os padrões catastróficos globais. Padrões de rm continuam delegados
+    # para a resolução semântica e normalização de alvos do ceh_core/rm.py.
+    for pattern, reason in CATASTROPHIC_PATTERNS:
+        if pattern.startswith(r"\brm"):
+            continue
+        if re.search(pattern, cmd_normalized, re.IGNORECASE) or re.search(pattern, cmd_line, re.IGNORECASE):
+            return "deny", f"[CEH CATASTROPHIC BLOCK] {reason}", env, "CATASTROPHIC"
+
     # Decompõe linha em subcomandos atômicos via FSM Lexer
     subcommands, parse_err = split_shell_pipeline(cmd_normalized)
     if parse_err:
@@ -591,12 +601,14 @@ def handle_hook():
 
 def main():
     parser = argparse.ArgumentParser(description="CEH Safety Gate Command Checker")
-    parser.add_argument("--check", type=str, help="Directly check a command string and output decision")
+    parser.add_argument("--check", "--command", dest="check", type=str, help="Directly check a command string and output decision")
+    parser.add_argument("--cwd", type=str, default=None, help="Base working directory for environment and path resolution")
     parser.add_argument("--env", type=str, default=None, help="Explicit environment override (development|staging|production)")
     args = parser.parse_args()
 
     if args.check is not None:
-        decision, reason, env, use_case = evaluate_command(args.check, explicit_env=args.env)
+        base_cwd = Path(args.cwd).resolve() if args.cwd else None
+        decision, reason, env, use_case = evaluate_command(args.check, explicit_env=args.env, base_cwd=base_cwd)
         result = {
             "decision": decision,
             "reason": reason,
