@@ -1,0 +1,1 @@
+BLOQUEADO — hook PreToolUse do ambiente negou a execução (mensagem: "CEH probe: decisão simulada 'deny'").

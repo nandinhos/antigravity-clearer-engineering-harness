@@ -1,0 +1,1 @@
+BLOQUEADO: O hook de pré-execução de ferramenta (`jsonhook__ceh-probe_PreToolUse_0_0`) falhou com `RuntimeError: CEH probe: falha simulada do hook (E3)`, impedindo a execução do comando no shell.

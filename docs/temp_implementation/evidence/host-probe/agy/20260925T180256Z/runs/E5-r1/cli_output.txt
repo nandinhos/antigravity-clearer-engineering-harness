@@ -1,0 +1,1 @@
+BLOQUEADO: A execução da ferramenta foi negada pelo gancho de pré-execução (pre-tool hook: "CEH probe: decisão simulada 'deny'").

@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Testes-25%2F25%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Testes-64%2F64%20(100%25)-brightgreen.svg)](./tests/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalista-blueviolet.svg)](#-filosofia-ponytail-mode--ast-first)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-o-risk-dial)
 
@@ -14,6 +14,9 @@
 </div>
 
 ---
+
+> [!NOTE]
+> **Aviso de Documentação Canônica**: Este documento apresenta um resumo operacional do pacote do plugin para Antigravity. As especificações arquiteturais completas, canônicas e versionadas do harness residem no [README Principal do Repositório](../README_PT.md) e na pasta [`docs/`](../docs/).
 
 ## 📖 Visão Geral
 
@@ -24,7 +27,7 @@ Em vez de depender de prompts vagos ou suposições não comprovadas, o CEH oper
 - **Filosofia Ponytail Mode & AST First**: "Entender muito, construir pouco e entregar certo". Escada de decisão anti-over-engineering, menor diff funcional e priorização de AST relacional com degradação graciosa.
 - **Topologias Canônicas Flexíveis**: Suporte nativo a **Modo Enterprise (3 branches: `dev` ➔ `staging` ➔ `main`)** e **Modo Clássico (2 branches: `dev` ➔ `main`)**, com assistente interativo `ceh-branches`.
 - **Execução Contínua em Nível MEDIUM**: Ciclo completo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` conduzido de ponta a ponta em **turno único (Single-Turn End-to-End)**.
-- **Zero Hallucination & Zero Fake Pass**: Proíbe a criação de código especulativo e garante que toda alegação de sucesso seja sustentada por comandos reais e logs executados em `OBSERVED`.
+- **Prevenção Ativa de Alucinações & Zero Fake Pass**: Proíbe a criação de código especulativo e garante que toda alegação técnica seja estritamente sustentada por comandos reais, testes e logs observados em `OBSERVED`.
 
 ---
 
@@ -79,7 +82,7 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 3. **Compressão de Shell com Degradação Graciosa (RTK - Rust Token Killer)**:
    - Suporte nativo ao [**RTK**](https://github.com/rtk-ai/rtk): proxy CLI compilado em Rust que intercepta saídas de terminal (`git`, `npm test`, `pytest`, `cargo test`, `docker`, `ruff`) reduzindo o volume de bash lido pelo agente em 60-90%.
    - **Automação no Runner**: O `test-runner.sh` envelopa automaticamente comandos de teste quando `rtk` está no `$PATH`.
-   - **Segurança Imune a Evasão**: O `safety-gate.py` desliga o prefixo `rtk` antes da avaliação de regras para barrar operações destrutivas em produção e homologação.
+   - **Safety Gate Tokenizado e Resiliente a Evasões**: O `safety-gate.py` remove prefixos de proxy e normaliza a decomposição de tokens antes de avaliar regras para barrar operações destrutivas em produção e homologação.
    - **Escape Hatch**: Acesso a logs brutos via `rtk proxy <cmd>` ou flag `-vvv`. Se o RTK não estiver instalado, a esteira degrada graciosamente sem travas.
 4. **Higiene de Contexto & Sandbox (context-mode)**:
    - Mantém dados brutos e histórico fora da janela direta de contexto via SQLite+FTS5, promovendo a mentalidade "think in code".
@@ -98,16 +101,16 @@ Explore as diretrizes aprofundadas do CEH:
 
 | Documento | Descrição |
 |---|---|
-| 📜 [**Guia do Protocolo CLEARER**](./docs/clearer_protocol.md) | Explicação completa das 7 etapas do ciclo de engenharia (*Concrete Goal*, *Load Context*, etc.). |
-| 💎 [**Padrões de Código & Craftsmanship**](./docs/coding_standards.md) | Diretrizes de alto nível de engenharia: Clean Code, SOLID, tipagem estrita, resiliência e testes. |
-| 🎚️ [**Especificação do Risk Dial**](./docs/risk_dial.md) | Dinâmica de **Execução Contínua** para MEDIUM e os 4 gates de checkpoint por exceção. |
-| ⚖️ [**Semântica de Evidências & Claims**](./docs/evidence_semantics.md) | Classificação epistêmica (`OBSERVED`, `INFERRED`, `UNKNOWN`) e auditoria de claims (`SUPPORTED`). |
-| 🏗️ [**Arquitetura do Sistema**](./docs/architecture.md) | Topologia, pipelines unificados, contratos entre subagentes e integração de hooks. |
-| 🤖 [**Guia de Subagentes Especializados**](./docs/agents_guide.md) | Papéis de Investigator, Architect, Implementer, Test Engineer, Reviewer e Auditor. |
-| 🛠️ [**Manual de Skills & Comandos**](./docs/skills_and_commands.md) | Como utilizar `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
-| 🛡️ [**Guia do Safety Gate**](./docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos com `DENY > ASK > ALLOW`. |
-| 💻 [**Instalação & Configuração**](./docs/installation.md) | Guia completo de instalação global, dependências e desinstalação. |
-| 💡 [**Exemplos Práticos**](./docs/examples.md) | Casos reais de uso em TypeScript/Next.js, PHP/Laravel e Python/FastAPI. |
+| 📜 [**Guia do Protocolo CLEARER**](../docs/clearer_protocol.md) | Explicação completa das 7 etapas do ciclo de engenharia (*Concrete Goal*, *Load Context*, etc.). |
+| 💎 [**Padrões de Código & Craftsmanship**](../docs/coding_standards.md) | Diretrizes de alto nível de engenharia: Clean Code, SOLID, tipagem estrita, resiliência e testes. |
+| 🎚️ [**Especificação do Risk Dial**](../docs/risk_dial.md) | Dinâmica de **Execução Contínua** para MEDIUM e os 4 gates de checkpoint por exceção. |
+| ⚖️ [**Semântica de Evidências & Claims**](../docs/evidence_semantics.md) | Classificação epistêmica (`OBSERVED`, `INFERRED`, `UNKNOWN`) e auditoria de claims (`SUPPORTED`). |
+| 🏗️ [**Arquitetura do Sistema**](../docs/architecture.md) | Topologia, pipelines unificados, contratos entre subagentes e integração de hooks. |
+| 🤖 [**Guia de Subagentes Especializados**](../docs/agents_guide.md) | Papéis de Investigator, Architect, Implementer, Test Engineer, Reviewer e Auditor. |
+| 🛠️ [**Manual de Skills & Comandos**](../docs/skills_and_commands.md) | Como utilizar `/clearer`, `/clearer-feature`, `/clearer-bugfix`, `/clearer-adhd`, etc. |
+| 🛡️ [**Guia do Safety Gate**](../docs/safety_gate.md) | Como o hook `PreToolUse` intercepta comandos destrutivos com `DENY > ASK > ALLOW`. |
+| 💻 [**Instalação & Configuração**](../docs/installation.md) | Guia completo de instalação global, dependências e desinstalação. |
+| 💡 [**Exemplos Práticos**](../docs/examples.md) | Casos reais de uso em TypeScript/Next.js, PHP/Laravel e Python/FastAPI. |
 
 ---
 
@@ -180,11 +183,11 @@ O harness possui validação rigorosa de ponta a ponta, incluindo testes de muta
 ./evals/run.sh
 ```
 
-Consulte [`evals/CRITERIA.md`](./evals/CRITERIA.md) para a matriz formal de 5 critérios (RFC 2119).
+Consulte [`evals/CRITERIA.md`](../evals/CRITERIA.md) para a matriz formal de 5 critérios (RFC 2119).
 
 ---
 
 ## 📄 Licença
 
-Distribuído sob a licença **Apache License 2.0**. Consulte [`LICENSE`](./LICENSE) para mais detalhes.
+Distribuído sob a licença **Apache License 2.0**. Consulte [`LICENSE`](../LICENSE) para mais detalhes.
 

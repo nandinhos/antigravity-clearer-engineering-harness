@@ -5,7 +5,7 @@
 set -u
 
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEMP_DIR=$(mktemp -d -t ceh-adversarial-XXXXXX)
+TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-adversarial-XXXXXX")
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
 echo "============================================================"
@@ -58,7 +58,7 @@ echo "------------------------------------------------------------"
 echo "Case 3: Controlled regression / conflict markers detected by Diff Audit"
 mkdir -p "$TEMP_DIR/case3"
 (
-    cd "$TEMP_DIR/case3"
+    cd "$TEMP_DIR/case3" || exit 1
     git init -q
     git config user.email "test@example.com"
     git config user.name "Test"
@@ -74,7 +74,11 @@ feature-b
 EOF
 )
 
-OUTPUT_CASE3=$(cd "$TEMP_DIR/case3" && bash "$PLUGIN_DIR/scripts/diff-audit.sh" 2>&1 || true)
+OUTPUT_CASE3=$(
+    if cd "$TEMP_DIR/case3"; then
+        bash "$PLUGIN_DIR/scripts/diff-audit.sh" 2>&1 || true
+    fi
+)
 if echo "$OUTPUT_CASE3" | grep -q "Merge conflict markers detected"; then
     echo -e "\033[0;32m[PASS]\033[0m Case 3: Verified successfully (Regression/Conflict detected)."
     PASSED=$((PASSED + 1))

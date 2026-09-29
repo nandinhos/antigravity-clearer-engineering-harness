@@ -88,9 +88,9 @@ class Cluster3Acceptance(unittest.TestCase):
             # 5. Testa limpeza de aliases legados/órfãos
             legacy_content = (
                 "# === CLEARER Engineering Harness (CEH) ===\n"
-                "alias ceh-env='bash legacy/detect.sh'\n"
-                "alias ceh-monitor='bash legacy/monitor.sh'\n"
-                "alias ceh-help='bash legacy/help.sh'\n"
+                "alias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'\n"
+                "alias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'\n"
+                "alias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'\n"
             )
             bashrc.write_text(legacy_content, encoding="utf-8")
             subprocess.run(f"bash {uninstall_script}", shell=True, env=env, check=True)

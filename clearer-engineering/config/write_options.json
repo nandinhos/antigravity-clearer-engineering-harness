@@ -1,0 +1,354 @@
+{
+  "contract_version": "1.1.0",
+  "description": "Contrato formal executável de opções de escrita/execução para comandos autorizados em listas de leitura do Safety Gate (PR-QA-C2).",
+  "commands": {
+    "cat": {
+      "command": "cat",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/cat.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "cat .ceh/last-ci-run.json",
+        "cat -n .ceh/last-ci-run.json"
+      ],
+      "rationale": "Concatena arquivos exclusivamente para stdout. Nenhuma opção de gravação em arquivo ou execução externa presente no --help."
+    },
+    "diff": {
+      "command": "diff",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/diff.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "diff .ceh/last-ci-run.json /tmp/x",
+        "diff -u .ceh/last-ci-run.json /tmp/x"
+      ],
+      "rationale": "Compara arquivos e escreve exclusivamente em stdout. Opções -D/--ifdef geram diff formatado em stdout sem gravar arquivos."
+    },
+    "du": {
+      "command": "du",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/du.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "du -sh .ceh",
+        "du -b .ceh/last-ci-run.json"
+      ],
+      "rationale": "Estima uso de espaço em disco em stdout. Nenhuma opção de escrita de arquivos ou execução externa."
+    },
+    "egrep": {
+      "command": "egrep",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/egrep.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "egrep 'PASS|FAIL' .ceh/last-ci-run.json",
+        "egrep -i 'status' .ceh/last-ci-run.json"
+      ],
+      "rationale": "Busca padrões regex em arquivos com saída para stdout. Sem opções de escrita."
+    },
+    "fgrep": {
+      "command": "fgrep",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/fgrep.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "fgrep 'PASS' .ceh/last-ci-run.json",
+        "fgrep -c 'status' .ceh/last-ci-run.json"
+      ],
+      "rationale": "Busca strings fixas em arquivos com saída para stdout. Sem opções de escrita."
+    },
+    "grep": {
+      "command": "grep",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/grep.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "grep 'PASS' .ceh/last-ci-run.json",
+        "grep -n 'exit_code' .ceh/last-ci-run.json"
+      ],
+      "rationale": "Filtro de busca em texto com saída para stdout. Sem opções de escrita."
+    },
+    "head": {
+      "command": "head",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/head.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "head -n 5 .ceh/last-ci-run.json",
+        "head -c 20 .ceh/last-ci-run.json"
+      ],
+      "rationale": "Imprime primeiras linhas para stdout. Sem opções de escrita."
+    },
+    "jq": {
+      "command": "jq",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/jq.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "jq .status .ceh/last-ci-run.json",
+        "jq -r .commit_hash .ceh/last-ci-run.json"
+      ],
+      "rationale": "Processador JSON para stdout. Filtros e flags operam sem efeitos colaterais de gravação."
+    },
+    "less": {
+      "command": "less",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/less.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "-o",
+          "help_line": 171,
+          "help_snippet": "-o [file]  .  --log-file=[file]",
+          "type": "file_write",
+          "test_commands": [
+            "less -o .ceh/last-ci-run.json input.txt",
+            "less -o.ceh/last-ci-run.json input.txt"
+          ]
+        },
+        {
+          "flag": "-O",
+          "help_line": 173,
+          "help_snippet": "-O [file]  .  --LOG-FILE=[file]",
+          "type": "file_write",
+          "test_commands": [
+            "less -O .ceh/last-ci-run.json input.txt",
+            "less -O.ceh/last-ci-run.json input.txt"
+          ]
+        },
+        {
+          "flag": "--log-file",
+          "help_line": 171,
+          "help_snippet": "--log-file=[file]",
+          "type": "file_write",
+          "test_commands": [
+            "less --log-file=.ceh/last-ci-run.json input.txt",
+            "less --log-file .ceh/last-ci-run.json input.txt"
+          ]
+        },
+        {
+          "flag": "--LOG-FILE",
+          "help_line": 173,
+          "help_snippet": "--LOG-FILE=[file]",
+          "type": "file_write",
+          "test_commands": [
+            "less --LOG-FILE=.ceh/last-ci-run.json input.txt",
+            "less --LOG-FILE .ceh/last-ci-run.json input.txt"
+          ]
+        }
+      ],
+      "pure_read_test_commands": [
+        "less .ceh/last-ci-run.json",
+        "less -N .ceh/last-ci-run.json"
+      ],
+      "rationale": "Possui opções de cópia para arquivo de log (-o/-O/--log-file/--LOG-FILE) que gravam em disco."
+    },
+    "ls": {
+      "command": "ls",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/ls.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "ls -la .ceh",
+        "ls -1 .ceh"
+      ],
+      "rationale": "Lista diretórios para stdout. Flag -o oculta grupo em stdout sem gravar arquivo."
+    },
+    "more": {
+      "command": "more",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/more.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "more .ceh/last-ci-run.json",
+        "more -d .ceh/last-ci-run.json"
+      ],
+      "rationale": "Pager de paginação para stdout. Sem opções de escrita."
+    },
+    "stat": {
+      "command": "stat",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/stat.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "stat .ceh/last-ci-run.json",
+        "stat -c %s .ceh/last-ci-run.json"
+      ],
+      "rationale": "Exibe metadados de arquivos em stdout. Sem opções de escrita."
+    },
+    "tail": {
+      "command": "tail",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/tail.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "tail -n 5 .ceh/last-ci-run.json",
+        "tail -c 50 .ceh/last-ci-run.json"
+      ],
+      "rationale": "Imprime últimas linhas para stdout. Sem opções de escrita."
+    },
+    "wc": {
+      "command": "wc",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/wc.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "wc -l .ceh/last-ci-run.json",
+        "wc -c .ceh/last-ci-run.json"
+      ],
+      "rationale": "Conta linhas/palavras/bytes para stdout. Sem opções de escrita."
+    },
+    "git-status": {
+      "command": "git status",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-status.txt",
+      "has_write_options": false,
+      "write_options": [],
+      "pure_read_test_commands": [
+        "git status --ignored .ceh",
+        "git status -s .ceh"
+      ],
+      "rationale": "Subcomando de status do git. Sem flags de escrita de arquivos ou execução externa."
+    },
+    "git-diff": {
+      "command": "git diff",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-diff.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "--output",
+          "help_line": 170,
+          "help_snippet": "--output=<file>",
+          "type": "file_write",
+          "test_commands": [
+            "git diff --output=.ceh/last-ci-run.json",
+            "git diff --output .ceh/last-ci-run.json"
+          ]
+        },
+        {
+          "flag": "--ext-diff",
+          "help_line": 994,
+          "help_snippet": "--ext-diff",
+          "type": "external_exec",
+          "test_commands": [
+            "git diff --ext-diff .ceh/last-ci-run.json"
+          ]
+        },
+        {
+          "flag": "--textconv",
+          "help_line": 1004,
+          "help_snippet": "--textconv, --no-textconv",
+          "type": "external_exec",
+          "test_commands": [
+            "git diff --textconv .ceh/last-ci-run.json"
+          ]
+        }
+      ],
+      "pure_read_test_commands": [
+        "git diff .ceh/last-ci-run.json",
+        "git diff HEAD -- .ceh/last-ci-run.json"
+      ],
+      "rationale": "Subcomando de diff do git que permite escrita direcionada (--output) e execução de filtros externos (--ext-diff, --textconv)."
+    },
+    "git-log": {
+      "command": "git log",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-log.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "--output",
+          "help_line": 2304,
+          "help_snippet": "--output=<file>",
+          "type": "file_write",
+          "test_commands": [
+            "git log -1 --output=.ceh/last-ci-run.json",
+            "git log -1 --output .ceh/last-ci-run.json"
+          ]
+        },
+        {
+          "flag": "--ext-diff",
+          "help_line": 3126,
+          "help_snippet": "--ext-diff",
+          "type": "external_exec",
+          "test_commands": [
+            "git log -1 --ext-diff .ceh/last-ci-run.json"
+          ]
+        },
+        {
+          "flag": "--textconv",
+          "help_line": 3136,
+          "help_snippet": "--textconv, --no-textconv",
+          "type": "external_exec",
+          "test_commands": [
+            "git log -1 --textconv .ceh/last-ci-run.json"
+          ]
+        }
+      ],
+      "pure_read_test_commands": [
+        "git log -1 .ceh/last-ci-run.json",
+        "git log --oneline .ceh/last-ci-run.json"
+      ],
+      "rationale": "Subcomando de log do git com suporte a escrita direta (--output) e execução de helpers externos."
+    },
+    "git-show": {
+      "command": "git show",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/git-show.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "--output",
+          "help_line": 994,
+          "help_snippet": "--output=<file>",
+          "type": "file_write",
+          "test_commands": [
+            "git show --output=.ceh/last-ci-run.json HEAD",
+            "git show --output .ceh/last-ci-run.json HEAD"
+          ]
+        },
+        {
+          "flag": "--ext-diff",
+          "help_line": 1816,
+          "help_snippet": "--ext-diff",
+          "type": "external_exec",
+          "test_commands": [
+            "git show --ext-diff .ceh/last-ci-run.json HEAD"
+          ]
+        },
+        {
+          "flag": "--textconv",
+          "help_line": 1826,
+          "help_snippet": "--textconv, --no-textconv",
+          "type": "external_exec",
+          "test_commands": [
+            "git show --textconv .ceh/last-ci-run.json HEAD"
+          ]
+        }
+      ],
+      "pure_read_test_commands": [
+        "git show HEAD:.ceh/last-ci-run.json",
+        "git show --stat HEAD .ceh/last-ci-run.json"
+      ],
+      "rationale": "Subcomando show do git com suporte a escrita direta (--output) e execução de filtros externos."
+    },
+    "python-json-tool": {
+      "command": "python3 -m json.tool",
+      "help_file": "docs/temp_implementation/evidence/help-contracts/python-json-tool.txt",
+      "has_write_options": true,
+      "write_options": [
+        {
+          "flag": "outfile",
+          "help_line": 16,
+          "help_snippet": "outfile            write the output of infile to outfile",
+          "type": "file_write",
+          "test_commands": [
+            "python3 -m json.tool /tmp/input.json .ceh/last-ci-run.json",
+            "python -m json.tool /tmp/input.json .ceh/last-ci-run.json",
+            "python3 -m json.tool --sort-keys /tmp/input.json .ceh/last-ci-run.json"
+          ]
+        }
+      ],
+      "pure_read_test_commands": [
+        "python3 -m json.tool .ceh/last-ci-run.json"
+      ],
+      "rationale": "Módulo utilitário do Python que aceita argumento posicional de destino gravando em arquivo."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+  [32m[ok][0m    ~/.gemini/config/plugins/ceh-probe
+          - skills      : skipped (not found)
+          - agents      : skipped (not found)
+          - commands    : skipped (not found)
+          - mcpServers  : skipped (not found)
+          [32m✔[0m hooks       : 1 processed

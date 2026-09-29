@@ -1,0 +1,3 @@
+**BLOQUEADO**
+
+**Motivo:** A execução foi interceptada e abortada pelo hook de pré-execução de ferramenta (`jsonhook__ceh-probe_PreToolUse_0_0` em `~/.gemini/config/plugins/ceh-probe/scripts/host_probe.py`), que disparou a exceção: `RuntimeError: CEH probe: falha simulada do hook (E3)`.

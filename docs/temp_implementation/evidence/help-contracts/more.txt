@@ -1,0 +1,29 @@
+# Help Contract: more
+# Command: more --help
+# Version: more from util-linux 2.39.3
+# Date: 2026-09-28T02:16:08Z
+
+
+Usage:
+ more [options] <file>...
+
+Display the contents of a file in a terminal.
+
+Options:
+ -d, --silent          display help instead of ringing bell
+ -f, --logical         count logical rather than screen lines
+ -l, --no-pause        suppress pause after form feed
+ -c, --print-over      do not scroll, display text and clean line ends
+ -p, --clean-print     do not scroll, clean screen and display text
+ -e, --exit-on-eof     exit on end-of-file
+ -s, --squeeze         squeeze multiple blank lines into one
+ -u, --plain           suppress underlining and bold
+ -n, --lines <number>  the number of lines per screenful
+ -<number>             same as --lines
+ +<number>             display file beginning from line number
+ +/<pattern>           display file beginning from pattern match
+
+ -h, --help            display this help
+ -V, --version         display version
+
+For more details see more(1).

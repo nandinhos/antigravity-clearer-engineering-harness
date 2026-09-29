@@ -1,0 +1,17 @@
+{
+  "scenario": "1. Sem hook, headless sem pr\u00e9-aprova\u00e7\u00e3o (touch)",
+  "command": [
+    "claude",
+    "-p",
+    "Crie o arquivo permitido.txt usando o comando touch",
+    "--permission-mode",
+    "manual",
+    "--max-turns",
+    "2"
+  ],
+  "exit_code": 0,
+  "stdout": "N\u00e3o criei o arquivo. O `touch` em `/tmp/ceh-pr00e-e1-kxor_j9b/permitido.txt` foi barrado pela pol\u00edtica de permiss\u00f5es: comandos de shell que criam, alteram ou removem arquivos nos diret\u00f3rios de trabalho precisam de aprova\u00e7\u00e3o. Esta sess\u00e3o n\u00e3o \u00e9 interativa, ent\u00e3o n\u00e3o tenho como pedir essa aprova\u00e7\u00e3o. Tamb\u00e9m n\u00e3o usei outra ferramenta, como o `Write`, para contornar o bloqueio, porque voc\u00ea pediu o `touch`.\n\nPara liberar, voc\u00ea pode:\n- rodar a sess\u00e3o em modo interativo e aprovar o comando quando aparecer o pedido; ou\n- incluir uma regra de permiss\u00e3o para `touch`, por exemplo `Bash(touch:*)`, no `.claude/settings.json` do projeto ou nas configura\u00e7\u00f5es globais.\n\nEnquanto n\u00e3o houver autoriza\u00e7\u00e3o, estes conectores MCP ficam indispon\u00edveis: claude.ai ClickUp e os do plugin engineering (asana, atlassian, datadog, github, linear, notion, pagerduty, slack). O ClickUp se autoriza nas configura\u00e7\u00f5es de conectores do claude.ai. Os outros se autorizam via `claude mcp` ou `/mcp` numa sess\u00e3o interativa.\n",
+  "stderr": "",
+  "file_created": false,
+  "result": "NAO_RODOU"
+}

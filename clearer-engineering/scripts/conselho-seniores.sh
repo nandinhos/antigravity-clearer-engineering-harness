@@ -23,7 +23,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || (cd "$SCRIPT_DIR/../.." && pwd))"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+# Resolução de saída padrão
+resolve_default_output_dir() {
+  local repo_root="${1:-$REPO_ROOT}"
+  local timestamp="${2:-$(date +'%Y%m%d_%H%M%S')}"
+  echo "$repo_root/docs/temp_implementation/conselho/$timestamp"
+}
 
 # Configurações padrão
 TIMEOUT_SECS=90
@@ -66,6 +73,7 @@ Opções de Contexto:
   --file <caminho>      Arquivo contendo especificação, plano ou código a avaliar
   --timeout <segundos>  Timeout máximo por agente em segundos (padrão: 90s)
   --output-dir <dir>    Diretório para salvar a ata e os pareceres individuais
+  --print-output-dir    Imprime o diretório de saída padrão calculado e sai
   --dry-run             Exibe os prompts e comandos montados sem disparar os CLIs
   -h, --help            Exibe esta ajuda
 
@@ -146,6 +154,10 @@ while [[ $# -gt 0 ]]; do
       OUTPUT_DIR="$2"
       shift 2
       ;;
+    --print-output-dir)
+      resolve_default_output_dir "$REPO_ROOT"
+      exit 0
+      ;;
     --dry-run)
       DRY_RUN=true
       shift
@@ -195,8 +207,7 @@ fi
 
 # Diretório de saída padrão
 if [[ -z "$OUTPUT_DIR" ]]; then
-  TIMESTAMP="$(date +'%Y%m%d_%H%M%S')"
-  OUTPUT_DIR="$REPO_ROOT/docs/temp_implementation/conselho/$TIMESTAMP"
+  OUTPUT_DIR="$(resolve_default_output_dir "$REPO_ROOT")"
 fi
 mkdir -p "$OUTPUT_DIR"
 
@@ -300,7 +311,7 @@ echo -e "${BOLD}${CYAN}=========================================================
 echo -e "${BOLD}${CYAN}   CLEARER ENGINEERING HARNESS — CONSELHO DE SENIORES                 ${RESET}"
 echo -e "${BOLD}${CYAN}   (Add-on Opcional de Apoio à Decisão Multi-Modelo)                  ${RESET}"
 echo -e "${BOLD}${CYAN}======================================================================${RESET}"
-echo -e "Data/Hora:       $(date -Iseconds)"
+echo -e "Data/Hora:       $(date +"%Y-%m-%dT%H:%M:%S%z")"
 echo -e "Repositório:     $(basename "$REPO_ROOT")"
 echo -e "Branch:          $(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')"
 echo -e "Commit:          $(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'N/A')"
@@ -388,17 +399,26 @@ for agent in "${TARGET_AGENTS[@]}"; do
     AGENT_VERDICTS["$agent"]="INCONCLUSIVO"
     AGENT_CONFIDENCE["$agent"]="0.0"
   else
-    verd="$(grep -E '^VEREDITO:' "$resp_file" | head -n1 | sed -E 's/VEREDITO:[[:space:]]*//' | tr -d '\r' || true)"
-    cert="$(grep -E '^CERTEZA:' "$resp_file" | head -n1 | sed -E 's/CERTEZA:[[:space:]]*//' | tr -d '\r' || true)"
+    # Extrai a última linha de veredito/certeza (evitando capturar o template do prompt repetido pelo modelo)
+    verd="$(grep -E '^VEREDITO:' "$resp_file" | tail -n1 | sed -E 's/VEREDITO:[[:space:]]*//' | tr -d '\r' || true)"
+    cert="$(grep -E '^CERTEZA:' "$resp_file" | tail -n1 | sed -E 's/CERTEZA:[[:space:]]*//' | tr -d '\r' || true)"
 
-    if [[ -z "$verd" ]]; then
-      if grep -qi "HOMOLOGADO" "$resp_file"; then verd="HOMOLOGADO";
-      elif grep -qi "RESSALVAS" "$resp_file"; then verd="RESSALVAS";
-      elif grep -qi "REJEITADO" "$resp_file"; then verd="REJEITADO";
-      else verd="INDEFINIDO"; fi
+    # Se contiver colchetes ou pipe (template de formulário), invalida
+    if [[ "$verd" =~ [\[\|] ]]; then
+      verd=""
+    fi
+    if [[ "$cert" =~ [\[\|] ]]; then
+      cert=""
     fi
 
-    [[ -z "$cert" ]] && cert="0.80"
+    # Validação estrita de veredito (D4b): sem fallback por grep em arquivo solto
+    case "$verd" in
+      "HOMOLOGADO"|"RESSALVAS"|"REJEITADO") ;;
+      *) verd="INDEFINIDO" ;;
+    esac
+
+    # Certeza (D4b): sem valor padrão inventado (ex: 0.80)
+    [[ -z "$cert" ]] && cert="N/D"
 
     AGENT_VERDICTS["$agent"]="$verd"
     AGENT_CONFIDENCE["$agent"]="$cert"
@@ -412,7 +432,7 @@ cat <<EOF > "$ATA_FILE"
 # Ata de Deliberação do Conselho de Seniores (CEH)
 > *Add-on Opcional de Apoio à Decisão Multi-Modelo*
 
-**Data/Hora:** $(date -Iseconds)  
+**Data/Hora:** $(date +"%Y-%m-%dT%H:%M:%S%z")  
 **Repositório:** \`$(basename "$REPO_ROOT")\`  
 **Branch:** \`$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')\`  
 **Commit:** \`$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo 'N/A')\`  
@@ -437,9 +457,14 @@ for agent in "${TARGET_AGENTS[@]}"; do
   cert="${AGENT_CONFIDENCE[$agent]:-0.0}"
   role="$(get_agent_role "$agent")"
 
-  case "$verdict" in
-    *HOMOLOGADO*) ((TOTAL_HOMOLOGADO++)) || true; ((TOTAL_VOTANTES++)) || true ;;
+  clean_verdict="$verdict"
+  if [[ "$clean_verdict" =~ [\[\|] ]]; then
+    clean_verdict="INDEFINIDO"
+  fi
+
+  case "$clean_verdict" in
     *RESSALVAS*)  ((TOTAL_RESSALVAS++)) || true; ((TOTAL_VOTANTES++)) || true ;;
+    *HOMOLOGADO*) ((TOTAL_HOMOLOGADO++)) || true; ((TOTAL_VOTANTES++)) || true ;;
     *REJEITADO*)  ((TOTAL_REJEITADO++)) || true; ((TOTAL_VOTANTES++)) || true ;;
   esac
 

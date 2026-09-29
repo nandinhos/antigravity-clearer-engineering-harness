@@ -1,0 +1,6 @@
+Hermes Agent v0.21.0 (2026.8.31) · upstream dfc28b61
+Install directory: /home/nandodev/.hermes/hermes-agent
+Install method: git
+Python: 3.11.15
+OpenAI SDK: 2.24.0
+Update available: 7488 commits behind — run 'hermes update'

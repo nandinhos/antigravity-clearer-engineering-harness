@@ -1,0 +1,1 @@
+EXECUTADO: Operação permitida em ambiente local (`DEV`/scratch) sem impacto destrutivo ou risco de perda de dados.

@@ -1,0 +1,459 @@
+# Baterias executáveis das revisões do CEH (Handoffs 014–017 em diante).
+#
+# Formato: <env>|<esperado>|<referência>|<comando>
+#   env        development | staging | production
+#   esperado   <decisão> ou <decisão>/<use_case>   (ex.: deny, deny/CATASTROPHIC, allow/FILESYSTEM_SAFE)
+#   referência ID do achado; "PENDENTE:<ID>" marca um defeito conhecido ainda não corrigido:
+#              o teste EXIGE que a linha pendente ainda falhe (xfail estrito). Quem corrigir
+#              remove o prefixo PENDENTE no mesmo PR.
+#   comando    o resto da linha (pode conter '|').
+#
+# Regra (Handoff 015): toda bateria usada numa revisão entra aqui no commit da revisão.
+
+# --- Handoff 014 · R1: descendentes de diretórios do sistema NÃO são catastróficos (uso legítimo em DEV)
+development|allow|H014-R1|rm -rf /home/user/projeto/build
+development|allow|H014-R1|rm -rf /home/user/projeto/src/old
+development|allow|H014-R1|rm -rf /opt/myapp/cache
+development|allow|H014-R1|rm -rf /var/tmp/ceh-x
+development|allow|H014-R1|rm -rf /usr/local/lib/node_modules/foo
+development|allow|H014-R1|rm -rf ~/projeto/dist
+development|allow|H014-R1|rm -rf ./node_modules
+development|allow|H014-R1|rm -rf node_modules
+development|allow|H014-R1|rm file.txt
+development|allow|H014-R1|rm -rf ../outro-projeto/dist
+
+# --- Handoff 014 · R2 e G4: variantes catastróficas (qualquer ambiente)
+development|deny/CATASTROPHIC|H014-R2|rm -rf //
+development|deny/CATASTROPHIC|H014-R2|rm -rf /./
+development|deny/CATASTROPHIC|H014-R2|rm -rf ../..
+development|deny/CATASTROPHIC|H014-R2|rm -rf ./*
+development|deny/CATASTROPHIC|H014-R2|rm -rf ~root
+development|deny/CATASTROPHIC|H014-G4|rm -rf '/'
+development|deny/CATASTROPHIC|H014-G4|rm -rf "/"
+development|deny/CATASTROPHIC|H014-G4|rm -Rf /etc/
+development|deny/CATASTROPHIC|H014-G4|rm -rf /etc/*
+development|deny/CATASTROPHIC|H014-G4|rm -rf ~/
+development|deny/CATASTROPHIC|H014-G4|rm -rf $HOME/
+development|deny/CATASTROPHIC|H014-G4|rm -rf ..
+development|deny/CATASTROPHIC|H014-G4|rm -rf *
+development|deny/CATASTROPHIC|H014-G4|\rm -rf /
+development|deny/CATASTROPHIC|H014-G4|command rm -rf /
+development|deny/CATASTROPHIC|H014-G4|/bin/rm -rf /
+development|deny/CATASTROPHIC|H014-G4|rm -rf /tmp/ /
+development|deny/CATASTROPHIC|H014-G4|rm -r -- /
+development|deny/CATASTROPHIC|H014-G4|rm --no-preserve-root -rf /
+development|deny/CATASTROPHIC|H014-G4|rm -rfv /
+development|deny/CATASTROPHIC|H014-G4|rm -rf /home
+development|deny/CATASTROPHIC|H014-G4|rm -rf /home/*
+development|deny/CATASTROPHIC|H014-G4|rm -rf /root
+development|deny/CATASTROPHIC|H014-G4|rm -rf /boot
+development|deny/CATASTROPHIC|H014-G4|rm -rf /lib
+development|deny/CATASTROPHIC|H014-G4|rm -rf /sys
+development|deny/CATASTROPHIC|H014-G4|rm -rf dist/ /
+development|deny/CATASTROPHIC|H014-G4|rm -rf . --
+development|deny/CATASTROPHIC|H015-extra|rm -rf /home/user/
+development|deny/CATASTROPHIC|H015-extra|rm -rf /home/user/..
+development|deny/CATASTROPHIC|H015-extra|rm -rf /usr/local/../..
+development|deny/CATASTROPHIC|H015-extra|rm -rf ~/.
+development|deny/CATASTROPHIC|H015-extra|rm -rf ./..
+development|deny/CATASTROPHIC|H015-extra|rm -rf "$HOME"
+
+# --- Handoff 015 · S1: atalho seguro não vale para caminho absoluto/fora do cwd (produção)
+production|deny|H015-S1|rm -rf /var/www/site/dist
+production|deny|H015-S1|rm -rf /srv/app/build
+production|deny|H015-S1|rm -rf /opt/prod/app/dist/
+production|deny|H015-S1|rm -rf /etc/nginx/coverage/
+production|deny|H015-S1|rm -rf ../../prod-release/dist
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf dist/
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf ./build
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf /tmp/ceh-x
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -f a.txt
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf node_modules/.cache
+production|allow/FILESYSTEM_SAFE|H015-S1-controle|rm -rf dist/assets
+
+# --- Handoff 015 · S2: $PWD é o diretório de trabalho; variável não resolvida é incerta
+development|deny/CATASTROPHIC|H015-S2|rm -rf $PWD
+development|deny/CATASTROPHIC|H015-S2|rm -rf "$PWD"
+development|deny/CATASTROPHIC|H015-S2|rm -rf "$PWD"/*
+development|ask|H015-S2|rm -rf $OLDPWD
+development|ask|H015-S2|rm -rf $BUILD_DIR
+
+# --- Handoff 016 · T1: atalho seguro sobre o caminho normalizado (produção)
+production|deny|H016-T1|rm -rf build/../src
+production|deny|H016-T1|rm -rf coverage/../.git
+production|deny|H016-T1|rm -rf dist/../../etc
+production|deny/CATASTROPHIC|H016-T1|rm -rf ./dist/../..
+production|deny/CATASTROPHIC|H016-T1|rm -rf tmp/../
+production|deny/CATASTROPHIC|H016-T1|rm -rf /tmp/../etc
+production|deny/CATASTROPHIC|H016-T1|rm -rf /tmp/../home/user
+production|deny|H016-T1|rm -rf ../a.txt
+production|deny|H016-T1|rm -rf /etc/passwd.bak
+production|deny/CATASTROPHIC|H016-T1|rm -rf dist/../../../
+
+# --- Handoff 017 · G2/G3: descarte amplo e opções globais (produção)
+production|deny|H017-G2|git checkout .
+production|deny|H017-G2|git checkout -- .
+production|deny|H017-G2|git checkout HEAD -- .
+production|deny|H017-G2|git checkout -f
+production|deny|H017-G2|git checkout :/
+production|deny|H017-G2|git checkout -- '*'
+production|deny|H017-G2|git restore .
+production|deny|H017-G2|git restore --staged --worktree .
+production|deny|H017-G2|git restore --source=HEAD .
+production|deny|H017-G2|git restore :/
+production|deny|H017-G2|git checkout HEAD .
+production|deny|H017-G2|git checkout @ -- .
+production|deny|H017-G2|git checkout --force main
+production|deny|H017-G2|git checkout -- *
+production|deny|H017-G2|git restore -W -S .
+production|deny|H017-G2|git restore --worktree -- .
+production|deny|H017-G2|git restore -s HEAD .
+production|deny|H017-G2|git checkout -f -- app/x.php
+production|deny|H017-U1|git checkout -- ./
+production|deny|H017-G3|git -C . reset --hard
+production|deny|H017-G3|git --no-pager reset --hard
+production|deny|H017-G3|git -P reset --hard
+production|deny|H017-G3|git --paginate reset --hard
+production|deny|H017-G3|git --no-pager -C . reset --hard
+production|deny|H017-U3|git switch -f main
+production|deny|H017-U3|git switch --discard-changes main
+production|allow|H017-controle|git checkout app/Model.php
+production|allow|H017-controle|git checkout main
+production|allow|H017-controle|git checkout -b feature
+production|allow|H017-controle|git checkout feature/login
+production|allow|H017-controle|git checkout -- app/Model.php
+production|allow|H017-controle|git checkout v1.2.0
+production|allow|H017-controle|git restore --staged app/Model.php
+production|allow|H017-controle|git status
+production|allow|H017-controle|git -C sub status
+production|allow|H017-controle|git --no-pager log -5
+production|allow|H017-U2|git -P diff
+production|allow|H017-U2|git -P log -5
+production|allow|H017-controle|git switch main
+production|allow|H017-controle|git switch -c feature
+
+# --- Handoff 017 · G5 (PR-06): deleções indiretas
+development|deny/CATASTROPHIC|H017-G5|find / -delete
+development|deny/CATASTROPHIC|H017-G5|find /etc -delete
+development|deny/CATASTROPHIC|H017-G5|find ~ -delete
+development|allow|H017-G5-controle|find . -name '*.pyc' -delete
+production|deny|H017-G5|find . -name '*.pyc' -delete
+production|deny|H017-G5-ja-coberto|find . -exec rm -rf {} +
+production|deny|H017-G5|python3 -c 'import shutil; shutil.rmtree("/srv")'
+production|deny|H017-G5|node -e 'require("fs").rmSync("db",{recursive:true})'
+production|deny|H017-G5|perl -e 'unlink glob "*"'
+production|allow|H017-G5-controle|find . -name '*.log'
+production|allow|H017-G5-controle|grep -r "shutil.rmtree" .
+production|allow|H017-G5-controle|python3 -c 'print(1)'
+production|allow|H017-G5-controle|node -e 'console.log(1)'
+
+# --- Handoff 019 · revisão do PR-05b: variantes de U1/U3 (já corretas) e controles
+production|deny|H019-U1|git checkout -- ././
+production|deny|H019-U1|git checkout -- "./"
+production|deny|H019-U1|git checkout -- ./ app/x.php
+production|deny|H019-U1|git restore -- ./
+production|deny|H019-U1|git checkout HEAD -- ./
+production|deny|H019-U1|git checkout -- ./.
+production|deny|H019-U1|git checkout -- .//
+production|deny|H019-U1|git restore --worktree ./
+production|deny|H019-U1|git checkout -- :/
+production|deny|H019-U3|git switch --force main
+production|deny|H019-U3|git switch -f -c x
+production|deny|H019-U3|git switch --discard-changes
+production|allow|H019-controle|git switch -
+production|allow|H019-controle|git checkout -- ./app/Model.php
+production|allow|H019-controle|git checkout ./app/Model.php
+production|allow|H019-controle|git checkout -- ./src
+# V1: pathspec que resolve para a raiz (normalização e magia :(top))
+production|deny|H019-V1|git checkout -- src/..
+production|deny|H019-V1|git checkout -- ":(top)"
+production|deny|H019-V1|git restore ':(top).'
+production|deny|H019-V1|git checkout -- app/..
+production|deny|H019-V1|git checkout -- ./src/../
+production|deny|H019-V1|git checkout -- ':!x'
+production|deny|H019-V1|git checkout -- ':^x'
+production|deny|H019-V1|git restore ':(exclude)x'
+production|allow|H019-V1-controle|git checkout -- :/app/Model.php
+# V2: redefinição forçada de branch (mesma classe de git branch -D)
+production|deny|H019-V2|git switch -C main
+production|deny|H019-V2|git checkout -B main
+production|allow|H019-V2-controle|git checkout -b feature
+production|allow|H019-V2-controle|git switch -c feature
+# V3: --staged sozinho só retira do stage (não destrutivo); --staged --worktree segue destrutivo
+production|allow|H019-V3|git restore --staged .
+production|allow|H019-V3|git restore --staged ./
+production|allow|H019-V3|git restore -S .
+production|allow|H019-V3|git restore --staged -- .
+production|deny|H019-V3-controle|git restore -S -W .
+
+# --- Handoff 020 · revisão da ata do Conselho (PR-05c): achados adicionais
+# V1 (mais formas): pathspec depois de tree-ish sem "--", com -s/--source e magia com ".."
+production|deny|H020-V1|git checkout HEAD src/..
+production|deny|H020-V1|git restore -s HEAD src/..
+production|deny|H020-V1|git restore --source=HEAD~2 -- src/..
+production|deny|H020-V1|git checkout -- ':/app/../..'
+# V4: regex "-…f" casa nomes de branch/caminho com hífen (falso positivo)
+production|allow|H020-V4|git checkout feature/add-pdf
+production|allow|H020-V4|git checkout fix-leaf
+production|allow|H020-V4|git switch hotfix-ref
+production|allow|H020-V4|git checkout -- app/self-ref
+production|deny|H020-V4-controle|git checkout -qf main
+production|deny|H020-V4-controle|git switch -f hotfix-ref
+# V5: lista de pathspecs vinda de arquivo é invisível ao gate (fail-closed)
+production|deny|H020-V5|git restore --pathspec-from-file=list.txt
+production|deny|H020-V5|git checkout --pathspec-from-file=list.txt
+production|deny|H020-V5|git restore --pathspec-from-file -
+# Variantes inéditas adicionadas pelo agente (PR-05c)
+production|deny|H020-agente-V1|git checkout -- a/b/../..
+production|deny|H020-agente-V1|git restore ":(top,glob)*"
+production|deny|H020-agente-V1|git checkout -- ":(top,icase)*"
+production|allow|H020-agente-controle|git checkout ":(top)app/Services/PaymentService.php"
+production|allow|H020-agente-controle|git restore ":/config/app.php"
+production|deny|H020-agente-V2|git switch -C feature/new-workflow
+
+# --- Handoff 021 · revisão do PR-05c
+# W1 (regressão): sem "--", o git trata "." como pathspec quando não é ref; avaliar todos os posicionais
+production|deny|H021-W1|git checkout . app/x
+production|deny|H021-W1|git checkout src/.. app/x
+production|deny|H021-W1-controle|git checkout app/x .
+production|allow|H021-W1-controle|git checkout main app/x
+# W2 (regressão parcial): o git aceita prefixo único de opção longa (--forc = --force)
+production|deny|H021-W2|git checkout --forc main
+production|deny|H021-W2|git switch --discard main
+production|deny|H021-W2|git switch --force-c main
+production|deny|H021-W2|git restore --staged --work .
+production|deny|H021-W2|git restore --pathspec-from=list.txt
+production|deny|H021-W2-controle|git restore --stag --work .
+production|allow|H021-W2-controle|git checkout --quiet main
+production|allow|H021-W2-controle|git switch --detach HEAD~1
+# W3 (preexistente): glob no primeiro segmento alcança o repositório inteiro
+production|deny|H021-W3|git checkout -- '*.php'
+production|deny|H021-W3|git restore '*.php'
+production|deny|H021-W3|git checkout -- ./*
+production|deny|H021-W3|git checkout -- '**'
+production|deny|H021-W3|git restore -- '[a-z]*'
+production|allow|H021-W3-controle|git checkout -- src/*
+production|allow|H021-W3-controle|git checkout -- 'src/*.php'
+# W4 (preexistente): variável ou "~" no pathspec é incerteza (mesma regra do S2 no rm)
+production|deny|H021-W4|git checkout -- "$PWD"
+production|deny|H021-W4|git restore $DIR
+production|deny|H021-W4|git checkout -- ~
+# Variantes inéditas adicionadas pelo agente (PR-05d)
+production|deny|H021-agente-W1|git checkout ./src/.. app/Model.php
+production|deny|H021-agente-W2|git switch --discard-c main
+production|deny|H021-agente-W3|git checkout -- "?*.js"
+production|deny|H021-agente-W4|git checkout -- ~/projects/repo
+production|allow|H021-agente-controle|git checkout -- tests/*
+production|allow|H021-agente-controle|git switch --guess main
+
+# --- Handoff 022 · revisão do PR-05d
+# X1 (preexistente): magia curta combinada ":/!x" = raiz + exclusão → descarta tudo exceto x
+production|deny|H022-X1|git checkout -- ':/!x'
+production|deny|H022-X1|git checkout -- ':/^x'
+production|deny|H022-X1|git restore ':/!app'
+production|deny|H022-X1|git checkout -- ':/!:x'
+production|allow|H022-X1-controle|git restore ':/app/x'
+production|allow|H022-X1-controle|git checkout -- ':/:app/x'
+# Variantes inéditas adicionadas pelo agente (PR-05e)
+production|deny|H022-agente-X1|git checkout -- ':^/src'
+production|deny|H022-agente-X1|git restore ':!/app/Services'
+production|allow|H022-agente-controle|git checkout -- ':/config/database.php'
+
+# --- Handoff 023 · revisão do PR-05e e do PR-QA-A
+# Y4 (falso positivo): ":" sem mnemônico é pathspec comum (git real restaurou só app/x)
+production|allow|H023-Y4|git checkout -- ':app/x'
+production|allow|H023-Y4-controle|git checkout -- '::app/x'
+production|deny|H023-X1-controle|git checkout -- ':^/!x'
+production|deny|H023-X1-controle|git checkout -- ':(top,exclude)x'
+
+# --- Handoff 024 · acréscimos ao PR-06 (G5): formas que o despacho do Handoff 017 não listava
+# find: caminho inicial ancestral do cwd é catastrófico (mesma regra do rm); ações -execdir/-ok e shell no -exec
+development|deny/CATASTROPHIC|H024-G5|find .. -delete
+development|deny/CATASTROPHIC|H024-G5|find / -execdir rm -rf {} +
+production|deny|H024-G5|find .. -exec rm {} \;
+production|deny|H024-G5-ja-coberto|find . -type f -exec sh -c 'rm -f "$1"' _ {} \;
+production|deny|H024-G5|find build -ok rm {} \;
+development|allow|H024-G5-controle|find ./build -name '*.o' -delete
+production|allow|H024-G5-controle|find . -name '*.pyc' -print
+# interpretadores: cabeça resolvida (caminho absoluto, env, versão) e literal catastrófico
+development|deny/CATASTROPHIC|H024-G5|/usr/bin/python3 -c "import shutil; shutil.rmtree('/')"
+development|deny/CATASTROPHIC|H024-G5|ruby -e "FileUtils.rm_rf('/')"
+production|deny|H024-G5|env python3 -c "import os; os.remove('a')"
+production|deny|H024-G5|python3.12 -c "import pathlib; pathlib.Path('db').unlink()"
+production|deny|H024-G5-ja-coberto|python3 -c "import os; os.system('rm -rf build')"
+production|deny|H024-G5-ja-coberto|node --eval "require('child_process').execSync('rm -rf dist')"
+production|allow|H024-G5-controle|python3 script.py
+production|allow|H024-G5-controle|python3 -c "import os; print(os.getcwd())"
+production|allow|H024-G5-controle|echo "shutil.rmtree"
+production|allow|H024-G5-controle|node -e "console.log(require('fs').existsSync('db'))"
+
+# --- Handoff 025 · revisão do PR-06
+# AA1 (regressão): o analisador de find devolve allow cedo e esconde o rm catastrófico dentro do -exec
+development|deny/CATASTROPHIC|H025-AA1|find . -exec rm -rf / \;
+development|deny/CATASTROPHIC|H025-AA1|find . -name x -exec rm -rf ~ \;
+development|deny/CATASTROPHIC|H025-AA1|find build -delete -exec rm -rf / +
+development|deny/CATASTROPHIC|H025-AA1|find . -exec rm -rf {} /etc \;
+development|allow|H025-controle|find ./build -name '*.o' -exec rm {} +
+production|allow|H025-controle|find . -name '*.log' -exec ls {} \;
+# AA2: embrulhos (sh/bash -c, os.system) escondem o G5 dos analisadores novos
+production|deny/CATASTROPHIC|H025-AA2|bash -c "find / -delete"
+development|deny/CATASTROPHIC|H025-AA2|sh -c "python3 -c \"import shutil; shutil.rmtree('/')\""
+development|deny/CATASTROPHIC|H025-AA2|python3 -c "import os; os.system('find / -delete')"
+development|deny/CATASTROPHIC|H025-AA2|python3 -c "import os; os.remove('x'); os.system('rm -rf /')"
+development|deny/CATASTROPHIC|H025-AA2-controle|bash -c "rm -rf /"
+# AA3: detecção de interpretador incompleta (flags agrupadas, import por nome, argv)
+development|deny/CATASTROPHIC|H025-AA3|python3 -Bc 'import shutil; shutil.rmtree("/")'
+production|deny|H025-AA3|python3 -Ic 'import shutil; shutil.rmtree("db")'
+production|deny|H025-AA3|perl -le 'unlink glob "*"'
+development|deny/CATASTROPHIC|H025-AA3|node -pe "require('fs').rmSync('/',{recursive:true})"
+production|deny|H025-AA3|node -e "require('node:fs').rmSync('db',{recursive:true})"
+development|deny/CATASTROPHIC|H025-AA3|node -e "const {rmSync}=require('fs'); rmSync('/',{recursive:true})"
+development|deny/CATASTROPHIC|H025-AA3|python3 -c "from shutil import rmtree; rmtree('/')"
+development|deny/CATASTROPHIC|H025-AA3|python3 -c "__import__('shutil').rmtree('/')"
+development|deny/CATASTROPHIC|H025-AA3|python3 -c 'import shutil,sys; shutil.rmtree(sys.argv[1])' /
+production|allow|H025-controle|python3 -c "l=[1]; print(len(l))"
+production|allow|H025-controle|perl -le 'print 1'
+production|allow|H025-controle|cat s.py | python3
+
+# --- Handoff 026 · revisão do PR-06b
+# AB1: prefixos de execução (nice, timeout, sudo -u, nohup, exec, xargs) e executores de string (eval, su -c, watch)
+#      escondem o comando dos analisadores por tokens (find, interpretadores, sh -c, git.py)
+production|deny/CATASTROPHIC|H026-AB1|nice find / -delete
+production|deny/CATASTROPHIC|H026-AB1|timeout 10 find / -delete
+production|deny/CATASTROPHIC|H026-AB1|sudo -u deploy find / -delete
+production|deny/CATASTROPHIC|H026-AB1|nohup find / -delete
+production|deny/CATASTROPHIC|H026-AB1|timeout 5 python3 -c "import shutil; shutil.rmtree('/')"
+production|deny/CATASTROPHIC|H026-AB1|sudo -u root bash -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|timeout 5 bash -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|exec bash -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|xargs -I{} sh -c 'find / -delete'
+production|deny/CATASTROPHIC|H026-AB1|eval "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|su -c "find / -delete"
+production|deny/CATASTROPHIC|H026-AB1|watch -n1 "find / -delete"
+production|deny|H026-AB1|nice git checkout -- .
+production|allow|H026-controle|nice npm run build
+production|allow|H026-controle|timeout 5 git status
+production|allow|H026-controle|sudo -u deploy ls /var/www
+production|allow|H026-controle|watch -n1 "git status"
+production|allow|H026-controle|time python3 -c "print(1)"
+# AB3: parâmetros posicionais do sh -c ($0, $1…) são conhecidos: substituir antes de avaliar
+development|deny/CATASTROPHIC|H026-AB3|bash -c 'rm -rf "$0"' /
+development|deny/CATASTROPHIC|H026-AB3|bash -c 'find "$1" -delete' _ /
+development|allow|H026-controle|bash -c 'echo "$0"' /
+
+# --- Handoff 027 · revisão do PR-06c
+# AC1: opção de prefixo que recebe valor (forma longa separada, agrupada, ou de semântica própria) vira a "cabeça"
+production|deny/CATASTROPHIC|H027-AC1|sudo --user deploy find / -delete
+production|deny/CATASTROPHIC|H027-AC1|sudo -iu root find / -delete
+production|deny/CATASTROPHIC|H027-AC1|taskset -c 0 find / -delete
+production|deny/CATASTROPHIC|H027-AC1|xargs --max-args 1 find / -delete
+production|deny/CATASTROPHIC|H027-AC1|env -S 'find / -delete'
+production|deny|H027-AC1|sudo --user deploy git checkout -- .
+production|allow|H027-controle|sudo --user deploy systemctl status nginx
+production|allow|H027-controle|taskset -c 0 npm test
+production|allow|H027-controle|env -S 'npm run build'
+
+# --- Handoff 028 · revisão do PR-06d (varredura final das classes G1–G6)
+# AD1: a varredura de sufixos só roda após prefixo da lista fixa; qualquer outro embrulho esconde find/git/interpretadores
+production|deny/CATASTROPHIC|H028-AD1|setsid find / -delete
+production|deny/CATASTROPHIC|H028-AD1|flock /tmp/lock find / -delete
+production|deny/CATASTROPHIC|H028-AD1|chroot / find / -delete
+production|deny/CATASTROPHIC|H028-AD1|busybox find / -delete
+production|deny/CATASTROPHIC|H028-AD1|strace -f find / -delete
+production|deny/CATASTROPHIC|H028-AD1|ssh host find / -delete
+production|deny/CATASTROPHIC|H028-AD1|docker exec app find / -delete
+production|deny|H028-AD1|setsid git checkout -- .
+production|allow|H028-controle|sudo apt install git
+production|allow|H028-controle|man find
+production|allow|H028-controle|which python3
+production|allow|H028-controle|sudo -u git ls
+production|allow|H028-controle|git commit -m "find / -delete"
+production|allow|H028-controle|grep -rn find src/
+production|allow|H028-controle|docker exec app php artisan route:list
+# AD2: shells fora da lista (ksh, fish, ash)
+development|deny/CATASTROPHIC|H028-AD2|ksh -c "find / -delete"
+development|deny/CATASTROPHIC|H028-AD2|fish -c "find / -delete"
+development|deny/CATASTROPHIC|H028-AD2|ash -c "find / -delete"
+# AD3: opção com argumento colado no interpretador (-MFile::Path contém "e" e é lida como -e)
+development|deny/CATASTROPHIC|H028-AD3|perl -MFile::Path -e 'File::Path::rmtree("/")'
+development|deny/CATASTROPHIC|H028-AD3|perl -MFile::Path=rmtree -e 'rmtree "/"'
+# AD4: famílias de interpretador sem cobertura (php, awk, deno, bun)
+production|deny|H028-AD4|php -r 'array_map("unlink", glob("*"));'
+development|deny/CATASTROPHIC|H028-AD4|php -r 'system("rm -rf /");'
+development|deny/CATASTROPHIC|H028-AD4|php -r 'exec("find / -delete");'
+development|deny/CATASTROPHIC|H028-AD4|awk 'BEGIN{system("find / -delete")}'
+development|deny/CATASTROPHIC|H028-AD4|deno eval "Deno.removeSync('/', {recursive:true})"
+development|deny/CATASTROPHIC|H028-AD4|bun -e "require('fs').rmSync('/',{recursive:true})"
+production|allow|H028-controle|php -r 'echo PHP_VERSION;'
+production|allow|H028-controle|awk '{print $1}' access.log
+production|allow|H028-controle|php artisan route:list
+
+# --- Handoff 029 · revisão do PR-06e
+# AE1 (regressão de uso): a varredura reaplicada em cada sufixo estoura a profundidade e nega como CATASTROPHIC
+#      qualquer comando inofensivo com 4 ou mais nomes de ferramenta
+development|allow|H029-AE1|brew install git node perl ruby python3
+development|allow|H029-AE1|apt-get install -y git bash perl python3 ruby
+production|allow|H029-AE1|which git bash perl python3 node
+production|allow|H029-AE1|echo git git git git
+production|allow|H029-AE1|command -v git bash zsh fish
+production|deny/CATASTROPHIC|H029-AE1-controle|echo git git git git find / -delete
+production|deny/CATASTROPHIC|H029-AE1-controle|setsid nice timeout 5 sudo -u x find / -delete
+# AE2: awk com saída canalizada para shell dentro do programa
+development|deny/CATASTROPHIC|H029-AE2|gawk 'BEGIN{print "find / -delete" | "sh"}'
+# AE3: fish com --command=<script>
+development|deny/CATASTROPHIC|H029-AE3|fish --command="find / -delete"
+production|allow|H029-controle|php -f script.php
+production|allow|H029-controle|awk -f prog.awk data.txt
+production|allow|H029-controle|bun run build
+
+# --- Handoff 038 · revisão do PR-10 (G9)
+# AL1: substituição do diretório .ceh inteiro (o certificado chega com o nome original)
+development|deny|H038-AL1|cp -r /tmp/fakeceh/. .ceh
+development|deny|H038-AL1|rm -rf .ceh && cp -r /tmp/fakeceh .ceh
+development|deny|H038-AL1|mv /tmp/fakeceh .ceh
+development|deny|H038-AL1|cp -r /tmp/fakeceh/* .ceh/
+development|deny|H038-AL1|rsync -a /tmp/fakeceh/ .ceh/
+development|deny|H038-AL1-controle|cp /tmp/x/last-ci-run.json .ceh/
+development|deny|H038-AL1-controle|cat /tmp/fake.json > .ceh/last-ci-run.json
+production|allow|H038-controle|cat .ceh/last-ci-run.json
+production|allow|H038-controle|ls .ceh
+production|allow|H038-controle|jq .status .ceh/last-ci-run.json
+
+# H046 — lacunas de detecção encontradas pela sonda da revisão sobre o fuzz do PR-18 (composição íntegra; regra ausente)
+production|deny|H046-AT3|git stash clear
+production|deny|H046-AT3|docker volume rm data
+production|deny|H046-AT3|redis-cli flushall
+production|deny|H046-AT3|dd if=/dev/zero of=app.db
+production|deny|H046-AT3-ja-coberto|git stash drop --all ; git reset --hard
+production|allow|H046-AT3-controle|git stash list
+production|allow|H046-AT3-controle|docker volume ls
+production|allow|H046-AT3-controle|redis-cli ping
+
+# H047 — backlog de banco/infra (Handoffs 025–039) somado ao AT3, para o PR-22
+production|deny|H047-AT3|git stash drop
+production|deny|H047-AT3|docker volume prune -f
+production|deny|H047-AT3|docker compose down -v
+production|deny|H047-AT3|redis-cli -h db FLUSHDB
+production|deny|H047-AT3|prisma migrate reset --force
+production|deny|H047-AT3-ja-coberto|dd if=x of=/dev/sda
+development|allow|H047-AT3-controle|git stash drop
+development|allow|H047-AT3-controle|docker compose down
+production|allow|H047-AT3-controle|docker compose ps
+
+# H047 — AM2 (Handoff 039): leituras e exclusões de .ceh negadas por engano (relaxamento justificado no PR-22)
+production|allow|H039-AM2|find . -path ./.ceh -prune -o -name '*.py' -print
+production|allow|H039-AM2|tar czf out.tgz --exclude=.ceh .
+production|allow|H039-AM2|du -sh .ceh
+production|allow|H039-AM2|diff .ceh/last-ci-run.json /tmp/x
+production|allow|H039-AM2|git status --ignored .ceh
+development|deny|H039-AM2-controle|tar xf evil.tar -C .ceh
+development|deny|H039-AM2-controle|rsync -a /tmp/fake/ .ceh/
+
+# H048 — AV1: git diff|log|show com --output/.ceh é escrita no certificado (reabertura do G9 no PR-22, fechado no PR-22b)
+production|deny|H048-AV1|git diff --output=.ceh/last-ci-run.json
+production|deny|H048-AV1|git log -1 --output=.ceh/last-ci-run.json
+production|deny|H048-AV1|git show --output=.ceh/last-ci-run.json HEAD
+production|allow|H048-AV1-controle|git show HEAD:app.txt
+production|deny|H048-AV1-controle|git format-patch --output=.ceh/patch
+
+

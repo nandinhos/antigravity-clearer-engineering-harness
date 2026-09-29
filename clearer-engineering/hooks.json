@@ -11,7 +11,38 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "matcher": "write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 scripts/safety-gate.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 scripts/safety-gate.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 scripts/safety-gate.py",
+            "timeout": 15
+          }
+        ]
       }
     ]
   }
 }
+

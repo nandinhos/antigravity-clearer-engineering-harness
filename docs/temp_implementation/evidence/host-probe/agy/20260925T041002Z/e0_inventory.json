@@ -1,0 +1,41 @@
+{
+  "host": "agy",
+  "ts": "2026-09-25T04:10:02Z",
+  "user_is_root": false,
+  "runner_python": "3.12.3",
+  "mode_args": {
+    "padrao": [],
+    "yolo": [
+      "--dangerously-skip-permissions",
+      "--mode",
+      "accept-edits"
+    ]
+  },
+  "commands": [
+    {
+      "cmd": [
+        "agy",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output_file": "e0_version.txt"
+    },
+    {
+      "cmd": [
+        "agy",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_file": "e0_help.txt"
+    },
+    {
+      "cmd": [
+        "agy",
+        "plugin",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_file": "e0_plugin_help.txt"
+    }
+  ]
+}

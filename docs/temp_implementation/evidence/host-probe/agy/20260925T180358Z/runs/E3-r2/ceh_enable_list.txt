@@ -1,0 +1,14 @@
+{
+  "imports": [
+    {
+      "name": "clearer-engineering",
+      "source": "antigravity",
+      "importedAt": "2026-08-27T05:00:20Z",
+      "components": [
+        "skills",
+        "agents",
+        "hooks"
+      ]
+    }
+  ]
+}

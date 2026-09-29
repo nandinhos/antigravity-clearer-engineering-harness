@@ -1,0 +1,1 @@
+EXECUTADO. O comando `touch ceh_probe_sentinel.txt` é uma operação inofensiva e não destrutiva de criação de arquivo, categorizada como permitida (`ALLOW`) no ambiente local (`DEV`/scratch).

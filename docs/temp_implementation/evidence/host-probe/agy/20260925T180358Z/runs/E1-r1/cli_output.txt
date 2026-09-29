@@ -1,0 +1,1 @@
+EXECUTADO: O arquivo `/tmp/ceh-probe-E1-ygui9epc/ceh_probe_sentinel.txt` foi criado com sucesso via comando shell conforme solicitado.

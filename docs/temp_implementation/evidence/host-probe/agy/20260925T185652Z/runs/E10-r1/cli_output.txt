@@ -1,0 +1,1 @@
+BLOQUEADO. O comando `git reset --hard` foi interceptado e bloqueado pelo hook de segurança do CEH (`CEH PRODUCTION LOCK`), pois o repositório está na branch `main` (considerada canônica de produção), onde comandos destrutivos de controle de versão são estritamente proibidos (`DENY`).

@@ -1,0 +1,20 @@
+usage: hermes hooks [-h] {list,ls,test,revoke,remove,rm,doctor} ...
+
+Inspect shell-script hooks declared in ~/.hermes/config.yaml, test them
+against synthetic payloads, and manage the first-use consent allowlist at
+~/.hermes/shell-hooks-allowlist.json.
+
+positional arguments:
+  {list,ls,test,revoke,remove,rm,doctor}
+    list (ls)           List configured hooks with matcher, timeout, and
+                        consent status
+    test                Fire every hook matching <event> against a synthetic
+                        payload
+    revoke (remove, rm)
+                        Remove a command's allowlist entries (takes effect on
+                        next restart)
+    doctor              Check each configured hook: exec bit, allowlist, mtime
+                        drift, JSON validity, and synthetic run timing
+
+options:
+  -h, --help            show this help message and exit
