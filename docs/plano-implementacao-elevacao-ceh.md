@@ -603,6 +603,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Não fazer agora:** tempo do macOS no CI; Onda 4 (decisão estratégica do desenvolvedor).
 - **Próximo:** PR-23 (fechamento) e PR-21, depois release v1.4.0.
 
+### 0.60 **Onda 5 encerrada** e v1.4.0 homologada ([Handoff 063](./temp_implementation/handoffs/handoff-063-encerramento-onda-5-v1-4-0.md))
+
+- **PR-23:** docker com opções globais negado; auditoria de caminhos ampla; limites do gate estático no ADR 007, com 15 controles na bateria.
+- **PR-21:** redação de caminhos e segredos antes do envio ao Conselho; prova por mutação reproduzida (3 testes reprovam).
+- **Release v1.4.0:** tag em `8bb38c0`, CHANGELOG com o fork bomb em Security; suíte 65/65; CI da `main` verde ([run 36578572441](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36578572441)).
+- **Linha de base:** `8bb38c0`.
+- **Ressalvas baixas:** AY1 (evidências históricas reescritas para a auditoria), AY2 (commits direto na `main`; ligar branch protection).
+- **Nenhuma pendência técnica aberta.** Próximo: decisão do desenvolvedor sobre a Onda 4 (v2.0.0).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
