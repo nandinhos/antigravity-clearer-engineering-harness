@@ -582,6 +582,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Suíte Canônica:** Expandida para 64/64 testes verdes (exit code 0); `doc-audit.py` validado com 7/7 checagens aprovadas.
 - **Veredito:** D04 resolvido e comprovado. Branch apta para homologação geral e merge.
 
+### 0.58 Promoção para staging, alinhamento documental e release para main (v1.3.0)
+
+- **PR #1 (claude/... ➔ dev):** Mergeado com sucesso (`1b2b603`). CI remoto 36487655000 passou 4/4 jobs.
+- **PR #2 (dev ➔ staging):** Mergeado com sucesso (`1b26e10`). CI remoto 36488422187 passou 4/4 jobs verdes (Ubuntu/macOS × Python 3.9/3.12).
+- **Handoff 060 emitido:** Playbook canônico agnóstico de integração multi-harness (`docs/temp_implementation/handoffs/handoff-060-integracao-agnostica-multi-harness.md`) e guia de arquitetura (`docs/architecture/guia-integracao-multi-harness.md`).
+- **Alinhamento Documental Cirúrgico:** Atualizados todos os READMEs (EN/PT raiz e clearer-engineering) com badges de 64/64 testes (100%), guia de integração multi-harness indexado no README de arquitetura e verificação integral via `doc-audit.py` (7/7 SUCESSO).
+- **Promoção para main:** Branch `staging` promovida e sincronizada na branch de produção `main`, encerrando o ciclo de elevação do CEH v1.3.0.
+
+
 
 
 
