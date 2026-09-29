@@ -539,8 +539,8 @@ clearer-engineering/tests/test_rm_targets.py:109:        decision, reason, env, 
 clearer-engineering/tests/test_rm_targets.py:114:    def test_s2_unresolved_env_var_oldpwd_production_denied(self):
 clearer-engineering/tests/test_rm_targets.py:116:        decision, reason, env, use_case = evaluate_command("rm -rf $OLDPWD", explicit_env="production")
 clearer-engineering/tests/test_rm_targets.py:133:                "rm -rf $PWD", explicit_env="development", base_cwd=eval_project_dir
-clearer-engineering/tests/test_rm_targets.py:153:        decision, reason, env, use_case = evaluate_command("rm -rf /home/user/projeto/build", explicit_env="development")
-clearer-engineering/tests/test_rm_targets.py:159:        decision, reason, env, use_case = evaluate_command("rm -rf /home/user/projeto/src/old", explicit_env="development")
+clearer-engineering/tests/test_rm_targets.py:153:        decision, reason, env, use_case = evaluate_command("rm -rf /home/<user>/projeto/build", explicit_env="development")
+clearer-engineering/tests/test_rm_targets.py:159:        decision, reason, env, use_case = evaluate_command("rm -rf /home/<user>/projeto/src/old", explicit_env="development")
 clearer-engineering/tests/test_rm_targets.py:165:        decision, reason, env, use_case = evaluate_command("rm -rf /opt/myapp/cache", explicit_env="development")
 clearer-engineering/tests/test_rm_targets.py:171:        decision, reason, env, use_case = evaluate_command("rm -rf /var/tmp/ceh-x", explicit_env="development")
 clearer-engineering/tests/test_rm_targets.py:177:        decision, reason, env, use_case = evaluate_command("rm -rf /usr/local/lib/node_modules/foo", explicit_env="development")
@@ -770,7 +770,7 @@ clearer-engineering/tests/fixtures/review_batteries.txt:84:production|deny|H016-
 clearer-engineering/tests/fixtures/review_batteries.txt:85:production|deny/CATASTROPHIC|H016-T1|rm -rf ./dist/../..
 clearer-engineering/tests/fixtures/review_batteries.txt:86:production|deny/CATASTROPHIC|H016-T1|rm -rf tmp/../
 clearer-engineering/tests/fixtures/review_batteries.txt:87:production|deny/CATASTROPHIC|H016-T1|rm -rf /tmp/../etc
-clearer-engineering/tests/fixtures/review_batteries.txt:88:production|deny/CATASTROPHIC|H016-T1|rm -rf /tmp/../home/user
+clearer-engineering/tests/fixtures/review_batteries.txt:88:production|deny/CATASTROPHIC|H016-T1|rm -rf /tmp/../home/<user>
 clearer-engineering/tests/fixtures/review_batteries.txt:89:production|deny|H016-T1|rm -rf ../a.txt
 clearer-engineering/tests/fixtures/review_batteries.txt:90:production|deny|H016-T1|rm -rf /etc/passwd.bak
 clearer-engineering/tests/fixtures/review_batteries.txt:91:production|deny/CATASTROPHIC|H016-T1|rm -rf dist/../../../
@@ -1189,8 +1189,8 @@ clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:570:{"command": "e
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:573:{"command": "echo ${rm_rf_var}", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-190-pro", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:576:{"command": "rm -rf \\\n/", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-191-pro", "type": "command", "use_case": "PARSER_FAIL_CLOSED"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:582:{"host": "claude", "id": "HOOK-197-claude", "response": {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": "[CEH PRODUCTION LOCK] Comandos destrutivos são TERMINANTEMENTE PROIBIDOS em PRODUÇÃO (Caso de Uso: Controle de Versão (Git)): Destructive Git reset discarding uncommitted changes (git reset --hard).\nAmbiente detectado: PRODUCTION (Evidência: Explicit parameter (--env production)).\nExecução bloqueada para prevenir perda de dados e indisponibilidade."}}, "type": "hook"}
-clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:589:{"command": "rm -rf /home/user/projeto/build", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-202-pro", "type": "command", "use_case": "FILESYSTEM"}
-clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:592:{"command": "rm -rf /home/user/projeto/src/old", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-203-pro", "type": "command", "use_case": "FILESYSTEM"}
+clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:589:{"command": "rm -rf /home/<user>/projeto/build", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-202-pro", "type": "command", "use_case": "FILESYSTEM"}
+clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:592:{"command": "rm -rf /home/<user>/projeto/src/old", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-203-pro", "type": "command", "use_case": "FILESYSTEM"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:595:{"command": "rm -rf /opt/myapp/cache", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-204-pro", "type": "command", "use_case": "FILESYSTEM"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:598:{"command": "rm -rf /var/tmp/ceh-x", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-205-pro", "type": "command", "use_case": "FILESYSTEM"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:601:{"command": "rm -rf /usr/local/lib/node_modules/foo", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-206-pro", "type": "command", "use_case": "FILESYSTEM"}
@@ -1210,7 +1210,7 @@ clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:640:{"command": "r
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:643:{"command": "rm -rf $OLDPWD", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-220-pro", "type": "command", "use_case": "FILESYSTEM"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:646:{"command": "rm -rf build/../src", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-221-pro", "type": "command", "use_case": "FILESYSTEM"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:649:{"command": "rm -rf coverage/../.git", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-222-pro", "type": "command", "use_case": "FILESYSTEM"}
-clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:652:{"command": "rm -rf /home/user/..", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-223-pro", "type": "command", "use_case": "CATASTROPHIC"}
+clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:652:{"command": "rm -rf /home/<user>/..", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-223-pro", "type": "command", "use_case": "CATASTROPHIC"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:655:{"command": "rm -rf /usr/local/../..", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-224-pro", "type": "command", "use_case": "CATASTROPHIC"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:658:{"command": "git restore .", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-225-pro", "type": "command", "use_case": "GIT_HISTORY"}
 clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl:661:{"command": "git restore --staged --worktree .", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-226-pro", "type": "command", "use_case": "GIT_HISTORY"}
@@ -2016,7 +2016,7 @@ def generate_grammar_commands(seed: int = 42, target_unique: int = 3500) -> list
     ]
     rm_targets = [
         ".", "..", "...", "/", "//", "///", "/etc", "/etc/hosts", "/var/log", "/tmp", "/tmp/foo",
-        "/home", "/home/user", "/home/user/project", "/home/user/project/build",
+        "/home", "/home/<user>", "/home/<user>/project", "/home/<user>/project/build",
         "src", "src/", "src/*", "src/app", "src/../app", "src/../../etc",
         "dist", "dist/", "build", "build/bundle.js", "coverage", "scratch",
         "node_modules/.cache", ".cache", "$PWD", "$OLDPWD", "$HOME", "${PWD}", "${HOME}",

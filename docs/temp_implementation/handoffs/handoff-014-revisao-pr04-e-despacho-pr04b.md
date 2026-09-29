@@ -22,8 +22,8 @@
 
   | Comando | Hoje | Esperado |
   |---|---|---|
-  | `rm -rf /home/user/projeto/build` | **deny CATASTROPHIC** | allow (DEV) |
-  | `rm -rf /home/user/projeto/src/old` | **deny CATASTROPHIC** | allow (DEV) |
+  | `rm -rf /home/<user>/projeto/build` | **deny CATASTROPHIC** | allow (DEV) |
+  | `rm -rf /home/<user>/projeto/src/old` | **deny CATASTROPHIC** | allow (DEV) |
   | `rm -rf /opt/myapp/cache` · `rm -rf /var/tmp/ceh-x` · `rm -rf /usr/local/lib/node_modules/foo` | **deny CATASTROPHIC** | allow (DEV) |
 
   Agentes usam caminho absoluto o tempo todo (o `agy` passa `Cwd` absoluto). O Handoff 013 definia como catastrófico só o **diretório de primeiro nível** (com ou sem `/` final ou `/*`), não os descendentes. Por isso o **CMD-095** (`/var/lib/postgresql`) não deveria ter virado CATASTROPHIC. O corpus não pegou porque não tinha nenhum caso de caminho absoluto legítimo.

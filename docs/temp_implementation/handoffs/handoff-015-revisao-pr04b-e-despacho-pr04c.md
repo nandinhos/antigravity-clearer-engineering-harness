@@ -12,7 +12,7 @@
 
 **R1, R2 e R3 do Handoff 014: resolvidos (`OBSERVED`):**
 - Os 8 falsos positivos em DEV voltaram a `allow`.
-- Os 5 bypasses (`//`, `/./`, `../..`, `./*`, `~root`) agora dão `deny CATASTROPHIC`, e novas variantes também são pegas (`/home/user/`, `/home/user/..`, `/usr/local/../..`, `~/.`, `./..`, `"$HOME"`).
+- Os 5 bypasses (`//`, `/./`, `../..`, `./*`, `~root`) agora dão `deny CATASTROPHIC`, e novas variantes também são pegas (`/home/<user>/`, `/home/<user>/..`, `/usr/local/../..`, `~/.`, `./..`, `"$HOME"`).
 - O motivo em produção mostra `Explicit parameter (--env production)`.
 - Diff do corpus exato: só o CMD-095 mudou (volta a `FILESYSTEM`), mais 30 casos novos.
 - O corpus é portável (616/616 com `TMPDIR`/`HOME` alternativos e em Python 3.9); suíte 49/49; evals verdes.
@@ -30,7 +30,7 @@
   | `rm -rf ../../prod-release/dist` | deny CATASTROPHIC | **allow** |
   | `rm -rf dist/` | allow | allow (correto) |
 
-  Isso não era necessário para o R1: em DEV, a regra normal de `FILESYSTEM` já libera `/home/user/projeto/build`. O atalho foi **alargado sem motivo**, contra a opção A (Q5), que manteve o conjunto seguro original. O corpus não pegou porque não tem caminho absoluto de artefato em produção.
+  Isso não era necessário para o R1: em DEV, a regra normal de `FILESYSTEM` já libera `/home/<user>/projeto/build`. O atalho foi **alargado sem motivo**, contra a opção A (Q5), que manteve o conjunto seguro original. O corpus não pegou porque não tem caminho absoluto de artefato em produção.
 
 - **S2 — MEDIUM — `$PWD` escapa do catastrófico.** Em DEV, `rm -rf $PWD`, `rm -rf "$PWD"/*` e `rm -rf $OLDPWD` dão `allow FILESYSTEM`. `$PWD` é o próprio diretório de trabalho, ou seja, a mesma coisa que `.`, que é negado.
   - **Atenção:** no hook do `agy`, a variável de ambiente `PWD` do processo é o **diretório do plugin** (`OBSERVED`, Handoff 006). Expandir `$PWD` via `os.environ` estaria **errado**; o valor certo é o diretório de trabalho da avaliação (o alvo resolvido pelo PR-00).

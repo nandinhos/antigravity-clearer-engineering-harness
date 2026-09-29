@@ -4,6 +4,11 @@ Contém:
 - CATASTROPHIC_PATTERNS: Hard blocks incondicionais em qualquer ambiente.
 - SAFE_DEV_PATTERNS: Atalhos seguros de desenvolvimento (ALLOW).
 - USE_CASE_DESTRUCTIVE_PATTERNS: Padrões destrutivos categorizados por Caso de Uso.
+
+Regra de desenho do P2 (Invariante de Padrões Catastróficos Globais):
+Padrões que dependem da análise da linha bruta inteira (como fork bombs ou comandos
+catastróficos contendo separadores ;, |, &) DEVEM rodar compulsoriamente antes de
+qualquer decomposição léxica (split_shell_pipeline).
 """
 from __future__ import annotations
 
@@ -55,9 +60,9 @@ USE_CASE_DESTRUCTIVE_PATTERNS = [
     # Infrastructure & Cloud Resources
     (r"\bterraform\s+destroy\b", "Destroying cloud infrastructure via Terraform", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
     (r"\bkubectl\s+delete\s+(?:namespace|ns|deployment|statefulset|svc|all)\b", "Deleting Kubernetes infrastructure resources", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
-    (r"\bdocker\s+system\s+prune\s+-a\b", "Pruning all unused Docker images, volumes and containers", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
-    (r"\bdocker\s+volume\s+(?:rm|prune)\b", "Destructive Docker volume operation (docker volume rm/prune)", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
-    (r"\b(?:docker-compose|docker\s+compose)\b.*?\bdown\b.*?(?:^|\s)(?:-v|--volumes)\b", "Destructive Docker Compose teardown removing volumes (docker compose down -v)", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
+    (r"\bdocker\s+(?:--?[a-zA-Z0-9_\-]+(?:[=\s][^\s;]+)?\s+)*system\s+prune\s+-a\b", "Pruning all unused Docker images, volumes and containers", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
+    (r"\bdocker\s+(?:--?[a-zA-Z0-9_\-]+(?:[=\s][^\s;]+)?\s+)*volume\s+(?:rm|prune)\b", "Destructive Docker volume operation (docker volume rm/prune)", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
+    (r"\b(?:docker-compose|docker(?:\s+--?[a-zA-Z0-9_\-]+(?:[=\s][^\s;]+)?)*\s+compose)\b.*?\bdown\b.*?(?:^|\s)(?:-v|--volumes)\b", "Destructive Docker Compose teardown removing volumes (docker compose down -v)", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
     (r"\bgsutil\s+rm\s+-r\b", "Recursive deletion in Google Cloud Storage", "INFRASTRUCTURE", "Infraestrutura e Nuvem"),
 
     # Filesystem / Bulk Deletion

@@ -27,7 +27,7 @@ Reproduzido de forma independente (`OBSERVED`):
 
 ### Ressalvas baixas (carona no PR-21)
 
-- **AU1:** o `doc-audit` só casa `/home/<u>/projects/…` (`doc-audit.py:186`). Ficou de fora `docs/temp_implementation/conselho/20260925_151613/parecer_claude.md:54` (`/home/nandodev/.claude/plans/…`). Amplie para qualquer `/home/<u>/` ou `/Users/<u>/`.
+- **AU1:** o `doc-audit` só casa `/home/<u>/projects/…` (`doc-audit.py:186`). Ficou de fora `docs/temp_implementation/conselho/20260925_151613/parecer_claude.md:54` (`/home/<user>/.claude/plans/…`). Amplie para qualquer `/home/<u>/` ou `/Users/<u>/`.
 - **AU2:** 18 das 23 ferramentas estão `declared`. O E12 (captura real) continua sendo o caminho para promovê-las a `payload`, sem urgência.
 - **AU3:** a evidência trouxe o `git diff --stat` vazio, mas não o `git status --porcelain` pedido.
 - **AU4:** a ausência do conselheiro devia ficar na **ata**. O arquivo de parecer bruto não deveria receber texto que não veio do conselheiro. No PR-21, o `conselho-seniores.sh` passa a registrar isso sozinho.

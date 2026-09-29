@@ -42,7 +42,36 @@ A caracterização experimental rigorosa 3x2x2 (documentada em `docs/temp_implem
 - No Antigravity CLI (`agy` 1.2.11), o braço de controle (**sem hook**) executa normalmente tanto escrita quanto comandos de shell em modo não interativo. O retorno de `{"decision": "allow"}` é 100% neutro e equivalente ao controle, enquanto retornar `{}` bloqueia compulsoriamente qualquer ferramenta. Portanto, o agy exige `{"decision": "allow"}` afirmativo.
 - No Claude Code, a regra F6 mantém o retorno `{}` vazio para allow, preservando a disciplina de permissões nativa do host.
 
+### Decisão 6: Regra de Desenho do P2 — Invariante de Padrões Catastróficos Globais (Handoff 062)
+Padrões que dependem da análise da linha bruta inteira (como fork bombs ou comandos catastróficos contendo separadores `;`, `|`, `&`) DEVEM rodar compulsoriamente antes de qualquer decomposição léxica (`split_shell_pipeline`). O analisador semântico pós-decomposição continua responsável pela resolução de alvos e canonicalização de caminhos (ex: `rm.py`), mas a integridade contra comandos catastróficos globais é avaliada no marco zero da linha bruta.
+
+## Limites Conhecidos do Gate Estático & Fronteira de Sandboxing
+
+O gate estático do CEH atua como **defesa em profundidade e disciplina operacional (shift-left)**, operando no espaço de usuário do host. Por definição arquitetural, um analisador estático **não é uma sandbox de isolamento do kernel nem um emulador de execução**. Os limites inerentes abaixo são formalmente reconhecidos e documentados:
+
+### 1. Comandos com Conteúdo Opaco ou Dinâmico
+- **Pipes de Download/Execução**: `curl ... | bash`, `wget -O - ... | sh`. O payload remoto não é observável antes da execução.
+- **Execução Remota ou em Contêineres**: `ssh user@remote ...`, `docker exec ...`. O ambiente e binários de destino são isolados do host local.
+- **Código Proveniente de Arquivo ou Redirecionamento de Stdin**: `python script.py`, `bash file.sh`, `mysql < dump.sql`. O script interno não é interpretado pelo gate de shell.
+- **Comandos Montados Dinamicamente**: `eval "$CMD"`, `find ... | xargs rm`. A resolução final ocorre apenas no runtime do shell.
+- **Alvos Opacos de Automação**: `make -C /path target`, `npm --prefix /path run build`, `npm run <script>`. A receita interna de execução reside em arquivos de build (`Makefile`, `package.json`).
+- **Extração de Arquivos Compactados**: `tar -xzf archive.tar.gz`, `unzip archive.zip`. O gate não inspeciona árvores empacotadas no momento da descompactação.
+
+*Comportamento do Gate*: Todos os comandos acima são avaliados conforme seu binário e argumentos visíveis (gerando `allow` por padrão caso não contenham alvos explícitos bloqueados, conforme controles `H062-LIMITE` na bateria).
+
+### 2. Decisões Específicas de Domínio e Falsos Positivos Conhecidos
+- **`php artisan migrate --force`**: Mantido como `allow` em produção (PR-22) por constituir o procedimento canônico operacional de migração automatizada em esteiras de deploy.
+- **`echo find / -delete`**: Bloqueado como `deny CATASTROPHIC`. O gate adota postura determinística *fail-closed*: strings literais que reproduzam sintaxe de comandos catastróficos disparam o bloqueio preventivo para evitar evasões de aspas complexas.
+
+### 3. Origem de Captura e Catálogo de Ferramentas
+- **18 Ferramentas Declaradas (E12)**: Ferramentas autorizadas no catálogo de ferramentas constam como `declared` com evidência comprovada, com promoção para `payload` sob demanda (E12).
+- **Opções de Escrita (`--help` / AX1)**: Opções derivadas de `--help` refletem as ferramentas capturadas no ambiente local de referência, registradas no cabeçalho dos artefatos.
+
+### 4. A Mitigação Real: Garantia no Servidor
+Diante de alvos opacos e comandos montados dinamicamente, a salvaguarda primária e inegociável do CEH é a **Proteção de Branch no Servidor com Status Checks Obrigatórios de CI**. Nenhuma alteração alcança branches protegidas (`main`, `staging`) sem a execução integral da suíte canônica em runner efêmero e auditado no servidor remoto.
+
 ## Consequências
 - **Positivas**: Falsificação de certificados por parte de LLMs ou scripts acidentais é bloqueada em todos os ambientes (`development`, `staging`, `production`), inclusive contra a substituição inteira da pasta `.ceh`.
 - **Ergonomia Preservada**: Comandos normais de auditoria e leitura (`cat .ceh/last-ci-run.json`, `jq . .ceh/last-ci-run.json`, `ls .ceh`) continuam funcionando com resposta `allow`.
-- **Alinhamento**: Total aderência às regras de processo e segurança estabelecidas nos Handoffs 037 e 038.
+- **Transparência e Rastreabilidade**: Fronteiras do gate estático declaradas explicitamente, com testes de controle na bateria garantindo que nenhum comportamento mude silenciosamente.
+- **Alinhamento**: Total aderência às regras de processo e segurança estabelecidas nos Handoffs 037, 038 e 062.

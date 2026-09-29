@@ -91,6 +91,11 @@ class TestRulesDataInfra(unittest.TestCase):
             "docker volume rm -f my_vol",
             "docker volume prune",
             "docker volume prune -f",
+            "docker --context prod volume rm data",
+            "docker -H tcp://1.2.3.4:2375 volume prune",
+            "docker --log-level debug volume rm data",
+            "docker -c prod volume rm vol1",
+            "docker --config /path volume prune -f",
         ]
         for cmd in commands:
             self.assert_decision(cmd, "development", "allow", "INFRASTRUCTURE")
@@ -105,6 +110,8 @@ class TestRulesDataInfra(unittest.TestCase):
             "docker-compose down --volumes",
             "docker compose -f docker-compose.prod.yml down -v",
             "docker compose down -v --remove-orphans",
+            "docker --context prod compose down -v",
+            "docker -H tcp://remote compose down --volumes",
         ]
         for cmd in commands:
             self.assert_decision(cmd, "development", "allow", "INFRASTRUCTURE")
@@ -114,7 +121,10 @@ class TestRulesDataInfra(unittest.TestCase):
     def test_docker_benign_controls(self):
         safe_commands = [
             "docker volume ls",
+            "docker --context prod volume ls",
+            "docker -H tcp://remote volume ls",
             "docker compose down",
+            "docker --context prod compose down",
             "docker compose ps",
             "docker compose logs",
         ]

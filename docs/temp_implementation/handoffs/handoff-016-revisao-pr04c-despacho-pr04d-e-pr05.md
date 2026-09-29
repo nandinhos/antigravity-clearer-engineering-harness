@@ -13,8 +13,8 @@
 **Resolvido (`OBSERVED`):**
 - S1: a tabela de produção do Handoff 015 inteira voltou a `deny`; os controles `dist/`, `./build`, `/tmp/ceh-x`, `a.txt`, `node_modules/.cache` e `dist/assets` = `allow FILESYSTEM_SAFE`.
 - S2: `$PWD`, `"$PWD"` e `"$PWD"/*` = `deny CATASTROPHIC`; `$OLDPWD` e `$BUILD_DIR` = `ask`; com `PWD=/etc` forjado no ambiente, `$PWD` continua resolvendo para o diretório de trabalho.
-- Os escapes para fora do diretório de trabalho estão corretos: `dist/../../etc`, `/tmp/../etc`, `/tmp/../home/user`, `../a.txt` e `/etc/passwd.bak` não são seguros.
-- Diff do corpus exato: só o CMD-202 mudou (o alargamento do PR-04b desfeito), mais 27 casos novos; a bateria dos Handoffs 014 e 015 entrou no corpus (faltam 2 variantes opcionais: `/home/user/..` e `/usr/local/../..`).
+- Os escapes para fora do diretório de trabalho estão corretos: `dist/../../etc`, `/tmp/../etc`, `/tmp/../home/<user>`, `../a.txt` e `/etc/passwd.bak` não são seguros.
+- Diff do corpus exato: só o CMD-202 mudou (o alargamento do PR-04b desfeito), mais 27 casos novos; a bateria dos Handoffs 014 e 015 entrou no corpus (faltam 2 variantes opcionais: `/home/<user>/..` e `/usr/local/../..`).
 - Corpus portável (643/643 com `TMPDIR`/`HOME` alternativos); Python 3.9; suíte 49/49; evals verdes.
 
 **T1 — HIGH — o atalho seguro olha o caminho cru, não o normalizado.** `rm.py:135` calcula o normalizado `norm_full`, mas `rm.py:140` tira o primeiro segmento de `t_clean` (cru). Em **produção**:

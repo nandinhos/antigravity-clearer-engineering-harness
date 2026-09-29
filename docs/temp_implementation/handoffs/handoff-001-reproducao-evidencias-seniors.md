@@ -196,6 +196,6 @@ Todos os 10 achados levantados na revisão estática foram submetidos a procedim
 * **Exit code(s)**: `0`
 * **Saída observada**: Linha 61: `[`scripts/safety-gate.py`](../../../clearer-engineering/scripts/safety-gate.py)`
 * **Artefato observado**: [`docs/temp_implementation/evidence/r10_doc_link_evidence.json`](../evidence/r10_doc_link_evidence.json)
-* **Esperado vs observado**: Esperado link relativo; observado caminho absoluto contendo `/home/nandodev/...`.
+* **Esperado vs observado**: Esperado link relativo; observado caminho absoluto contendo `/home/<user>/...`.
 * **Conclusão e limitações**: Quebra a navegação em qualquer máquina ou clone que não utilize esse path exato.
 * **Revisor que conferiu**: Conselho de Seniores.

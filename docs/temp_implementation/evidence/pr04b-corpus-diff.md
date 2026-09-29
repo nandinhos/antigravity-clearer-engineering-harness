@@ -30,12 +30,12 @@ Caminhos absolutos dentro de `/home`, `/opt`, `/var` ou `/usr` utilizados legiti
 
 | ID | Comando | Ambiente | Decisão | Use Case | Justificativa |
 |---|---|---|---|---|---|
-| `CMD-202-dev` | `rm -rf /home/user/projeto/build` | dev | **allow** | FILESYSTEM_SAFE | [R1] Atalho de build em caminho absoluto permitido em dev. |
-| `CMD-202-sta` | `rm -rf /home/user/projeto/build` | staging | **allow** | FILESYSTEM_SAFE | [R1] Atalho de build em caminho absoluto permitido em staging. |
-| `CMD-202-pro` | `rm -rf /home/user/projeto/build` | prod | **allow** | FILESYSTEM_SAFE | [R1] Atalho de build em caminho absoluto permitido em produção. |
-| `CMD-203-dev` | `rm -rf /home/user/projeto/src/old` | dev | **allow** | FILESYSTEM | [R1] Descendente sob home permitido em dev. |
-| `CMD-203-sta` | `rm -rf /home/user/projeto/src/old` | staging | **ask** | FILESYSTEM | [R1] Exige confirmação em staging. |
-| `CMD-203-pro` | `rm -rf /home/user/projeto/src/old` | prod | **deny** | FILESYSTEM | [R1] Bloqueado em produção pelo lock de arquivos. |
+| `CMD-202-dev` | `rm -rf /home/<user>/projeto/build` | dev | **allow** | FILESYSTEM_SAFE | [R1] Atalho de build em caminho absoluto permitido em dev. |
+| `CMD-202-sta` | `rm -rf /home/<user>/projeto/build` | staging | **allow** | FILESYSTEM_SAFE | [R1] Atalho de build em caminho absoluto permitido em staging. |
+| `CMD-202-pro` | `rm -rf /home/<user>/projeto/build` | prod | **allow** | FILESYSTEM_SAFE | [R1] Atalho de build em caminho absoluto permitido em produção. |
+| `CMD-203-dev` | `rm -rf /home/<user>/projeto/src/old` | dev | **allow** | FILESYSTEM | [R1] Descendente sob home permitido em dev. |
+| `CMD-203-sta` | `rm -rf /home/<user>/projeto/src/old` | staging | **ask** | FILESYSTEM | [R1] Exige confirmação em staging. |
+| `CMD-203-pro` | `rm -rf /home/<user>/projeto/src/old` | prod | **deny** | FILESYSTEM | [R1] Bloqueado em produção pelo lock de arquivos. |
 | `CMD-204-dev` | `rm -rf /opt/myapp/cache` | dev | **allow** | FILESYSTEM | [R1] Descendente sob `/opt` permitido em dev. |
 | `CMD-204-sta` | `rm -rf /opt/myapp/cache` | staging | **ask** | FILESYSTEM | [R1] Exige confirmação em staging. |
 | `CMD-204-pro` | `rm -rf /opt/myapp/cache` | prod | **deny** | FILESYSTEM | [R1] Bloqueado em produção pelo lock de arquivos. |

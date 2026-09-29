@@ -15,13 +15,13 @@ Este documento registra e justifica formalmente cada uma das alterações observ
 
 ## 1. Reversão do Alargamento do Atalho Seguro (S1: 3 registros alterados)
 
-No PR-04b, `CMD-202` (`rm -rf /home/user/projeto/build`) havia sido classificado como `FILESYSTEM_SAFE` em produção por terminar com o segmento `build`. Conforme especificado no Handoff 015, caminhos absolutos genéricos fora de `/tmp/` não ganham atalho em produção e seguem a regra normal de `FILESYSTEM`:
+No PR-04b, `CMD-202` (`rm -rf /home/<user>/projeto/build`) havia sido classificado como `FILESYSTEM_SAFE` em produção por terminar com o segmento `build`. Conforme especificado no Handoff 015, caminhos absolutos genéricos fora de `/tmp/` não ganham atalho em produção e seguem a regra normal de `FILESYSTEM`:
 
 | ID | Comando | Ambiente | Antes (PR-04b) | Depois (PR-04c) | Justificativa |
 |---|---|---|---|---|---|
-| `CMD-202-dev` | `rm -rf /home/user/projeto/build` | dev | allow / FILESYSTEM_SAFE | **allow / FILESYSTEM** | [S1] Caminho absoluto em DEV segue a regra normal de FILESYSTEM permitida com salvaguarda local. |
-| `CMD-202-sta` | `rm -rf /home/user/projeto/build` | staging | allow / FILESYSTEM_SAFE | **ask / FILESYSTEM** (com alertas 1/2 e 2/2) | [S1] Bloqueia bypass em staging; exige confirmação com alerta de rollback. |
-| `CMD-202-pro` | `rm -rf /home/user/projeto/build` | prod | allow / FILESYSTEM_SAFE | **deny / FILESYSTEM** | [S1] Bloqueia bypass em produção; Production Lock impede deleção acidental na branch principal. |
+| `CMD-202-dev` | `rm -rf /home/<user>/projeto/build` | dev | allow / FILESYSTEM_SAFE | **allow / FILESYSTEM** | [S1] Caminho absoluto em DEV segue a regra normal de FILESYSTEM permitida com salvaguarda local. |
+| `CMD-202-sta` | `rm -rf /home/<user>/projeto/build` | staging | allow / FILESYSTEM_SAFE | **ask / FILESYSTEM** (com alertas 1/2 e 2/2) | [S1] Bloqueia bypass em staging; exige confirmação com alerta de rollback. |
+| `CMD-202-pro` | `rm -rf /home/<user>/projeto/build` | prod | allow / FILESYSTEM_SAFE | **deny / FILESYSTEM** | [S1] Bloqueia bypass em produção; Production Lock impede deleção acidental na branch principal. |
 
 ---
 

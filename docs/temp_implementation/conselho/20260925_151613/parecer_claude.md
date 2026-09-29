@@ -51,4 +51,4 @@
 
 ------------------------------------
 
-O parecer também foi gravado em `/home/nandodev/.claude/plans/voc-est-deliberando-como-structured-knuth.md`. Os conectores externos ClickUp, Asana, Atlassian, Datadog, GitHub, Linear, Notion, PagerDuty e Slack pedem autorização (pelas configurações do claude.ai ou via `/mcp`). Nenhum deles foi usado neste parecer.
+O parecer também foi gravado em `~/.claude/plans/voc-est-deliberando-como-structured-knuth.md`. Os conectores externos ClickUp, Asana, Atlassian, Datadog, GitHub, Linear, Notion, PagerDuty e Slack pedem autorização (pelas configurações do claude.ai ou via `/mcp`). Nenhum deles foi usado neste parecer.

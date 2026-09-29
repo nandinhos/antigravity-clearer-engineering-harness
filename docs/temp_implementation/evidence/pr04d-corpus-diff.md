@@ -34,9 +34,9 @@ Variantes de caminhos absolutos com escape relativo intermediário que resolvem 
 
 | ID | Comando | Ambiente | Decisão | Use Case | Justificativa |
 |---|---|---|---|---|---|
-| `CMD-223-dev` | `rm -rf /home/user/..` | dev | **deny** | CATASTROPHIC | Normaliza para `/home`, pertencente a `SYSTEM_ROOTS`. |
-| `CMD-223-sta` | `rm -rf /home/user/..` | staging | **deny** | CATASTROPHIC | Bloqueio incondicional em homologação. |
-| `CMD-223-pro` | `rm -rf /home/user/..` | prod | **deny** | CATASTROPHIC | Bloqueio incondicional em produção. |
+| `CMD-223-dev` | `rm -rf /home/<user>/..` | dev | **deny** | CATASTROPHIC | Normaliza para `/home`, pertencente a `SYSTEM_ROOTS`. |
+| `CMD-223-sta` | `rm -rf /home/<user>/..` | staging | **deny** | CATASTROPHIC | Bloqueio incondicional em homologação. |
+| `CMD-223-pro` | `rm -rf /home/<user>/..` | prod | **deny** | CATASTROPHIC | Bloqueio incondicional em produção. |
 | `CMD-224-dev` | `rm -rf /usr/local/../..` | dev | **deny** | CATASTROPHIC | Normaliza para `/`, raiz absoluta do sistema de arquivos. |
 | `CMD-224-sta` | `rm -rf /usr/local/../..` | staging | **deny** | CATASTROPHIC | Bloqueio incondicional em homologação. |
 | `CMD-224-pro` | `rm -rf /usr/local/../..` | prod | **deny** | CATASTROPHIC | Bloqueio incondicional em produção. |
