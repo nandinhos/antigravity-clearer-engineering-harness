@@ -176,7 +176,7 @@ done
 declare -a DETECTED_AGENTS=()
 detect_available_agents DETECTED_AGENTS
 
-if [[ ${#DETECTED_AGENTS[@]} -eq 0 ]]; then
+if [[ ${#DETECTED_AGENTS[@]} -eq 0 && ${#REQUESTED_AGENTS[@]} -eq 0 ]]; then
   echo -e "${YELLOW}Aviso: Nenhum dos 6 CLIs do Conselho (${ALL_KNOWN_AGENTS[*]}) foi encontrado no PATH.${RESET}"
   echo -e "O Conselho de Seniores é um add-on opcional de visão ampliada do desenvolvedor."
   echo -e "O harness CEH continua operando normalmente com suas verificações nativas e linters."
@@ -189,9 +189,9 @@ if [[ ${#REQUESTED_AGENTS[@]} -eq 0 ]]; then
   # Modo padrão: usa todos os que estiverem disponíveis na máquina
   TARGET_AGENTS=("${DETECTED_AGENTS[@]}")
 else
-  # O usuário pediu agentes específicos: valida se estão instalados
+  # O usuário pediu agentes específicos: valida se estão instalados (ou se é simulação dry-run)
   for req in "${REQUESTED_AGENTS[@]}"; do
-    if command -v "$req" >/dev/null 2>&1; then
+    if command -v "$req" >/dev/null 2>&1 || [[ "$DRY_RUN" == true ]]; then
       TARGET_AGENTS+=("$req")
     else
       echo -e "${YELLOW}Aviso: Agente solicitado '$req' não está instalado nesta máquina. Pulando.${RESET}"

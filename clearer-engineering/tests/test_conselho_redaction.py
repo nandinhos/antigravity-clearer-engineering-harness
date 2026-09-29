@@ -33,6 +33,14 @@ class TestConselhoRedaction(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp(prefix="ceh-redact-test-")
+        self.mock_bin_dir = Path(self.tmp_dir) / "bin"
+        self.mock_bin_dir.mkdir(parents=True, exist_ok=True)
+        for agent in ["claude", "codex", "muse", "hermes", "agy", "agent"]:
+            mock_file = self.mock_bin_dir / agent
+            mock_file.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            mock_file.chmod(0o755)
+        self.base_env = os.environ.copy()
+        self.base_env["PATH"] = f"{self.mock_bin_dir}:{self.base_env.get('PATH', '')}"
 
     def tearDown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
@@ -98,8 +106,10 @@ class TestConselhoRedaction(unittest.TestCase):
         subprocess.run(["git", "-C", str(repo_dir), "commit", "-q", "-m", "initial commit"], check=True)
 
         # Executa conselho-seniores.sh em modo dry-run
-        env = os.environ.copy()
-        env["HOME"] = str(Path(self.tmp_dir) / "fakehome")
+        env = self.base_env.copy()
+        fakehome = Path(self.tmp_dir) / "fakehome"
+        fakehome.mkdir(parents=True, exist_ok=True)
+        env["HOME"] = str(fakehome)
         cmd = [
             "bash",
             str(CONSELHO_SCRIPT),
@@ -164,7 +174,7 @@ class TestConselhoRedaction(unittest.TestCase):
             "--dry-run",
             "--output-dir", str(output_dir),
         ]
-        proc = subprocess.run(cmd, cwd=str(repo_dir), capture_output=True, text=True)
+        proc = subprocess.run(cmd, cwd=str(repo_dir), capture_output=True, text=True, env=self.base_env)
         self.assertEqual(proc.returncode, 0, f"Falha no conselho-seniores.sh: {proc.stderr}")
 
         context_file = output_dir / "contexto_avaliado.txt"
