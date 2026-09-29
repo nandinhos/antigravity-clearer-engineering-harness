@@ -594,6 +594,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 
 
 
+### 0.59 Análise de pendências e plano Ponytail de fechamento da Onda 5 ([Handoff 062](./temp_implementation/handoffs/handoff-062-analise-pendencias-ponytail.md))
+
+- **Revisão dos commits que entraram na `main` sem homologação independente:** 11081aa (D04, symlinks) e 2654e64 (P2, fork bomb avaliado depois do fatiamento, achado pela integração do Muse) — **homologados**; suíte 64/64, redes sem relaxamento. Ressalva: o 11081aa editou este plano e o Handoff 059 se autodeclarou homologado.
+- **Linha de base:** `6fc5a07`.
+- **Fazer:** release v1.4.0 (a tag v1.3.0 não tem o conserto do fork bomb); CHANGELOG `[Unreleased]` vazio; PR-21 (redação no Conselho); B1 (`docker --context … volume rm` = allow); B2 (`doc-audit` só casa `/home/<u>/projects/`); D1 (limites do gate estático sem registro no ADR 007).
+- **Documentar como limite:** alvos opacos e dinâmicos, `migrate --force`, `echo find / -delete`, ferramentas `declared`, `--help` local.
+- **Não fazer agora:** tempo do macOS no CI; Onda 4 (decisão estratégica do desenvolvedor).
+- **Próximo:** PR-23 (fechamento) e PR-21, depois release v1.4.0.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
