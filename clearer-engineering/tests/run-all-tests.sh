@@ -274,6 +274,10 @@ run_test "Symlink Environment: Detecção de ambiente em ancestral físico e pro
 run_test "Conselho Redaction: Redação de segredos, caminhos locais e exclusões no diff (PR-21)" \
     "python3 '$PLUGIN_DIR/tests/test_conselho_redaction.py' >/dev/null 2>&1"
 
+# 33. Onda 4 Baseline Regression Network (A1-A4)
+run_test "Onda 4 Baseline: Retrato de referência v1.4.0 e rede de não-regressão (--check)" \
+    "python3 '$PLUGIN_DIR/tests/tools/onda4_baseline.py' --check"
+
 
 echo ""
 echo "============================================================"
