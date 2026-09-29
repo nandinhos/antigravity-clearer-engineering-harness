@@ -615,7 +615,8 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 ### 0.61 Abertura controlada da Onda 4 em `feature/onda-4` ([Handoff 064](./temp_implementation/handoffs/handoff-064-onda-4-branch-feature-verificacao-antes-depois.md))
 
 - **Decisão do desenvolvedor:** abrir a Onda 4 numa branch separada, a partir da `v1.4.0`, medindo antes e depois; a `main` só recebe por PR após a homologação.
-- **Fase 0 (antes, sem mudança de comportamento):** gatilho do CI para `feature/**`; retrato A1–A4 com `onda4_baseline.py --generate/--check` (decisões, instalação byte a byte, respostas do hook para os 93+14 payloads gravados, acoplamento: 51 referências de host no `hook_context.py`, 0 testes de conformidade); E1 real do Muse com contrato de resposta com controle (A5).
+- **Fase 0 (antes, sem mudança de comportamento):** gatilho do CI para `feature/**`; retrato A1–A4 com `onda4_baseline.py --generate/--check` (decisões, instalação byte a byte, respostas do hook para os 93+14 payloads gravados, acoplamento: 51 referências de host no `hook_context.py`, 0 testes de conformidade); E1 real do Muse (ou, na falta, do Codex CLI) com contrato de resposta com controle (A5), gravado pelo agente do Antigravity via terminal.
+- **Papéis:** execução só pelo agente do Antigravity (`agy`, sucessor do Gemini CLI; `host-probe/gemini/` é o mesmo host); revisão independente por Claude ou Codex.
 - **Portão:** sem E1 de um 3º host, a onda para e a v1.4.0 segue.
 - **Fases 1–5:** PR-13 a PR-17 (+ adaptador do Muse), com A1–A3 idênticos em cada PR e conformidade entre todos os hosts no fim; release `v2.0.0`.
 

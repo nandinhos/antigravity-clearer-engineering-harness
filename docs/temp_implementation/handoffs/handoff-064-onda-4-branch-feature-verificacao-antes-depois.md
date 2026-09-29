@@ -5,6 +5,11 @@
 **Ponto de partida:** tag `v1.4.0` (`8bb38c0`), linha de base homologada no [Handoff 063](./handoff-063-encerramento-onda-5-v1-4-0.md)
 **Decisão do desenvolvedor:** abrir a Onda 4 em branch separada, medindo antes e depois, sem tocar na `main` até a homologação.
 
+**Papéis (fixos):**
+- **Execução:** somente o agente do **Antigravity** (`agy`, sucessor do antigo Gemini CLI). Nenhum outro agente implementa, grava evidência ou faz commit.
+- **Revisão independente:** **Claude** ou **Codex**. Só a revisão homologa ou decide o portão.
+- Outros harnesses (Muse, Codex CLI) entram apenas como **alvos de integração**, operados pelo agente do Antigravity via terminal.
+
 ---
 
 ## 0. Por que e com que limite
@@ -15,7 +20,7 @@
 2. **Integrar um host novo = `parse` + `render` + fixtures gravadas**, em vez de copiar o `ceh_core/` e reescrever o adaptador (Handoff 060, passos 1–2).
 3. **Distribuição por host a partir de uma fonte versionada** (empacotador), acabando com cópias vendorizadas que envelhecem (quem copiou o núcleo antes da v1.4.0 continua sem o conserto do fork bomb).
 
-**Limite (Ponytail):** a onda só continua se houver um **3º host com payload de hook real gravado** (E1). Hoje o Muse, o Codex, o Gemini e o Hermes só têm E0 (`help`, `version`). O Muse tem hooks de plugin (`muse plugins hook test … --fixture`, em `host-probe/muse/plugins_help.txt:14`), então a gravação é viável.
+**Limite (Ponytail):** a onda só continua se houver um **3º host com payload de hook real gravado** (E1). Os dois hosts atuais com payload gravado são o **agy** (93 chamadas) e o **Claude Code** (14). O diretório `host-probe/gemini/` é evidência do **Gemini CLI, antecessor do agy**, portanto do mesmo host, e não conta como terceiro. O Muse, o Codex e o Hermes só têm E0 (`help`, `version`). O Muse tem hooks de plugin (`muse plugins hook test … --fixture`, em `host-probe/muse/plugins_help.txt:14`), então a gravação é viável.
 
 ## 1. Regras da branch
 
@@ -54,18 +59,20 @@ Registre o `onda4_baseline.py --check` na suíte (`run-all-tests.sh`). Nesta fas
 
 ### Commit 0.3 — `evidence(muse): E1 — payload real de hook gravado (A5)`
 
+**Quem executa:** o agente do Antigravity, operando o CLI do Muse pelo terminal (o binário já está instalado e com E0 gravado em `host-probe/muse/`). Nenhum agente do Muse participa.
+
 1. Um plugin de **sonda** para o Muse, com um hook de pré-execução de ferramenta que só **grava o payload recebido** (stdin, variáveis de ambiente relevantes, argumentos) e responde neutro. Nada de decisão nesta etapa.
 2. Uma sessão real do Muse em que o agente usa pelo menos: execução de comando no terminal, escrita de arquivo e edição de arquivo.
 3. Artefatos brutos em `docs/temp_implementation/evidence/host-probe/muse/<timestamp>/` (runner versionado, `invocations.jsonl`, saída do CLI), com checagem de vazamento. **Nenhuma execução descartada em silêncio** (regra AM1).
 4. **Contrato de resposta com controle** (lição do E11): três braços no mesmo prompt — sem hook, hook respondendo "permitir", hook respondendo "negar". Registre o que o Muse faz em cada um, e qual formato de resposta **bloqueia** de fato.
-5. Se o Muse não permitir interceptar a execução de comandos, registre isso como evidência. Não force.
+5. Se o Muse não permitir interceptar a execução de comandos, registre isso como evidência. Não force. Nesse caso, repita o mesmo procedimento com o **Codex CLI** (também instalado, com E0 em `host-probe/codex/`) antes de concluir que não há 3º host.
 
 ### Portão de decisão (revisão, não o agente)
 
 Depois dos três commits, a revisão emite o veredito:
 
 - **SEGUE** se o A5 tiver payload real de comando e o contrato de resposta com controle observado → Fase 1.
-- **PARA** se não houver E1 do Muse (ou de outro 3º host). A branch fica arquivada com o retrato versionado, e a v1.4.0 segue como está. É um resultado válido.
+- **PARA** se não houver E1 nem do Muse nem do Codex CLI. A branch fica arquivada com o retrato versionado, e a v1.4.0 segue como está. É um resultado válido.
 
 ## 3. Fases 1–4 — Implementação, com verificação DEPOIS em cada PR
 
