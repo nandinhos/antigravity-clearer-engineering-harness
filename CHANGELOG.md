@@ -7,13 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-### Changed
-
-### Fixed
+## [1.4.0] - 2026-09-29
 
 ### Security
+- **Conserto Crítico de Fork Bomb na Linha Completa**: Descoberto na integração com o Muse que comandos catastróficos compostos (contendo `;`, `|`, `&`) podiam escapar de validações preliminares se fatiados prematuramente. A verificação catastrófica passa a avaliar a linha bruta integral antes de qualquer fatiamento léxico. **Atenção:** Instalações fixadas na tag `v1.3.0` não contêm essa correção e devem atualizar imediatamente para a `v1.4.0`.
+- **Prevenção de Vazamento de Segredos e Credenciais Externas (PR-21 / Handoff 062)**: Implementado mascaramento preventivo no Conselho de Seniores (`ceh_core/redact.py`) antes do envio de payloads e geração de prompts para modelos externos. Cobre tokens de Git (`ghp_`, `github_pat_`), AWS (`AKIA...`), Google (`AIza...`), Anthropic/OpenAI (`sk-ant-`, `sk-proj-`), blocos PEM (`BEGIN PRIVATE KEY`), tokens Bearer e caminhos de usuário no SO (`/home/<u>/` e `/Users/<u>/` normalizados para `~`). Exclusão mandatória de arquivos sensíveis (`.env*`, `*.key`, `*.pem`, `*secret*`, `id_rsa*`) em diffs avaliados pelo Conselho.
+- **Proteção do Safety Gate contra Evasão por Links Simbólicos (D04 / Handoff 059)**: Resolução de caminhos simbólicos para seu destino canônico real (`os.path.realpath`) antes da avaliação de diretórios protegidos e ancestrais no Safety Gate, impedindo contornos por symlinks.
+
+### Added
+- **Onda 5 (PR-23 — Fechamento da Onda 5 e Limites Conhecidos do Gate Estático)**:
+  - Cobertura de opções globais do Docker (`--context`, `-H`, `--config`) antes de subcomandos de volume (`volume rm/prune`) e compose (`compose down -v`), bloqueando tentativas de bypass em produção (`H062-B1`).
+  - Documentação formal no ADR 007 da seção "Limites conhecidos do gate estático" (Regra P2): explicitação dos limites físicos de análise estática (`curl | bash`, conexões remotas `ssh`, código dinâmico vindo de arquivo ou eval) fixados por testes de controle (`H062-LIMITE`), onde a proteção real reside na esteira de CI do servidor e branch protection.
+  - Auditoria documental expandida em `doc-audit.py`: detecção e bloqueio de qualquer caminho absoluto de home (`/home/<u>/` e `/Users/<u>/`) e sanitização integral de atas do Conselho.
+- **Onda 5 (PR-22 — Cobertura Abrangente de Regras de Dados, Infraestrutura e Integridade .ceh)**:
+  - Proteção de banco de dados e migrações contra comandos destrutivos (`migrate:fresh`, `db:wipe`, `DROP/TRUNCATE`).
+  - Proteção para ferramentas de infraestrutura como código e cloud (`terraform destroy`, `kubectl delete`).
+  - Bateria formal de regras de infraestrutura e dados em `test_rules_data_infra.py`.
+- **Onda 5 (PR-20 — Ancoragem Dinâmica de Atas do Conselho e Fallback sem Git)**:
+  - Ancoragem determinística de relatórios do Conselho de Seniores (`docs/temp_implementation/conselho/`) ao repositório do usuário (`$REPO_ROOT`), com fallback seguro em diretório de execução e flag `--output-dir`.
+  - Conformidade com o critério AU4: atas registram status de ausência de conselheiros sem injetar texto nos arquivos brutos de parecer.
+- **Onda 5 (PR-QA-B, PR-QA-C, PR-QA-D — Invariantes Estruturais de Regras e Normalização)**:
+  - `PR-QA-B`: Invariante do motivo da decisão preservado sobre todo o corpus e bateria de testes.
+  - `PR-QA-C`: Contrato de opções de escrita derivado automaticamente de `--help`.
+  - `PR-QA-D`: Ponto único e estrito de normalização léxica de comandos no Safety Gate.
+- **Expansão da Suíte Canônica**: Suíte de testes expandida para 65/65 testes automatizados (100% PASS), cobrindo hermetismo em ambientes CI sem CLIs de IA instalados.
+
+### Changed
+- URLs de instalação fixada atualizadas de `v1.3.0` para `v1.4.0` na documentação.
+- Metadados do plugin atualizados para a versão `1.4.0` em `clearer-engineering/plugin.json`.
 
 ## [1.3.0] - 2026-09-27
 
