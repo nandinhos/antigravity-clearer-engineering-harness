@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-09-30
+
+### Security
+- **Correção de Bloqueio Fail-Open de Hooks na IDE do Antigravity (E13 / Handoff 067)**: Na IDE do Antigravity, o executor de hooks adota semântica fail-open diante de qualquer código de saída `!= 0`, tratando erros e negações com exit 2 como falha de infraestrutura do hook e permitindo a execução de comandos bloqueados. O `safety-gate.py` passa a responder a negações e erros tratáveis no Antigravity com o JSON de negação e **exit 0**, garantindo o bloqueio efetivo de ferramentas na IDE e no CLI. Para o Claude Code, o contrato com exit 2 e `hookSpecificOutput` permanece estritamente preservado. **Atenção:** Instalações anteriores na tag `v1.4.0` não bloqueavam ferramentas na IDE do Antigravity e devem atualizar imediatamente para a `v1.4.1`.
+
 ## [1.4.0] - 2026-09-29
 
 ### Security

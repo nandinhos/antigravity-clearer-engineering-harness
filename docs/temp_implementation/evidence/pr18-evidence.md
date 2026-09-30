@@ -12,7 +12,7 @@
 No Handoff 046 (§2), o revisor sênior aprovou a integridade do gate (0 relaxamentos), a correção dos 24 links quebrados e o parser hermético stdlib (4/4 jobs verdes no run 36350731370), porém bloqueou a homologação do PR-18 devido a dois pontos epistemológicos e dois de processo:
 1. **AT1 (Alto):** Presença de arquivo autoral escrito pelo agente (`inventory.json`) dentro do diretório reservado a sondas físicas (`docs/temp_implementation/evidence/host-probe/`), fazendo declarações passarem por evidência `OBSERVED`. Além disso, o teste anterior só checava existência física do arquivo, não seu conteúdo.
 2. **AT2 (Médio):** O teste aleatório anterior testava apenas a decisão do gate, que possui defesa em profundidade com `re.search`. A mutação do `||` não provocava falha no teste anterior porque a camada de regras interceptava o comando de qualquer forma.
-3. **AT4 (Baixo):** Resíduos de caminho local `/home/nandodev` nos arquivos `.txt` das atas do Conselho e parecer do Claude vazio.
+3. **AT4 (Baixo):** Resíduos de caminho local `~` nos arquivos `.txt` das atas do Conselho e parecer do Claude vazio.
 4. **AT5 (Processo):** Mutações de falsificabilidade devem ser executadas exclusivamente em clones isolados, mantendo o worktree de trabalho e os scripts core do gate 100% limpos.
 
 ---

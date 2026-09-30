@@ -1,1 +1,1 @@
-/home/nandodev/.local/bin/agent
+~/.local/bin/agent

@@ -67,8 +67,16 @@ O gate estático do CEH atua como **defesa em profundidade e disciplina operacio
 - **18 Ferramentas Declaradas (E12)**: Ferramentas autorizadas no catálogo de ferramentas constam como `declared` com evidência comprovada, com promoção para `payload` sob demanda (E12).
 - **Opções de Escrita (`--help` / AX1)**: Opções derivadas de `--help` refletem as ferramentas capturadas no ambiente local de referência, registradas no cabeçalho dos artefatos.
 
-### 4. A Mitigação Real: Garantia no Servidor
-Diante de alvos opacos e comandos montados dinamicamente, a salvaguarda primária e inegociável do CEH é a **Proteção de Branch no Servidor com Status Checks Obrigatórios de CI**. Nenhuma alteração alcança branches protegidas (`main`, `staging`) sem a execução integral da suíte canônica em runner efêmero e auditado no servidor remoto.
+### 4. Limites Intrínsecos do Runtime de Hooks na IDE do Antigravity (E13 / Handoff 067)
+A caracterização experimental formal na IDE do Antigravity (E13, Handoff 067) comprovou que o executor de hooks da IDE opera com política fail-open diante de encerramentos anormais ou códigos de saída diferentes de zero:
+- **Python Ausente no PATH**: Se o interpretador Python configurado no hook não puder ser executado pelo SO, a IDE deixa o comando rodar sem validação.
+- **Erro de Sintaxe no Próprio Gate**: Erros sintáticos que impeçam o Python de iniciar a execução do gate impedem o envio da resposta JSON e resultam em fail-open.
+- **Estouro de Timeout (SIGKILL)**: Conforme comprovado no braço `timeout` do E13, processos de hook que excedam o tempo limite configurado em `hooks.json` (ex: 15s) são abortados pelo host e a ferramenta do agente é executada sem bloqueio.
+
+*Mitigação*: O código do gate trata defensivamente todos os caminhos de erro previsíveis emitindo `{"decision": "deny", ...}` com exit 0 (v1.4.1). Para as falhas intransponíveis de infraestrutura no host local (timeout forçado, binário ausente), a salvaguarda primária e inegociável permanece na garantia do servidor remoto.
+
+### 5. A Mitigação Real: Garantia no Servidor
+Diante de alvos opacos, falhas de host local e comandos montados dinamicamente, a salvaguarda primária e inegociável do CEH é a **Proteção de Branch no Servidor com Status Checks Obrigatórios de CI**. Nenhuma alteração alcança branches protegidas (`main`, `staging`) sem a execução integral da suíte canônica em runner efêmero e auditado no servidor remoto.
 
 ## Consequências
 - **Positivas**: Falsificação de certificados por parte de LLMs ou scripts acidentais é bloqueada em todos os ambientes (`development`, `staging`, `production`), inclusive contra a substituição inteira da pasta `.ceh`.

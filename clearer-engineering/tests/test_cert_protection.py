@@ -135,8 +135,8 @@ class TestCertProtection(unittest.TestCase):
             )
             self.assertEqual(uc, "GENERAL")
 
-    def test_hook_agy_write_to_ceh_denied_exit_2(self):
-        """No agy, ferramentas de escrita para .ceh/ são bloqueadas com exit 2."""
+    def test_hook_agy_write_to_ceh_denied_exit_0(self):
+        """No agy (Antigravity), ferramentas de escrita para .ceh/ são bloqueadas com exit 0 e JSON de deny (v1.4.1)."""
         payload_write = json.dumps({
             "toolCall": {
                 "name": "write_to_file",
@@ -148,7 +148,7 @@ class TestCertProtection(unittest.TestCase):
             "workspacePaths": [str(self.tmp_dir)],
         })
         code, res = self._run_gate_stdin(payload_write)
-        self.assertEqual(code, 2)
+        self.assertEqual(code, 0)
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("CERTIFICATE INTEGRITY", res.get("reason", ""))
 
@@ -163,7 +163,7 @@ class TestCertProtection(unittest.TestCase):
             "workspacePaths": [str(self.tmp_dir)],
         })
         code, res = self._run_gate_stdin(payload_replace)
-        self.assertEqual(code, 2)
+        self.assertEqual(code, 0)
         self.assertEqual(res.get("decision"), "deny")
 
     def test_hook_agy_write_normal_file_allowed_exit_0(self):

@@ -180,10 +180,15 @@ def main():
     conselho_dir = docs_dir / "temp_implementation" / "conselho"
     if conselho_dir.is_dir():
         target_files.extend(conselho_dir.rglob("*.txt"))
+    evidence_dir = docs_dir / "temp_implementation" / "evidence"
+    if evidence_dir.is_dir():
+        for ext in ("*.json", "*.jsonl", "*.txt"):
+            target_files.extend(evidence_dir.rglob(ext))
 
     for target_file in target_files:
         content = target_file.read_text(encoding="utf-8")
         matches = re.findall(r"(file:///(?:home|Users)/[^\s\)\"'>]+|/(?:home|Users)/\w+/[^\s\)\"'>]+)", content)
+        matches = [m for m in matches if not m.startswith(("/home/user/", "/Users/user/"))]
         if matches:
             abs_links_found.append((target_file.relative_to(repo_root), matches))
         sess_matches = re.findall(r"session\s+id:\s+[0-9a-f\-]{36}", content, re.IGNORECASE)
