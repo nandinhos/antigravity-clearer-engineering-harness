@@ -641,6 +641,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Achado crítico (`INFERRED`):** a IDE do Antigravity trataria exit ≠ 0 do hook como falha e executaria a ferramenta; o gate responde deny com exit 2. Toda a caracterização anterior do agy foi feita no CLI, onde exit 2 bloqueia.
 - **Próximo:** evidência E13 na IDE; se confirmado, correção v1.4.1 na `main` (deny do agy com exit 0); merge na `feature/onda-4` e retrato regenerado; depois PR-13.
 
+### 0.65 Revisão do PR #5 (v1.4.1) ([Handoff 068](./temp_implementation/handoffs/handoff-068-revisao-pr5-v1-4-1-ajustes-antes-do-merge.md))
+
+- **E13 aceita:** na IDE do Antigravity 2.5.5, só deny com exit 0 bloqueia; exit 2, crash e timeout executam; a v1.4.0 oficial deixou o canário ser criado no `.ceh/`.
+- **Correção no caminho certo** (CI verde, prova por mutação independente: 7 + 1 testes reprovam).
+- **Bloqueantes:** B1, as variáveis do Claude no ambiente se sobrepõem a um payload do agy e voltam ao exit 2; B2, `ask` sai com exit 1, que o Claude Code ignora.
+- **Próximo:** ajustes no PR #5, revisão curta, merge e tag `v1.4.1` pelo desenvolvedor, reinstalação e canário; depois o merge na `feature/onda-4` e o PR-13.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
