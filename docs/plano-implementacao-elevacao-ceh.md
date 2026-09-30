@@ -693,6 +693,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalva média (BH2):** a resposta de reserva do *shim* (`{"decision":"deny"}`) não foi observada no Muse; braço E1c pedido.
 - **PR-16 despachado:** `package.py` gera os pacotes Antigravity, Muse e Claude Code da mesma fonte; `install.sh` a partir do pacote com A2 idêntico; teste de completude por host; E16 num perfil temporário do Muse.
 
+### 0.73 PR-16: reserva do *shim* por host e E16 a refazer ([Handoff 079](./temp_implementation/handoffs/handoff-079-pr16-reserva-do-shim-por-host-e16-refazer.md))
+
+- **Empacotador aprovado:** três pacotes da mesma fonte, determinísticos; `install.sh` a partir do pacote com A2 idêntico.
+- **E1c (`OBSERVED`):** `{"decision":"deny"}` não bloqueia no Muse. A reserva do *shim* falha aberta no Muse quando um módulo do CEH quebra, e o controle negativo do `test_package.py` tratava isso como sucesso.
+- **Decisão da revisão:** reserva por host em `adapters/fallback.py` (só biblioteca padrão), no formato observado de cada host; `adapters/__init__.py` sem imports em cadeia.
+- **E15/E16 sem isolamento:** o `clearer-muse`, com a própria cópia do gate, estava ativo; o bloqueio não é atribuível. E16 refeito com isolamento, pacote instalado como gerado e um cenário que prova a reserva.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
