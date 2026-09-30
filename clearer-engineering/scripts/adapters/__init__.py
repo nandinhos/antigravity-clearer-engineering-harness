@@ -7,9 +7,11 @@
 from adapters.base import HostAdapter
 from adapters.antigravity import AntigravityAdapter
 from adapters.claude_code import ClaudeCodeAdapter
+from adapters.muse import MuseAdapter
 
 __all__ = [
     "HostAdapter",
     "AntigravityAdapter",
     "ClaudeCodeAdapter",
+    "MuseAdapter",
 ]

@@ -1,0 +1,27 @@
+{
+  "name": "ceh-e15-gate",
+  "version": "1.4.1",
+  "displayName": "CEH Safety Gate Hook",
+  "description": "CLEARER Engineering Harness PreToolUse Gate",
+  "schemaVersion": 1,
+  "compat": {
+    "manifestDir": ".muse-plugin",
+    "source": "native"
+  },
+  "capabilities": {
+    "commands": [],
+    "hooks": [
+      {
+        "id": "pretooluse-gate",
+        "event": "PreToolUse",
+        "command": [
+          "python3",
+          "~/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py"
+        ],
+        "timeoutMs": 10000,
+        "statusMessage": "CEH Safety Gate (PreToolUse)"
+      }
+    ],
+    "skills": []
+  }
+}

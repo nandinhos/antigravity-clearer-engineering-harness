@@ -20,8 +20,10 @@ if str(SCRIPTS_DIR) not in sys.path:
 
 from adapters.base import HostAdapter
 from adapters.antigravity import AntigravityAdapter
+from adapters.muse import MuseAdapter
 from adapters.claude_code import ClaudeCodeAdapter
 from ceh_core.engine import Request, Decision
+from hook_context import find_adapter, ADAPTERS
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures" / "adapters"
 
@@ -31,13 +33,16 @@ class TestHostAdapters(unittest.TestCase):
 
     def setUp(self):
         self.agy_adapter = AntigravityAdapter()
+        self.muse_adapter = MuseAdapter()
         self.claude_adapter = ClaudeCodeAdapter()
 
     def test_adapter_contracts(self):
         """Verifica se os adaptadores herdam de HostAdapter e expõem propriedades canônicas."""
         self.assertIsInstance(self.agy_adapter, HostAdapter)
+        self.assertIsInstance(self.muse_adapter, HostAdapter)
         self.assertIsInstance(self.claude_adapter, HostAdapter)
         self.assertEqual(self.agy_adapter.name, "antigravity")
+        self.assertEqual(self.muse_adapter.name, "muse")
         self.assertEqual(self.claude_adapter.name, "claude_code")
 
     def test_antigravity_detect_independent_of_claude_env(self):
@@ -207,6 +212,164 @@ class TestHostAdapters(unittest.TestCase):
             payload = {"toolCall": {"name": "run_command", "args": {"CommandLine": "ls -la", "Cwd": str(tmp_path)}}}
             req = self.agy_adapter.parse(payload)
             self.assertEqual(req.cwd, tmp_path)
+
+    def test_muse_detect_unambiguous(self):
+        """Critério PR-15b: MuseAdapter detecta 41/41 Muse, 0/14 Claude e 0/93 Antigravity."""
+        def load_payloads(rel_path: str):
+            fpath = FIXTURES_DIR / rel_path
+            with open(fpath, "r", encoding="utf-8") as f:
+                return [json.loads(line)["payload"] for line in f if line.strip()]
+
+        muse_payloads = load_payloads("muse/recorded.jsonl")
+        claude_payloads = load_payloads("claude_code/recorded.jsonl")
+        agy_payloads = load_payloads("antigravity/recorded.jsonl")
+
+        self.assertEqual(len(muse_payloads), 41)
+        self.assertEqual(len(claude_payloads), 14)
+        self.assertEqual(len(agy_payloads), 93)
+
+        # Muse detecta 41/41 do Muse, 0 do Claude, 0 do Antigravity
+        self.assertEqual(sum(1 for p in muse_payloads if self.muse_adapter.detect(p)), 41)
+        self.assertEqual(sum(1 for p in claude_payloads if self.muse_adapter.detect(p)), 0)
+        self.assertEqual(sum(1 for p in agy_payloads if self.muse_adapter.detect(p)), 0)
+
+        # Despachante: ordem explícita roteia cada conjunto ao adaptador correto
+        self.assertEqual(sum(1 for p in muse_payloads if find_adapter(p) and find_adapter(p).name == "muse"), 41)
+        self.assertEqual(sum(1 for p in claude_payloads if find_adapter(p) and find_adapter(p).name == "claude_code"), 14)
+        self.assertEqual(sum(1 for p in agy_payloads if find_adapter(p) and find_adapter(p).name == "antigravity"), 93)
+
+    def test_muse_fixtures_matrix(self):
+        """Executa a matriz de fixtures manuais do Muse (cases.jsonl)."""
+        fixture_file = FIXTURES_DIR / "muse" / "cases.jsonl"
+        self.assertTrue(fixture_file.is_file(), f"Fixture não encontrada: {fixture_file}")
+
+        with open(fixture_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                case = json.loads(line)
+                name = case["name"]
+                payload = case["payload"]
+
+                with self.subTest(case=name):
+                    self.assertTrue(self.muse_adapter.detect(payload))
+
+                    if "error_pattern" in case:
+                        with self.assertRaises(ValueError) as ctx:
+                            self.muse_adapter.parse(payload)
+                        self.assertIn(case["error_pattern"], str(ctx.exception))
+                        res, exit_code = self.muse_adapter.render_error(str(ctx.exception), payload)
+                        self.assertEqual(exit_code, case["expected_exit_code"])
+                        self.assertEqual(res["decision"], "block")
+                        self.assertIn(case["error_pattern"], res["reason"])
+                    else:
+                        req = self.muse_adapter.parse(payload)
+                        self.assertEqual(req.command, case["expected_command"])
+                        self.assertEqual(req.target_paths, case["expected_target_paths"])
+                        dec = Decision(decision=case["expected_decision"], reason="Teste")
+                        res, exit_code = self.muse_adapter.render(dec, payload)
+                        self.assertEqual(exit_code, case["expected_exit_code"])
+                        if case["expected_decision"] == "allow":
+                            self.assertEqual(res, {})
+                        else:
+                            self.assertEqual(res["decision"], "block")
+
+    def test_muse_recorded_fixtures_matrix(self):
+        """Executa a matriz dos 41 payloads reais gravados do Muse (recorded.jsonl)."""
+        fixture_file = FIXTURES_DIR / "muse" / "recorded.jsonl"
+        self.assertTrue(fixture_file.is_file(), f"Fixture não encontrada: {fixture_file}")
+
+        with open(fixture_file, "r", encoding="utf-8") as f:
+            lines = [ln.strip() for ln in f if ln.strip()]
+
+        self.assertEqual(len(lines), 41)
+        for idx, line in enumerate(lines):
+            case = json.loads(line)
+            payload = case["payload"]
+            with self.subTest(index=idx, tool=payload.get("tool_name")):
+                self.assertTrue(self.muse_adapter.detect(payload))
+                req = self.muse_adapter.parse(payload)
+                self.assertIsInstance(req, Request)
+                dec = Decision(decision="allow", reason="OK")
+                res, exit_code = self.muse_adapter.render(dec, payload)
+                self.assertEqual(exit_code, 0)
+                self.assertEqual(res, {})
+
+                # Teste com bloqueio: sempre exit 0 e {"decision": "block"}
+                dec_block = Decision(decision="deny", reason="Bloqueio CEH")
+                res_block, exit_block = self.muse_adapter.render(dec_block, payload)
+                self.assertEqual(exit_block, 0)
+                self.assertEqual(res_block["decision"], "block")
+                self.assertEqual(res_block["reason"], "Bloqueio CEH")
+
+    def test_antigravity_recorded_fixtures_matrix(self):
+        """Valida detecção dos 93 payloads reais gravados do Antigravity."""
+        fixture_file = FIXTURES_DIR / "antigravity" / "recorded.jsonl"
+        self.assertTrue(fixture_file.is_file(), f"Fixture não encontrada: {fixture_file}")
+        with open(fixture_file, "r", encoding="utf-8") as f:
+            lines = [ln.strip() for ln in f if ln.strip()]
+        self.assertEqual(len(lines), 93)
+        for idx, line in enumerate(lines):
+            case = json.loads(line)
+            self.assertTrue(self.agy_adapter.detect(case["payload"]))
+
+    def test_claude_recorded_fixtures_matrix(self):
+        """Valida detecção dos 14 payloads reais gravados do Claude Code."""
+        fixture_file = FIXTURES_DIR / "claude_code" / "recorded.jsonl"
+        self.assertTrue(fixture_file.is_file(), f"Fixture não encontrada: {fixture_file}")
+        with open(fixture_file, "r", encoding="utf-8") as f:
+            lines = [ln.strip() for ln in f if ln.strip()]
+        self.assertEqual(len(lines), 14)
+        for idx, line in enumerate(lines):
+            case = json.loads(line)
+            self.assertTrue(self.claude_adapter.detect(case["payload"]))
+
+    def test_muse_render_decisions(self):
+        """Garante que o Muse sempre responde com exit 0 ({} para allow, block para deny/ask)."""
+        dec_allow = Decision(decision="allow", reason="")
+        res, ec = self.muse_adapter.render(dec_allow)
+        self.assertEqual(ec, 0)
+        self.assertEqual(res, {})
+
+        dec_deny = Decision(decision="deny", reason="Comando bloqueado")
+        res, ec = self.muse_adapter.render(dec_deny)
+        self.assertEqual(ec, 0)
+        self.assertEqual(res, {"decision": "block", "reason": "Comando bloqueado"})
+
+        dec_ask = Decision(decision="ask", reason="Confirmação solicitada")
+        res, ec = self.muse_adapter.render(dec_ask)
+        self.assertEqual(ec, 0)
+        self.assertEqual(res, {"decision": "block", "reason": "Confirmação solicitada"})
+
+        res, ec = self.muse_adapter.render_error("Erro de sintaxe")
+        self.assertEqual(ec, 0)
+        self.assertEqual(res, {"decision": "block", "reason": "Erro de sintaxe"})
+
+    def test_muse_target_resolution(self):
+        """Valida resolução de diretório no Muse com symlinks reais resolvidos via Path.resolve()."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir).resolve()
+            sub_path = tmp_path / "subdir"
+            sub_path.mkdir()
+
+            # Caso 1: tool_input.workdir absoluto
+            p1 = {"tool_name": "bash", "tool_input": {"workdir": str(sub_path), "command": "ls"}}
+            target, env, force_deny = self.muse_adapter.resolve_target(p1)
+            self.assertEqual(target, sub_path)
+            self.assertFalse(force_deny)
+
+            # Caso 2: payload.cwd absoluto
+            p2 = {"tool_name": "bash", "cwd": str(sub_path), "tool_input": {"command": "ls"}}
+            target, env, force_deny = self.muse_adapter.resolve_target(p2)
+            self.assertEqual(target, sub_path)
+            self.assertFalse(force_deny)
+
+            # Caso 3: caminho inexistente -> force_deny
+            p3 = {"tool_name": "bash", "cwd": "/caminho/inexistente/muse/xyz", "tool_input": {"command": "ls"}}
+            target, env, force_deny = self.muse_adapter.resolve_target(p3)
+            self.assertIsNone(target)
+            self.assertTrue(force_deny)
 
 
 if __name__ == "__main__":

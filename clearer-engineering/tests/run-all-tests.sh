@@ -294,6 +294,10 @@ run_test "Host Adapters: Contrato HostAdapter e isolamento de hosts em adapters/
 run_test "Host Adapters Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-14/15)" \
     "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p14.py' >/dev/null 2>&1"
 
+# 38. PR-15b Muse Adapter Mutations Suite (Regra AT5)
+run_test "Muse Adapter Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-15b)" \
+    "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p15b.py' >/dev/null 2>&1"
+
 
 
 echo ""

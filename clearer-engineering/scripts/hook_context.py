@@ -20,13 +20,14 @@ from typing import Any, Callable
 
 from adapters.base import HostAdapter
 from adapters.antigravity import AntigravityAdapter
+from adapters.muse import MuseAdapter
 from adapters.claude_code import ClaudeCodeAdapter
 from ceh_core.engine import Request, Decision
 
-# Ordem explícita de resolução de adaptadores de host.
-# Observação arquitetural: o PR-15b inserirá o MuseAdapter antes do ClaudeCodeAdapter (Handoff 068, §4).
+# Ordem explícita de resolução de adaptadores de host (PR-15b: Muse antes de Claude Code).
 ADAPTERS: list[HostAdapter] = [
     AntigravityAdapter(),
+    MuseAdapter(),
     ClaudeCodeAdapter(),
 ]
 

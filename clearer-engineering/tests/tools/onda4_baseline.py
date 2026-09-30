@@ -35,6 +35,7 @@ A1_FILENAME = "A1_gate_corpus.expected.jsonl"
 A2_FILENAME = "A2_install_manifest.json"
 A3_FILENAME = "A3_hook_responses.jsonl"
 A3_MUSE_BEFORE_FILENAME = "A3_muse_before.jsonl"
+A3_MUSE_AFTER_FILENAME = "A3_muse_after.jsonl"
 A4_FILENAME = "A4_coupling_metrics.json"
 
 COUPLING_TERMS = ["toolCall", "tool_name", "tool_input", "hookSpecificOutput", "CommandLine"]
@@ -270,6 +271,13 @@ ONDA4_DECLARED_NEW_PATHS = {
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/antigravity/cases.jsonl",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/claude_code/cases.jsonl",
     ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p14.py",
+    # PR-15b
+    ".gemini/config/plugins/clearer-engineering/scripts/adapters/muse.py",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/antigravity/recorded.jsonl",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/claude_code/recorded.jsonl",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/muse/cases.jsonl",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/muse/recorded.jsonl",
+    ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p15b.py",
 }
 
 
@@ -412,19 +420,81 @@ def check_baseline() -> int:
             else:
                 print(f"  ✔ A3 OK ({len(current_a3)} respostas do hook idênticas em exit_code e stdout)")
 
-    # Check A3-muse (marcador do antes)
-    print("[5/5] Verificando A3-muse (Marcador do antes para Muse)...")
-    a3_muse_file = EVIDENCE_DIR / A3_MUSE_BEFORE_FILENAME
-    if not a3_muse_file.is_file():
-        diffs.append(f"A3-muse baseline file missing: {a3_muse_file}")
+    # Check A3-muse (marcador do antes e respostas atuais do depois)
+    print("[5/5] Verificando A3-muse (Antes: v1.4.0 e Depois: PR-15b)...")
+    a3_muse_before_file = EVIDENCE_DIR / A3_MUSE_BEFORE_FILENAME
+    a3_muse_after_file = EVIDENCE_DIR / A3_MUSE_AFTER_FILENAME
+
+    if not a3_muse_before_file.is_file():
+        diffs.append(f"A3-muse baseline file missing: {a3_muse_before_file}")
     else:
-        expected_muse = [json.loads(ln) for ln in a3_muse_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
-        # Confere que o marcador do antes está preservado (todas as respostas v1.4.0 com deny/2)
-        all_deny_2 = all(rec["exit_code"] == 2 for rec in expected_muse)
-        if not all_deny_2:
-            diffs.append("A3-muse inconsistente: esperado que o marcador do antes registre deny (exit 2) para todas as ferramentas")
+        expected_muse_before = [json.loads(ln) for ln in a3_muse_before_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        # 1. Confere que o marcador do antes está preservado (todas as 41 respostas v1.4.0 com deny/2)
+        all_deny_2 = all(rec["exit_code"] == 2 for rec in expected_muse_before)
+        if not all_deny_2 or len(expected_muse_before) != 41:
+            diffs.append(f"A3-muse (antes) inconsistente: esperado 41 respostas com deny/2 no marcador do antes (encontrado {len(expected_muse_before)})")
         else:
-            print(f"  ✔ A3-muse OK ({len(expected_muse)} payloads do Muse confirmados com deny/2 no marcador do antes)")
+            print(f"  ✔ A3-muse antes OK ({len(expected_muse_before)} payloads do Muse confirmados com deny/2 no marcador do antes)")
+
+    if not a3_muse_after_file.is_file():
+        diffs.append(f"A3-muse after baseline file missing: {a3_muse_after_file}")
+    else:
+        expected_muse_after = [json.loads(ln) for ln in a3_muse_after_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        current_muse_after = capture_a3(["muse"])
+
+        if len(expected_muse_after) != len(current_muse_after):
+            diffs.append(f"A3-muse (depois) contagem divergente! Esperado {len(expected_muse_after)}, atual {len(current_muse_after)}")
+        else:
+            mismatches = []
+            for idx, (exp, cur) in enumerate(zip(expected_muse_after, current_muse_after)):
+                if exp["exit_code"] != cur["exit_code"] or exp["stdout"] != cur["stdout"]:
+                    mismatches.append(f"Payload #{idx} ({exp['file']}:{exp['line']}): exp_ec={exp['exit_code']}, cur_ec={cur['exit_code']}, stdout_diff=(exp: {exp['stdout']} vs cur: {cur['stdout']})")
+
+            # 2. Confere que todas têm exit code 0 no Muse (nunca exit 2)
+            non_zero_exits = [cur for cur in current_muse_after if cur["exit_code"] != 0]
+            if non_zero_exits:
+                diffs.append(f"A3-muse (depois) apresentou {len(non_zero_exits)} respostas com exit code != 0! No Muse todos devem ser exit 0.")
+
+            if mismatches:
+                diffs.append(f"A3-muse (depois) divergências ({len(mismatches)} de {len(expected_muse_after)}):\n  " + "\n  ".join(mismatches[:5]))
+            else:
+                print(f"  ✔ A3-muse depois OK ({len(current_muse_after)} respostas do hook idênticas em exit_code=0 e stdout)")
+
+        # 3. Controle cruzado: cada comando bash avaliado diretamente contra ceh_core.engine.evaluate()
+        scripts_path = str(REPO_ROOT / "clearer-engineering" / "scripts")
+        if scripts_path not in sys.path:
+            sys.path.insert(0, scripts_path)
+        from adapters.muse import MuseAdapter
+        from ceh_core.engine import evaluate as engine_evaluate
+
+        muse_adapter = MuseAdapter()
+        inv_files = collect_invocation_files(["muse"])
+        cross_check_count = 0
+        cross_mismatches = []
+
+        for host, rel_path in inv_files:
+            full_path = REPO_ROOT / rel_path
+            with open(full_path, "r", encoding="utf-8") as fh:
+                for line_idx, line in enumerate(fh):
+                    if not line.strip():
+                        continue
+                    payload = json.loads(line).get("payload", {})
+                    tool_name = payload.get("tool_name")
+                    if tool_name == "bash":
+                        cross_check_count += 1
+                        req = muse_adapter.parse(payload)
+                        engine_decision = engine_evaluate(req)
+                        expected_render, _ = muse_adapter.render(engine_decision, payload)
+                        expected_stdout = json.dumps(expected_render, separators=(",", ":")) if expected_render else "{}"
+
+                        matching_cur = next((c for c in current_muse_after if c["file"] == rel_path and c["line"] == line_idx), None)
+                        if matching_cur and matching_cur["stdout"] != expected_stdout:
+                            cross_mismatches.append(f"{rel_path}:{line_idx} - cmd: {req.command[:30]} | hook: {matching_cur['stdout']} != engine: {expected_stdout}")
+
+        if cross_mismatches:
+            diffs.append(f"A3-muse controle cruzado falhou em {len(cross_mismatches)} comandos de terminal:\n  " + "\n  ".join(cross_mismatches))
+        else:
+            print(f"  ✔ A3-muse controle cruzado OK ({cross_check_count} comandos de terminal conferidos contra evaluate())")
 
     # Check A4
     print("Verificando A4 (Acoplamento)...")
