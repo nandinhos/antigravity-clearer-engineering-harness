@@ -686,6 +686,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalva:** as fixtures entregues são casos escritos à mão; as geradas dos payloads gravados entram no PR-15b. As duas coleções se complementam: um defeito de `cwd` no Claude só foi pego pelas fixtures manuais.
 - **PR-15b despachado:** adaptador do Muse a partir do E1/E1b (`detect` sem ambiguidade, `render` com exit 0), A3-muse do antes ao depois com controle cruzado no motor, E15 ponta a ponta com artefatos brutos.
 
+### 0.72 PR-15b homologado; despacho do PR-16 ([Handoff 077](./temp_implementation/handoffs/handoff-077-pr15b-homologado-e15-ressalvas-despacho-pr16.md))
+
+- **Adaptador do Muse homologado:** despachante `[Antigravity, Muse, Claude]`; A3-muse de 41 × deny/2 (antes) para 41 × exit 0 (depois), com controle cruzado no motor; fixtures reais dos três hosts; mutações independentes.
+- **Ressalva alta (BH1):** a primeira execução do E15 mandou `rm -rf /` a uma sessão real do Muse em `--yolo` e não foi registrada; o resumo atribui o bloqueio a esse comando, mas o bloqueio gravado é de `git push`. Experimento de bloqueio nunca mira fora do diretório temporário.
+- **Ressalva média (BH2):** a resposta de reserva do *shim* (`{"decision":"deny"}`) não foi observada no Muse; braço E1c pedido.
+- **PR-16 despachado:** `package.py` gera os pacotes Antigravity, Muse e Claude Code da mesma fonte; `install.sh` a partir do pacote com A2 idêntico; teste de completude por host; E16 num perfil temporário do Muse.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

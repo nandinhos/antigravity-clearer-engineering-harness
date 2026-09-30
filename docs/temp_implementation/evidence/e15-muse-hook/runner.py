@@ -170,7 +170,7 @@ def main() -> int:
 | Cenário | Operação | Decisão Esperada | Decisão Observada | Status | Duração |
 |---|---|---|---|---|---|
 | **Cenário 1 (Allow)** | `echo 'MUSE_E15_ALLOW_SUCCESS' > sentinel` | `allow` (exit 0, `{{}}`) | Executado com sucesso | **PASS** | {duration_allow}s |
-| **Cenário 2 (Block)** | `rm -rf /` | `deny` (exit 0, `block`) | Bloqueado pelo gate | **PASS** | {duration_block}s |
+| **Cenário 2 (Block)** | `git push origin dev` | `deny` (exit 0, `block`) | Bloqueado pelo gate | **PASS** | {duration_block}s |
 
 ## Detalhes de Execução
 

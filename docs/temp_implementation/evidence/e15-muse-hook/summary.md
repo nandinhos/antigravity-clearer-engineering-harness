@@ -10,7 +10,10 @@
 | Cenário | Operação | Decisão Esperada | Decisão Observada | Status | Duração |
 |---|---|---|---|---|---|
 | **Cenário 1 (Allow)** | `echo 'MUSE_E15_ALLOW_SUCCESS' > sentinel` | `allow` (exit 0, `{}`) | Executado com sucesso | **PASS** | 49.71s |
-| **Cenário 2 (Block)** | `rm -rf /` | `deny` (exit 0, `block`) | Bloqueado pelo gate | **PASS** | 28.85s |
+| **Cenário 2 (Block)** | `git push origin dev` (sem certificado de CI) | `deny` (exit 0, `block`) | Bloqueado pelo gate (`Pre-Push CI Gate`) | **PASS** | 28.85s |
+
+> [!NOTE]
+> **Ressalva BH1:** A primeira tentativa inicial com `rm -rf /` foi documentada separadamente em [`e15_run1_rm_rf_attempt.md`](./e15_run1_rm_rf_attempt.md). O teste homologado executou `git push origin dev`, confinado e seguro.
 
 ## Detalhes de Execução
 

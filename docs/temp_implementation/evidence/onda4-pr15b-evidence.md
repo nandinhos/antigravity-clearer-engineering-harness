@@ -128,3 +128,28 @@ Foi instanciada uma sessão real do **Muse Code 1.4.1 (1.4.1-R4503.1)** com o CE
   - `safety-gate.py`: 100 linhas (teto <= 100).
   - Módulos core: todos <= 300 linhas.
   - Termos de acoplamento fora de `adapters/`: 0.
+
+---
+
+## 8. Tratamento Formal das Ressalvas do Handoff 077
+
+### 8.1 Ressalva BH1: Confinamento de Testes Destrutivos e Registro da 1ª Execução do E15
+1. **Registro Reconstruído:** A tentativa original com `rm -rf /` foi formalmente registrada em [`docs/temp_implementation/evidence/e15-muse-hook/e15_run1_rm_rf_attempt.md`](./e15-muse-hook/e15_run1_rm_rf_attempt.md), explicando que o modelo de linguagem do Muse recusou a execução no chat, impedindo o acionamento do hook `PreToolUse`.
+2. **Correção de Relatório e Runner:** O [`summary.md`](./e15-muse-hook/summary.md) e o template em [`runner.py`](./e15-muse-hook/runner.py) foram corrigidos para documentar a operação real do Cenário 2 (`git push origin dev` sem certificado de CI, bloqueado com exit 0 e payload `{"decision": "block", ...}`).
+3. **Regra Inegociável Fixada:** Experimentos de bloqueio de segurança NUNCA miram fora de diretórios temporários (`$TMPDIR` ou repositórios efêmeros isolados).
+
+### 8.2 Ressalva BH2: Reserva do Shim no Muse e Experimento E1c
+Foi conduzido o experimento controlado E1c (`docs/temp_implementation/evidence/host-probe/muse/e1c/`) no Muse Code 1.4.1 real, testando se a resposta de fallback de emergência do shim (`{"decision": "deny", "reason": ...}`) com exit 0 bloqueia a execução no host Muse:
+
+| Experimento / Formato | Exit Code | Sentinela Criado? | Bloqueado pelo Muse? | Comportamento Observado |
+|---|---|---|---|---|
+| **E1b (B4):** `{"decision": "block", ...}` | 0 | `False` | **SIM** | Bloqueio nativo do Muse |
+| **E1b (B5):** `{"hookSpecificOutput": ...}` | 0 | `False` | **SIM** | Parser Claude do Muse |
+| **E1c:** `{"decision": "deny", ...}` | 0 | `True` | **NÃO** | **Fail-open**: Muse ignora `deny` e executa a ferramenta |
+
+**Conclusão e Postura de Rigor:**
+O formato `deny` **não bloqueia** no Muse. Em conformidade estrita com a determinação do Handoff 077 (*"sem mudar o shim por conta própria"*), o código do `safety-gate.py` permanece inalterado, e a matriz de fatos observados (`OBSERVED`) é submetida à deliberação da revisão independente.
+
+### 8.3 Ressalva BH3: Limite de Detecção de Ferramentas Desconhecidas
+Fica registrado como limite arquitetural documentado: o terceiro critério de detecção do `MuseAdapter` (detecção por nomes minúsculos de ferramentas conhecidas: `bash`, `write_file`, `edit_file`, `submit_reminder_decision`) aplica-se ao conjunto fechado observado. Caso uma futura ferramenta nova do Muse surja sem os metadados `model_provider`/`turn_id`, ela cairia no `ClaudeCodeAdapter`. Atualmente, 100% dos 41 payloads reais capturados no Muse contêm os campos `model_provider` e `turn_id`.
+
