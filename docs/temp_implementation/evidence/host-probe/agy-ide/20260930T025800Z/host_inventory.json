@@ -1,0 +1,54 @@
+{
+  "host": "agy-ide",
+  "version": "2.5.5-ecfbad74d93962fc8ca485d93ab9b4f3d4cb6cf8",
+  "antigravity_agent": "1",
+  "antigravity_cli_alias": "agy-ide",
+  "hooks_config_path": "~/.gemini/config/hooks.json",
+  "hooks_config": {
+    "ceh-safety-gate": {
+      "enabled": true,
+      "PreToolUse": [
+        {
+          "matcher": "run_command",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "python3 ~/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py",
+              "timeout": 15
+            }
+          ]
+        },
+        {
+          "matcher": "write_to_file",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "python3 ~/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py",
+              "timeout": 15
+            }
+          ]
+        },
+        {
+          "matcher": "replace_file_content",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "python3 ~/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py",
+              "timeout": 15
+            }
+          ]
+        },
+        {
+          "matcher": "multi_replace_file_content",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "python3 ~/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py",
+              "timeout": 15
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
