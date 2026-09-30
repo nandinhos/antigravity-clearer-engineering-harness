@@ -48,7 +48,7 @@ def main() -> int:
     # 1. Grava plugins list ANTES
     print("Capturando lista de plugins do Muse ANTES...")
     res_before = subprocess.run(["muse", "plugins", "list", "--json"], capture_output=True, text=True, check=True)
-    (EVIDENCE_DIR / "plugins_list_before.json").write_text(res_before.stdout, encoding="utf-8")
+    (EVIDENCE_DIR / "plugins_list_before.json").write_text(redact_home(res_before.stdout), encoding="utf-8")
 
     # 2. Cria diretórios temporários
     tmp_base = Path(tempfile.mkdtemp(prefix="ceh_e16_muse_")).resolve()
@@ -96,7 +96,7 @@ def main() -> int:
 
         # Grava plugins list com o plugin instalado
         res_installed = subprocess.run(["muse", "plugins", "list", "--json"], capture_output=True, text=True, check=True)
-        (EVIDENCE_DIR / "plugins_list_installed.json").write_text(res_installed.stdout, encoding="utf-8")
+        (EVIDENCE_DIR / "plugins_list_installed.json").write_text(redact_home(res_installed.stdout), encoding="utf-8")
         print("✔ Plugin empacotado instalado e hook aprovado com sucesso.")
 
         # 5. Cenário 1: Comando Seguro (Allow)
@@ -195,7 +195,7 @@ def main() -> int:
         print("Limpando plugin de teste e capturando lista de plugins DEPOIS...")
         subprocess.run(["muse", "plugins", "remove", plugin_id, "--json"], capture_output=True, text=True)
         res_after = subprocess.run(["muse", "plugins", "list", "--json"], capture_output=True, text=True)
-        (EVIDENCE_DIR / "plugins_list_after.json").write_text(res_after.stdout, encoding="utf-8")
+        (EVIDENCE_DIR / "plugins_list_after.json").write_text(redact_home(res_after.stdout), encoding="utf-8")
         shutil.rmtree(tmp_base, ignore_errors=True)
         print("✔ Limpeza de teste concluída.")
 
