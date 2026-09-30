@@ -620,6 +620,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Portão:** sem E1 de um 3º host, a onda para e a v1.4.0 segue.
 - **Fases 1–5:** PR-13 a PR-17 (+ adaptador do Muse), com A1–A3 idênticos em cada PR e conformidade entre todos os hosts no fim; release `v2.0.0`.
 
+### 0.62 Portão da Fase 0 da Onda 4: segue com condições ([Handoff 065](./temp_implementation/handoffs/handoff-065-portao-fase0-onda4-segue-com-condicoes.md))
+
+- **Fase 0 verificada** em `feature/onda-4` (CI verde nos 3 commits): gatilho `feature/**`, retrato A1–A4 com `--check` na suíte, E1 real do Muse (10 payloads, bloqueio por `{"decision":"block"}` observado).
+- **Antes medido da integração:** a v1.4.0 nega todas as ferramentas reais do Muse (`bash`, `write_file`, `edit_file`, `submit_reminder_decision`), porque os nomes são desconhecidos e o gate é fail-closed.
+- **Condições (Fase 0b):** C1 dividir o A2 (o retrato exigia identidade dos 47 `.py` e 16 `.sh` que a onda refatora — erro do Handoff 064); C2 E1b do Muse com `clearer-muse` desligado, modo padrão e braço allow explícito; C3 controle negativo do A3 no servidor; C4 Muse no retrato como marcador do antes.
+- **Próximo:** Fase 0b, nova revisão curta, depois PR-13.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
