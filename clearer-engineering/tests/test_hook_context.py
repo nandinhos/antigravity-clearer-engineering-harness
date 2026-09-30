@@ -240,12 +240,16 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(hook_out["permissionDecision"], "ask")
         self.assertIn("CEH HOMOLOGAÇÃO / STAGING SAFETY GATE", hook_out["permissionDecisionReason"])
 
-    def _run_gate_hook(self, stdin_payload: str) -> tuple[int, dict[str, Any]]:
+    def _run_gate_hook(self, stdin_payload: str, env_extra: dict[str, str] | None = None) -> tuple[int, dict[str, Any]]:
+        env = os.environ.copy()
+        if env_extra:
+            env.update(env_extra)
         proc = subprocess.run(
             [sys.executable, str(SCRIPTS_DIR / "safety-gate.py")],
             input=stdin_payload,
             capture_output=True,
             text=True,
+            env=env,
         )
         try:
             data = json.loads(proc.stdout)
@@ -254,30 +258,30 @@ class TestHookContext(unittest.TestCase):
         return proc.returncode, data
 
     def test_case_9_pr00b_malformed_toolcall_fails_closed(self):
-        """PR-00b: Malformed toolCall ('x') must exit 2 with deny."""
+        """PR-00b: Malformed toolCall ('x') must exit 0 with deny on Antigravity host."""
         code, res = self._run_gate_hook('{"toolCall": "x"}')
-        self.assertEqual(code, 2)
+        self.assertEqual(code, 0, "Antigravity host must exit 0 to block in IDE")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("[CEH SAFETY GATE ERROR]", res.get("reason", ""))
 
     def test_case_10_pr00b_list_payload_fails_closed(self):
-        """PR-00b: Non-object JSON payload ([]) must exit 2 with deny."""
+        """PR-00b: Non-object JSON payload ([]) must exit 0 with deny on default/Antigravity host."""
         code, res = self._run_gate_hook("[]")
-        self.assertEqual(code, 2)
+        self.assertEqual(code, 0, "Default host must exit 0 to prevent fail-open in IDE")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object.", res.get("reason", ""))
 
     def test_case_11_pr00b_string_payload_fails_closed(self):
-        """PR-00b: Non-object string JSON payload (\"texto\") must exit 2 with deny."""
+        """PR-00b: Non-object string JSON payload (\"texto\") must exit 0 with deny on default/Antigravity host."""
         code, res = self._run_gate_hook('"texto"')
-        self.assertEqual(code, 2)
+        self.assertEqual(code, 0, "Default host must exit 0 to prevent fail-open in IDE")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object.", res.get("reason", ""))
 
     def test_case_12_pr00b_invalid_json_text_fails_closed(self):
-        """PR-00b: Invalid JSON text (raw text) must exit 2 with deny."""
+        """PR-00b: Invalid JSON text (raw text) must exit 0 with deny on default/Antigravity host."""
         code, res = self._run_gate_hook("texto_invalido_sem_aspas")
-        self.assertEqual(code, 2)
+        self.assertEqual(code, 0, "Default host must exit 0 to prevent fail-open in IDE")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("[CEH SAFETY GATE ERROR] Hook execution failed:", res.get("reason", ""))
 
@@ -352,30 +356,35 @@ class TestHookContext(unittest.TestCase):
         Row 3: '{"toolCall":{}}'
         Row 4: '{"toolCall":{"name":"run_command","args":{}}}'
         Row 5: '{"tool_name":"Bash","tool_input":{}}'
-        Row 6: '{"tool_name":"Bash","tool_input":{"command":""}}'
-        Row 7: "nao-json"
+        Row 1: "" (vazio) -> deny (exit 0 default / Antigravity; exit 2 no Claude)
+        Row 2: "{}" -> deny (exit 0 default / Antigravity; exit 2 no Claude)
+        Row 3: '{"toolCall":{}}' -> deny, exit 0
+        Row 4: '{"toolCall":{"name":"run_command","args":{}}}' -> deny, exit 0
+        Row 5: '{"tool_name":"Bash","tool_input":{}}' -> deny (Claude format), exit 2
+        Row 6: '{"tool_name":"Bash","tool_input":{"command":""}}' -> deny (Claude format), exit 2
+        Row 7: "nao-json" -> deny (exit 0 default / Antigravity; exit 2 no Claude)
         """
-        # Row 1: "" (vazio) -> deny, exit 2
+        # Row 1: "" (vazio) -> deny, exit 0 no Antigravity/default (evita fail-open na IDE)
         code, res = self._run_gate_hook("")
-        self.assertEqual(code, 2, "Row 1 ('') must exit 2")
+        self.assertEqual(code, 0, "Row 1 ('') must exit 0 in default/Antigravity host")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("Payload vazio", res.get("reason", ""))
 
-        # Row 2: "{}" -> deny, exit 2
+        # Row 2: "{}" -> deny, exit 0 no Antigravity/default
         code, res = self._run_gate_hook("{}")
-        self.assertEqual(code, 2, "Row 2 ('{}') must exit 2")
+        self.assertEqual(code, 0, "Row 2 ('{}') must exit 0 in default/Antigravity host")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("Nenhuma ferramenta identificável", res.get("reason", ""))
 
-        # Row 3: '{"toolCall":{}}' -> deny, exit 2
+        # Row 3: '{"toolCall":{}}' -> deny, exit 0 (Antigravity host)
         code, res = self._run_gate_hook('{"toolCall":{}}')
-        self.assertEqual(code, 2, "Row 3 ('{\"toolCall\":{}}') must exit 2")
+        self.assertEqual(code, 0, "Row 3 ('{\"toolCall\":{}}') must exit 0")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("Nenhuma ferramenta identificável", res.get("reason", ""))
 
-        # Row 4: '{"toolCall":{"name":"run_command","args":{}}}' -> deny, exit 2
+        # Row 4: '{"toolCall":{"name":"run_command","args":{}}}' -> deny, exit 0 (Antigravity host)
         code, res = self._run_gate_hook('{"toolCall":{"name":"run_command","args":{}}}')
-        self.assertEqual(code, 2, "Row 4 must exit 2")
+        self.assertEqual(code, 0, "Row 4 must exit 0")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("Comando vazio ou ausente", res.get("reason", ""))
 
@@ -395,21 +404,21 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(hso.get("permissionDecision"), "deny")
         self.assertIn("Comando vazio ou ausente", hso.get("permissionDecisionReason", ""))
 
-        # Row 7: "nao-json" -> deny, exit 2
+        # Row 7: "nao-json" -> deny, exit 0 no Antigravity/default
         code, res = self._run_gate_hook("nao-json")
-        self.assertEqual(code, 2, "Row 7 ('nao-json') must exit 2")
+        self.assertEqual(code, 0, "Row 7 ('nao-json') must exit 0 in default/Antigravity host")
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("Hook execution failed", res.get("reason", ""))
 
-    def test_case_18_pr09_unknown_tools_fail_closed_exit_2(self):
-        """PR-09: Unrecognized tool names fail-closed with exit code 2 and explicit deny."""
-        # Agy format
+    def test_case_18_pr09_unknown_tools_fail_closed_exit_codes(self):
+        """PR-09: Unrecognized tool names fail-closed with host-specific exit code (0 for agy, 2 for claude)."""
+        # Agy format -> exit 0 com JSON de deny (bloqueia na IDE e no CLI)
         code, res = self._run_gate_hook('{"toolCall":{"name":"ferramenta_desconhecida","args":{"CommandLine":"ls"}}}')
-        self.assertEqual(code, 2)
+        self.assertEqual(code, 0)
         self.assertEqual(res.get("decision"), "deny")
         self.assertIn("Ferramenta desconhecida 'ferramenta_desconhecida'", res.get("reason", ""))
 
-        # Claude format (com hook_event_name identificando o host Claude)
+        # Claude format -> exit 2 com hookSpecificOutput
         code, res = self._run_gate_hook('{"hook_event_name":"PreToolUse","tool_name":"UnknownClaudeTool","tool_input":{"command":"ls"}}')
         self.assertEqual(code, 2)
         self.assertIn("hookSpecificOutput", res)
@@ -417,7 +426,22 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(hso.get("permissionDecision"), "deny")
         self.assertIn("Ferramenta desconhecida 'UnknownClaudeTool'", hso.get("permissionDecisionReason", ""))
 
+    def test_case_19_claude_environment_detection_for_unidentifiable_payload(self):
+        """Para payload não identificável sob ambiente Claude Code, sai com exit 2."""
+        env_claude = {"CLAUDECODE": "1"}
+        code, res = self._run_gate_hook("nao-json", env_extra=env_claude)
+        self.assertEqual(code, 2, "Payload inválido com CLAUDECODE no env deve sair com exit 2")
+        self.assertEqual(res.get("decision"), "deny")
+
+    def test_case_20_mutation_proof_agy_exit2_fails(self):
+        """Prova por mutação: simula que se o agy retornasse exit 2, a validação de contrato de saída falha."""
+        # Comprova que o código de saída atual do agy para negação é estritamente 0
+        code, res = self._run_gate_hook('{"toolCall":{"name":"run_command","args":{"CommandLine":"rm -rf /"}}}')
+        self.assertEqual(code, 0, "Agy deny deve sair com exit 0 para bloquear na IDE")
+        self.assertEqual(res.get("decision"), "deny")
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
