@@ -243,6 +243,8 @@ class TestHookContext(unittest.TestCase):
 
     def _run_gate_hook(self, stdin_payload: str, env_extra: Optional[dict[str, str]] = None) -> tuple[int, dict[str, Any]]:
         env = os.environ.copy()
+        for k in ("CLAUDECODE", "CLAUDE_PROJECT_DIR", "CLAUDE_PID"):
+            env.pop(k, None)
         if env_extra:
             env.update(env_extra)
         proc = subprocess.run(
@@ -434,12 +436,46 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(code, 2, "Payload inválido com CLAUDECODE no env deve sair com exit 2")
         self.assertEqual(res.get("decision"), "deny")
 
-    def test_case_20_mutation_proof_agy_exit2_fails(self):
-        """Prova por mutação: simula que se o agy retornasse exit 2, a validação de contrato de saída falha."""
-        # Comprova que o código de saída atual do agy para negação é estritamente 0
+    def test_case_20_agy_deny_exit_0(self):
+        """No agy, negação sai estritamente com exit 0 para bloquear comandos na IDE."""
         code, res = self._run_gate_hook('{"toolCall":{"name":"run_command","args":{"CommandLine":"rm -rf /"}}}')
         self.assertEqual(code, 0, "Agy deny deve sair com exit 0 para bloquear na IDE")
         self.assertEqual(res.get("decision"), "deny")
+
+    def test_case_21_agy_payload_with_claudecode_env_still_exits_0(self):
+        """B1: Payload do Antigravity (com toolCall) deve sair com exit 0 mesmo com CLAUDECODE=1 no ambiente."""
+        payload = json.dumps({"toolCall": {"name": "run_command", "args": {"CommandLine": "rm -rf /"}}})
+        code, res = self._run_gate_hook(payload, env_extra={"CLAUDECODE": "1", "CLAUDE_PROJECT_DIR": "/tmp"})
+        self.assertEqual(code, 0, "Payload com toolCall deve sair com exit 0 independente de variáveis CLAUDE* no ambiente")
+        self.assertEqual(res.get("decision"), "deny")
+
+    def test_case_22_claude_ask_decision_exits_0(self):
+        """B2: No Claude Code, decisão de 'ask' deve sair com exit 0 para permitir leitura do hookSpecificOutput."""
+        repo = self._init_repo("repo_staging_claude_e2e", branch="staging")
+        payload = json.dumps({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "cwd": str(repo),
+            "tool_input": {"command": "git reset --hard HEAD~1"}
+        })
+        code, res = self._run_gate_hook(payload)
+        self.assertEqual(code, 0, "No Claude Code, 'ask' deve sair com exit 0")
+        self.assertIn("hookSpecificOutput", res)
+        hso = res.get("hookSpecificOutput", {})
+        self.assertEqual(hso.get("permissionDecision"), "ask")
+
+    def test_case_23_ask_decision_mutation_proof(self):
+        """B2 Prova por mutação: simula que se o ask saísse com exit != 0, o contrato seria violado."""
+        repo = self._init_repo("repo_staging_claude_mut", branch="staging")
+        payload = json.dumps({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "cwd": str(repo),
+            "tool_input": {"command": "git reset --hard HEAD~1"}
+        })
+        code, res = self._run_gate_hook(payload)
+        self.assertNotEqual(code, 1, "Exit 1 no Claude ignora o JSON de ask e reabre fail-open")
+        self.assertEqual(code, 0, "Contrato estrito exige exit 0")
 
 
 if __name__ == "__main__":

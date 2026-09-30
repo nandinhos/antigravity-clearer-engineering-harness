@@ -546,7 +546,9 @@ def evaluate_command(
 
 def _is_claude_host(payload: Any = None) -> bool:
     if isinstance(payload, dict):
-        if (payload.get("hook_event_name") == "PreToolUse" or payload.get("tool_name") in ("Bash", "Write", "Edit", "MultiEdit", "NotebookEdit")) and "toolCall" not in payload:
+        if "toolCall" in payload:
+            return False
+        if "hook_event_name" in payload or "tool_name" in payload:
             return True
     return any(k in os.environ for k in ("CLAUDECODE", "CLAUDE_PROJECT_DIR", "CLAUDE_PID"))
 
@@ -591,7 +593,7 @@ def handle_hook():
         if decision == "deny":
             _exit_deny_or_error(payload)
         elif decision == "ask":
-            sys.exit(1)
+            sys.exit(0)
         else:
             sys.exit(0)
     except SystemExit:
