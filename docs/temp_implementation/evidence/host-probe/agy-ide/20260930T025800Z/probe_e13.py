@@ -71,6 +71,13 @@ def main():
     elif mode == "crash":
         raise RuntimeError("[E13 TEST] crash simulado do hook com excecao")
 
+    elif mode == "sleep":
+        import time
+        time.sleep(20)
+        out = {"decision": "deny", "reason": "[E13 TEST] deny apos sleep"}
+        print(json.dumps(out, ensure_ascii=False))
+        sys.exit(0)
+
     elif mode == "allow":
         out = {"decision": "allow", "reason": "[E13 TEST] allow explicito"}
         print(json.dumps(out, ensure_ascii=False))

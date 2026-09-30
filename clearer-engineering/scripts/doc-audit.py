@@ -183,14 +183,12 @@ def main():
     evidence_dir = docs_dir / "temp_implementation" / "evidence"
     if evidence_dir.is_dir():
         for ext in ("*.json", "*.jsonl", "*.txt"):
-            for f in evidence_dir.rglob(ext):
-                if "onda4" not in f.parts:
-                    target_files.append(f)
+            target_files.extend(evidence_dir.rglob(ext))
 
     for target_file in target_files:
         content = target_file.read_text(encoding="utf-8")
         matches = re.findall(r"(file:///(?:home|Users)/[^\s\)\"'>]+|/(?:home|Users)/\w+/[^\s\)\"'>]+)", content)
-        matches = [m for m in matches if not m.startswith(("/home/user/", "/home/user"))]
+        matches = [m for m in matches if not m.startswith(("/home/user/", "/Users/user/"))]
         if matches:
             abs_links_found.append((target_file.relative_to(repo_root), matches))
         sess_matches = re.findall(r"session\s+id:\s+[0-9a-f\-]{36}", content, re.IGNORECASE)

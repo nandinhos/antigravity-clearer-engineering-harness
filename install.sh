@@ -270,12 +270,19 @@ run_self_diagnostics() {
         fi
     fi
 
-    # 3. Test hook fail-closed on empty stdin (PR-09: exit code 2)
+    # 3. Test hook fail-closed on empty stdin (v1.4.1: exit 2 no Claude; exit 0 com deny no Antigravity)
     log_info "Diagnosing hook fail-closed: empty payload handling..."
     local hook_exit=0
-    echo "" | python3 "$GATE_SCRIPT" >/dev/null 2>&1 || hook_exit=$?
-    if [[ "$hook_exit" -ne 2 ]]; then
-        log_error "Self-diagnostic failed: empty stdin did not return exit code 2 (got $hook_exit)"
+    local hook_out
+    hook_out=$(echo "" | python3 "$GATE_SCRIPT" 2>&1) || hook_exit=$?
+    local hook_blocked=0
+    if [[ "$hook_exit" -eq 2 ]]; then
+        hook_blocked=1
+    elif [[ "$hook_exit" -eq 0 ]] && echo "$hook_out" | grep -qi '"decision"[[:space:]]*:[[:space:]]*"deny"'; then
+        hook_blocked=1
+    fi
+    if [[ "$hook_blocked" -ne 1 ]]; then
+        log_error "Self-diagnostic failed: empty stdin was not blocked (exit $hook_exit, output: $hook_out)"
         if [[ "${SKIP_DIAGNOSTICS:-0}" -eq 1 ]]; then
             log_warn "Proceeding because --skip-diagnostics is active."
         else

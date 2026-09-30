@@ -51,6 +51,7 @@ Arquivo de registro bruto: [`invocations.jsonl`](./invocations.jsonl).
 | **`deny/2`** | `{"decision": "deny", "reason": "..."}` | `2` | **EXECUTOU** (`sentinela-hook-deny2` criado) | **FAIL-OPEN COMPROVADO** |
 | **`exit2`** | Sem JSON (apenas stderr) | `2` | **EXECUTOU** (`sentinela-hook-exit2` criado) | **FAIL-OPEN COMPROVADO** |
 | **`crash`** | Exceção não tratada (`RuntimeError`) | `1` | **EXECUTOU** (`sentinela-hook-crash` criado) | **FAIL-OPEN COMPROVADO** |
+| **`timeout`** | Estouro de timeout (sleep 20s > 15s) | N/A (SIGKILL) | **EXECUTOU** (`sentinela-hook-timeout` criado) | **FAIL-OPEN COMPROVADO** |
 
 ---
 
