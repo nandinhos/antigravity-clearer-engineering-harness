@@ -94,9 +94,21 @@ Executado deterministicamente via `clearer-engineering/tests/tools/test_mutation
 
 ## 7. Guia de Novos Hosts
 
-Criado em [docs/adapters/novo-host.md](../adapters/novo-host.md), sintetizando:
+Criado em [docs/adapters/novo-host.md](../../adapters/novo-host.md), sintetizando:
 - E0/E1 (sondagem e gravação de payload real).
 - Contrato de resposta no contexto real de execução (CLI vs IDE).
 - Reserva observada por host (`fallback.py`).
 - Isolamento de plugins pré-existentes e restauração de estado.
 - Confinamento estrito de comandos destrutivos em sandbox temporário.
+
+---
+
+## 8. Execução do CI Remoto (GitHub Actions)
+
+- **Run:** [36762701448](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36762701448)
+- **Status:** **4/4 jobs concluídos com sucesso (`success`)**
+  - `Validate (ubuntu-latest - Python 3.12)`: ✔ PASS (1m53s)
+  - `Validate (ubuntu-latest - Python 3.9)`: ✔ PASS (2m33s)
+  - `Validate (macos-latest - Python 3.12)`: ✔ PASS (5m30s)
+  - `Validate (macos-latest - Python 3.9)`: ✔ PASS (6m44s)
+

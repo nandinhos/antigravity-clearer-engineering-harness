@@ -5,7 +5,7 @@
 **Branch:** `feature/onda-4`  
 **Antecessor:** [Handoff 081](./handoff-081-pr16-homologado-despacho-pr17-conformidade.md)  
 **Status do PR-17:** Entregue para revisão e homologação independente (sem auto-declaração de homologação).  
-**CI:** Acompanhamento após push.
+**CI:** [run 36762701448](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36762701448) = success (4/4 jobs concluídos)
 
 ---
 
