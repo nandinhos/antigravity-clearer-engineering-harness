@@ -668,6 +668,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalvas:** BC3 declarado como arquivado sem arquivo versionado; mutações do `test_mutation_p13.py` na árvore real.
 - **Próximo:** ajuste com teste de fail-closed por mutação; revisão curta; depois PR-14/15.
 
+### 0.69 PR-13 homologado; E14 rejeitada; despacho do PR-14/15 ([Handoff 073](./temp_implementation/handoffs/handoff-073-pr13-homologado-e14-rejeitada-despacho-pr14-15.md))
+
+- **PR-13 homologado (código):** falhas de import e exceções do hook respondem deny com o código de saída do host (mutações independentes); rede idêntica; mutações só em cópia temporária.
+- **E14 rejeitada:** o "log" do canário tem carimbo de 71 minutos antes da existência da v1.4.1 e formato de relatório montado. Evidência de host só vale com o artefato bruto e o comando que o produziu; a E14 é refeita antes do PR para a `main`.
+- **PR-14/15 despachado:** contrato `detect`/`parse`/`render` em `adapters/`, adaptadores Antigravity e Claude Code, `hook_context.py` como despachante em ordem explícita, fixtures por host, 0 referências de host fora de `adapters/`.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
