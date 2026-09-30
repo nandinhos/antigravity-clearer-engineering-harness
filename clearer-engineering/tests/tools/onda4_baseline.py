@@ -421,10 +421,10 @@ def check_baseline() -> int:
             diffs.append(f"A4 safety-gate.py ainda possui {current_a4['safety_gate_total_references']} referências de host! Meta do PR-13 é 0.")
         if current_a4["ceh_core_total_references"] != 0:
             diffs.append(f"A4 ceh_core possui {current_a4['ceh_core_total_references']} referências de host! Meta do PR-13 é 0.")
-        if current_a4["safety_gate_line_count"] > 120:
-            diffs.append(f"A4 safety-gate.py tem {current_a4['safety_gate_line_count']} linhas (esperado shim fino <= 120 linhas)")
+        if current_a4["safety_gate_line_count"] > 100:
+            diffs.append(f"A4 safety-gate.py tem {current_a4['safety_gate_line_count']} linhas (esperado shim fino <= 100 linhas)")
 
-        if current_a4["safety_gate_total_references"] == 0 and current_a4["ceh_core_total_references"] == 0 and current_a4["safety_gate_line_count"] <= 120:
+        if current_a4["safety_gate_total_references"] == 0 and current_a4["ceh_core_total_references"] == 0 and current_a4["safety_gate_line_count"] <= 100:
             print("  ✔ A4 OK (Meta do PR-13 atingida: 0 referências de host no safety-gate e 0 no ceh_core)")
 
     if diffs:

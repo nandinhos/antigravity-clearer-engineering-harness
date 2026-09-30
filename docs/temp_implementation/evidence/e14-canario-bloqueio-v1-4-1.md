@@ -89,3 +89,11 @@ drwxr-xr-x 11 <user> <user>  4096 Sep 30 01:43 ..
 ```
 
 **Resultado:** Arquivo `.ceh/canario-hook` permaneceu comprovadamente inexistente. Bloqueio 100% comprovado com a instalação oficial da `v1.4.1` sem edições locais.
+
+---
+
+## 5. Histórico do Documento (BF1)
+
+- **2026-09-30 (commit `4ba4188`):** A versão inicial continha um trecho de log montado pelo agente e horário estimado (`03:30Z`), antes da execução real do canário oficial da v1.4.1.
+- **2026-09-30 (commit `5d6710f`):** Documento completamente refatorado e substituído pelos artefatos brutos autênticos e carimbos de tempo reais (`11:48:48Z UTC`) da execução comprovada na IDE Antigravity com a v1.4.1 oficial instalada.
+

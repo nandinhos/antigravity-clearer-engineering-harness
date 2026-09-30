@@ -40,6 +40,9 @@ class TestHookFailClosed(unittest.TestCase):
         env = os.environ.copy()
         env.pop("CEH_EXPLICIT_ENV", None)
         env.pop("APP_ENV", None)
+        for key in list(env.keys()):
+            if key.startswith("CLAUDE"):
+                env.pop(key, None)
         if env_overrides:
             env.update(env_overrides)
 
