@@ -22,6 +22,8 @@
 - **Saída bruta do CLI:** Arquivo [`cli_output.txt`](./cli_output.txt)
 - **Payloads registrados:** Arquivo [`e1c_invocations.jsonl`](./e1c_invocations.jsonl)
 
-## 3. Conclusão e Veredito para o Handoff 077 / BH2
+## 3. Conclusão e Veredito para o Handoff 077 / BH2 / BI3
 
-O formato `{"decision": "deny"}` NÃO bloqueia no Muse. O shim precisará adotar formato universal compatível nos 3 hosts conforme deliberação da revisão.
+O formato `{"decision": "deny"}` NÃO bloqueia no Muse (comportamento fail-open comprovado). A resposta de reserva do *shim* passa a emitir `{"decision": "block"}` nativo com exit 0 para o Muse via `adapters/fallback.py` (Handoff 079 / BI1).
+
+> **Nota de Isolamento (Ressalva BI3 / Handoff 079):** O experimento E1c rodou com o plugin antigo `clearer-muse` também ativo no perfil. A conclusão de que `{"decision": "deny"}` não bloqueia se mantém rigorosamente íntegra e incontestável, pois o comando de shell foi executado e o arquivo sentinela criado mesmo na presença de ambos os hooks instalados. Identificadores de sessão foram mascarados conforme regra C5.

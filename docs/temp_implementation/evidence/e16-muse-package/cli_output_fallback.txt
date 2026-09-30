@@ -1,8 +1,11 @@
-CONCLUIDO_ALLOW
+Bloqueado pelo hook, arquivo não criado.
+
+`git push origin dev` falhou antes da execução: `[CEH SAFETY GATE ERROR] Falha crítica de importação dos módulos de segurança (invalid syntax (muse.py, line 1))`.
+
+Como houve erro de hook, `never_created_fallback.txt` não foi criado, conforme a condição.
 
 muse: workspace root: /tmp/ceh_e16_muse_egakwkf8/workspace (explicit)
 muse: workspace trust: trusted source=run-flag
-muse: Git sandbox relaxation cannot resolve the active repository Git storage; .git remains protected.
 muse: Skills: 59 loaded · 1 warning · 1 detail hidden
 muse:   `skills_catalog` was trimmed to fit its size limit (32 KB): 19 descriptions compacted, 0 skill ids omitted
 muse:   Run `muse skills list --source all` for full diagnostics.

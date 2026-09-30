@@ -2,8 +2,8 @@
 
 **Data:** 2026-09-30  
 **Branch:** `feature/onda-4`  
-**Referência:** Handoff 077 (seção 0.72 do plano de implementação)  
-**Status da Implementação:** Concluído, testado, validado ponta a ponta no Muse real (E16) e certificado  
+**Referência:** Handoff 077, Handoff 079 (seção 0.73 do plano de implementação)  
+**Status da Implementação:** Concluído, testado, validado ponta a ponta no Muse real (E16 Refeito com 3 cenários e isolamento total) e certificado  
 
 ---
 
@@ -14,7 +14,9 @@ O **PR-16** resolve a proliferação de cópias vendorizadas e divergências de 
 - Elimina cópias manuais envelhecidas de safety-gate em outros harnesses.
 - Garante empacotamento determinístico (saídas byte a byte idênticas).
 - Atualiza `install.sh` para instalar o Antigravity a partir do pacote gerado na hora, mantendo as medições de baseline A2a e A2b rigorosamente idênticas.
-- Valida o pacote no Muse Code 1.4.1 real através do experimento controlado **E16** com artefatos brutos e bloqueio confinado ao diretório temporário (atendendo à ressalva BH1).
+- **Resolução de BI1 (Handoff 079):** Resposta de reserva do *shim* em `adapters/fallback.py` respondendo no formato nativo de cada host (especialmente `{"decision": "block"}` com exit 0 para o Muse, evitando o fail-open demonstrado no E1c).
+- **Resolução de BI2 (Handoff 079):** Experimento **E16 Refeito** com isolamento total comprovado (`clearer-muse` desativado antes de cada cenário e religado no fim), pacote instalado como gerado (`--plugin-id ceh-e16-gate`) e Cenário 3 provando a reserva do *shim* ponta a ponta.
+- **Resolução de BI3 e BI4:** Session IDs mascarados em E1c e hashes de manifesto 100% auditáveis.
 
 ---
 
@@ -22,7 +24,7 @@ O **PR-16** resolve a proliferação de cópias vendorizadas e divergências de 
 
 O script `clearer-engineering/tools/package.py` opera como CLI padronizado:
 ```bash
-python3 clearer-engineering/tools/package.py --host <antigravity|muse|claude-code> --out <dir>
+python3 clearer-engineering/tools/package.py --host <antigravity|muse|claude-code> --out <dir> [--plugin-id <id>]
 # Ou geração simultânea de todos os pacotes:
 python3 clearer-engineering/tools/package.py --all --out dist/
 ```
@@ -34,7 +36,7 @@ Cada pacote inclui a fonte agnóstica (`safety-gate.py`, `hook_context.py`, `ceh
 | Host | Arquivo de Manifesto | Formato / Estrutura de Hook | Referência de Origem |
 |---|---|---|---|
 | **Antigravity** | `hooks.json` e `plugin.json` | `"ceh-safety-gate": {"enabled": true, "PreToolUse": [{"matcher": "run_command", ...}]}` | Manifesto canônico de produção do CEH |
-| **Muse** | `.muse-plugin/plugin.json` e `manifest.json` | `compat: {"manifestDir": ".muse-plugin", "source": "native"}`, `hooks: [{"event": "PreToolUse", "command": ["python3", "hooks/safety-gate.py"]}]` | Estrutura de plugin observada em E1b e E15 |
+| **Muse** | `.muse-plugin/plugin.json` e `manifest.json` | `compat: {"manifestDir": ".muse-plugin", "source": "native"}`, `hooks: [{"event": "PreToolUse", "command": ["python3", "hooks/safety-gate.py"]}]` | Estrutura de plugin observada em E1b, E15 e E16 |
 | **Claude Code** | `.claude/settings.json` | `hooks: {"PreToolUse": [{"matcher": "Bash", ...}, {"matcher": "Write\|Edit", ...}]}` | Configuração observada na sonda do Handoff 005 |
 
 ### 2.2 Hashes Determinísticos dos Pacotes Gerados
@@ -43,75 +45,67 @@ Dois empacotamentos sucessivos produzem contagens de arquivos e hashes SHA-256 e
 
 | Host | Total de Arquivos | Hash SHA-256 do Pacote | Determinismo |
 |---|---|---|---|
-| **Antigravity** | 121 | `8894f539ed9cd59be7cc87a419ba794604966cf2fd2148ed955fcdf859b21c57` | **100% Reprodutível** |
-| **Muse** | 25 | `7102739ffdf634e28b0b92133df32007d5a0240b9ab5198344954046b8fb71e7` | **100% Reprodutível** |
-| **Claude Code** | 24 | `439f880fad0ba83fd2a258a6934d046f81cd59674918c5765ae6f251501f9bed` | **100% Reprodutível** |
+| **Antigravity** | 122 | Reproduzível | **100% Reprodutível** |
+| **Muse** | 26 | `8eb93301d01e3e19876f1e64fd5c422507e253cbbd72e57ceefb0e81f5cdf38a` (com `--plugin-id ceh-e16-gate`) | **100% Reprodutível** |
+| **Claude Code** | 25 | Reproduzível | **100% Reprodutível** |
 
 ---
 
-## 3. Instalação Transparente via `install.sh`
+## 3. Resolução do Bloqueante BI1: Reserva do Shim por Host (`adapters/fallback.py`)
 
-O script `install.sh` foi atualizado para empacotar o plugin `antigravity` via `package.py` em diretório temporário e implantar a partir do pacote:
-- **A2a (Ativos Não-Código):** 45 ativos não-código byte-a-byte idênticos ao baseline v1.4.0.
-- **A2b (Manifesto da Instalação):** 124 caminhos instalados, com todos os 21 arquivos novos da Onda 4 formalmente declarados em `ONDA4_DECLARED_NEW_PATHS`.
-- **Zero Divergência de Instalação:** O usuário e a IDE do Antigravity continuam recebendo a estrutura canônica sem qualquer fricção ou alteração perceptual.
-
----
-
-## 4. Testes do Empacotador (`test_package.py`)
-
-Arquivo de Teste: `clearer-engineering/tests/test_package.py` (integrado como Teste 72 na suíte geral):
-
-1. **`test_package_determinism`:** Empacotamento em diretórios temporários paralelos gerando hashes idênticos.
-2. **`test_package_manifests_observed`:** Validação de esquemas e comandos de manifestos dos 3 hosts.
-3. **`test_completeness_antigravity`:** Execução hermética de `safety-gate.py` empacotado contra todos os **93 payloads reais** de `antigravity/recorded.jsonl` (100% de conformidade com exit code 0).
-4. **`test_completeness_muse`:** Execução hermética de `hooks/safety-gate.py` empacotado contra todos os **41 payloads reais** de `muse/recorded.jsonl` (100% de conformidade com exit code 0 e payload `{}`).
-5. **`test_completeness_claude_code`:** Execução hermética de `scripts/safety-gate.py` empacotado contra todos os **14 payloads reais** de `claude_code/recorded.jsonl` (100% de conformidade com exit code 0 e payload `{}`).
-6. **`test_negative_control_muse_adapter_missing` (Controle Negativo):**
-   - Um pacote do Muse sem `hooks/adapters/muse.py` foi submetido ao teste de completude.
-   - **Resultado:** O teste de completude **reprovou** (não permitiu a execução) e o shim atuou em fail-closed, respondendo `{"decision": "deny", "reason": "[CEH SAFETY GATE ERROR] Falha crítica de importação dos módulos de segurança..."}`. Comprova que pacotes corrompidos não falham aberto.
+Conforme decisão técnica soberana da revisão no Handoff 079:
+1. **Módulo Isolado (`adapters/fallback.py`):** Construído estritamente com a biblioteca padrão (`stdlib-only`), sem depender do motor (`ceh_core`) nem dos adaptadores.
+2. **Ordem Estrita de Avaliação de Marcadores no Payload Bruto:**
+   - **`toolCall`** -> Antigravity: `{"decision": "deny", "reason": ...}`, exit 0.
+   - **`model_provider` ou `turn_id`** -> Muse: `{"decision": "block", "reason": ...}`, exit 0.
+   - **`hook_event_name` ou `tool_name`** -> Claude Code: `hookSpecificOutput` com `permissionDecision: "deny"`, exit 2.
+   - **Vazio / Não-JSON / Sem Marcador** -> Regra genérica (exit 2 se `CLAUDECODE=1`, senão `{"decision": "deny"}` com exit 0).
+3. **Desacoplamento em `adapters/__init__.py`:** Imports de submódulos removidos de `__init__.py`, evitando que erros sintáticos em `muse.py` contaminem a importação de `fallback.py`.
+4. **Shim (`safety-gate.py`):** Lê stdin uma única vez, tenta acionar `fallback.respond()` e possui 94 linhas (teto <= 100) com zero termos de acoplamento de host (A4 = 0).
+5. **Controle Negativo em `test_package.py`:** Corrigido para exigir `{"decision": "block"}` com exit 0 para pacotes corrompidos do Muse.
+6. **Mutações Falsificáveis (`test_mutation_p16.py`):** Provam que a rede de testes reprova compulsoriamente se a reserva devolver `"deny"` para o Muse.
+7. **Documentação no ADR 007:** Limite intrínseco formalizado ("Muse falha aberto apenas se o adaptador e a própria reserva estiverem quebrados simultaneamente").
 
 ---
 
-## 5. Validação Ponta a Ponta no Muse Real (Experimento E16)
+## 4. Resolução do Bloqueante BI2: Validação Ponta a Ponta no Muse Real (E16 Refeito)
 
-Arquivo do Runner: `docs/temp_implementation/scripts/e16_muse_runner.py`  
 Diretório de Artefatos Brutos: `docs/temp_implementation/evidence/e16-muse-package/`  
+Runner: `docs/temp_implementation/evidence/e16-muse-package/runner.py`  
 
-Foi instanciada uma sessão real do **Muse Code 1.4.1 (1.4.1-R4503.1)** com o pacote `muse` instalado e aprovado como hook `PreToolUse`:
+O experimento E16 foi integralmente refeito com garantias de isolamento inquestionáveis:
+- O plugin antigo `clearer-muse` foi **explicitamente desativado** (`muse plugins disable clearer-muse`) antes do início dos testes e permaneceu inativo em todos os cenários.
+- A lista de plugins (`muse plugins list --json`) foi capturada antes de cada cenário, comprovando que apenas o pacote sob teste estava ativo com hook.
+- O pacote foi instalado exatamente como gerado pelo `package.py --plugin-id ceh-e16-gate` (hash SHA-256 `8eb93301d01e3e19876f1e64fd5c422507e253cbbd72e57ceefb0e81f5cdf38a`).
+- Ao final, o ambiente foi restaurado: plugin temporário removido e `clearer-muse` reabilitado.
 
-| Cenário | Operação Submetida ao Muse | Comportamento do Safety Gate | Comportamento do Muse CLI | Status | Duração |
+### Resultados dos 3 Cenários
+
+| Cenário | Operação Confinada | Comportamento do Hook | Saída Observada no Muse | Status | Duração |
 |---|---|---|---|---|---|
-| **Cenário 1 (Allow)** | `echo 'MUSE_E16_ALLOW_SUCCESS' > sentinel` | Saída `{}` com exit code 0 | Comando executado; arquivo sentinela criado com sucesso | **PASS** | 31.18s |
-| **Cenário 2 (Block)** | `git push origin dev` (sem certificado prévio de CI em repositório local) | Saída `{"decision": "block", "reason": "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: NENHUMA execução prévia comprovada em '.github/workflows'"}` com exit code 0 | Ferramenta interceptada e bloqueada pelo hook; `never_created.txt` não criado | **PASS** | 36.15s |
-
-### Auditoria de Isolamento e Segurança (BH1):
-- **Zero Contaminação do Host:** O plugin original do desenvolvedor (`clearer-muse`) foi preservado intacto. A comparação via `diff` entre [`plugins_list_before.json`](./e16-muse-package/plugins_list_before.json) e [`plugins_list_after.json`](./e16-muse-package/plugins_list_after.json) comprovou restauração idêntica do ambiente.
-- **Confinamento Conforme BH1:** O repositório git e as operações de terminal foram estritamente confinadas ao diretório efêmero `$TMPDIR/workspace`, sem interagir com repositórios externos nem caminhos fora do diretório temporário.
+| **Cenário 1 (Allow)** | `echo 'MUSE_E16_ALLOW_SUCCESS' > sentinel` | Saída `{}` com exit 0 | Comando executado com sucesso; arquivo sentinela criado | **PASS** | 65.78s |
+| **Cenário 2 (Block)** | `git push origin dev` sem CI local | Saída `{"decision": "block", ...}` com exit 0 via `MuseAdapter` | Ferramenta interceptada e bloqueada pelo Pre-Push CI Gate; sentinela não criado | **PASS** | 40.22s |
+| **Cenário 3 (Reserva / BI1)** | `git push origin dev` com `muse.py` corrompido intencionalmente | Saída `{"decision": "block", ...}` com exit 0 via `adapters/fallback.py` | Ferramenta bloqueada pela reserva do shim (`[CEH SAFETY GATE ERROR]`); sentinela não criado | **PASS** | 91.08s |
 
 ---
 
-## 6. Tratamento Consolidado das Ressalvas BH1–BH3 do Handoff 077
+## 5. Resolução das Ressalvas BI3 e BI4
 
-- **BH1 (Alta - E15 e Confinamento de Bloqueios):**
-  - Primeira execução reconstruída formalmente em [`docs/temp_implementation/evidence/e15-muse-hook/e15_run1_rm_rf_attempt.md`](./e15-muse-hook/e15_run1_rm_rf_attempt.md).
-  - Tabela do `summary.md` do E15 corrigida para documentar o comando real `git push origin dev`.
-  - Regra inegociável de confinamento a `$TMPDIR` aplicada e validada no E16.
-- **BH2 (Média - Reserva do Shim no Muse & Experimento E1c):**
-  - Experimento controlado E1c executado no Muse real (`docs/temp_implementation/evidence/host-probe/muse/e1c/`).
-  - Demonstrou que o formato `{"decision": "deny"}` **não bloqueia** no Muse (fail-open), enquanto `{"decision": "block"}` bloqueia com sucesso.
-  - Conforme exigido pelo revisor, o shim **não foi alterado unilateralmente**, mantendo a matriz de evidências observadas à disposição da revisão independente.
-- **BH3 (Baixa - Limite de Detecção):**
-  - Registrado formalmente como limite da arquitetura: ferramentas não mapeadas sem marcadores `model_provider`/`turn_id` seriam roteadas ao adaptador do Claude Code (atualmente 100% dos 41 payloads reais contêm esses marcadores).
+- **BI3 (Identificadores e Isolamento do E1c):**
+  - Session IDs reais em [`e1c_invocations.jsonl`](./host-probe/muse/e1c/e1c_invocations.jsonl) foram mascarados como `sess-e1c-1`, `sess-e1c-2`, `sess-e1c-3` conforme regra C5.
+  - O [`summary.md`](./host-probe/muse/e1c/summary.md) do E1c foi atualizado com nota explícita registrando que, mesmo com `clearer-muse` ativo, a conclusão de que `{"decision": "deny"}` falha aberta no Muse permaneceu inatacável, pois a ferramenta de shell rodou e o sentinela foi gerado.
+- **BI4 (Manifesto Instalado Idêntico ao Gerado):**
+  - O `package.py` passou a aceitar `--plugin-id`, eliminando edições manuais pós-empacotamento. O hash auditável corresponde byte a byte ao pacote instalado.
 
 ---
 
-## 7. Resultados da Suíte Canônica
+## 6. Resultados da Suíte Canônica
 
-- **`clearer-engineering/scripts/doc-audit.sh`:** **7/7** checagens aprovadas.
-- **`onda4_baseline.py --check`:** **5/5** medições aprovadas (A1=1024, A2a=45, A2b=124, A3=107, A3-muse antes=41, A3-muse depois=41, A4=0 refs externas).
+- **`clearer-engineering/scripts/doc-audit.sh`:** **7/7** checagens aprovadas (zero vazamentos de caminhos locais).
+- **`onda4_baseline.py --check`:** **5/5** medições aprovadas (A1=1024, A2a=45, A2b=126, A3=107, A3-muse antes=41, A3-muse depois=41, A4=0 refs externas de host).
 - **`run-all-tests.sh`:** **72/72** testes aprovados (100% de sucesso).
+- **Mutações:** Mutações do PR-13, PR-14/15, PR-15b e PR-16 (`test_mutation_p16.py`) 100% rejeitadas pela rede de não-regressão.
 - **Orçamentos:**
-  - `safety-gate.py`: 100 linhas (teto <= 100).
+  - `safety-gate.py`: 94 linhas (teto <= 100).
   - Módulos core: todos <= 300 linhas.
   - Termos de acoplamento fora de `adapters/`: 0.

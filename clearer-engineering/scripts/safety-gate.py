@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
-"""
-safety-gate.py - PreToolUse Safety Guard for CLEARER Engineering Harness (CEH).
-Repasse fino (shim): le entrada do terminal ou hook, invoca o hook_context e o motor
-ceh_core.engine, e devolve a resposta com o codigo de saida padronizado.
-ZERO referencias a formatos de host.
-"""
+"""safety-gate.py - PreToolUse Safety Guard shim for CEH. ZERO host references."""
 from __future__ import annotations
-
-import argparse
-import json
-import os
-import sys
+import argparse, json, os, sys
 from pathlib import Path
 
 _SCRIPTS_DIR = str(Path(__file__).resolve().parent)
@@ -25,35 +16,43 @@ except Exception as _err:
     _IMPORT_ERROR = _err
     Request = Decision = evaluate = evaluate_command = handle_hook_lifecycle = get_exit_code = None
 
+_FALLBACK = None
+try:
+    from adapters import fallback as _FALLBACK
+except Exception:
+    _FALLBACK = None
+
 
 def _fallback_exit_code() -> int:
-    """Fallback deterministico para erro catastrofico sem termos de host."""
-    is_claude_env = any(k in os.environ for k in ("CLAUDECODE", "CLAUDE_PROJECT_DIR", "CLAUDE_PID"))
-    return 2 if is_claude_env else 0
+    return 2 if any(k in os.environ for k in ("CLAUDECODE", "CLAUDE_PROJECT_DIR", "CLAUDE_PID")) else 0
+
+
+def _emergency_deny(raw_input: str, reason: str):
+    if _FALLBACK is not None:
+        try:
+            _FALLBACK.respond(raw_input, reason)
+        except Exception:
+            pass
+    print(json.dumps({"decision": "deny", "reason": reason}, ensure_ascii=False))
+    sys.exit(_fallback_exit_code())
 
 
 def handle_hook():
     """Processes PreToolUse hook JSON from stdin with fail-closed guarantee."""
-    if _IMPORT_ERROR is not None:
-        resp = {
-            "decision": "deny",
-            "reason": f"[CEH SAFETY GATE ERROR] Falha crítica de importação dos módulos de segurança ({_IMPORT_ERROR}). Execução bloqueada (fail-closed)."
-        }
-        print(json.dumps(resp, ensure_ascii=False))
-        sys.exit(_fallback_exit_code())
-
     try:
         raw_input = sys.stdin.read()
+    except Exception:
+        raw_input = ""
+
+    if _IMPORT_ERROR is not None:
+        _emergency_deny(raw_input, f"[CEH SAFETY GATE ERROR] Falha crítica de importação dos módulos de segurança ({_IMPORT_ERROR}). Execução bloqueada (fail-closed).")
+
+    try:
         response_dict, exit_code = handle_hook_lifecycle(raw_input, evaluate)
         print(json.dumps(response_dict, ensure_ascii=False))
         sys.exit(exit_code)
     except Exception as e:
-        resp = {
-            "decision": "deny",
-            "reason": f"[CEH SAFETY GATE ERROR] Exceção não tratada na execução do hook ({e}). Execução bloqueada (fail-closed)."
-        }
-        print(json.dumps(resp, ensure_ascii=False))
-        sys.exit(_fallback_exit_code())
+        _emergency_deny(raw_input, f"[CEH SAFETY GATE ERROR] Exceção não tratada na execução do hook ({e}). Execução bloqueada (fail-closed).")
 
 
 def main():
@@ -86,12 +85,7 @@ def main():
             "command": args.check
         }
         print(json.dumps(result, indent=2, ensure_ascii=False))
-        if dec.decision == "deny":
-            sys.exit(2)
-        elif dec.decision == "ask":
-            sys.exit(1)
-        else:
-            sys.exit(0)
+        sys.exit(2 if dec.decision == "deny" else (1 if dec.decision == "ask" else 0))
     else:
         handle_hook()
 

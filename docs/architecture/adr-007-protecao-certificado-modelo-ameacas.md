@@ -73,9 +73,17 @@ A caracterização experimental formal na IDE do Antigravity (E13, Handoff 067) 
 - **Erro de Sintaxe no Próprio Gate**: Erros sintáticos que impeçam o Python de iniciar a execução do gate impedem o envio da resposta JSON e resultam em fail-open.
 - **Estouro de Timeout (SIGKILL)**: Conforme comprovado no braço `timeout` do E13, processos de hook que excedam o tempo limite configurado em `hooks.json` (ex: 15s) são abortados pelo host e a ferramenta do agente é executada sem bloqueio.
 
-*Mitigação*: O código do gate trata defensivamente todos os caminhos de erro previsíveis emitindo `{"decision": "deny", ...}` com exit 0 (v1.4.1). Para as falhas intransponíveis de infraestrutura no host local (timeout forçado, binário ausente), a salvaguarda primária e inegociável permanece na garantia do servidor remoto.
+### 5. Resposta de Reserva por Host e Limite Específico no Muse (Handoff 079 / BI1)
+A caracterização experimental E1c demonstrou que o runtime do Muse Code 1.4.1 ignora a resposta `{"decision": "deny"}` (comportamento fail-open), exigindo estritamente o formato nativo `{"decision": "block"}` com exit 0 para efetivar o bloqueio.
 
-### 5. A Mitigação Real: Garantia no Servidor
+Para prevenir fail-open caso o motor de avaliação (`ceh_core`) ou os adaptadores quebrem, o *shim* (`safety-gate.py`) adota o despachante independente `adapters/fallback.py` (stdlib-only), que inspeciona o payload bruto e devolve deterministicamente:
+- `{"decision": "deny"}` com exit 0 para Antigravity (`toolCall`).
+- `{"decision": "block"}` com exit 0 para Muse (`model_provider` ou `turn_id`).
+- `hookSpecificOutput` com `permissionDecision: "deny"` e exit 2 para Claude Code (`hook_event_name` ou `tool_name`).
+
+*Limite Conhecido da Reserva no Muse*: O Muse falha aberto **apenas se** o adaptador (`adapters/muse.py`) **e** a própria reserva (`adapters/fallback.py`) estiverem ambos simultaneamente corrompidos no sistema de arquivos, caso em que o *shim* emite a resposta de emergência pura em formato deny.
+
+### 6. A Mitigação Real: Garantia no Servidor
 Diante de alvos opacos, falhas de host local e comandos montados dinamicamente, a salvaguarda primária e inegociável do CEH é a **Proteção de Branch no Servidor com Status Checks Obrigatórios de CI**. Nenhuma alteração alcança branches protegidas (`main`, `staging`) sem a execução integral da suíte canônica em runner efêmero e auditado no servidor remoto.
 
 ## Consequências

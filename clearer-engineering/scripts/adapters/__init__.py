@@ -1,17 +1,10 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# adapters/__init__.py — Host Adapters Package (PR-14/15)
+# adapters/__init__.py — Host Adapters Package (PR-14/15/16)
 # ==============================================================================
-"""Package containing host-specific hook adapters for CEH."""
+"""
+Package containing host-specific hook adapters for CEH.
+Imports are intentionally isolated to avoid cascade import errors in fallback.
+"""
 
-from adapters.base import HostAdapter
-from adapters.antigravity import AntigravityAdapter
-from adapters.claude_code import ClaudeCodeAdapter
-from adapters.muse import MuseAdapter
-
-__all__ = [
-    "HostAdapter",
-    "AntigravityAdapter",
-    "ClaudeCodeAdapter",
-    "MuseAdapter",
-]
+__all__ = []

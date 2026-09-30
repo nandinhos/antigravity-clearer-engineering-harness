@@ -102,10 +102,11 @@ def package_antigravity(out_dir: Path) -> None:
     _copy_dir_deterministic(scripts_src, scripts_dst)
 
 
-def package_muse(out_dir: Path) -> None:
+def package_muse(out_dir: Path, plugin_id: str | None = None) -> None:
     """Empacota o plugin para Muse Code a partir da estrutura observada em E1b/E15."""
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    pkg_name = plugin_id or "clearer-muse"
     # 1. Manifesto de plugin nativo (.muse-plugin/plugin.json e manifest.json)
     manifest_data = {
         "capabilities": {
@@ -132,7 +133,7 @@ def package_muse(out_dir: Path) -> None:
         },
         "description": "CLEARER Engineering Harness (CEH) PreToolUse Safety Gate for Muse",
         "displayName": "CLEARER Muse Harness",
-        "name": "clearer-muse",
+        "name": pkg_name,
         "schemaVersion": 1,
         "version": "1.4.1"
     }
@@ -227,12 +228,12 @@ def calculate_package_hash(pkg_dir: Path) -> Tuple[str, Dict[str, str]]:
     return hasher.hexdigest(), file_hashes
 
 
-def package_host(host: str, out_dir: Path) -> Tuple[str, int]:
+def package_host(host: str, out_dir: Path, plugin_id: str | None = None) -> Tuple[str, int]:
     """Executa o empacotamento para o host informado."""
     if host == "antigravity":
         package_antigravity(out_dir)
     elif host == "muse":
-        package_muse(out_dir)
+        package_muse(out_dir, plugin_id=plugin_id)
     elif host in ("claude-code", "claude"):
         package_claude_code(out_dir)
     else:
@@ -247,6 +248,7 @@ def main() -> int:
     parser.add_argument("--host", choices=SUPPORTED_HOSTS + ["claude"], help="Host alvo a empacotar")
     parser.add_argument("--out", required=True, help="Diretório de destino do pacote")
     parser.add_argument("--all", action="store_true", help="Gera pacotes para todos os hosts em subdiretórios de --out")
+    parser.add_argument("--plugin-id", default=None, help="ID/nome personalizado do plugin no manifesto (para Muse)")
     parser.add_argument("--json", action="store_true", help="Emite sumário em JSON")
 
     args = parser.parse_args()
@@ -258,7 +260,7 @@ def main() -> int:
             host_out = out_base / h
             if host_out.exists():
                 shutil.rmtree(host_out)
-            pkg_hash, count = package_host(h, host_out)
+            pkg_hash, count = package_host(h, host_out, plugin_id=args.plugin_id)
             results[h] = {"hash": pkg_hash, "file_count": count, "out_dir": str(host_out)}
 
         if args.json:
@@ -276,7 +278,7 @@ def main() -> int:
     if out_base.exists():
         shutil.rmtree(out_base)
 
-    pkg_hash, count = package_host(target_host, out_base)
+    pkg_hash, count = package_host(target_host, out_base, plugin_id=args.plugin_id)
 
     if args.json:
         print(json.dumps({"host": target_host, "hash": pkg_hash, "file_count": count, "out_dir": str(out_base)}, indent=2))

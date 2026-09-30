@@ -196,8 +196,9 @@ class TestPackage(unittest.TestCase):
         resp = json.loads(proc.stdout)
         # 1. Reprovou no teste de completude (não retornou {})
         self.assertNotEqual(resp, {}, "Controle negativo FALHOU: o pacote corrompido permitiu a execução!")
-        # 2. Respondeu deny (fail-closed garantido pelo shim)
-        self.assertEqual(resp.get("decision"), "deny", f"Controle negativo: esperado 'deny', obteve {resp}")
+        # 2. Respondeu block (fail-closed garantido pelo fallback nativo do Muse com exit 0 — BI1)
+        self.assertEqual(resp.get("decision"), "block", f"Controle negativo: esperado 'block', obteve {resp}")
+        self.assertEqual(proc.returncode, 0, f"Esperado exit 0 para Muse no fallback, obteve {proc.returncode}")
         self.assertIn("Falha crítica de importação", resp.get("reason", ""))
 
 

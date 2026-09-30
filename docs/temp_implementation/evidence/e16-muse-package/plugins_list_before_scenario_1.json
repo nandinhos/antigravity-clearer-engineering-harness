@@ -19,7 +19,7 @@
               "id": "safety-gate",
               "matcher": null,
               "shell_command": null,
-              "source_path": "~/.local/share/muse/plugins/cache/local/ceh-e16-gate/81eacbc1b0e2f06fdecf4a265b44f3c7cf0ac9c086ed60c34016510f5644ab49/package/hooks/safety-gate.py",
+              "source_path": "~/.local/share/muse/plugins/cache/local/ceh-e16-gate/4ed7ea1b86d7d265a3112b6c2bb927e1c6589224ccc86b80a4bf8eb1d4cf89ba/package/hooks/safety-gate.py",
               "source_relative_path": "hooks/safety-gate.py",
               "timeout_ms": 10000
             }
@@ -35,17 +35,17 @@
         "version": "1.4.1"
       },
       "record": {
-        "cache_path": "~/.local/share/muse/plugins/cache/local/ceh-e16-gate/81eacbc1b0e2f06fdecf4a265b44f3c7cf0ac9c086ed60c34016510f5644ab49/package",
+        "cache_path": "~/.local/share/muse/plugins/cache/local/ceh-e16-gate/4ed7ea1b86d7d265a3112b6c2bb927e1c6589224ccc86b80a4bf8eb1d4cf89ba/package",
         "description": "CLEARER Engineering Harness (CEH) PreToolUse Safety Gate for Muse",
         "display_name": "CLEARER Muse Harness",
         "enabled": true,
         "id": "ceh-e16-gate",
-        "installed_at": "2026-09-30T16:43:55.991597015Z",
+        "installed_at": "2026-09-30T17:58:29.386409768Z",
         "manifest_family": "native",
         "manifest_sha256": "sha256:95b004f97c0b8e44ab1dd64d2ef08c5b7f213ac9c72c4fa480f178d7708aff1b",
-        "package_sha256": "sha256:81eacbc1b0e2f06fdecf4a265b44f3c7cf0ac9c086ed60c34016510f5644ab49",
+        "package_sha256": "sha256:4ed7ea1b86d7d265a3112b6c2bb927e1c6589224ccc86b80a4bf8eb1d4cf89ba",
         "source": {
-          "path": "/tmp/ceh_e16_muse_jlbdfnzf/packaged_muse",
+          "path": "/tmp/ceh_e16_muse_egakwkf8/packaged_muse",
           "provenance": "native-local"
         },
         "trust": "user-local",
@@ -56,7 +56,7 @@
       "warning": "third-party plugin: hooks require review before activation"
     },
     {
-      "active": true,
+      "active": false,
       "active_scope": "installed-plugin",
       "diagnostics": [],
       "plugin": {
@@ -197,7 +197,7 @@
         "cache_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package",
         "description": "Abstracao do CLEARER Engineering Harness para o Muse: ciclo CLEARER, Risk Dial, safety-gate por ambiente e addon de gestao de tokens, adaptados a este repositorio Laravel.",
         "display_name": "CLEARER Muse Harness",
-        "enabled": true,
+        "enabled": false,
         "id": "clearer-muse",
         "installed_at": "2026-09-24T06:38:06.520818439Z",
         "manifest_family": "native",
