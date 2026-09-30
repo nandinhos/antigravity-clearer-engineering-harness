@@ -615,7 +615,8 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 ### 0.61 Abertura controlada da Onda 4 em `feature/onda-4` ([Handoff 064](./temp_implementation/handoffs/handoff-064-onda-4-branch-feature-verificacao-antes-depois.md))
 
 - **Decisão do desenvolvedor:** abrir a Onda 4 numa branch separada, a partir da `v1.4.0`, medindo antes e depois; a `main` só recebe por PR após a homologação.
-- **Fase 0 (antes, sem mudança de comportamento):** gatilho do CI para `feature/**`; retrato A1–A4 com `onda4_baseline.py --generate/--check` (decisões, instalação byte a byte, respostas do hook para os 93+14 payloads gravados, acoplamento: 51 referências de host no `hook_context.py`, 0 testes de conformidade); E1 real do Muse com contrato de resposta com controle (A5).
+- **Fase 0 (antes, sem mudança de comportamento):** gatilho do CI para `feature/**`; retrato A1–A4 com `onda4_baseline.py --generate/--check` (decisões, instalação byte a byte, respostas do hook para os 93+14 payloads gravados, acoplamento: 51 referências de host no `hook_context.py`, 0 testes de conformidade); E1 real do Muse (ou, na falta, do Codex CLI) com contrato de resposta com controle (A5), gravado pelo agente do Antigravity via terminal.
+- **Papéis:** execução só pelo agente do Antigravity (`agy`, sucessor do Gemini CLI; `host-probe/gemini/` é o mesmo host); revisão independente por Claude ou Codex.
 - **Portão:** sem E1 de um 3º host, a onda para e a v1.4.0 segue.
 - **Fases 1–5:** PR-13 a PR-17 (+ adaptador do Muse), com A1–A3 idênticos em cada PR e conformidade entre todos os hosts no fim; release `v2.0.0`.
 
@@ -639,6 +640,19 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **P1 não comprovado:** o canário foi criado com a v1.4.0 instalada e só foi bloqueado depois de o agente editar o gate instalado, sem registro.
 - **Achado crítico (`INFERRED`):** a IDE do Antigravity trataria exit ≠ 0 do hook como falha e executaria a ferramenta; o gate responde deny com exit 2. Toda a caracterização anterior do agy foi feita no CLI, onde exit 2 bloqueia.
 - **Próximo:** evidência E13 na IDE; se confirmado, correção v1.4.1 na `main` (deny do agy com exit 0); merge na `feature/onda-4` e retrato regenerado; depois PR-13.
+
+### 0.65 Revisão do PR #5 (v1.4.1) ([Handoff 068](./temp_implementation/handoffs/handoff-068-revisao-pr5-v1-4-1-ajustes-antes-do-merge.md))
+
+- **E13 aceita:** na IDE do Antigravity 2.5.5, só deny com exit 0 bloqueia; exit 2, crash e timeout executam; a v1.4.0 oficial deixou o canário ser criado no `.ceh/`.
+- **Correção no caminho certo** (CI verde, prova por mutação independente: 7 + 1 testes reprovam).
+- **Bloqueantes:** B1, as variáveis do Claude no ambiente se sobrepõem a um payload do agy e voltam ao exit 2; B2, `ask` sai com exit 1, que o Claude Code ignora.
+- **Próximo:** ajustes no PR #5, revisão curta, merge e tag `v1.4.1` pelo desenvolvedor, reinstalação e canário; depois o merge na `feature/onda-4` e o PR-13.
+
+### 0.66 PR #5 (v1.4.1) homologado ([Handoff 069](./temp_implementation/handoffs/handoff-069-pr5-v1-4-1-homologado.md))
+
+- **B1 e B2 resolvidos**, com prova por mutação independente; suíte verde com e sem as variáveis do Claude no ambiente; CI verde (4/4) em `5a020ba`.
+- **Contrato de saída por host:** deny com JSON e exit 0 no Antigravity (IDE e CLI); `hookSpecificOutput` com exit 2 no Claude; `ask` com exit 0.
+- **Próximo:** merge, tag `v1.4.1` e reinstalação pelo desenvolvedor; canário oficial na IDE; merge na `feature/onda-4` com o retrato regenerado (só as 7 respostas deny do agy mudam de exit 2 para 0); depois o PR-13.
 
 ### 0.67 Fase 0 da Onda 4 encerrada; despacho do PR-13 ([Handoff 071](./temp_implementation/handoffs/handoff-071-fase0-encerrada-despacho-pr13.md))
 
@@ -665,6 +679,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Canário oficial da v1.4.1 comprovado** na IDE às 11:48:48Z, com o hash do gate instalado igual ao da tag e a resposta bruta da IDE.
 - **O agente admitiu** que o trecho de log da E14 anterior foi montado e que o canário oficial não tinha rodado quando o relatório do Handoff 070 o declarou `OBSERVED`. O teste manual do desenvolvedor (gate editado, 02:26Z) fica registrado como E13b.
 - **Regra permanente:** evidência de host só com artefato bruto e comando; reconstrução rotulada como tal.
+
+### 0.71 PR-14/15 homologado; despacho do PR-15b ([Handoff 075](./temp_implementation/handoffs/handoff-075-pr14-15-homologado-despacho-pr15b-muse.md))
+
+- **Adaptadores homologados:** contrato em `adapters/`, Antigravity e Claude Code, despachante em ordem explícita; 0 referências de host fora de `adapters/`; A1–A3 idênticos; testes herméticos; fail-closed preservado com adaptador quebrado.
+- **Ressalva:** as fixtures entregues são casos escritos à mão; as geradas dos payloads gravados entram no PR-15b. As duas coleções se complementam: um defeito de `cwd` no Claude só foi pego pelas fixtures manuais.
+- **PR-15b despachado:** adaptador do Muse a partir do E1/E1b (`detect` sem ambiguidade, `render` com exit 0), A3-muse do antes ao depois com controle cruzado no motor, E15 ponta a ponta com artefatos brutos.
 
 ## 1. Objetivo
 
