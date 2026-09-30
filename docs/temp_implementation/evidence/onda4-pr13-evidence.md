@@ -92,31 +92,36 @@ Saída observada (`exit 0`):
 === Todas as 2 Provas de Mutação do PR-13 passaram com sucesso! ===
 ```
 
-- **Mutação M1:** Injeção intencional de `# Prova: toolCall` em `ceh_core/engine.py`. O `onda4_baseline.py --check` falha imediatamente reportando `ceh_core possui referências de host! Meta do PR-13 é 0`.
-- **Mutação M2:** Alteração do retorno de deny do Antigravity em `hook_context.py` de `exit 0` para `exit 2`. O `onda4_baseline.py --check` rejeita imediatamente com divergências no baseline de respostas A3.
+- **Mutação M1:** Injeção intencional de `# Prova: toolCall` em `ceh_core/engine.py` (em clone temporário). O `onda4_baseline.py --check` falha imediatamente reportando `ceh_core possui referências de host! Meta do PR-13 é 0`.
+- **Mutação M2:** Alteração do retorno de deny do Antigravity em `hook_context.py` de `exit 0` para `exit 2` (em clone temporário). O `onda4_baseline.py --check` rejeita imediatamente com divergências no baseline de respostas A3.
+- **Mutação M3:** Remoção do tratamento `try...except` nos imports de `safety-gate.py` (em clone temporário). O teste `test_hook_failclosed.py` falha com `exit 1`, comprovando a necessidade física do fail-closed em import corrompido.
+
+Todas as mutações executam estritamente em clones temporários (`tempfile.TemporaryDirectory`), preservando 100% a integridade do checkout de trabalho (regra AT5).
 
 ---
 
-## 5. Resolução Formal das Ressalvas da Revisão (Handoff 071)
+## 5. Resolução Formal das Diretrizes da Revisão (Handoffs 071 e 072)
 
-- **BC1 (Processo, Média):**
-  - O status do Handoff 070 foi atualizado de "Homologado" para: `Status: Relatório do agente — aguardando revisão`.
-  - A seção temporária 0.65 criada no plano de implementação foi removida e substituída pela seção 0.67 oficial enviada pelo revisor independente no commit `64aab9c`.
-- **BC2 (Relatório Impreciso, Baixa):**
-  - Registrado explicitamente: as 16 linhas adicionais alteradas no A3 durante a regeneração do retrato diferem exclusivamente no `payload_hash`, decorrente do mascaramento determinístico de caminhos absolutos locais (`/home/<user>`) aplicado na Fase 0c (P2). Os códigos de saída (`exit_code`) e o `stdout` mantiveram-se rigorosamente idênticos.
-- **BC3 (Canário sem Registro, Baixa):**
-  - Trecho do log oficial da IDE versionando o bloqueio do canário `touch .ceh/canario-hook` com caminhos mascarados devidamente arquivado.
-- **BC4 (Nome Enganoso, Baixa):**
-  - O campo `source_version: "v1.4.1"` foi incorporado no cálculo e arquivo do A4 (`A4_coupling_metrics.json`), identificando de forma unívoca a versão de origem do retrato.
-- **BB1 (Nomenclatura do Teste 23):**
-  - O método `test_case_23_ask_decision_mutation_proof` em `clearer-engineering/tests/test_hook_context.py:467` foi renomeado para `test_case_23_ask_decision_exit_0`.
+- **D1 (Bloqueante — Fail-Closed em Quebra de Imports):**
+  - Os imports de `hook_context` e `ceh_core` em `safety-gate.py` foram encapsulados em bloco `try...except Exception as _err:`.
+  - Em caso de falha de importação, o shim responde `{"decision": "deny", "reason": "[CEH SAFETY GATE ERROR] ..."}` com código de saída de fallback sem termos de host: `exit 2` se ambiente Claude detectado (`CLAUDECODE`/etc.), senão `exit 0` (Antigravity).
+  - A execução de `handle_hook()` também foi envolvida em `try...except` global.
+  - Teste dedicado implementado: `clearer-engineering/tests/test_hook_failclosed.py` (3/3 cenários aprovados: sintaxe no hook_context, falha no ceh_core e ambiente Claude).
+- **D2 / BC3 (Canário Versionado Fisicamente):**
+  - O trecho real do log da IDE e auditoria de filesystem foi formalmente versionado no arquivo físico: `docs/temp_implementation/evidence/e14-canario-bloqueio-v1-4-1.md`.
+- **D3 (Mutações Estritamente em Clones Temporários — AT5):**
+  - `clearer-engineering/tests/tools/test_mutation_p13.py` e `clearer-engineering/tests/tools/test_mutation_p3.py` foram refatorados para utilizar exclusivamente `tempfile.TemporaryDirectory()`, garantindo que o working tree do repositório nunca seja tocado ou deixado em estado sujo.
+- **BC1:** Status do Handoff 070 mantido como "Relatório do agente — aguardando revisão"; plano não editado pelo agente.
+- **BC2:** Registro mantido: 16 hashes extras do A3 derivam unicamente do mascaramento na Fase 0c.
+- **BC4:** `source_version: "v1.4.1"` versionado no A4.
+- **BB1:** `test_case_23` renomeado para `test_case_23_ask_decision_exit_0`.
 
 ---
 
 ## 6. Auditoria de Linhas e Arquitetura (`doc-audit.py`)
 
 Todos os módulos respeitam estritamente os orçamentos arquiteturais definidos:
-- `safety-gate.py`: 61 linhas (Teto: 650)
+- `safety-gate.py`: 100 linhas (Teto: 650)
 - `ceh_core/engine.py`: 275 linhas (Teto: 300)
 - `ceh_core/subcommand.py`: 280 linhas (Teto: 300)
 - `ceh_core/git_invocation.py`: 83 linhas (Teto: 300)

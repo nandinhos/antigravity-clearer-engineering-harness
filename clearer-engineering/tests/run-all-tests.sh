@@ -282,6 +282,11 @@ run_test "Onda 4 Baseline: Retrato de referência v1.4.0 e rede de não-regress�
 run_test "CEH Core Engine: Motor agnóstico de host com evaluate(Request) -> Decision (PR-13)" \
     "python3 '$PLUGIN_DIR/tests/test_engine.py' >/dev/null 2>&1"
 
+# 35. PR-13 Fail-Closed Hook Import Protection (D1)
+run_test "Fail-Closed Hook Imports: Proteção contra quebra de módulos e fail-open na IDE (PR-13 / D1)" \
+    "python3 '$PLUGIN_DIR/tests/test_hook_failclosed.py' >/dev/null 2>&1"
+
+
 
 echo ""
 echo "============================================================"
