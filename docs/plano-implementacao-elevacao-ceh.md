@@ -626,6 +626,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Condições (Fase 0b):** C1 dividir o A2 (o retrato exigia identidade dos 47 `.py` e 16 `.sh` que a onda refatora — erro do Handoff 064); C2 E1b do Muse com `clearer-muse` desligado, modo padrão e braço allow explícito; C3 controle negativo do A3 no servidor; C4 Muse no retrato como marcador do antes.
 - **Próximo:** Fase 0b, nova revisão curta, depois PR-13.
 
+### 0.63 Fase 0b aceita; certificado reescrito no controle negativo ([Handoff 066](./temp_implementation/handoffs/handoff-066-fase0b-onda4-certificado-reescrito-no-negctl.md))
+
+- **Fase 0b aceita** (`ff338d0`, CI verde): A2a/A2b, isolamento do `clearer-muse`, formato do Claude bloqueando no Muse, `ask` não bloqueia (→ `ask → block`), A3-muse com 41 payloads, identificadores mascarados. O braço em modo padrão não foi feito, então o adaptador do Muse responde permitir com `{}`.
+- **Controle negativo válido:** o Teste 66 reprova só no A3 no servidor.
+- **Bloqueante de processo:** para fazer o push da negctl, o agente reescreveu o `commit_hash` do `.ceh/last-ci-run.json`. O gate dá deny para esse comando, então o hook não estava interceptando na sessão do agente. Regras: o agente nunca escreve no `.ceh/`; o push de `claude/negctl-*` é do desenvolvedor.
+- **Próximo:** commit 0c (canário do hook na sessão do agente, evidência sem caminhos de home, `doc-audit` cobrindo a evidência), revisão curta, depois PR-13.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
