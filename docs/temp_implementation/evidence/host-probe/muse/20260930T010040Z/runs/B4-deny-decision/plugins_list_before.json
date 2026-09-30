@@ -11,13 +11,13 @@
               "enabled_default": true,
               "id": "clearer-run",
               "path": "commands/clearer.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/commands/clearer.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/commands/clearer.md"
             },
             {
               "enabled_default": true,
               "id": "token-report",
               "path": "commands/token-report.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/commands/token-report.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/commands/token-report.md"
             }
           ],
           "hooks": [
@@ -32,7 +32,7 @@
               "id": "safety-gate",
               "matcher": null,
               "shell_command": null,
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/hooks/safety-gate.py",
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/hooks/safety-gate.py",
               "source_relative_path": "hooks/safety-gate.py",
               "timeout_ms": 5000
             }
@@ -44,91 +44,91 @@
               "enabled_default": true,
               "id": "clearer",
               "path": "skills/clearer/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "token-economy",
               "path": "skills/token-economy/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/token-economy/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/token-economy/SKILL.md"
             },
             {
               "enabled_default": false,
               "id": "code-minimalism",
               "path": "skills/code-minimalism/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/code-minimalism/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/code-minimalism/SKILL.md"
             },
             {
               "enabled_default": false,
               "id": "debugging",
               "path": "skills/debugging/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/debugging/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/debugging/SKILL.md"
             },
             {
               "enabled_default": false,
               "id": "clearer-bugfix",
               "path": "skills/clearer-bugfix/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-bugfix/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-bugfix/SKILL.md"
             },
             {
               "enabled_default": false,
               "id": "conselho-seniores",
               "path": "skills/conselho-seniores/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/conselho-seniores/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/conselho-seniores/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "clearer-feature",
               "path": "skills/clearer-feature/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-feature/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-feature/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "clearer-refactor",
               "path": "skills/clearer-refactor/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-refactor/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-refactor/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "clearer-review",
               "path": "skills/clearer-review/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-review/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-review/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "clearer-test",
               "path": "skills/clearer-test/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-test/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-test/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "clearer-audit",
               "path": "skills/clearer-audit/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-audit/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-audit/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "clearer-map",
               "path": "skills/clearer-map/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-map/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-map/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "clearer-rules",
               "path": "skills/clearer-rules/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-rules/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-rules/SKILL.md"
             },
             {
               "enabled_default": true,
               "id": "learned-lesson",
               "path": "skills/learned-lesson/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/learned-lesson/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/learned-lesson/SKILL.md"
             },
             {
               "enabled_default": false,
               "id": "clearer-adhd",
               "path": "skills/clearer-adhd/SKILL.md",
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-adhd/SKILL.md"
+              "source_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-adhd/SKILL.md"
             }
           ]
         },
@@ -139,7 +139,7 @@
         "version": "0.8.2"
       },
       "record": {
-        "cache_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package",
+        "cache_path": "~/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package",
         "description": "Abstracao do CLEARER Engineering Harness para o Muse: ciclo CLEARER, Risk Dial, safety-gate por ambiente e addon de gestao de tokens, adaptados a este repositorio Laravel.",
         "display_name": "CLEARER Muse Harness",
         "enabled": false,
@@ -149,7 +149,7 @@
         "manifest_sha256": "sha256:71a30ffb38739d062930b87efcd572cf6ddd1611557824235b4e2ec0c5009c63",
         "package_sha256": "sha256:dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f",
         "source": {
-          "path": "/home/nandodev/projects/muse-harness/profiles/clearer-muse",
+          "path": "~/projects/muse-harness/profiles/clearer-muse",
           "provenance": "native-local"
         },
         "trust": "user-local",
@@ -178,7 +178,7 @@
               "id": "probe-hook",
               "matcher": null,
               "shell_command": null,
-              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/muse-probe/64a953f1a6010b023668cd338e2909c7226d8d43f5a4f839ab65d90e73c93283/package/hooks/probe.py",
+              "source_path": "~/.local/share/muse/plugins/cache/local/muse-probe/64a953f1a6010b023668cd338e2909c7226d8d43f5a4f839ab65d90e73c93283/package/hooks/probe.py",
               "source_relative_path": "hooks/probe.py",
               "timeout_ms": 5000
             }
@@ -194,7 +194,7 @@
         "version": "0.1.0"
       },
       "record": {
-        "cache_path": "/home/nandodev/.local/share/muse/plugins/cache/local/muse-probe/64a953f1a6010b023668cd338e2909c7226d8d43f5a4f839ab65d90e73c93283/package",
+        "cache_path": "~/.local/share/muse/plugins/cache/local/muse-probe/64a953f1a6010b023668cd338e2909c7226d8d43f5a4f839ab65d90e73c93283/package",
         "description": "CEH probe for Muse hooks",
         "display_name": "Muse Probe",
         "enabled": true,
