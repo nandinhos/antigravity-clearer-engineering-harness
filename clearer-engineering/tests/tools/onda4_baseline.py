@@ -210,6 +210,7 @@ def capture_a4() -> Dict[str, Any]:
     hook_ctx_path = REPO_ROOT / "clearer-engineering" / "scripts" / "hook_context.py"
     safety_gate_path = REPO_ROOT / "clearer-engineering" / "scripts" / "safety-gate.py"
     ceh_core_dir = REPO_ROOT / "clearer-engineering" / "scripts" / "ceh_core"
+    adapters_dir = REPO_ROOT / "clearer-engineering" / "scripts" / "adapters"
 
     hook_ctx_text = hook_ctx_path.read_text(encoding="utf-8") if hook_ctx_path.is_file() else ""
     safety_gate_text = safety_gate_path.read_text(encoding="utf-8") if safety_gate_path.is_file() else ""
@@ -224,6 +225,13 @@ def capture_a4() -> Dict[str, Any]:
             for t in COUPLING_TERMS:
                 ceh_core_counts[t] += len(re.findall(re.escape(t), text))
 
+    adapters_counts = {t: 0 for t in COUPLING_TERMS}
+    if adapters_dir.is_dir():
+        for py_file in sorted(adapters_dir.glob("*.py")):
+            text = py_file.read_text(encoding="utf-8")
+            for t in COUPLING_TERMS:
+                adapters_counts[t] += len(re.findall(re.escape(t), text))
+
     conformance_tests = list(REPO_ROOT.glob("clearer-engineering/tests/**/test_*conformance*.py"))
     conformance_count = len(conformance_tests)
 
@@ -237,19 +245,31 @@ def capture_a4() -> Dict[str, Any]:
         "safety_gate_line_count": len(safety_gate_text.splitlines()),
         "ceh_core_terms": ceh_core_counts,
         "ceh_core_total_references": sum(ceh_core_counts.values()),
+        "adapters_terms": adapters_counts,
+        "adapters_total_references": sum(adapters_counts.values()),
         "cross_host_conformance_tests_count": conformance_count,
         "source_version": "v1.4.1",
     }
 
 
-# Arquivos adicionados na Onda 4 declarados no plano de engenharia (PR-13)
+# Arquivos adicionados na Onda 4 declarados no plano de engenharia (PR-13 e PR-14/15)
 ONDA4_DECLARED_NEW_PATHS = {
+    # PR-13
     ".gemini/config/plugins/clearer-engineering/scripts/ceh_core/engine.py",
     ".gemini/config/plugins/clearer-engineering/scripts/ceh_core/git_invocation.py",
     ".gemini/config/plugins/clearer-engineering/scripts/ceh_core/subcommand.py",
     ".gemini/config/plugins/clearer-engineering/tests/test_engine.py",
     ".gemini/config/plugins/clearer-engineering/tests/test_hook_failclosed.py",
     ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p13.py",
+    # PR-14/15
+    ".gemini/config/plugins/clearer-engineering/scripts/adapters/__init__.py",
+    ".gemini/config/plugins/clearer-engineering/scripts/adapters/base.py",
+    ".gemini/config/plugins/clearer-engineering/scripts/adapters/antigravity.py",
+    ".gemini/config/plugins/clearer-engineering/scripts/adapters/claude_code.py",
+    ".gemini/config/plugins/clearer-engineering/tests/test_adapters.py",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/antigravity/cases.jsonl",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/claude_code/cases.jsonl",
+    ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p14.py",
 }
 
 
@@ -334,7 +354,7 @@ def check_baseline() -> int:
         cur_non_code = current_a2.get("a2a_non_code_files", {})
 
         missing_non_code = set(exp_non_code.keys()) - set(cur_non_code.keys())
-        extra_non_code = set(cur_non_code.keys()) - set(exp_non_code.keys())
+        extra_non_code = {k for k in (set(cur_non_code.keys()) - set(exp_non_code.keys())) if k not in ONDA4_DECLARED_NEW_PATHS}
         non_code_mismatches = []
         for fn in sorted(set(exp_non_code.keys()) & set(cur_non_code.keys())):
             if exp_non_code[fn] != cur_non_code[fn]:
@@ -414,18 +434,23 @@ def check_baseline() -> int:
     else:
         expected_a4 = json.loads(a4_file.read_text(encoding="utf-8"))
         current_a4 = capture_a4()
-        print(f"  • A4 Atual (PR-13): hook_context={current_a4['hook_context_total_references']} refs, safety_gate={current_a4['safety_gate_total_references']} refs, ceh_core={current_a4['ceh_core_total_references']} refs, safety_gate={current_a4['safety_gate_line_count']} linhas")
+        print(f"  • A4 Atual (PR-14/15): hook_context={current_a4['hook_context_total_references']} refs, safety_gate={current_a4['safety_gate_total_references']} refs, ceh_core={current_a4['ceh_core_total_references']} refs, safety_gate={current_a4['safety_gate_line_count']} linhas, adapters={current_a4['adapters_total_references']} refs")
         print(f"  • A4 Retrato v1.4.1 (antes PR-13): hook_context={expected_a4['hook_context_total_references']} refs, safety_gate={expected_a4['safety_gate_total_references']} refs, {expected_a4['safety_gate_line_count']} linhas")
 
         if current_a4["safety_gate_total_references"] != 0:
-            diffs.append(f"A4 safety-gate.py ainda possui {current_a4['safety_gate_total_references']} referências de host! Meta do PR-13 é 0.")
+            diffs.append(f"A4 safety-gate.py ainda possui {current_a4['safety_gate_total_references']} referências de host! Meta é 0.")
         if current_a4["ceh_core_total_references"] != 0:
-            diffs.append(f"A4 ceh_core possui {current_a4['ceh_core_total_references']} referências de host! Meta do PR-13 é 0.")
+            diffs.append(f"A4 ceh_core possui {current_a4['ceh_core_total_references']} referências de host! Meta é 0.")
+        if current_a4["hook_context_total_references"] != 0:
+            diffs.append(f"A4 hook_context.py possui {current_a4['hook_context_total_references']} referências de host! Meta do PR-14/15 é 0 fora de adapters/.")
         if current_a4["safety_gate_line_count"] > 100:
             diffs.append(f"A4 safety-gate.py tem {current_a4['safety_gate_line_count']} linhas (esperado shim fino <= 100 linhas)")
 
-        if current_a4["safety_gate_total_references"] == 0 and current_a4["ceh_core_total_references"] == 0 and current_a4["safety_gate_line_count"] <= 100:
-            print("  ✔ A4 OK (Meta do PR-13 atingida: 0 referências de host no safety-gate e 0 no ceh_core)")
+        if (current_a4["safety_gate_total_references"] == 0 and
+            current_a4["ceh_core_total_references"] == 0 and
+            current_a4["hook_context_total_references"] == 0 and
+            current_a4["safety_gate_line_count"] <= 100):
+            print(f"  ✔ A4 OK (Meta do PR-14/15 atingida: 0 referências de host fora de adapters/; adapters/ isola {current_a4['adapters_total_references']} termos)")
 
     if diffs:
         print("\n============================================================", file=sys.stderr)
