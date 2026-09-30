@@ -173,3 +173,38 @@ EXIT CODE: 0
 STATUS:    PASS
 ==========================================
 ```
+
+---
+
+## 7. Pipeline de Integração Contínua (GitHub Actions CI)
+
+A esteira de CI do GitHub Actions foi executada com matriz completa em múltiplos sistemas operacionais e versões de Python:
+
+- **Commit Principal (PR-14/15)**: [`db9c1c3`](https://github.com/nandinhos/antigravity-clearer-engineering-harness/commit/db9c1c3894dad669c7d866a1145e24d4ba281067)
+- **Commit Multiplataforma (macOS Runner)**: [`c4ef0f1`](https://github.com/nandinhos/antigravity-clearer-engineering-harness/commit/c4ef0f1b9c967ac0aa97513dcece520e59f29ab1)
+- **Run ID Conclusivo**: [`36730535820`](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36730535820)
+- **Status Geral**: ✔ **SUCCESS (4/4 jobs verdes)**
+
+| Job | Ambiente | Duração | Resultado |
+|---|---|---|---|
+| `Validate (ubuntu-latest - Python 3.9)` | Ubuntu 24.04 / Python 3.9 | 2m 8s | ✔ **SUCCESS** |
+| `Validate (ubuntu-latest - Python 3.12)` | Ubuntu 24.04 / Python 3.12 | 1m 53s | ✔ **SUCCESS** |
+| `Validate (macos-latest - Python 3.9)` | macOS 14 / Python 3.9 | 3m 57s | ✔ **SUCCESS** |
+| `Validate (macos-latest - Python 3.12)` | macOS 14 / Python 3.12 | 5m 1s | ✔ **SUCCESS** |
+
+---
+
+## 8. Certificado de Voo de CI
+
+Certificado hermético emitido em `.ceh/last-ci-run.json`:
+```json
+{
+  "commit_hash": "c4ef0f1b9c967ac0aa97513dcece520e59f29ab1",
+  "timestamp": "2026-09-30T14:37:14Z",
+  "command": "rtk bash clearer-engineering/tests/run-all-tests.sh",
+  "normalized_runner": "bash clearer-engineering/tests/run-all-tests.sh",
+  "canonical_verified": true,
+  "status": "PASS",
+  "exit_code": 0
+}
+```
