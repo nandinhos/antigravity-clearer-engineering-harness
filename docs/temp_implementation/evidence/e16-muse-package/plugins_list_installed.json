@@ -1,0 +1,273 @@
+{
+  "plugins": [
+    {
+      "active": true,
+      "active_scope": "installed-plugin",
+      "diagnostics": [],
+      "plugin": {
+        "capabilities": {
+          "commands": [],
+          "hooks": [
+            {
+              "async": false,
+              "command": [
+                "python3",
+                "hooks/safety-gate.py"
+              ],
+              "compatibility_name": null,
+              "event": "PreToolUse",
+              "id": "safety-gate",
+              "matcher": null,
+              "shell_command": null,
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/ceh-e16-gate/81eacbc1b0e2f06fdecf4a265b44f3c7cf0ac9c086ed60c34016510f5644ab49/package/hooks/safety-gate.py",
+              "source_relative_path": "hooks/safety-gate.py",
+              "timeout_ms": 10000
+            }
+          ],
+          "mcp_servers": [],
+          "reminders": [],
+          "skills": []
+        },
+        "description": "CLEARER Engineering Harness (CEH) PreToolUse Safety Gate for Muse",
+        "display_name": "CLEARER Muse Harness",
+        "id": "ceh-e16-gate",
+        "manifest_family": "native",
+        "version": "1.4.1"
+      },
+      "record": {
+        "cache_path": "/home/nandodev/.local/share/muse/plugins/cache/local/ceh-e16-gate/81eacbc1b0e2f06fdecf4a265b44f3c7cf0ac9c086ed60c34016510f5644ab49/package",
+        "description": "CLEARER Engineering Harness (CEH) PreToolUse Safety Gate for Muse",
+        "display_name": "CLEARER Muse Harness",
+        "enabled": true,
+        "id": "ceh-e16-gate",
+        "installed_at": "2026-09-30T16:43:55.991597015Z",
+        "manifest_family": "native",
+        "manifest_sha256": "sha256:95b004f97c0b8e44ab1dd64d2ef08c5b7f213ac9c72c4fa480f178d7708aff1b",
+        "package_sha256": "sha256:81eacbc1b0e2f06fdecf4a265b44f3c7cf0ac9c086ed60c34016510f5644ab49",
+        "source": {
+          "path": "/tmp/ceh_e16_muse_jlbdfnzf/packaged_muse",
+          "provenance": "native-local"
+        },
+        "trust": "user-local",
+        "updated_at": null,
+        "version": "1.4.1"
+      },
+      "valid": true,
+      "warning": "third-party plugin: hooks require review before activation"
+    },
+    {
+      "active": true,
+      "active_scope": "installed-plugin",
+      "diagnostics": [],
+      "plugin": {
+        "capabilities": {
+          "commands": [
+            {
+              "enabled_default": true,
+              "id": "clearer-run",
+              "path": "commands/clearer.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/commands/clearer.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "token-report",
+              "path": "commands/token-report.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/commands/token-report.md"
+            }
+          ],
+          "hooks": [
+            {
+              "async": false,
+              "command": [
+                "python3",
+                "hooks/safety-gate.py"
+              ],
+              "compatibility_name": null,
+              "event": "PreToolUse",
+              "id": "safety-gate",
+              "matcher": null,
+              "shell_command": null,
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/hooks/safety-gate.py",
+              "source_relative_path": "hooks/safety-gate.py",
+              "timeout_ms": 5000
+            }
+          ],
+          "mcp_servers": [],
+          "reminders": [],
+          "skills": [
+            {
+              "enabled_default": true,
+              "id": "clearer",
+              "path": "skills/clearer/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "token-economy",
+              "path": "skills/token-economy/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/token-economy/SKILL.md"
+            },
+            {
+              "enabled_default": false,
+              "id": "code-minimalism",
+              "path": "skills/code-minimalism/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/code-minimalism/SKILL.md"
+            },
+            {
+              "enabled_default": false,
+              "id": "debugging",
+              "path": "skills/debugging/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/debugging/SKILL.md"
+            },
+            {
+              "enabled_default": false,
+              "id": "clearer-bugfix",
+              "path": "skills/clearer-bugfix/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-bugfix/SKILL.md"
+            },
+            {
+              "enabled_default": false,
+              "id": "conselho-seniores",
+              "path": "skills/conselho-seniores/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/conselho-seniores/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "clearer-feature",
+              "path": "skills/clearer-feature/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-feature/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "clearer-refactor",
+              "path": "skills/clearer-refactor/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-refactor/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "clearer-review",
+              "path": "skills/clearer-review/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-review/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "clearer-test",
+              "path": "skills/clearer-test/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-test/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "clearer-audit",
+              "path": "skills/clearer-audit/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-audit/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "clearer-map",
+              "path": "skills/clearer-map/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-map/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "clearer-rules",
+              "path": "skills/clearer-rules/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-rules/SKILL.md"
+            },
+            {
+              "enabled_default": true,
+              "id": "learned-lesson",
+              "path": "skills/learned-lesson/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/learned-lesson/SKILL.md"
+            },
+            {
+              "enabled_default": false,
+              "id": "clearer-adhd",
+              "path": "skills/clearer-adhd/SKILL.md",
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package/skills/clearer-adhd/SKILL.md"
+            }
+          ]
+        },
+        "description": "Abstracao do CLEARER Engineering Harness para o Muse: ciclo CLEARER, Risk Dial, safety-gate por ambiente e addon de gestao de tokens, adaptados a este repositorio Laravel.",
+        "display_name": "CLEARER Muse Harness",
+        "id": "clearer-muse",
+        "manifest_family": "native",
+        "version": "0.8.2"
+      },
+      "record": {
+        "cache_path": "/home/nandodev/.local/share/muse/plugins/cache/local/clearer-muse/dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f/package",
+        "description": "Abstracao do CLEARER Engineering Harness para o Muse: ciclo CLEARER, Risk Dial, safety-gate por ambiente e addon de gestao de tokens, adaptados a este repositorio Laravel.",
+        "display_name": "CLEARER Muse Harness",
+        "enabled": true,
+        "id": "clearer-muse",
+        "installed_at": "2026-09-24T06:38:06.520818439Z",
+        "manifest_family": "native",
+        "manifest_sha256": "sha256:71a30ffb38739d062930b87efcd572cf6ddd1611557824235b4e2ec0c5009c63",
+        "package_sha256": "sha256:dbf498cb9e227ceda7b07acee7a26792df13c1843bdf8d0a915ba9ca48aa150f",
+        "source": {
+          "path": "/home/nandodev/projects/muse-harness/profiles/clearer-muse",
+          "provenance": "native-local"
+        },
+        "trust": "user-local",
+        "updated_at": "2026-09-29T03:10:11.467553531Z",
+        "version": "0.8.2"
+      },
+      "valid": true,
+      "warning": "third-party plugin: hooks require review before activation; skills and commands are active without review while the plugin is enabled"
+    },
+    {
+      "active": false,
+      "active_scope": "installed-plugin",
+      "diagnostics": [],
+      "plugin": {
+        "capabilities": {
+          "commands": [],
+          "hooks": [
+            {
+              "async": false,
+              "command": [
+                "python3",
+                "hooks/probe.py"
+              ],
+              "compatibility_name": null,
+              "event": "PreToolUse",
+              "id": "probe-hook",
+              "matcher": null,
+              "shell_command": null,
+              "source_path": "/home/nandodev/.local/share/muse/plugins/cache/local/muse-probe/64a953f1a6010b023668cd338e2909c7226d8d43f5a4f839ab65d90e73c93283/package/hooks/probe.py",
+              "source_relative_path": "hooks/probe.py",
+              "timeout_ms": 5000
+            }
+          ],
+          "mcp_servers": [],
+          "reminders": [],
+          "skills": []
+        },
+        "description": "CEH probe for Muse hooks",
+        "display_name": "Muse Probe",
+        "id": "muse-probe",
+        "manifest_family": "native",
+        "version": "0.1.0"
+      },
+      "record": {
+        "cache_path": "/home/nandodev/.local/share/muse/plugins/cache/local/muse-probe/64a953f1a6010b023668cd338e2909c7226d8d43f5a4f839ab65d90e73c93283/package",
+        "description": "CEH probe for Muse hooks",
+        "display_name": "Muse Probe",
+        "enabled": false,
+        "id": "muse-probe",
+        "installed_at": "2026-09-29T23:57:27.714921391Z",
+        "manifest_family": "native",
+        "manifest_sha256": "sha256:bba1cf784b56cf909ae3ff3bc50d2b083413d86e45f8a75b268218a696eebed1",
+        "package_sha256": "sha256:64a953f1a6010b023668cd338e2909c7226d8d43f5a4f839ab65d90e73c93283",
+        "source": {
+          "path": "/tmp/muse-probe-test",
+          "provenance": "native-local"
+        },
+        "trust": "user-local",
+        "updated_at": null,
+        "version": "0.1.0"
+      },
+      "valid": true,
+      "warning": "third-party plugin: hooks require review before activation"
+    }
+  ]
+}

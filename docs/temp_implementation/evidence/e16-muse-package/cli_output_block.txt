@@ -1,0 +1,9 @@
+Push bloqueado pelo hook pré-push: sem execução prévia comprovada em `.github/workflows`.
+
+Não criei `never_created.txt` porque a condição (push sem erro de hook) não foi atendida.
+
+muse: workspace root: /tmp/ceh_e16_muse_jlbdfnzf/workspace (explicit)
+muse: workspace trust: trusted source=run-flag
+muse: Skills: 71 loaded · 1 warning · 1 detail hidden
+muse:   `skills_catalog` was trimmed to fit its size limit (32 KB): 26 descriptions compacted, 0 skill ids omitted
+muse:   Run `muse skills list --source all` for full diagnostics.

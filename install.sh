@@ -144,10 +144,22 @@ deploy_harness() {
     mkdir -p "$GEMINI_CONFIG_DIR/agents"
     mkdir -p "$TARGET_AGENT_DIR"
 
-    # Copy Plugin Assets
+    # 3.1 Generate fresh Antigravity package on the fly (PR-16)
+    local PKG_TMP_DIR
+    PKG_TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-pkg-antigravity-XXXXXX")
+    local PACKAGE_PY="$SOURCE_DIR/clearer-engineering/tools/package.py"
+    if [[ ! -f "$PACKAGE_PY" ]]; then
+        log_error "Packager tool not found at $PACKAGE_PY"
+        exit 1
+    fi
+    python3 "$PACKAGE_PY" --host antigravity --out "$PKG_TMP_DIR"
+
+    # 3.2 Deploy Plugin Assets from generated package
     rm -rf "$TARGET_PLUGIN_DIR"
     mkdir -p "$TARGET_PLUGIN_DIR"
-    cp -r "$SOURCE_DIR/clearer-engineering/." "$TARGET_PLUGIN_DIR/"
+    cp -r "$PKG_TMP_DIR/." "$TARGET_PLUGIN_DIR/"
+    rm -rf "$PKG_TMP_DIR"
+
     if [[ -d "$SOURCE_DIR/evals" ]]; then
         cp -r "$SOURCE_DIR/evals" "$TARGET_PLUGIN_DIR/"
         chmod +x "$TARGET_PLUGIN_DIR/evals"/* 2>/dev/null || true

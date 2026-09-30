@@ -278,6 +278,8 @@ ONDA4_DECLARED_NEW_PATHS = {
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/muse/cases.jsonl",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/muse/recorded.jsonl",
     ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p15b.py",
+    # PR-16
+    ".gemini/config/plugins/clearer-engineering/tests/test_package.py",
 }
 
 

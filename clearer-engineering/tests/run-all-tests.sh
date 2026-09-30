@@ -298,6 +298,10 @@ run_test "Host Adapters Mutations: Provas de falsificabilidade por mutação em 
 run_test "Muse Adapter Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-15b)" \
     "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p15b.py' >/dev/null 2>&1"
 
+# 39. PR-16 Multi-Host Package Generator Suite (Determinismo, Completude e Controle Negativo)
+run_test "Multi-Host Package Generator: Determinismo, manifestos observados, completude e controle negativo (PR-16)" \
+    "python3 '$PLUGIN_DIR/tests/test_package.py' >/dev/null 2>&1"
+
 
 
 echo ""
