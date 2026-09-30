@@ -254,31 +254,25 @@ class TestCrossHostConformance(unittest.TestCase):
 
     def test_cross_host_conformance_corpus(self):
         """
-        Executa em processo todos os comandos do gate_corpus (1.024 avaliações) nos 3 hosts:
+        Executa em processo todos os comandos do gate_corpus (1.016 comandos e integrações) nos 3 hosts:
         - Decisão e use_case rigorosamente iguais entre Antigravity, Claude Code, Muse e CEH Core engine.
         - Respostas de renderização e exit codes rigorosamente de acordo com a tabela observada.
+        - Total: 1.016 comandos × 3 hosts = 3.048 avaliações (BJ2).
         """
         self.assertTrue(self.corpus_file.is_file(), f"Arquivo de corpus não encontrado: {self.corpus_file}")
         entries = [json.loads(line) for line in self.corpus_file.read_text(encoding="utf-8").splitlines() if line.strip()]
-        self.assertEqual(len(entries), 1024, "gate_corpus.expected.jsonl deve conter exatamente 1.024 entradas.")
+
+        # BJ2: Filtra estritamente os comandos e integrações reais (1.014 command + 2 integration = 1.016)
+        command_entries = [e for e in entries if e.get("type") in ("command", "integration")]
+        self.assertEqual(len(command_entries), 1016, "Corpus deve conter exatamente 1.016 entradas de comando e integração.")
 
         evaluated_count = 0
         divergences: list[str] = []
 
-        for idx, entry in enumerate(entries):
+        for idx, entry in enumerate(command_entries):
             etype = entry.get("type")
-            if etype == "command":
-                cmd = entry["command"]
-                env = entry["env"]
-            elif etype == "integration":
-                cmd = entry["command"]
-                env = "development"
-            elif etype == "hook":
-                # Para hooks sintéticos, preserva comando do payload correspondente
-                cmd = "git status"
-                env = "development"
-            else:
-                continue
+            cmd = entry["command"]
+            env = entry.get("env", "development")
 
             target_dir = self.env_to_dir[env]
 
@@ -358,10 +352,98 @@ class TestCrossHostConformance(unittest.TestCase):
 
             evaluated_count += 1
 
-        self.assertEqual(evaluated_count, 1024, "Todas as 1.024 entradas do corpus devem ser avaliadas.")
+        self.assertEqual(evaluated_count, 1016, "Devem ser avaliadas exatamente 1.016 entradas de comando.")
         self.assertEqual(
             len(divergences), 0,
             f"Encontrada(s) {len(divergences)} divergência(s) de conformidade cross-host:\n" + "\n".join(divergences[:15])
+        )
+
+    def test_cross_host_conformance_subprocess_sample(self):
+        """
+        BJ1: Valida o caminho real de produção (safety-gate.py via subprocesso e handle_hook_lifecycle)
+        em uma amostra uniforme de 1 a cada 20 comandos do corpus (51 comandos × 3 hosts = 153 execuções).
+        Comprova que os exit codes e saídas JSON do processo filho conferem rigorosamente com a tabela observada.
+        """
+        safety_gate_py = self.repo_root / "clearer-engineering" / "scripts" / "safety-gate.py"
+        self.assertTrue(safety_gate_py.is_file(), f"safety-gate.py não encontrado: {safety_gate_py}")
+
+        entries = [json.loads(line) for line in self.corpus_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+        command_entries = [e for e in entries if e.get("type") in ("command", "integration")]
+        sample = command_entries[::20]  # 51 comandos
+        self.assertGreaterEqual(len(sample), 50)
+
+        clean_env = os.environ.copy()
+        clean_env.pop("CLAUDECODE", None)
+        clean_env.pop("CLAUDE_PROJECT_DIR", None)
+        clean_env.pop("CLAUDE_PID", None)
+        clean_env.pop("CEH_EXPLICIT_ENV", None)
+        clean_env.pop("APP_ENV", None)
+
+        subprocess_divergences: list[str] = []
+
+        for idx, entry in enumerate(sample):
+            cmd = entry["command"]
+            env = entry.get("env", "development")
+            target_dir = self.env_to_dir[env]
+
+            engine_dec = evaluate(Request(command=cmd, cwd=target_dir))
+
+            for host in ["antigravity", "claude_code", "muse"]:
+                payload = build_synthetic_terminal_payload(host, cmd, target_dir)
+
+                proc = subprocess.run(
+                    [sys.executable, str(safety_gate_py)],
+                    input=json.dumps(payload),
+                    capture_output=True,
+                    text=True,
+                    cwd=str(target_dir),
+                    env=clean_env,
+                )
+
+                stdout_text = proc.stdout.strip()
+                out_json: dict[str, Any] = {}
+                if stdout_text:
+                    try:
+                        out_json = json.loads(stdout_text)
+                    except Exception as e:
+                        subprocess_divergences.append(
+                            f"Falha ao parsear JSON de saída em {host} para '{cmd}': {stdout_text} ({e})"
+                        )
+                        continue
+
+                # Conferência de saída e exit code conforme o motor e a tabela
+                if host == "antigravity":
+                    if engine_dec.decision == "allow":
+                        if out_json.get("decision") != "allow" or proc.returncode != 0:
+                            subprocess_divergences.append(f"Subprocess Antigravity allow falhou em '{cmd}': {stdout_text} (exit {proc.returncode})")
+                    else:
+                        if out_json.get("decision") != "deny" or proc.returncode != 0:
+                            subprocess_divergences.append(f"Subprocess Antigravity deny falhou em '{cmd}': {stdout_text} (exit {proc.returncode})")
+
+                elif host == "claude_code":
+                    if engine_dec.decision == "allow":
+                        if out_json != {} or proc.returncode != 0:
+                            subprocess_divergences.append(f"Subprocess Claude allow falhou em '{cmd}': {stdout_text} (exit {proc.returncode})")
+                    elif engine_dec.decision == "deny":
+                        hso = out_json.get("hookSpecificOutput", {})
+                        if hso.get("permissionDecision") != "deny" or proc.returncode != 2:
+                            subprocess_divergences.append(f"Subprocess Claude deny falhou em '{cmd}': {stdout_text} (exit {proc.returncode})")
+                    elif engine_dec.decision == "ask":
+                        hso = out_json.get("hookSpecificOutput", {})
+                        if hso.get("permissionDecision") != "ask" or proc.returncode != 0:
+                            subprocess_divergences.append(f"Subprocess Claude ask falhou em '{cmd}': {stdout_text} (exit {proc.returncode})")
+
+                elif host == "muse":
+                    if engine_dec.decision == "allow":
+                        if out_json != {} or proc.returncode != 0:
+                            subprocess_divergences.append(f"Subprocess Muse allow falhou em '{cmd}': {stdout_text} (exit {proc.returncode})")
+                    else:
+                        if out_json.get("decision") != "block" or proc.returncode != 0:
+                            subprocess_divergences.append(f"Subprocess Muse block falhou em '{cmd}': {stdout_text} (exit {proc.returncode})")
+
+        self.assertEqual(
+            len(subprocess_divergences), 0,
+            f"Divergência(s) encontrada(s) no caminho de produção (subprocesso):\n" + "\n".join(subprocess_divergences[:10])
         )
 
     def test_cross_host_conformance_file_tools(self):

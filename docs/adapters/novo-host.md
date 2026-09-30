@@ -25,7 +25,7 @@ Este guia sintetiza as lições aprendidas e os padrões consolidados ao longo d
 
 1. **Testar no contexto real em que o agente roda**:
    - O comportamento de hooks difere substancialmente entre execução via CLI e IDE (descoberto na transição Antigravity IDE × CLI no E13).
-   - Na CLI, o processo filho herda diretamente o terminal; na IDE, a comunicação é mediada por pipes IPC e timeouts estritos.
+   - O fato observado é que o tratamento de códigos de saída (`exit code`) e formato de bloqueio varia entre ambientes (ex: CLI pode exigir exit 2, enquanto IDEs frequentemente exigem exit 0 com JSON para evitar crash ou fail-open).
 2. **Mapear todos os braços do contrato**:
    - `allow`: qual JSON o host espera para liberar? (Ex: `{"decision":"allow"}` no Antigravity vs `{}` no Claude Code e Muse).
    - `deny`: qual formato realmente bloqueia? (Ex: no Muse, `{"decision":"deny"}` falha aberto; o formato real de bloqueio é `{"decision":"block"}`).

@@ -286,19 +286,31 @@ run_test "CEH Core Engine: Motor agnóstico de host com evaluate(Request) -> Dec
 run_test "Fail-Closed Hook Imports: Proteção contra quebra de módulos e fail-open na IDE (PR-13 / D1)" \
     "python3 '$PLUGIN_DIR/tests/test_hook_failclosed.py' >/dev/null 2>&1"
 
-# 36. PR-14/15/17 Host Adapters Suite (Contrato, Antigravity, Claude Code, Muse e Conformidade Cross-Host)
-run_test "Host Adapters & Conformance: Contrato HostAdapter, isolamento e conformidade cross-host (PR-14/15/17)" \
-    "python3 '$PLUGIN_DIR/tests/test_adapters.py' >/dev/null 2>&1 && python3 '$PLUGIN_DIR/tests/test_cross_host_conformance.py' >/dev/null 2>&1"
+# 36. PR-14/15 Host Adapters Suite (Contrato, Antigravity e Claude Code)
+run_test "Host Adapters: Contrato HostAdapter e isolamento de hosts em adapters/ (PR-14/15)" \
+    "python3 '$PLUGIN_DIR/tests/test_adapters.py' >/dev/null 2>&1"
 
-# 37. PR-14/15/17 Mutation Falsifiability Suite (Regra AT5)
-run_test "Host Adapters Mutations: Provas de falsificabilidade em clone temporário (PR-14/15/17)" \
-    "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p14.py' >/dev/null 2>&1 && python3 '$PLUGIN_DIR/tests/tools/test_mutation_p17.py' >/dev/null 2>&1"
+# 37. PR-17 Cross-Host Conformance Suite (Mesma Decisão nos 3 Hosts sobre 1.016 Comandos e Subprocesso)
+run_test "Cross-Host Conformance: Mesma decisão em todos os hosts sobre 1.016 casos e tabela de render (PR-17)" \
+    "python3 '$PLUGIN_DIR/tests/test_cross_host_conformance.py' >/dev/null 2>&1"
 
-# 38. PR-15b Muse Adapter Mutations Suite (Regra AT5)
+# 38. PR-14/15 Mutation Falsifiability Suite (Regra AT5)
+run_test "Host Adapters Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-14/15)" \
+    "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p14.py' >/dev/null 2>&1"
+
+# 39. PR-15b Muse Adapter Mutations Suite (Regra AT5)
 run_test "Muse Adapter Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-15b)" \
     "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p15b.py' >/dev/null 2>&1"
 
-# 39. PR-16 Multi-Host Package Generator Suite (Determinismo, Completude e Controle Negativo)
+# 40. PR-16 Fallback Muse Mutation Suite (Regra AT5 / BJ3)
+run_test "Fallback Muse Mutations: Provas de falsificabilidade da reserva do Muse em clone temporário (PR-16)" \
+    "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p16.py' >/dev/null 2>&1"
+
+# 41. PR-17 Cross-Host Conformance Mutations Suite (Regra AT5)
+run_test "Cross-Host Mutations: Falsificabilidade por mutação no Muse e Claude em clone temporário (PR-17)" \
+    "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p17.py' >/dev/null 2>&1"
+
+# 42. PR-16 Multi-Host Package Generator Suite (Determinismo, Completude e Controle Negativo)
 run_test "Multi-Host Package Generator: Determinismo, manifestos observados, completude e controle negativo (PR-16)" \
     "python3 '$PLUGIN_DIR/tests/test_package.py' >/dev/null 2>&1"
 
