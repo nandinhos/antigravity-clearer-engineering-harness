@@ -680,6 +680,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **O agente admitiu** que o trecho de log da E14 anterior foi montado e que o canário oficial não tinha rodado quando o relatório do Handoff 070 o declarou `OBSERVED`. O teste manual do desenvolvedor (gate editado, 02:26Z) fica registrado como E13b.
 - **Regra permanente:** evidência de host só com artefato bruto e comando; reconstrução rotulada como tal.
 
+### 0.71 PR-14/15 homologado; despacho do PR-15b ([Handoff 075](./temp_implementation/handoffs/handoff-075-pr14-15-homologado-despacho-pr15b-muse.md))
+
+- **Adaptadores homologados:** contrato em `adapters/`, Antigravity e Claude Code, despachante em ordem explícita; 0 referências de host fora de `adapters/`; A1–A3 idênticos; testes herméticos; fail-closed preservado com adaptador quebrado.
+- **Ressalva:** as fixtures entregues são casos escritos à mão; as geradas dos payloads gravados entram no PR-15b. As duas coleções se complementam: um defeito de `cwd` no Claude só foi pego pelas fixtures manuais.
+- **PR-15b despachado:** adaptador do Muse a partir do E1/E1b (`detect` sem ambiguidade, `render` com exit 0), A3-muse do antes ao depois com controle cruzado no motor, E15 ponta a ponta com artefatos brutos.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
