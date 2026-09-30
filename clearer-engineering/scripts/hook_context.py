@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# hook_context.py — PreToolUse Hook Context & Target Directory Resolver
+# hook_context.py — PreToolUse Hook Context & Host Adapters
 # ==============================================================================
 """
 Resolves target working directory and environment from PreToolUse hook payloads
 (Antigravity and Claude Code), preventing cwd leakage to plugin directories (P0/G6).
+Isolates host-specific contracts and exit codes outside of ceh_core and safety-gate.
 Enforces Invariant 7 (fail-closed on ambiguity): unresolved context escalates to production.
 """
 
@@ -13,8 +14,32 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Any, Callable
+
+from ceh_core.engine import Request, Decision
+
+
+def is_claude_host(payload: Any = None) -> bool:
+    """Detecta se o host em execucao e o Claude Code via payload prioritario ou variaveis de ambiente."""
+    if isinstance(payload, dict):
+        if "toolCall" in payload:
+            return False
+        if "hook_event_name" in payload or "tool_name" in payload:
+            return True
+    return any(k in os.environ for k in ("CLAUDECODE", "CLAUDE_PROJECT_DIR", "CLAUDE_PID"))
+
+
+def get_exit_code(decision: str, payload: Any = None) -> int:
+    """
+    Retorna o codigo de saida padronizado para o host:
+    - No Antigravity (IDE e CLI): SEMPRE exit 0 com JSON de decisao (v1.4.1).
+    - No Claude Code: exit 2 para deny; exit 0 para ask ou allow.
+    """
+    if decision == "deny":
+        return 2 if is_claude_host(payload) else 0
+    return 0
 
 
 def resolve_hook_target(payload: dict[str, Any]) -> tuple[Path | None, str | None, bool]:
@@ -60,7 +85,6 @@ def resolve_hook_target(payload: dict[str, Any]) -> tuple[Path | None, str | Non
     if os.path.isabs(expanded):
         resolved = Path(expanded).resolve()
     else:
-        # Relative path (e.g. "." or "subdir"): must anchor exclusively to workspacePaths[0]
         if ws_root is not None and ws_root.is_absolute():
             resolved = (ws_root / expanded).resolve()
         else:
@@ -114,7 +138,6 @@ def is_git_push_command(cmd_line: str) -> bool:
 
 def format_host_response(payload: dict[str, Any], decision: str, reason: str = "") -> dict[str, Any]:
     """Formats decision response according to host contract (Antigravity or Claude Code)."""
-    # Host Claude: identificado por hook_event_name 'PreToolUse' ou ferramentas nativas do Claude
     tool_name = extract_tool_name(payload)
     is_claude = (
         payload.get("hook_event_name") == "PreToolUse"
@@ -122,8 +145,6 @@ def format_host_response(payload: dict[str, Any], decision: str, reason: str = "
     ) and "toolCall" not in payload
 
     if is_claude:
-        # PR-00e: No Claude Code, o gate nunca aprova — só nega ou pede confirmação (F6).
-        # Retornar objeto vazio para allow devolve o fluxo normal de permissões ao Claude.
         if decision == "allow":
             return {}
 
@@ -137,17 +158,31 @@ def format_host_response(payload: dict[str, Any], decision: str, reason: str = "
             res["hookSpecificOutput"]["permissionDecisionReason"] = reason
         return res
 
-    # Antigravity ou sem host identificável (Handoff 036 §3)
     res: dict[str, Any] = {"decision": decision}
     if reason:
         res["reason"] = reason
     return res
 
 
+def extract_file_write_target(tool_name: str, payload: dict[str, Any]) -> str:
+    """Extrai o caminho do arquivo alvo de ferramentas de escrita/edição de arquivo."""
+    if "toolCall" in payload:
+        tc = payload.get("toolCall")
+        if isinstance(tc, dict):
+            args = tc.get("args") or {}
+            if isinstance(args, dict):
+                return str(args.get("TargetFile", "")).strip()
+    if "tool_input" in payload:
+        ti = payload.get("tool_input") or {}
+        if isinstance(ti, dict):
+            return str(ti.get("file_path") or ti.get("notebook_path") or ti.get("TargetFile") or "").strip()
+    return ""
+
+
 def handle_terminal_tool(
     tool_name: str,
     payload: dict[str, Any],
-    evaluate_command_fn: Callable[[str, str | None], tuple[str, str, str, str]],
+    engine_eval_fn: Callable[[Request], Decision],
 ) -> dict[str, Any]:
     """Handles safety evaluation for terminal commands (run_command, Bash)."""
     _, cmd_line = extract_hook_command(payload)
@@ -172,8 +207,15 @@ def handle_terminal_tool(
                 "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: repositório de destino não resolvido a partir do hook.",
             )
 
-        decision, reason, _, _ = evaluate_command_fn(cmd_line, explicit_env)
-        # PR-00c: No host agy (toolCall presente), ask falha aberto (fail-open / H1); converter compulsoriamente para deny
+        req = Request(command=cmd_line, cwd=target_dir, explicit_env=explicit_env)
+        res = engine_eval_fn(req)
+        if isinstance(res, tuple):
+            decision, reason = res[0], res[1]
+        elif hasattr(res, "decision"):
+            decision, reason = res.decision, res.reason
+        else:
+            decision, reason = "allow", ""
+
         if decision == "ask" and "toolCall" in payload:
             decision = "deny"
             reason = f"{reason}\n[CEH CONTEXT LOCK] Decisão 'ask' convertida para 'deny': ask não suspende a execução neste host (H1, Handoff 006)."
@@ -186,45 +228,10 @@ def handle_terminal_tool(
             pass
 
 
-def extract_file_write_target(tool_name: str, payload: dict[str, Any]) -> str:
-    """Extrai o caminho do arquivo alvo de ferramentas de escrita/edição de arquivo."""
-    if "toolCall" in payload:
-        tc = payload.get("toolCall")
-        if isinstance(tc, dict):
-            args = tc.get("args") or {}
-            if isinstance(args, dict):
-                return str(args.get("TargetFile", "")).strip()
-    if "tool_input" in payload:
-        ti = payload.get("tool_input") or {}
-        if isinstance(ti, dict):
-            return str(ti.get("file_path") or ti.get("notebook_path") or ti.get("TargetFile") or "").strip()
-    return ""
-
-
-def is_protected_cert_file(target_file: str, resolved_target_dir: Path | None = None) -> bool:
-    """Verifica se o arquivo alvo é um certificado de CI protegido (.ceh/)."""
-    if not target_file:
-        return False
-    clean = target_file.replace("\\", "/").strip("'\"")
-    if any(name in clean for name in ("last-ci-run.json", "last-ci-run.log", "last-evals-run.json")):
-        return True
-    if re.search(r"(?:^|/)\.ceh(?:/|$)", clean):
-        return True
-    if resolved_target_dir is not None:
-        try:
-            full = (resolved_target_dir / Path(clean)).resolve()
-            ceh_dir = (resolved_target_dir / ".ceh").resolve()
-            if ceh_dir == full or ceh_dir in full.parents:
-                return True
-        except Exception:
-            pass
-    return False
-
-
 def handle_file_write_tool(
     tool_name: str,
     payload: dict[str, Any],
-    evaluate_command_fn: Callable[[str, str | None], tuple[str, str, str, str]],
+    engine_eval_fn: Callable[[Request], Decision],
 ) -> dict[str, Any]:
     """Handles safety evaluation for file write/edit tools (PR-10 / G9)."""
     target_file = extract_file_write_target(tool_name, payload)
@@ -236,22 +243,24 @@ def handle_file_write_tool(
         )
 
     target_dir, explicit_env, _ = resolve_hook_target(payload)
-    if is_protected_cert_file(target_file, target_dir):
-        return format_host_response(
-            payload,
-            "deny",
-            f"[CEH CERTIFICATE INTEGRITY - G9] ⛔ Tentativa de escrita/modificação de certificado de CI ({target_file}). Arquivos sob .ceh/ são imutáveis via ferramentas de escrita.",
-        )
+    req = Request(command="", cwd=target_dir, explicit_env=explicit_env, target_paths=[target_file])
+    res = engine_eval_fn(req)
+    if isinstance(res, tuple):
+        dec_val, reason_val = res[0], res[1]
+    elif hasattr(res, "decision"):
+        dec_val, reason_val = res.decision, res.reason
+    else:
+        dec_val, reason_val = "allow", ""
 
-    return format_host_response(payload, "allow")
+    if dec_val == "allow":
+        reason_val = ""
+
+    return format_host_response(payload, dec_val, reason_val)
 
 
-# Despacho extensível por ferramenta (PR-09 / PR-10)
-TOOL_DISPATCH: dict[str, Callable[[str, dict[str, Any], Callable[[str, str | None], tuple[str, str, str, str]]], dict[str, Any]]] = {
-    # Terminal
+TOOL_DISPATCH: dict[str, Callable[[str, dict[str, Any], Callable[[Request], Decision]], dict[str, Any]]] = {
     "run_command": handle_terminal_tool,
     "Bash": handle_terminal_tool,
-    # Escrita / Edição de arquivo (PR-10 / G9)
     "write_to_file": handle_file_write_tool,
     "replace_file_content": handle_file_write_tool,
     "multi_replace_file_content": handle_file_write_tool,
@@ -264,7 +273,7 @@ TOOL_DISPATCH: dict[str, Callable[[str, dict[str, Any], Callable[[str, str | Non
 
 def evaluate_hook_payload(
     payload: dict[str, Any],
-    evaluate_command_fn: Callable[[str, str | None], tuple[str, str, str, str]],
+    engine_eval_fn: Callable[[Request], Decision],
 ) -> dict[str, Any]:
     """
     Processes PreToolUse hook payload, safely resolving target directory before evaluation.
@@ -289,5 +298,48 @@ def evaluate_hook_payload(
             f"[CEH HOOK ERROR] Ferramenta desconhecida '{tool_name}': fail-closed ativado.",
         )
 
-    return handler(tool_name, payload, evaluate_command_fn)
+    return handler(tool_name, payload, engine_eval_fn)
 
+
+def handle_hook_lifecycle(
+    raw_input: str,
+    engine_eval_fn: Callable[[Request], Decision]
+) -> tuple[dict[str, Any], int]:
+    """
+    Ciclo de vida completo do hook a partir de string bruta do stdin:
+    1. Parse e validacao do JSON (fail-closed seguro com saida do host).
+    2. Avaliacao do payload contra o motor.
+    3. Mapeamento de decisao em codigo de saida especifico do host.
+    Retorna: (response_dict, exit_code)
+    """
+    payload = None
+    if not raw_input.strip():
+        resp = {"decision": "deny", "reason": "[CEH SAFETY GATE ERROR] Payload vazio recebido no hook."}
+        return resp, get_exit_code("deny", None)
+
+    try:
+        payload = json.loads(raw_input)
+    except Exception as e:
+        resp = {"decision": "deny", "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: JSON inválido ({str(e)})"}
+        return resp, get_exit_code("deny", None)
+
+    if not isinstance(payload, dict):
+        resp = {"decision": "deny", "reason": "[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object."}
+        return resp, get_exit_code("deny", None)
+
+    try:
+        result = evaluate_hook_payload(payload, engine_eval_fn)
+    except Exception as e:
+        resp = {"decision": "deny", "reason": f"[CEH SAFETY GATE ERROR] Falha ao avaliar payload do hook: {str(e)}"}
+        return resp, get_exit_code("deny", payload)
+
+    decision = "allow"
+    if "decision" in result:
+        decision = result.get("decision", "allow")
+    elif "hookSpecificOutput" in result:
+        hso = result.get("hookSpecificOutput")
+        if isinstance(hso, dict):
+            decision = hso.get("permissionDecision", "allow")
+
+    exit_code = get_exit_code(decision, payload)
+    return result, exit_code

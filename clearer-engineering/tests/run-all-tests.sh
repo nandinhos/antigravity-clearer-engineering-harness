@@ -278,6 +278,10 @@ run_test "Conselho Redaction: Redação de segredos, caminhos locais e exclusõe
 run_test "Onda 4 Baseline: Retrato de referência v1.4.0 e rede de não-regressão (--check)" \
     "python3 '$PLUGIN_DIR/tests/tools/onda4_baseline.py' --check"
 
+# 34. PR-13 Engine Unit Suite (Agnóstico de Host)
+run_test "CEH Core Engine: Motor agnóstico de host com evaluate(Request) -> Decision (PR-13)" \
+    "python3 '$PLUGIN_DIR/tests/test_engine.py' >/dev/null 2>&1"
+
 
 echo ""
 echo "============================================================"
