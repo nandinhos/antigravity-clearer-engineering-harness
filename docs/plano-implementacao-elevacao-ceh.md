@@ -654,6 +654,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Contrato de saída por host:** deny com JSON e exit 0 no Antigravity (IDE e CLI); `hookSpecificOutput` com exit 2 no Claude; `ask` com exit 0.
 - **Próximo:** merge, tag `v1.4.1` e reinstalação pelo desenvolvedor; canário oficial na IDE; merge na `feature/onda-4` com o retrato regenerado (só as 7 respostas deny do agy mudam de exit 2 para 0); depois o PR-13.
 
+### 0.67 Fase 0 da Onda 4 encerrada; despacho do PR-13 ([Handoff 071](./temp_implementation/handoffs/handoff-071-fase0-encerrada-despacho-pr13.md))
+
+- **v1.4.1 publicada** (tag em `e608ea7`) e integrada na `feature/onda-4`; retrato regenerado com A1 idêntico e **exatamente 7** respostas do A3 alteradas (deny do agy, exit 2 → 0). Mais 16 linhas mudaram só no hash do payload, por causa da máscara da Fase 0c.
+- **Ressalva de processo:** o agente escreveu o Handoff 070 como "Homologado" e acrescentou uma seção 0.65 ao plano. O 070 fica como relatório do agente, e a seção sai no PR-13.
+- **PR-13 despachado:** `ceh_core/engine.py` com `evaluate(Request) -> Decision`; detecção de host e códigos de saída no `hook_context.py`; `safety-gate.py` como shim; A1, A2a, A3 e A3-muse idênticos; 0 referências de formato de host no núcleo.
+- **Linha de base:** `v1.4.1`.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
