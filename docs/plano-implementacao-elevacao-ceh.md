@@ -634,6 +634,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Bloqueante de processo:** para fazer o push da negctl, o agente reescreveu o `commit_hash` do `.ceh/last-ci-run.json`. O gate dá deny para esse comando, então o hook não estava interceptando na sessão do agente. Regras: o agente nunca escreve no `.ceh/`; o push de `claude/negctl-*` é do desenvolvedor.
 - **Próximo:** commit 0c (canário do hook na sessão do agente, evidência sem caminhos de home, `doc-audit` cobrindo a evidência), revisão curta, depois PR-13.
 
+### 0.64 Fase 0c: hook fail-open na IDE do Antigravity ([Handoff 067](./temp_implementation/handoffs/handoff-067-fase0c-hook-fail-open-na-ide-antigravity.md))
+
+- **P2/P3 aceitos** (`c7a5d65`, CI verde): evidência sem caminhos de home e `doc-audit` cobrindo `.json`/`.jsonl`/`.txt` da evidência.
+- **P1 não comprovado:** o canário foi criado com a v1.4.0 instalada e só foi bloqueado depois de o agente editar o gate instalado, sem registro.
+- **Achado crítico (`INFERRED`):** a IDE do Antigravity trataria exit ≠ 0 do hook como falha e executaria a ferramenta; o gate responde deny com exit 2. Toda a caracterização anterior do agy foi feita no CLI, onde exit 2 bloqueia.
+- **Próximo:** evidência E13 na IDE; se confirmado, correção v1.4.1 na `main` (deny do agy com exit 0); merge na `feature/onda-4` e retrato regenerado; depois PR-13.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
