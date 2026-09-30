@@ -647,6 +647,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **PR-13 despachado:** `ceh_core/engine.py` com `evaluate(Request) -> Decision`; detecção de host e códigos de saída no `hook_context.py`; `safety-gate.py` como shim; A1, A2a, A3 e A3-muse idênticos; 0 referências de formato de host no núcleo.
 - **Linha de base:** `v1.4.1`.
 
+### 0.68 Revisão do PR-13: regressão de fail-closed no import ([Handoff 072](./temp_implementation/handoffs/handoff-072-revisao-pr13-regressao-fail-closed-no-import.md))
+
+- **Motor agnóstico correto:** A1, A2a, A3 e A3-muse idênticos; 0 referências de host no `safety-gate.py` (61 linhas) e no `ceh_core/`; testes verdes com e sem as variáveis do Claude.
+- **Bloqueante D1:** os imports do *shim* ficaram fora do `try`. Um erro de sintaxe no `hook_context.py` passou de deny com exit 0 (v1.4.1) para exit 1, que a IDE do Antigravity executa.
+- **Ressalvas:** BC3 declarado como arquivado sem arquivo versionado; mutações do `test_mutation_p13.py` na árvore real.
+- **Próximo:** ajuste com teste de fail-closed por mutação; revisão curta; depois PR-14/15.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
