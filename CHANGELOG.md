@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-02
+
+### Changed
+- **Arquitetura Multi-Host Desacoplada (Onda 4)**: A lógica de regras e avaliação do Safety Gate foi completamente isolada em `ceh_core.engine`, enquanto o tratamento de I/O, parsing de payloads e renderização de saída foram encapsulados no pacote `adapters/` (`AntigravityAdapter`, `ClaudeAdapter`, `MuseAdapter`).
+- **Despachante Minimalista (`safety-gate.py`)**: Reduzido de 630 para 94 linhas de código, eliminando todo acoplamento a formatos de host fora de `adapters/` (de 55 referências para 0).
+- **Tipagem Canônica de Hooks**: Normalização do fluxo de execução através de `hook_context.py` com estruturas de dados imutáveis (`HookRequest`, `HookDecision`, `EvaluationContext`).
+
+### Added
+- **Suporte Nativo ao Muse Code (`MuseAdapter`)**: Expansão do suporte de hosts de 2 para 3 (Antigravity IDE/CLI, Claude Code e Muse Code).
+- **Empacotador Multi-Host (`package.py`)**: Geração determinística de bundles específicos para cada ambiente suportado.
+- **Suíte de Conformidade Cross-Host (`test_cross_host_conformance.py`)**: Teste automatizado validando a paridade estrita de decisões entre todos os hosts sobre o corpus canônico (1.016 comandos × 3 hosts) e amostra em subprocesso via shim real.
+- **Guia de Integração de Novos Hosts**: Documentação canônica em `docs/adapters/novo-host.md`.
+- **Testes de Mutação Estrutural**: Incorporação de `test_mutation_p16.py` e `test_mutation_p17.py` à suíte canônica oficial.
+
+### Security
+- **Reserva Emergencial por Host (`adapters/fallback.py`)**: Implementação de resposta de bloqueio estritamente adaptada ao dialeto de cada host diante de falhas de carregamento ou exceções internas. No Muse Code, a reserva emite `{"decision": "block"}`, eliminando a condição de fail-open observada onde a chave `deny` não impedia a execução de comandos.
+
 ## [1.4.1] - 2026-09-30
 
 ### Security
