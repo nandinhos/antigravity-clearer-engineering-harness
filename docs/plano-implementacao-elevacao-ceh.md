@@ -640,6 +640,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Achado crítico (`INFERRED`):** a IDE do Antigravity trataria exit ≠ 0 do hook como falha e executaria a ferramenta; o gate responde deny com exit 2. Toda a caracterização anterior do agy foi feita no CLI, onde exit 2 bloqueia.
 - **Próximo:** evidência E13 na IDE; se confirmado, correção v1.4.1 na `main` (deny do agy com exit 0); merge na `feature/onda-4` e retrato regenerado; depois PR-13.
 
+### 0.65 Fase 0c concluída: v1.4.1 integrada na feature/onda-4 e retrato regenerado ([Handoff 070](./temp_implementation/handoffs/handoff-070-fase0c-v1-4-1-merge-e-retrato-regenerado.md))
+
+- **Canário oficial na IDE comprovado:** o comando `touch .ceh/canario-hook` foi bloqueado pela instalação oficial v1.4.1 com exit 0 e negação JSON, abortado pela IDE sem criar o arquivo (`OBSERVED`).
+- **Merge da `main` (v1.4.1) na `feature/onda-4`:** commit `b251a59`, sincronizado com a tag `v1.4.1`.
+- **Retrato A1–A4 regenerado uma única vez:** commit `9dc9be7`. A1 e A3-muse rigorosamente idênticos; A2a com `plugin.json` v1.4.1; A2b com `test_mutation_p3.py`; A3 com exatamente as 7 respostas de negação do Antigravity alteradas de exit 2 para 0; A4 com 4 referências e 636 linhas.
+- **CI 4/4 verde no GitHub Actions:** [run 36670606628](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36670606628) em Ubuntu e macOS.
+- **Próximo:** revisão curta da Fase 0c concluída e abertura do PR-13 (Fase 1: desacoplamento do núcleo).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
