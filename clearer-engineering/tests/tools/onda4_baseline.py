@@ -34,6 +34,7 @@ EVIDENCE_DIR = REPO_ROOT / "docs" / "temp_implementation" / "evidence" / "onda4"
 A1_FILENAME = "A1_gate_corpus.expected.jsonl"
 A2_FILENAME = "A2_install_manifest.json"
 A3_FILENAME = "A3_hook_responses.jsonl"
+A3_MUSE_BEFORE_FILENAME = "A3_muse_before.jsonl"
 A4_FILENAME = "A4_coupling_metrics.json"
 
 COUPLING_TERMS = ["toolCall", "tool_name", "tool_input", "hookSpecificOutput", "CommandLine"]
@@ -58,7 +59,7 @@ def capture_a1() -> Tuple[str, str, int]:
 
 
 # ==============================================================================
-# A2: Instalação de Referência
+# A2: Instalação de Referência (Dividido em A2a ativos e A2b manifesto)
 # ==============================================================================
 
 def capture_a2() -> Dict[str, Any]:
@@ -92,7 +93,9 @@ def capture_a2() -> Dict[str, Any]:
         if res.returncode != 0:
             raise RuntimeError(f"install.sh failed with exit {res.returncode}:\n{res.stderr}")
 
-        files_manifest: Dict[str, str] = {}
+        non_code_manifest: Dict[str, str] = {}
+        all_installed_paths: List[str] = []
+
         target_dirs = [
             Path(tmp_home) / ".gemini" / "config" / "plugins" / "clearer-engineering",
             Path(tmp_home) / ".gemini" / "config" / "agents" / "clearer-harness",
@@ -104,8 +107,13 @@ def capture_a2() -> Dict[str, Any]:
             for p in sorted(base_dir.rglob("*")):
                 if p.is_file() and "__pycache__" not in p.parts and not p.name.endswith((".pyc", ".pyo")):
                     rel = p.relative_to(tmp_home).as_posix()
-                    file_hash = hashlib.sha256(p.read_bytes()).hexdigest()
-                    files_manifest[rel] = file_hash
+                    all_installed_paths.append(rel)
+                    # A2a: somente ativos não-código (exclui .py e .sh)
+                    if not rel.endswith((".py", ".sh")):
+                        file_hash = hashlib.sha256(p.read_bytes()).hexdigest()
+                        non_code_manifest[rel] = file_hash
+
+        all_installed_paths.sort()
 
         bashrc_path = Path(tmp_home) / ".bashrc"
         bashrc_content = bashrc_path.read_text(encoding="utf-8") if bashrc_path.is_file() else ""
@@ -118,8 +126,10 @@ def capture_a2() -> Dict[str, Any]:
         aliases_hash = hashlib.sha256(aliases_block.encode("utf-8")).hexdigest()
 
         return {
-            "files_count": len(files_manifest),
-            "files": files_manifest,
+            "a2a_non_code_count": len(non_code_manifest),
+            "a2a_non_code_files": non_code_manifest,
+            "a2b_all_paths_count": len(all_installed_paths),
+            "a2b_all_paths": all_installed_paths,
             "aliases_block": aliases_block,
             "aliases_hash": aliases_hash,
         }
@@ -128,13 +138,13 @@ def capture_a2() -> Dict[str, Any]:
 
 
 # ==============================================================================
-# A3: Respostas do Hook
+# A3: Respostas do Hook (agy + claude) e A3-muse (marcador do antes)
 # ==============================================================================
 
-def collect_invocation_files() -> List[Tuple[str, str]]:
-    """Returns sorted list of (host, rel_path) for all invocations.jsonl in evidence."""
+def collect_invocation_files(hosts: List[str]) -> List[Tuple[str, str]]:
+    """Returns sorted list of (host, rel_path) for specified hosts in evidence."""
     results: List[Tuple[str, str]] = []
-    for host in ["agy", "claude"]:
+    for host in hosts:
         pattern = str(REPO_ROOT / "docs" / "temp_implementation" / "evidence" / "host-probe" / host / "**" / "invocations.jsonl")
         for f in sorted(glob.glob(pattern, recursive=True)):
             rel = Path(f).relative_to(REPO_ROOT).as_posix()
@@ -142,8 +152,9 @@ def collect_invocation_files() -> List[Tuple[str, str]]:
     return results
 
 
-def capture_a3() -> List[Dict[str, Any]]:
-    inv_files = collect_invocation_files()
+def capture_a3(hosts: List[str] | None = None) -> List[Dict[str, Any]]:
+    target_hosts = hosts or ["agy", "claude"]
+    inv_files = collect_invocation_files(target_hosts)
     safety_gate_py = REPO_ROOT / "clearer-engineering" / "scripts" / "safety-gate.py"
 
     records: List[Dict[str, Any]] = []
@@ -205,7 +216,6 @@ def capture_a4() -> Dict[str, Any]:
     hook_counts = {t: len(re.findall(re.escape(t), hook_ctx_text)) for t in COUPLING_TERMS}
     safety_counts = {t: len(re.findall(re.escape(t), safety_gate_text)) for t in COUPLING_TERMS}
 
-    # Count cross-host conformance tests (PR-17 introduces tests/test_host_conformance*.py or similar)
     conformance_tests = list(REPO_ROOT.glob("clearer-engineering/tests/**/test_*conformance*.py"))
     conformance_count = len(conformance_tests)
 
@@ -236,18 +246,26 @@ def generate_baseline():
     print(f"  ✔ A1 gravado: {a1_count} avaliações, sha256={a1_hash}")
 
     # A2
-    print("Gravando A2 (Instalação de referência)...")
+    print("Gravando A2 (Instalação de referência: A2a ativos e A2b manifesto)...")
     a2_data = capture_a2()
     (EVIDENCE_DIR / A2_FILENAME).write_text(json.dumps(a2_data, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"  ✔ A2 gravado: {a2_data['files_count']} arquivos instalados, aliases sha256={a2_data['aliases_hash']}")
+    print(f"  ✔ A2 gravado: {a2_data['a2a_non_code_count']} ativos não-código (A2a), {a2_data['a2b_all_paths_count']} arquivos totais (A2b), aliases sha256={a2_data['aliases_hash']}")
 
-    # A3
+    # A3 (agy + claude)
     print("Gravando A3 (Respostas do hook: agy + claude)...")
-    a3_data = capture_a3()
+    a3_data = capture_a3(["agy", "claude"])
     with open(EVIDENCE_DIR / A3_FILENAME, "w", encoding="utf-8") as f:
         for rec in a3_data:
             f.write(json.dumps(rec, sort_keys=True, ensure_ascii=False) + "\n")
-    print(f"  ✔ A3 gravado: {len(a3_data)} respostas gravadas")
+    print(f"  ✔ A3 gravado: {len(a3_data)} respostas gravadas (rede estrita não-regressão)")
+
+    # A3-muse (marcador do antes)
+    print("Gravando A3-muse (Marcador do antes para Muse na v1.4.0)...")
+    a3_muse_data = capture_a3(["muse"])
+    with open(EVIDENCE_DIR / A3_MUSE_BEFORE_FILENAME, "w", encoding="utf-8") as f:
+        for rec in a3_muse_data:
+            f.write(json.dumps(rec, sort_keys=True, ensure_ascii=False) + "\n")
+    print(f"  ✔ A3-muse gravado: {len(a3_muse_data)} respostas gravadas (todas deny/2 na v1.4.0)")
 
     # A4
     print("Gravando A4 (Acoplamento e conformidade)...")
@@ -267,7 +285,7 @@ def check_baseline() -> int:
     diffs: List[str] = []
 
     # Check A1
-    print("[1/4] Verificando A1 (Decisões do gate)...")
+    print("[1/5] Verificando A1 (Decisões do gate)...")
     a1_file = EVIDENCE_DIR / A1_FILENAME
     if not a1_file.is_file():
         diffs.append(f"A1 baseline file missing: {a1_file}")
@@ -280,8 +298,8 @@ def check_baseline() -> int:
         else:
             print(f"  ✔ A1 OK ({current_count} decisões idênticas, hash {current_hash[:16]}...)")
 
-    # Check A2
-    print("[2/4] Verificando A2 (Instalação de referência)...")
+    # Check A2a & A2b
+    print("[2/5] Verificando A2a (Ativos não-código byte-a-byte)...")
     a2_file = EVIDENCE_DIR / A2_FILENAME
     if not a2_file.is_file():
         diffs.append(f"A2 baseline file missing: {a2_file}")
@@ -289,38 +307,52 @@ def check_baseline() -> int:
         expected_a2 = json.loads(a2_file.read_text(encoding="utf-8"))
         current_a2 = capture_a2()
 
-        # Compare files
-        exp_files = expected_a2.get("files", {})
-        cur_files = current_a2.get("files", {})
+        # A2a check
+        exp_non_code = expected_a2.get("a2a_non_code_files", {})
+        cur_non_code = current_a2.get("a2a_non_code_files", {})
 
-        missing_files = set(exp_files.keys()) - set(cur_files.keys())
-        extra_files = set(cur_files.keys()) - set(exp_files.keys())
-        hash_mismatches = []
-        for fn in sorted(set(exp_files.keys()) & set(cur_files.keys())):
-            if exp_files[fn] != cur_files[fn]:
-                hash_mismatches.append(f"{fn} (esperado {exp_files[fn][:8]}, atual {cur_files[fn][:8]})")
+        missing_non_code = set(exp_non_code.keys()) - set(cur_non_code.keys())
+        extra_non_code = set(cur_non_code.keys()) - set(exp_non_code.keys())
+        non_code_mismatches = []
+        for fn in sorted(set(exp_non_code.keys()) & set(cur_non_code.keys())):
+            if exp_non_code[fn] != cur_non_code[fn]:
+                non_code_mismatches.append(f"{fn} (esperado {exp_non_code[fn][:8]}, atual {cur_non_code[fn][:8]})")
 
-        if missing_files:
-            diffs.append(f"A2 arquivos faltando na instalação: {sorted(missing_files)}")
-        if extra_files:
-            diffs.append(f"A2 arquivos extras na instalação: {sorted(extra_files)}")
-        if hash_mismatches:
-            diffs.append(f"A2 arquivos com hash divergente: {hash_mismatches}")
+        if missing_non_code:
+            diffs.append(f"A2a ativos não-código faltando: {sorted(missing_non_code)}")
+        if extra_non_code:
+            diffs.append(f"A2a ativos não-código extras: {sorted(extra_non_code)}")
+        if non_code_mismatches:
+            diffs.append(f"A2a ativos não-código com hash divergente: {non_code_mismatches}")
 
         if expected_a2.get("aliases_hash") != current_a2.get("aliases_hash"):
-            diffs.append(f"A2 divergência no bloco de aliases do shell rc! Esperado {expected_a2.get('aliases_hash')}, atual {current_a2.get('aliases_hash')}")
+            diffs.append(f"A2a divergência no bloco de aliases do shell rc! Esperado {expected_a2.get('aliases_hash')}, atual {current_a2.get('aliases_hash')}")
 
-        if not missing_files and not extra_files and not hash_mismatches and expected_a2.get("aliases_hash") == current_a2.get("aliases_hash"):
-            print(f"  ✔ A2 OK ({current_a2['files_count']} arquivos byte-idênticos, aliases idênticos)")
+        if not missing_non_code and not extra_non_code and not non_code_mismatches and expected_a2.get("aliases_hash") == current_a2.get("aliases_hash"):
+            print(f"  ✔ A2a OK ({len(cur_non_code)} ativos não-código byte-idênticos, aliases idênticos)")
+
+        # A2b check
+        print("[3/5] Verificando A2b (Estrutura/manifesto de arquivos instalados)...")
+        exp_paths = expected_a2.get("a2b_all_paths", [])
+        cur_paths = current_a2.get("a2b_all_paths", [])
+        if exp_paths != cur_paths:
+            diff_missing = sorted(set(exp_paths) - set(cur_paths))
+            diff_added = sorted(set(cur_paths) - set(exp_paths))
+            if diff_missing:
+                diffs.append(f"A2b arquivos faltando na instalação: {diff_missing}")
+            if diff_added:
+                diffs.append(f"A2b arquivos não documentados adicionados na instalação: {diff_added}")
+        else:
+            print(f"  ✔ A2b OK ({len(cur_paths)} caminhos de arquivos instalados conferem com o manifesto)")
 
     # Check A3
-    print("[3/4] Verificando A3 (Respostas do hook: agy + claude)...")
+    print("[4/5] Verificando A3 (Respostas do hook: agy + claude)...")
     a3_file = EVIDENCE_DIR / A3_FILENAME
     if not a3_file.is_file():
         diffs.append(f"A3 baseline file missing: {a3_file}")
     else:
         expected_a3 = [json.loads(ln) for ln in a3_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
-        current_a3 = capture_a3()
+        current_a3 = capture_a3(["agy", "claude"])
 
         if len(expected_a3) != len(current_a3):
             diffs.append(f"A3 contagem de respostas divergente! Esperado {len(expected_a3)}, atual {len(current_a3)}")
@@ -335,8 +367,22 @@ def check_baseline() -> int:
             else:
                 print(f"  ✔ A3 OK ({len(current_a3)} respostas do hook idênticas em exit_code e stdout)")
 
+    # Check A3-muse (marcador do antes)
+    print("[5/5] Verificando A3-muse (Marcador do antes para Muse)...")
+    a3_muse_file = EVIDENCE_DIR / A3_MUSE_BEFORE_FILENAME
+    if not a3_muse_file.is_file():
+        diffs.append(f"A3-muse baseline file missing: {a3_muse_file}")
+    else:
+        expected_muse = [json.loads(ln) for ln in a3_muse_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        # Confere que o marcador do antes está preservado (todas as respostas v1.4.0 com deny/2)
+        all_deny_2 = all(rec["exit_code"] == 2 for rec in expected_muse)
+        if not all_deny_2:
+            diffs.append("A3-muse inconsistente: esperado que o marcador do antes registre deny (exit 2) para todas as ferramentas")
+        else:
+            print(f"  ✔ A3-muse OK ({len(expected_muse)} payloads do Muse confirmados com deny/2 no marcador do antes)")
+
     # Check A4
-    print("[4/4] Verificando A4 (Acoplamento)...")
+    print("Verificando A4 (Acoplamento)...")
     a4_file = EVIDENCE_DIR / A4_FILENAME
     if not a4_file.is_file():
         diffs.append(f"A4 baseline file missing: {a4_file}")
@@ -346,7 +392,6 @@ def check_baseline() -> int:
         print(f"  • A4 Atual: hook_context={current_a4['hook_context_total_references']} refs, safety_gate={current_a4['safety_gate_total_references']} refs, {current_a4['safety_gate_line_count']} linhas, conformidade={current_a4['cross_host_conformance_tests_count']}")
         print(f"  • A4 Retrato v1.4.0: hook_context={expected_a4['hook_context_total_references']} refs, safety_gate={expected_a4['safety_gate_total_references']} refs, {expected_a4['safety_gate_line_count']} linhas, conformidade={expected_a4['cross_host_conformance_tests_count']}")
 
-        # Na Fase 0, A4 deve ser idêntico à v1.4.0
         if current_a4 != expected_a4:
             diffs.append(f"A4 divergência de acoplamento na Fase 0! Esperado: {expected_a4}, Atual: {current_a4}")
         else:
@@ -360,7 +405,7 @@ def check_baseline() -> int:
         print("============================================================", file=sys.stderr)
         return 1
 
-    print("\n✔ SUCESSO: Todas as 4 medições (A1-A4) conferem rigorosamente com o retrato v1.4.0!")
+    print("\n✔ SUCESSO: Todas as 5 medições (A1-A4 + A3-muse) conferem rigorosamente com o retrato v1.4.0!")
     return 0
 
 
