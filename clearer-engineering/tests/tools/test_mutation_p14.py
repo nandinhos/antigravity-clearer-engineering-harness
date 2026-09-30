@@ -19,7 +19,7 @@ from pathlib import Path
 
 
 def _create_temp_clone(repo_root: Path, tmp_dir: str) -> Path:
-    tmp_repo = Path(tmp_dir)
+    tmp_repo = Path(tmp_dir).resolve()
     shutil.copytree(repo_root / "clearer-engineering", tmp_repo / "clearer-engineering")
     shutil.copytree(repo_root / "docs", tmp_repo / "docs")
     if (repo_root / ".ceh").is_dir():
@@ -30,7 +30,7 @@ def _create_temp_clone(repo_root: Path, tmp_dir: str) -> Path:
 
 
 def run_mutation_1(repo_root: Path) -> None:
-    """M1: AntigravityAdapter.render devolvendo exit 2 deve quebrar test_adapters e A3."""
+    """M1: AntigravityAdapter.render devolvendo exit 2 deve quebrar test_adapters."""
     with tempfile.TemporaryDirectory(prefix="ceh_mut14_1_") as tmp_dir:
         tmp_repo = _create_temp_clone(repo_root, tmp_dir)
         agy_adapter_file = tmp_repo / "clearer-engineering" / "scripts" / "adapters" / "antigravity.py"
@@ -44,7 +44,7 @@ def run_mutation_1(repo_root: Path) -> None:
         agy_adapter_file.write_text(mutated, encoding="utf-8")
 
         res = subprocess.run(
-            [sys.executable, "-m", "unittest", str(test_adapters_py)],
+            [sys.executable, str(test_adapters_py)],
             capture_output=True,
             text=True,
             cwd=str(tmp_repo),
@@ -53,8 +53,9 @@ def run_mutation_1(repo_root: Path) -> None:
             print("FALHA M1: test_adapters.py aprovou AntigravityAdapter com exit 2!", file=sys.stderr)
             sys.exit(1)
 
-        if "AssertionError" not in res.stderr and "AssertionError" not in res.stdout:
-            print(f"FALHA M1: AssertionError esperado não encontrado:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}", file=sys.stderr)
+        err_out = res.stderr + "\n" + res.stdout
+        if "FAIL" not in err_out and "AssertionError" not in err_out:
+            print(f"FALHA M1: falha de teste esperada não encontrada:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}", file=sys.stderr)
             sys.exit(1)
 
         print("✔ Prova por mutação M1 aprovada: test_adapters.py rejeitou AntigravityAdapter com exit 2 (em clone temporário).")
@@ -71,34 +72,25 @@ def run_mutation_2(repo_root: Path) -> None:
         target = "cwd=target_dir,"
         if target not in code:
             raise RuntimeError(f"Não foi possível encontrar '{target}' em claude_code.py")
-        # Força cwd=None ignorando o diretório resolvido
         mutated = code.replace(target, "cwd=None,")
         claude_adapter_file.write_text(mutated, encoding="utf-8")
 
-        # Modifica test_adapters.py para verificar que cwd não é None na fixture bash_safe
         res = subprocess.run(
-            [sys.executable, "-c", f"""
-import sys
-sys.path.insert(0, '{tmp_repo / "clearer-engineering" / "scripts"}')
-from adapters.claude_code import ClaudeCodeAdapter
-adapter = ClaudeCodeAdapter()
-payload = {{'hook_event_name': 'PreToolUse', 'tool_name': 'Bash', 'cwd': '/tmp', 'tool_input': {{'command': 'ls -la'}}}}
-req = adapter.parse(payload)
-assert req.cwd is not None, 'cwd ignorado no parse do ClaudeCodeAdapter!'
-"""],
+            [sys.executable, str(test_adapters_py)],
             capture_output=True,
             text=True,
             cwd=str(tmp_repo),
         )
         if res.returncode == 0:
-            print("FALHA M2: verificação aprovou ClaudeCodeAdapter com cwd ignorado!", file=sys.stderr)
+            print("FALHA M2: test_adapters.py aprovou ClaudeCodeAdapter com cwd ignorado!", file=sys.stderr)
             sys.exit(1)
 
-        if "cwd ignorado" not in res.stderr and "AssertionError" not in res.stderr:
-            print(f"FALHA M2: AssertionError esperado não encontrado:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}", file=sys.stderr)
+        err_out = res.stderr + "\n" + res.stdout
+        if "FAIL" not in err_out and "AssertionError" not in err_out:
+            print(f"FALHA M2: falha de teste esperada não encontrada:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}", file=sys.stderr)
             sys.exit(1)
 
-        print("✔ Prova por mutação M2 aprovada: rejeitou ClaudeCodeAdapter com cwd ignorado (em clone temporário).")
+        print("✔ Prova por mutação M2 aprovada: test_adapters.py rejeitou ClaudeCodeAdapter com cwd ignorado (em clone temporário).")
 
 
 def main() -> None:

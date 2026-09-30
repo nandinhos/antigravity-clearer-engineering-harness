@@ -192,6 +192,22 @@ class TestHostAdapters(unittest.TestCase):
             self.assertIsNone(target)
             self.assertTrue(force_deny)
 
+    def test_claude_parse_populates_cwd(self):
+        """Valida que o parse do Claude Code preenche req.cwd a partir do diretório resolvido."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir).resolve()
+            payload = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "cwd": str(tmp_path), "tool_input": {"command": "ls -la"}}
+            req = self.claude_adapter.parse(payload)
+            self.assertEqual(req.cwd, tmp_path)
+
+    def test_antigravity_parse_populates_cwd(self):
+        """Valida que o parse do Antigravity preenche req.cwd a partir do Cwd resolvido."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir).resolve()
+            payload = {"toolCall": {"name": "run_command", "args": {"CommandLine": "ls -la", "Cwd": str(tmp_path)}}}
+            req = self.agy_adapter.parse(payload)
+            self.assertEqual(req.cwd, tmp_path)
+
 
 if __name__ == "__main__":
     unittest.main()
