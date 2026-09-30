@@ -121,3 +121,17 @@ Todos os módulos respeitam estritamente os orçamentos arquiteturais definidos:
 - `ceh_core/subcommand.py`: 280 linhas (Teto: 300)
 - `ceh_core/git_invocation.py`: 83 linhas (Teto: 300)
 - Ponto único de normalização (`ceh_core/normalize.py`): validado e aprovado em `test_normalization_structural.py` (6/6 PASS).
+
+---
+
+## 7. Integração Contínua Remota no GitHub Actions (`OBSERVED`)
+
+- **Run ID:** [36675005901](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36675005901)
+- **Commit:** `3506635114991866d17442c3728f43faec335aee`
+- **Branch:** `feature/onda-4`
+- **Status:** **4/4 JOBS VERDES (100% SUCESSO)**
+  - `Validate (ubuntu-latest - Python 3.12)`: **PASS (1m7s)** ✔
+  - `Validate (ubuntu-latest - Python 3.9)`: **PASS (1m45s)** ✔
+  - `Validate (macos-latest - Python 3.12)`: **PASS (4m38s)** ✔
+  - `Validate (macos-latest - Python 3.9)`: **PASS (5m0s)** ✔
+
