@@ -700,6 +700,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Decisão da revisão:** reserva por host em `adapters/fallback.py` (só biblioteca padrão), no formato observado de cada host; `adapters/__init__.py` sem imports em cadeia.
 - **E15/E16 sem isolamento:** o `clearer-muse`, com a própria cópia do gate, estava ativo; o bloqueio não é atribuível. E16 refeito com isolamento, pacote instalado como gerado e um cenário que prova a reserva.
 
+### 0.74 PR-16 homologado; despacho do PR-17 ([Handoff 081](./temp_implementation/handoffs/handoff-081-pr16-homologado-despacho-pr17-conformidade.md))
+
+- **Reserva por host comprovada:** com um módulo do CEH quebrado, o Muse recebe `block`/0, o Antigravity `deny`/0 e o Claude `hookSpecificOutput`/2; o Muse só falha aberto se o adaptador **e** a reserva estiverem quebrados (limite no ADR 007).
+- **E16 isolado:** só o pacote do CEH ativo em cada cenário; permitir, `git push` bloqueado e reserva bloqueando com o `muse.py` corrompido no Muse real.
+- **PR-17 despachado:** conformidade dos 1.024 comandos nos três hosts (decisão igual à do motor, `render` conforme a tabela observada), payloads sintéticos com as chaves dos gravados, guia `docs/adapters/novo-host.md`. Depois: relatório final antes × depois, PR para a `main` e tag `v2.0.0`.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
