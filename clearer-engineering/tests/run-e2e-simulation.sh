@@ -201,13 +201,50 @@ test_gate_check "git status" "production" "allow"
 test_gate_check "rtk git status" "production" "allow"
 
 log_step "2.6 Testing Actual Hook execution via stdin with Cwd in sandbox (AR1)"
+# 2.6.1 Antigravity Format (toolCall payload -> exit 0 on deny na v1.4.1)
 test_actual_hook "git status" "allow" 0
 test_actual_hook "git reset --hard HEAD~1" "allow" 0 "DEV PERMITTED"
-test_actual_hook "rm -rf /" "deny" 2 "CATASTROPHIC BLOCK"
+test_actual_hook "rm -rf /" "deny" 0 "CATASTROPHIC BLOCK"
 
 git -C "$SANDBOX_DIR" checkout main >/dev/null 2>&1
-test_actual_hook "git reset --hard HEAD~1" "deny" 2 "CEH PRODUCTION LOCK"
+test_actual_hook "git reset --hard HEAD~1" "deny" 0 "CEH PRODUCTION LOCK"
 git -C "$SANDBOX_DIR" checkout dev >/dev/null 2>&1
+
+# 2.6.2 Claude Code Format (hook_event_name payload -> exit 2 on deny preservado)
+test_actual_hook_claude() {
+    local cmd="$1"
+    local expected_decision="$2"
+    local expected_exit="$3"
+    local extra_check="${4:-}"
+
+    local payload
+    payload=$(jq -n --arg cmd "$cmd" --arg cwd "$SANDBOX_DIR" \
+        '{"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": $cmd}, "cwd": $cwd}')
+
+    set +e
+    local result
+    result=$(echo "$payload" | python3 "$PLUGIN_DIR/scripts/safety-gate.py" 2>&1)
+    local actual_exit=$?
+    set -e
+
+    local decision
+    decision=$(echo "$result" | jq -r '.hookSpecificOutput.permissionDecision // empty' 2>/dev/null || true)
+
+    if [[ "$actual_exit" -eq "$expected_exit" ]] && [[ "$decision" == "$expected_decision" ]]; then
+        if [[ -n "$extra_check" ]]; then
+            if echo "$result" | grep -q "$extra_check"; then
+                log_ok "Actual Claude Hook Stdin: '$cmd' -> exit $actual_exit, $decision ($extra_check)"
+            else
+                log_error "Actual Claude Hook Stdin: '$cmd' returned exit $actual_exit ($decision) but missed '$extra_check'"
+            fi
+        else
+            log_ok "Actual Claude Hook Stdin: '$cmd' -> exit $actual_exit, $decision"
+        fi
+    else
+        log_error "Actual Claude Hook Stdin: '$cmd' expected exit $expected_exit ($expected_decision), got exit $actual_exit ($decision). Output: $result"
+    fi
+}
+test_actual_hook_claude "rm -rf /" "deny" 2 "CATASTROPHIC BLOCK"
 
 # ------------------------------------------------------------------------------
 # PHASE 3: Deterministic Test Runner & Auto-Detection

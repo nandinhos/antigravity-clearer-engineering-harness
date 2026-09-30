@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 """
 Unit tests for hook_context.py covering the 6 mandatory cases in Handoff 007 Section 4.
 """
@@ -10,7 +11,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 # Add scripts directory to sys.path
 import sys
@@ -240,7 +241,7 @@ class TestHookContext(unittest.TestCase):
         self.assertEqual(hook_out["permissionDecision"], "ask")
         self.assertIn("CEH HOMOLOGAÇÃO / STAGING SAFETY GATE", hook_out["permissionDecisionReason"])
 
-    def _run_gate_hook(self, stdin_payload: str, env_extra: dict[str, str] | None = None) -> tuple[int, dict[str, Any]]:
+    def _run_gate_hook(self, stdin_payload: str, env_extra: Optional[dict[str, str]] = None) -> tuple[int, dict[str, Any]]:
         env = os.environ.copy()
         if env_extra:
             env.update(env_extra)
