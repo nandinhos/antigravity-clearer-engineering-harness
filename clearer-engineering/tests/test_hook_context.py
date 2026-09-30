@@ -464,8 +464,8 @@ class TestHookContext(unittest.TestCase):
         hso = res.get("hookSpecificOutput", {})
         self.assertEqual(hso.get("permissionDecision"), "ask")
 
-    def test_case_23_ask_decision_mutation_proof(self):
-        """B2 Prova por mutação: simula que se o ask saísse com exit != 0, o contrato seria violado."""
+    def test_case_23_ask_decision_exit_0(self):
+        """B2 Asserção do ask no Claude Code: confirma que o ask sai com exit 0 para permitir leitura do hookSpecificOutput."""
         repo = self._init_repo("repo_staging_claude_mut", branch="staging")
         payload = json.dumps({
             "hook_event_name": "PreToolUse",

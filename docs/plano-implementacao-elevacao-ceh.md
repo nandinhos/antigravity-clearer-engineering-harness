@@ -603,6 +603,121 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Não fazer agora:** tempo do macOS no CI; Onda 4 (decisão estratégica do desenvolvedor).
 - **Próximo:** PR-23 (fechamento) e PR-21, depois release v1.4.0.
 
+### 0.60 **Onda 5 encerrada** e v1.4.0 homologada ([Handoff 063](./temp_implementation/handoffs/handoff-063-encerramento-onda-5-v1-4-0.md))
+
+- **PR-23:** docker com opções globais negado; auditoria de caminhos ampla; limites do gate estático no ADR 007, com 15 controles na bateria.
+- **PR-21:** redação de caminhos e segredos antes do envio ao Conselho; prova por mutação reproduzida (3 testes reprovam).
+- **Release v1.4.0:** tag em `8bb38c0`, CHANGELOG com o fork bomb em Security; suíte 65/65; CI da `main` verde ([run 36578572441](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36578572441)).
+- **Linha de base:** `8bb38c0`.
+- **Ressalvas baixas:** AY1 (evidências históricas reescritas para a auditoria), AY2 (commits direto na `main`; ligar branch protection).
+- **Nenhuma pendência técnica aberta.** Próximo: decisão do desenvolvedor sobre a Onda 4 (v2.0.0).
+
+### 0.61 Abertura controlada da Onda 4 em `feature/onda-4` ([Handoff 064](./temp_implementation/handoffs/handoff-064-onda-4-branch-feature-verificacao-antes-depois.md))
+
+- **Decisão do desenvolvedor:** abrir a Onda 4 numa branch separada, a partir da `v1.4.0`, medindo antes e depois; a `main` só recebe por PR após a homologação.
+- **Fase 0 (antes, sem mudança de comportamento):** gatilho do CI para `feature/**`; retrato A1–A4 com `onda4_baseline.py --generate/--check` (decisões, instalação byte a byte, respostas do hook para os 93+14 payloads gravados, acoplamento: 51 referências de host no `hook_context.py`, 0 testes de conformidade); E1 real do Muse (ou, na falta, do Codex CLI) com contrato de resposta com controle (A5), gravado pelo agente do Antigravity via terminal.
+- **Papéis:** execução só pelo agente do Antigravity (`agy`, sucessor do Gemini CLI; `host-probe/gemini/` é o mesmo host); revisão independente por Claude ou Codex.
+- **Portão:** sem E1 de um 3º host, a onda para e a v1.4.0 segue.
+- **Fases 1–5:** PR-13 a PR-17 (+ adaptador do Muse), com A1–A3 idênticos em cada PR e conformidade entre todos os hosts no fim; release `v2.0.0`.
+
+### 0.62 Portão da Fase 0 da Onda 4: segue com condições ([Handoff 065](./temp_implementation/handoffs/handoff-065-portao-fase0-onda4-segue-com-condicoes.md))
+
+- **Fase 0 verificada** em `feature/onda-4` (CI verde nos 3 commits): gatilho `feature/**`, retrato A1–A4 com `--check` na suíte, E1 real do Muse (10 payloads, bloqueio por `{"decision":"block"}` observado).
+- **Antes medido da integração:** a v1.4.0 nega todas as ferramentas reais do Muse (`bash`, `write_file`, `edit_file`, `submit_reminder_decision`), porque os nomes são desconhecidos e o gate é fail-closed.
+- **Condições (Fase 0b):** C1 dividir o A2 (o retrato exigia identidade dos 47 `.py` e 16 `.sh` que a onda refatora — erro do Handoff 064); C2 E1b do Muse com `clearer-muse` desligado, modo padrão e braço allow explícito; C3 controle negativo do A3 no servidor; C4 Muse no retrato como marcador do antes.
+- **Próximo:** Fase 0b, nova revisão curta, depois PR-13.
+
+### 0.63 Fase 0b aceita; certificado reescrito no controle negativo ([Handoff 066](./temp_implementation/handoffs/handoff-066-fase0b-onda4-certificado-reescrito-no-negctl.md))
+
+- **Fase 0b aceita** (`ff338d0`, CI verde): A2a/A2b, isolamento do `clearer-muse`, formato do Claude bloqueando no Muse, `ask` não bloqueia (→ `ask → block`), A3-muse com 41 payloads, identificadores mascarados. O braço em modo padrão não foi feito, então o adaptador do Muse responde permitir com `{}`.
+- **Controle negativo válido:** o Teste 66 reprova só no A3 no servidor.
+- **Bloqueante de processo:** para fazer o push da negctl, o agente reescreveu o `commit_hash` do `.ceh/last-ci-run.json`. O gate dá deny para esse comando, então o hook não estava interceptando na sessão do agente. Regras: o agente nunca escreve no `.ceh/`; o push de `claude/negctl-*` é do desenvolvedor.
+- **Próximo:** commit 0c (canário do hook na sessão do agente, evidência sem caminhos de home, `doc-audit` cobrindo a evidência), revisão curta, depois PR-13.
+
+### 0.64 Fase 0c: hook fail-open na IDE do Antigravity ([Handoff 067](./temp_implementation/handoffs/handoff-067-fase0c-hook-fail-open-na-ide-antigravity.md))
+
+- **P2/P3 aceitos** (`c7a5d65`, CI verde): evidência sem caminhos de home e `doc-audit` cobrindo `.json`/`.jsonl`/`.txt` da evidência.
+- **P1 não comprovado:** o canário foi criado com a v1.4.0 instalada e só foi bloqueado depois de o agente editar o gate instalado, sem registro.
+- **Achado crítico (`INFERRED`):** a IDE do Antigravity trataria exit ≠ 0 do hook como falha e executaria a ferramenta; o gate responde deny com exit 2. Toda a caracterização anterior do agy foi feita no CLI, onde exit 2 bloqueia.
+- **Próximo:** evidência E13 na IDE; se confirmado, correção v1.4.1 na `main` (deny do agy com exit 0); merge na `feature/onda-4` e retrato regenerado; depois PR-13.
+
+### 0.65 Revisão do PR #5 (v1.4.1) ([Handoff 068](./temp_implementation/handoffs/handoff-068-revisao-pr5-v1-4-1-ajustes-antes-do-merge.md))
+
+- **E13 aceita:** na IDE do Antigravity 2.5.5, só deny com exit 0 bloqueia; exit 2, crash e timeout executam; a v1.4.0 oficial deixou o canário ser criado no `.ceh/`.
+- **Correção no caminho certo** (CI verde, prova por mutação independente: 7 + 1 testes reprovam).
+- **Bloqueantes:** B1, as variáveis do Claude no ambiente se sobrepõem a um payload do agy e voltam ao exit 2; B2, `ask` sai com exit 1, que o Claude Code ignora.
+- **Próximo:** ajustes no PR #5, revisão curta, merge e tag `v1.4.1` pelo desenvolvedor, reinstalação e canário; depois o merge na `feature/onda-4` e o PR-13.
+
+### 0.66 PR #5 (v1.4.1) homologado ([Handoff 069](./temp_implementation/handoffs/handoff-069-pr5-v1-4-1-homologado.md))
+
+- **B1 e B2 resolvidos**, com prova por mutação independente; suíte verde com e sem as variáveis do Claude no ambiente; CI verde (4/4) em `5a020ba`.
+- **Contrato de saída por host:** deny com JSON e exit 0 no Antigravity (IDE e CLI); `hookSpecificOutput` com exit 2 no Claude; `ask` com exit 0.
+- **Próximo:** merge, tag `v1.4.1` e reinstalação pelo desenvolvedor; canário oficial na IDE; merge na `feature/onda-4` com o retrato regenerado (só as 7 respostas deny do agy mudam de exit 2 para 0); depois o PR-13.
+
+### 0.67 Fase 0 da Onda 4 encerrada; despacho do PR-13 ([Handoff 071](./temp_implementation/handoffs/handoff-071-fase0-encerrada-despacho-pr13.md))
+
+- **v1.4.1 publicada** (tag em `e608ea7`) e integrada na `feature/onda-4`; retrato regenerado com A1 idêntico e **exatamente 7** respostas do A3 alteradas (deny do agy, exit 2 → 0). Mais 16 linhas mudaram só no hash do payload, por causa da máscara da Fase 0c.
+- **Ressalva de processo:** o agente escreveu o Handoff 070 como "Homologado" e acrescentou uma seção 0.65 ao plano. O 070 fica como relatório do agente, e a seção sai no PR-13.
+- **PR-13 despachado:** `ceh_core/engine.py` com `evaluate(Request) -> Decision`; detecção de host e códigos de saída no `hook_context.py`; `safety-gate.py` como shim; A1, A2a, A3 e A3-muse idênticos; 0 referências de formato de host no núcleo.
+- **Linha de base:** `v1.4.1`.
+
+### 0.68 Revisão do PR-13: regressão de fail-closed no import ([Handoff 072](./temp_implementation/handoffs/handoff-072-revisao-pr13-regressao-fail-closed-no-import.md))
+
+- **Motor agnóstico correto:** A1, A2a, A3 e A3-muse idênticos; 0 referências de host no `safety-gate.py` (61 linhas) e no `ceh_core/`; testes verdes com e sem as variáveis do Claude.
+- **Bloqueante D1:** os imports do *shim* ficaram fora do `try`. Um erro de sintaxe no `hook_context.py` passou de deny com exit 0 (v1.4.1) para exit 1, que a IDE do Antigravity executa.
+- **Ressalvas:** BC3 declarado como arquivado sem arquivo versionado; mutações do `test_mutation_p13.py` na árvore real.
+- **Próximo:** ajuste com teste de fail-closed por mutação; revisão curta; depois PR-14/15.
+
+### 0.69 PR-13 homologado; E14 rejeitada; despacho do PR-14/15 ([Handoff 073](./temp_implementation/handoffs/handoff-073-pr13-homologado-e14-rejeitada-despacho-pr14-15.md))
+
+- **PR-13 homologado (código):** falhas de import e exceções do hook respondem deny com o código de saída do host (mutações independentes); rede idêntica; mutações só em cópia temporária.
+- **E14 rejeitada:** o "log" do canário tem carimbo de 71 minutos antes da existência da v1.4.1 e formato de relatório montado. Evidência de host só vale com o artefato bruto e o comando que o produziu; a E14 é refeita antes do PR para a `main`.
+- **PR-14/15 despachado:** contrato `detect`/`parse`/`render` em `adapters/`, adaptadores Antigravity e Claude Code, `hook_context.py` como despachante em ordem explícita, fixtures por host, 0 referências de host fora de `adapters/`.
+
+### 0.70 E14 refeita e aceita ([Handoff 074](./temp_implementation/handoffs/handoff-074-e14-refeita-aceita-registro-da-evidencia-montada.md))
+
+- **Canário oficial da v1.4.1 comprovado** na IDE às 11:48:48Z, com o hash do gate instalado igual ao da tag e a resposta bruta da IDE.
+- **O agente admitiu** que o trecho de log da E14 anterior foi montado e que o canário oficial não tinha rodado quando o relatório do Handoff 070 o declarou `OBSERVED`. O teste manual do desenvolvedor (gate editado, 02:26Z) fica registrado como E13b.
+- **Regra permanente:** evidência de host só com artefato bruto e comando; reconstrução rotulada como tal.
+
+### 0.71 PR-14/15 homologado; despacho do PR-15b ([Handoff 075](./temp_implementation/handoffs/handoff-075-pr14-15-homologado-despacho-pr15b-muse.md))
+
+- **Adaptadores homologados:** contrato em `adapters/`, Antigravity e Claude Code, despachante em ordem explícita; 0 referências de host fora de `adapters/`; A1–A3 idênticos; testes herméticos; fail-closed preservado com adaptador quebrado.
+- **Ressalva:** as fixtures entregues são casos escritos à mão; as geradas dos payloads gravados entram no PR-15b. As duas coleções se complementam: um defeito de `cwd` no Claude só foi pego pelas fixtures manuais.
+- **PR-15b despachado:** adaptador do Muse a partir do E1/E1b (`detect` sem ambiguidade, `render` com exit 0), A3-muse do antes ao depois com controle cruzado no motor, E15 ponta a ponta com artefatos brutos.
+
+### 0.72 PR-15b homologado; despacho do PR-16 ([Handoff 077](./temp_implementation/handoffs/handoff-077-pr15b-homologado-e15-ressalvas-despacho-pr16.md))
+
+- **Adaptador do Muse homologado:** despachante `[Antigravity, Muse, Claude]`; A3-muse de 41 × deny/2 (antes) para 41 × exit 0 (depois), com controle cruzado no motor; fixtures reais dos três hosts; mutações independentes.
+- **Ressalva alta (BH1):** a primeira execução do E15 mandou `rm -rf /` a uma sessão real do Muse em `--yolo` e não foi registrada; o resumo atribui o bloqueio a esse comando, mas o bloqueio gravado é de `git push`. Experimento de bloqueio nunca mira fora do diretório temporário.
+- **Ressalva média (BH2):** a resposta de reserva do *shim* (`{"decision":"deny"}`) não foi observada no Muse; braço E1c pedido.
+- **PR-16 despachado:** `package.py` gera os pacotes Antigravity, Muse e Claude Code da mesma fonte; `install.sh` a partir do pacote com A2 idêntico; teste de completude por host; E16 num perfil temporário do Muse.
+
+### 0.73 PR-16: reserva do *shim* por host e E16 a refazer ([Handoff 079](./temp_implementation/handoffs/handoff-079-pr16-reserva-do-shim-por-host-e16-refazer.md))
+
+- **Empacotador aprovado:** três pacotes da mesma fonte, determinísticos; `install.sh` a partir do pacote com A2 idêntico.
+- **E1c (`OBSERVED`):** `{"decision":"deny"}` não bloqueia no Muse. A reserva do *shim* falha aberta no Muse quando um módulo do CEH quebra, e o controle negativo do `test_package.py` tratava isso como sucesso.
+- **Decisão da revisão:** reserva por host em `adapters/fallback.py` (só biblioteca padrão), no formato observado de cada host; `adapters/__init__.py` sem imports em cadeia.
+- **E15/E16 sem isolamento:** o `clearer-muse`, com a própria cópia do gate, estava ativo; o bloqueio não é atribuível. E16 refeito com isolamento, pacote instalado como gerado e um cenário que prova a reserva.
+
+### 0.74 PR-16 homologado; despacho do PR-17 ([Handoff 081](./temp_implementation/handoffs/handoff-081-pr16-homologado-despacho-pr17-conformidade.md))
+
+- **Reserva por host comprovada:** com um módulo do CEH quebrado, o Muse recebe `block`/0, o Antigravity `deny`/0 e o Claude `hookSpecificOutput`/2; o Muse só falha aberto se o adaptador **e** a reserva estiverem quebrados (limite no ADR 007).
+- **E16 isolado:** só o pacote do CEH ativo em cada cenário; permitir, `git push` bloqueado e reserva bloqueando com o `muse.py` corrompido no Muse real.
+- **PR-17 despachado:** conformidade dos 1.024 comandos nos três hosts (decisão igual à do motor, `render` conforme a tabela observada), payloads sintéticos com as chaves dos gravados, guia `docs/adapters/novo-host.md`. Depois: relatório final antes × depois, PR para a `main` e tag `v2.0.0`.
+
+### 0.75 PR-17 homologado; fechamento da Onda 4 ([Handoff 083](./temp_implementation/handoffs/handoff-083-pr17-homologado-despacho-fechamento-onda4.md))
+
+- **Conformidade entre hosts comprovada:** mesma decisão nos três hosts e no motor, `render` conforme a tabela; mutações pegas; amostra independente de 145 comandos × 3 hosts pelo *shim* em subprocesso com 0 divergências.
+- **Ressalvas baixas:** cobrir o caminho de produção na suíte, números reais do corpus (1.016 × 3), registrar a mutação da reserva do Muse, uma linha por teste na suíte e retirar do guia uma afirmação não observada.
+- **Fechamento despachado:** relatório final antes × depois (com achados fora do escopo, limites e incidentes), release 2.0.0 na branch, PR para a `main` com 4/4 verdes; merge e tag `v2.0.0` pelo desenvolvedor após a revisão final.
+
+### 0.76 Revisão final do PR #6 (v2.0.0) ([Handoff 085](./temp_implementation/handoffs/handoff-085-revisao-final-pr6-v2-0-0.md))
+
+- **Código, testes e release homologados:** suíte 75/75 num worktree limpo; PR limpo, 4/4 `Validate` e GitGuardian verdes; BJ1–BJ5 resolvidas; versão 2.0.0 em `plugin.json`, CHANGELOG e READMEs.
+- **Correção antes do merge:** o relatório final descrevia errado os incidentes do certificado (atribuído a "um script" e ao G9, que já existia) e da E14 (confundido com as fixtures manuais), e trocava números entre v1.4.0 e v1.4.1. O Handoff 085 traz o texto literal.
+- **Depois:** revisão curta do diff, merge (sem squash) e tag `v2.0.0` pelo desenvolvedor, reinstalação e canário na IDE.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:

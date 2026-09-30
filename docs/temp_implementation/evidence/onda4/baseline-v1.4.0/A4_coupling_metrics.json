@@ -1,0 +1,23 @@
+{
+  "cross_host_conformance_tests_count": 0,
+  "hook_context_path": "clearer-engineering/scripts/hook_context.py",
+  "hook_context_terms": {
+    "CommandLine": 2,
+    "hookSpecificOutput": 2,
+    "toolCall": 18,
+    "tool_input": 8,
+    "tool_name": 23
+  },
+  "hook_context_total_references": 53,
+  "safety_gate_line_count": 636,
+  "safety_gate_path": "clearer-engineering/scripts/safety-gate.py",
+  "safety_gate_terms": {
+    "CommandLine": 0,
+    "hookSpecificOutput": 2,
+    "toolCall": 1,
+    "tool_input": 0,
+    "tool_name": 1
+  },
+  "safety_gate_total_references": 4,
+  "source_version": "v1.4.1"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "ceh-probe-e1c",
+  "version": "0.1.0",
+  "displayName": "CEH E1c Probe",
+  "description": "Sonda E1c para teste de decision: deny no Muse",
+  "schemaVersion": 1,
+  "compat": {
+    "manifestDir": ".muse-plugin",
+    "source": "native"
+  },
+  "capabilities": {
+    "commands": [],
+    "hooks": [
+      {
+        "id": "probe-hook-e1c",
+        "event": "PreToolUse",
+        "command": [
+          "/usr/bin/python3",
+          "/tmp/ceh_e1c_muse_29y7_c_o/e1c_plugin/hooks/probe.py"
+        ],
+        "timeoutMs": 5000,
+        "statusMessage": "Sonda CEH E1c (decision: deny)"
+      }
+    ],
+    "skills": []
+  }
+}

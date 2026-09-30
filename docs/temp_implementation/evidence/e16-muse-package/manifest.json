@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "commands": [],
+    "hooks": [
+      {
+        "command": [
+          "python3",
+          "hooks/safety-gate.py"
+        ],
+        "event": "PreToolUse",
+        "id": "safety-gate",
+        "statusMessage": "CEH Safety Gate (PreToolUse)",
+        "timeoutMs": 10000
+      }
+    ],
+    "mcpServers": [],
+    "reminders": [],
+    "skills": []
+  },
+  "compat": {
+    "manifestDir": ".muse-plugin",
+    "source": "native"
+  },
+  "description": "CLEARER Engineering Harness (CEH) PreToolUse Safety Gate for Muse",
+  "displayName": "CLEARER Muse Harness",
+  "name": "ceh-e16-gate",
+  "schemaVersion": 1,
+  "version": "1.4.1"
+}

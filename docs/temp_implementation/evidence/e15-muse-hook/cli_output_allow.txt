@@ -1,0 +1,8 @@
+CONCLUIDO_ALLOW
+
+muse: workspace root: /tmp/ceh_e15_muse_3aj0nc_2/workspace (explicit)
+muse: workspace trust: trusted source=run-flag
+muse: Git sandbox relaxation cannot resolve the active repository Git storage; .git remains protected.
+muse: Skills: 71 loaded · 1 warning · 1 detail hidden
+muse:   `skills_catalog` was trimmed to fit its size limit (32 KB): 26 descriptions compacted, 0 skill ids omitted
+muse:   Run `muse skills list --source all` for full diagnostics.
