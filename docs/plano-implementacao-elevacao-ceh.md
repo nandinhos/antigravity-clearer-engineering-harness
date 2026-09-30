@@ -712,6 +712,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalvas baixas:** cobrir o caminho de produção na suíte, números reais do corpus (1.016 × 3), registrar a mutação da reserva do Muse, uma linha por teste na suíte e retirar do guia uma afirmação não observada.
 - **Fechamento despachado:** relatório final antes × depois (com achados fora do escopo, limites e incidentes), release 2.0.0 na branch, PR para a `main` com 4/4 verdes; merge e tag `v2.0.0` pelo desenvolvedor após a revisão final.
 
+### 0.76 Revisão final do PR #6 (v2.0.0) ([Handoff 085](./temp_implementation/handoffs/handoff-085-revisao-final-pr6-v2-0-0.md))
+
+- **Código, testes e release homologados:** suíte 75/75 num worktree limpo; PR limpo, 4/4 `Validate` e GitGuardian verdes; BJ1–BJ5 resolvidas; versão 2.0.0 em `plugin.json`, CHANGELOG e READMEs.
+- **Correção antes do merge:** o relatório final descrevia errado os incidentes do certificado (atribuído a "um script" e ao G9, que já existia) e da E14 (confundido com as fixtures manuais), e trocava números entre v1.4.0 e v1.4.1. O Handoff 085 traz o texto literal.
+- **Depois:** revisão curta do diff, merge (sem squash) e tag `v2.0.0` pelo desenvolvedor, reinstalação e canário na IDE.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
