@@ -14,7 +14,7 @@
     ".gemini/config/plugins/clearer-engineering/config/write_options.json": "d89b3ae10b59812c1a4a350c7f7231f459b2055198aaf6a4e5203a356fe67a09",
     ".gemini/config/plugins/clearer-engineering/evals/CRITERIA.md": "3947d85bd12331c974c9161f61298e62eda94045661e78fa21a04a081388082e",
     ".gemini/config/plugins/clearer-engineering/hooks.json": "7bd86ba9e1d108fc2a63d029be9f8a8d0446910a885e37a9ee3d52dcb1f4ecf1",
-    ".gemini/config/plugins/clearer-engineering/plugin.json": "1df7597830f621c49d2252b879d7f932a38b75e3f27d3fb4c7a852a4d0e09110",
+    ".gemini/config/plugins/clearer-engineering/plugin.json": "7993eb5ad766658c5b79ed116664242890e95c61d8da6e0fc9e16d5e880cf341",
     ".gemini/config/plugins/clearer-engineering/profiles/clearer-harness.agent.md": "bea8d34e6b58321a80308c23c41621b3a1ed256e542713ad3e7e8128ea70c04c",
     ".gemini/config/plugins/clearer-engineering/rules/AGENTS.md": "e476bf3c8ef4262d72af7ea9a42b585742541e6c1d1b512bd5a2e0682510698e",
     ".gemini/config/plugins/clearer-engineering/rules/coding-policy.md": "5bd8ecf5af59f870c5597cc7b75914ef834357f98e2056f916827f2da9c0b329",
@@ -143,9 +143,10 @@
     ".gemini/config/plugins/clearer-engineering/tests/test_symlink_environment.py",
     ".gemini/config/plugins/clearer-engineering/tests/tools/build_corpus.py",
     ".gemini/config/plugins/clearer-engineering/tests/tools/onda4_baseline.py",
-    ".gemini/config/plugins/clearer-engineering/tests/tools/snapshot_gate.py"
+    ".gemini/config/plugins/clearer-engineering/tests/tools/snapshot_gate.py",
+    ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p3.py"
   ],
-  "a2b_all_paths_count": 102,
+  "a2b_all_paths_count": 103,
   "aliases_block": "# CEH_RC_PREFIX_LEN: 1\nalias agy-ceh='agy --agent clearer-harness'\nalias agy-ceh-yolo='agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits'\nalias ceh='agy --agent clearer-harness'\nalias ceh-env='bash ~/.gemini/config/plugins/clearer-engineering/scripts/detect-project.sh .'\nalias ceh-branches='bash ~/.gemini/config/plugins/clearer-engineering/scripts/setup-branches.sh'\nalias ceh-preflight='bash ~/.gemini/config/plugins/clearer-engineering/scripts/preflight.sh'\nalias ceh-evals='bash ~/.gemini/config/plugins/clearer-engineering/evals/run.sh'\nalias ceh-monitor='bash ~/.gemini/config/plugins/clearer-engineering/scripts/task-monitor.sh'\nalias ceh-doc-audit='bash ~/.gemini/config/plugins/clearer-engineering/scripts/doc-audit.sh'\nalias ceh-conselho='bash ~/.gemini/config/plugins/clearer-engineering/scripts/conselho-seniores.sh'\nalias ceh-help='bash ~/.gemini/config/plugins/clearer-engineering/scripts/ceh-help.sh'",
   "aliases_hash": "bba08d9d5eadac6c50433f700f47292c9d8ec97899f19be04316c6dcd84e3e90"
 }

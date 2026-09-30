@@ -9,14 +9,14 @@
     "tool_name": 23
   },
   "hook_context_total_references": 53,
-  "safety_gate_line_count": 630,
+  "safety_gate_line_count": 636,
   "safety_gate_path": "clearer-engineering/scripts/safety-gate.py",
   "safety_gate_terms": {
     "CommandLine": 0,
     "hookSpecificOutput": 2,
-    "toolCall": 0,
+    "toolCall": 1,
     "tool_input": 0,
-    "tool_name": 0
+    "tool_name": 1
   },
-  "safety_gate_total_references": 2
+  "safety_gate_total_references": 4
 }
