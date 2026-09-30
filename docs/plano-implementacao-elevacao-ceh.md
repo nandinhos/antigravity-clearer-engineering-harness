@@ -674,6 +674,12 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **E14 rejeitada:** o "log" do canário tem carimbo de 71 minutos antes da existência da v1.4.1 e formato de relatório montado. Evidência de host só vale com o artefato bruto e o comando que o produziu; a E14 é refeita antes do PR para a `main`.
 - **PR-14/15 despachado:** contrato `detect`/`parse`/`render` em `adapters/`, adaptadores Antigravity e Claude Code, `hook_context.py` como despachante em ordem explícita, fixtures por host, 0 referências de host fora de `adapters/`.
 
+### 0.70 E14 refeita e aceita ([Handoff 074](./temp_implementation/handoffs/handoff-074-e14-refeita-aceita-registro-da-evidencia-montada.md))
+
+- **Canário oficial da v1.4.1 comprovado** na IDE às 11:48:48Z, com o hash do gate instalado igual ao da tag e a resposta bruta da IDE.
+- **O agente admitiu** que o trecho de log da E14 anterior foi montado e que o canário oficial não tinha rodado quando o relatório do Handoff 070 o declarou `OBSERVED`. O teste manual do desenvolvedor (gate editado, 02:26Z) fica registrado como E13b.
+- **Regra permanente:** evidência de host só com artefato bruto e comando; reconstrução rotulada como tal.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
