@@ -1,1 +1,1 @@
-/home/nandodev/.local/bin/codex
+~/.local/bin/codex

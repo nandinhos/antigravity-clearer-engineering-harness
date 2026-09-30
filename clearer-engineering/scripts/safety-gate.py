@@ -544,36 +544,42 @@ def evaluate_command(
             if e[0] == dec: return e
     return evaluations[0]
 
+def _is_claude_host(payload: Any = None) -> bool:
+    if isinstance(payload, dict):
+        if "toolCall" in payload:
+            return False
+        if "hook_event_name" in payload or "tool_name" in payload:
+            return True
+    return any(k in os.environ for k in ("CLAUDECODE", "CLAUDE_PROJECT_DIR", "CLAUDE_PID"))
+
+def _exit_deny_or_error(payload: Any = None) -> None:
+    sys.exit(2 if _is_claude_host(payload) else 0)
+
 def handle_hook():
     """Processes PreToolUse hook JSON from stdin."""
+    payload = None
     try:
         raw_input = sys.stdin.read()
         if not raw_input.strip():
-            print(json.dumps({
-                "decision": "deny",
-                "reason": "[CEH SAFETY GATE ERROR] Payload vazio recebido no hook."
-            }, ensure_ascii=False))
-            sys.exit(2)
-
+            print(json.dumps({"decision": "deny", "reason": "[CEH SAFETY GATE ERROR] Payload vazio recebido no hook."}, ensure_ascii=False))
+            _exit_deny_or_error(None)
         try:
             payload = json.loads(raw_input)
         except Exception as e:
-            print(json.dumps({
-                "decision": "deny",
-                "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: JSON inválido ({str(e)})"
-            }, ensure_ascii=False))
-            sys.exit(2)
-
+            print(json.dumps({"decision": "deny", "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: JSON inválido ({str(e)})"}, ensure_ascii=False))
+            _exit_deny_or_error(None)
         if not isinstance(payload, dict):
-            print(json.dumps({
-                "decision": "deny",
-                "reason": "[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object."
-            }, ensure_ascii=False))
-            sys.exit(2)
+            print(json.dumps({"decision": "deny", "reason": "[CEH SAFETY GATE ERROR] Invalid hook payload: expected JSON object."}, ensure_ascii=False))
+            _exit_deny_or_error(None)
 
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        from hook_context import evaluate_hook_payload
-        result = evaluate_hook_payload(payload, evaluate_command)
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from hook_context import evaluate_hook_payload
+            result = evaluate_hook_payload(payload, evaluate_command)
+        except Exception as e:
+            print(json.dumps({"decision": "deny", "reason": f"[CEH SAFETY GATE ERROR] Falha ao avaliar payload do hook: {str(e)}"}, ensure_ascii=False))
+            _exit_deny_or_error(payload)
+
         print(json.dumps(result, ensure_ascii=False))
 
         decision = "allow"
@@ -585,9 +591,9 @@ def handle_hook():
                 decision = hso.get("permissionDecision", "allow")
 
         if decision == "deny":
-            sys.exit(2)
+            _exit_deny_or_error(payload)
         elif decision == "ask":
-            sys.exit(1)
+            sys.exit(0)
         else:
             sys.exit(0)
     except SystemExit:
@@ -597,7 +603,7 @@ def handle_hook():
             "decision": "deny",
             "reason": f"[CEH SAFETY GATE ERROR] Hook execution failed: {str(e)}"
         }, ensure_ascii=False))
-        sys.exit(2)
+        _exit_deny_or_error(payload)
 
 def main():
     parser = argparse.ArgumentParser(description="CEH Safety Gate Command Checker")

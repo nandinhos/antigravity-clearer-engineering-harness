@@ -1,1 +1,1 @@
-/home/nandodev/.local/bin/muse
+~/.local/bin/muse

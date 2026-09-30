@@ -1,1 +1,1 @@
-/home/nandodev/.local/bin/hermes
+~/.local/bin/hermes
