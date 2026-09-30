@@ -282,6 +282,9 @@ ONDA4_DECLARED_NEW_PATHS = {
     ".gemini/config/plugins/clearer-engineering/tests/test_package.py",
     ".gemini/config/plugins/clearer-engineering/scripts/adapters/fallback.py",
     ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p16.py",
+    # PR-17
+    ".gemini/config/plugins/clearer-engineering/tests/test_cross_host_conformance.py",
+    ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p17.py",
 }
 
 
@@ -519,12 +522,15 @@ def check_baseline() -> int:
             diffs.append(f"A4 hook_context.py possui {current_a4['hook_context_total_references']} referências de host! Meta do PR-14/15 é 0 fora de adapters/.")
         if current_a4["safety_gate_line_count"] > 100:
             diffs.append(f"A4 safety-gate.py tem {current_a4['safety_gate_line_count']} linhas (esperado shim fino <= 100 linhas)")
+        if current_a4["cross_host_conformance_tests_count"] < 1:
+            diffs.append(f"A4 cross_host_conformance_tests_count é {current_a4['cross_host_conformance_tests_count']}! Meta do PR-17 é >= 1.")
 
         if (current_a4["safety_gate_total_references"] == 0 and
             current_a4["ceh_core_total_references"] == 0 and
             current_a4["hook_context_total_references"] == 0 and
-            current_a4["safety_gate_line_count"] <= 100):
-            print(f"  ✔ A4 OK (Meta do PR-14/15 atingida: 0 referências de host fora de adapters/; adapters/ isola {current_a4['adapters_total_references']} termos)")
+            current_a4["safety_gate_line_count"] <= 100 and
+            current_a4["cross_host_conformance_tests_count"] >= 1):
+            print(f"  ✔ A4 OK (Meta do PR-14/15/17 atingida: 0 referências de host fora de adapters/, conformidade={current_a4['cross_host_conformance_tests_count']}; adapters/ isola {current_a4['adapters_total_references']} termos)")
 
     if diffs:
         print("\n============================================================", file=sys.stderr)

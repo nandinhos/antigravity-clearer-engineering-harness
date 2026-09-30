@@ -286,13 +286,13 @@ run_test "CEH Core Engine: Motor agnóstico de host com evaluate(Request) -> Dec
 run_test "Fail-Closed Hook Imports: Proteção contra quebra de módulos e fail-open na IDE (PR-13 / D1)" \
     "python3 '$PLUGIN_DIR/tests/test_hook_failclosed.py' >/dev/null 2>&1"
 
-# 36. PR-14/15 Host Adapters Suite (Contrato, Antigravity e Claude Code)
-run_test "Host Adapters: Contrato HostAdapter e isolamento de hosts em adapters/ (PR-14/15)" \
-    "python3 '$PLUGIN_DIR/tests/test_adapters.py' >/dev/null 2>&1"
+# 36. PR-14/15/17 Host Adapters Suite (Contrato, Antigravity, Claude Code, Muse e Conformidade Cross-Host)
+run_test "Host Adapters & Conformance: Contrato HostAdapter, isolamento e conformidade cross-host (PR-14/15/17)" \
+    "python3 '$PLUGIN_DIR/tests/test_adapters.py' >/dev/null 2>&1 && python3 '$PLUGIN_DIR/tests/test_cross_host_conformance.py' >/dev/null 2>&1"
 
-# 37. PR-14/15 Mutation Falsifiability Suite (Regra AT5)
-run_test "Host Adapters Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-14/15)" \
-    "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p14.py' >/dev/null 2>&1"
+# 37. PR-14/15/17 Mutation Falsifiability Suite (Regra AT5)
+run_test "Host Adapters Mutations: Provas de falsificabilidade em clone temporário (PR-14/15/17)" \
+    "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p14.py' >/dev/null 2>&1 && python3 '$PLUGIN_DIR/tests/tools/test_mutation_p17.py' >/dev/null 2>&1"
 
 # 38. PR-15b Muse Adapter Mutations Suite (Regra AT5)
 run_test "Muse Adapter Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-15b)" \
