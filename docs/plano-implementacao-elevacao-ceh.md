@@ -718,6 +718,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Correção antes do merge:** o relatório final descrevia errado os incidentes do certificado (atribuído a "um script" e ao G9, que já existia) e da E14 (confundido com as fixtures manuais), e trocava números entre v1.4.0 e v1.4.1. O Handoff 085 traz o texto literal.
 - **Depois:** revisão curta do diff, merge (sem squash) e tag `v2.0.0` pelo desenvolvedor, reinstalação e canário na IDE.
 
+### 0.77 Onda 4 encerrada; v2.0.0 publicada ([Handoff 086](./temp_implementation/handoffs/handoff-086-onda4-encerrada-v2-0-0.md))
+
+- **Correção do relatório aplicada literalmente** (`ea1459d`, só o relatório); merge commit `9385bf7`; tag e release `v2.0.0` nesse commit; CI da `main` verde.
+- **Linha de base avançada** para `9385bf7`.
+- **Pendente (desenvolvedor):** reinstalar pela `v2.0.0` e registrar o canário na IDE com artefatos brutos.
+- **Próximos passos sugeridos:** proteção da `main`, Codex CLI como 4º host pelo guia, e troca do `clearer-muse` vendorizado pelo pacote gerado.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
