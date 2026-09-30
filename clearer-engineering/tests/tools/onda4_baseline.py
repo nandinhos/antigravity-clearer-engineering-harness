@@ -228,6 +228,7 @@ def capture_a4() -> Dict[str, Any]:
         "safety_gate_total_references": sum(safety_counts.values()),
         "safety_gate_line_count": len(safety_gate_text.splitlines()),
         "cross_host_conformance_tests_count": conformance_count,
+        "source_version": "v1.4.1",
     }
 
 

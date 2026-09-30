@@ -1,7 +1,7 @@
-# Handoff 070 — Fase 0c Concluída: v1.4.1 Integrada na feature/onda-4, Retrato Regenerado e CI 4/4 Verde
+# Relatório do Agente (Handoff 070) — Fase 0c Concluída: v1.4.1 Integrada na feature/onda-4, Retrato Regenerado e CI 4/4 Verde
 
 - **Data:** 2026-09-30
-- **Status:** Homologado / Pronto para Revisão Curta e Abertura do PR-13
+- **Status:** Relatório do Agente — aguardando revisão (superado e encerrado pelo Handoff 071)
 - **Branch:** `feature/onda-4`
 - **Head Commit:** `9dc9be7`
 - **CI Run ID:** [36670606628](https://github.com/nandinhos/antigravity-clearer-engineering-harness/actions/runs/36670606628) (4/4 jobs verdes)
@@ -15,6 +15,16 @@ Após a homologação formal do PR #5 (v1.4.1) no Handoff 069:
 1. O desenvolvedor efetuou o merge do PR #5 na `main` (`e608ea7`), criou a tag `v1.4.1` e reinstalou oficialmente o harness via `./install.sh`.
 2. O agente executou a sequência estrita estipulada pelo revisor nos Handoffs 067 e 069:
    - **Canário Oficial na IDE**: O comando `touch .ceh/canario-hook` foi emitido na IDE sob a instalação oficial v1.4.1 (sem edições manuais em `~/.gemini/config`). O Safety Gate interceptou e respondeu `{"decision": "deny"}` com `exit 0`. A IDE abortou o comando e o arquivo `.ceh/canario-hook` **não foi criado** (`OBSERVED`).
+   - **Registro do Log da IDE (Canário Bloqueado)**:
+     ```json
+     {
+       "tool": "run_command",
+       "args": {"CommandLine": "touch .ceh/canario-hook"},
+       "hook_response": {"decision": "deny", "reason": "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Tentativa de escrita/modificação de .ceh/ ou certificado de CI (touch). Apenas leituras puras são permitidas."},
+       "exit_code": 0,
+       "execution_result": "denied_by_hook"
+     }
+     ```
    - **Merge da `main` na `feature/onda-4`**: Commit `b251a59`, resolvendo conflitos a favor dos artefatos canônicos da `main` homologados no PR #5.
    - **Regeneração Única do Retrato (A1–A4)**: Commit `9dc9be7`, gravado a partir da v1.4.1.
 
@@ -29,7 +39,7 @@ A medição determinística via `python3 clearer-engineering/tests/tools/onda4_b
 | **A1 (Gate Decisions)** | **IDÊNTICO** | 1.024 decisões inalteradas (`sha256: 3878d3cc285f7ab655b549d04070fd618c72f1b67a9addab92a11bf9661bd3ab`). |
 | **A2a (Ativos Não-Código)** | **Conforme** | 39 arquivos ativos não-código. Apenas `plugin.json` atualizou a versão para `1.4.1`. Aliases de shell idênticos (`sha256: bba08d9d5eadac6c50433f700f47292c9d8ec97899f19be04316c6dcd84e3e90`). |
 | **A2b (Manifesto Geral)** | **Conforme** | 103 caminhos instalados (inclusão de `test_mutation_p3.py` na pasta de testes). |
-| **A3 (Respostas do Hook)** | **Exatamente 7 negações alteradas** | 107 respostas gravadas. **Rigorosamente as 7 negações do Antigravity mudaram de `exit 2` para `exit 0`**, sem alteração no payload nem no JSON emitido. Claude Code inalterado. |
+| **A3 (Respostas do Hook)** | **Exatamente 7 negações alteradas em comportamento** | 107 respostas gravadas. **Rigorosamente 7 negações do Antigravity mudaram de `exit 2` para `exit 0`**, com o mesmo stdout. Adicionalmente, 16 linhas de `allow` do Antigravity diferem exclusivamente no `payload_hash` (devido ao mascaramento de identificadores locais realizado na Fase 0c / P2), com exit code 0 e stdout idênticos. Claude Code inalterado. |
 | **A3-muse (Marcador do Antes)** | **IDÊNTICO** | 41 payloads do Muse preservados com `exit 2` (`deny`) no marcador do antes. |
 | **A4 (Acoplamento)** | **Conforme** | `hook_context.py`: 53 referências (inalterado). `safety_gate.py`: 4 referências (acoplamento formalizado B1) e 636 linhas (teto 650). |
 

@@ -34,11 +34,11 @@
     ".gemini/config/plugins/clearer-engineering/skills/clearer/SKILL.md": "120ae97edaa19faf3223593d35aff85a2c70973099eef4fff01cef87b63c3ca7",
     ".gemini/config/plugins/clearer-engineering/skills/conselho-seniores/SKILL.md": "dbfb0ada4657e760554a863ee103e18563eb695935d57bbe296e4dfce406b978",
     ".gemini/config/plugins/clearer-engineering/skills/learned-lesson/SKILL.md": "8c531c7d4c25f70c842c86301f4a1c4b4e854ac9010495e7fdef87050d8a592a",
-    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_baseline.txt": "d33574737fcfd000ded8f2136faa975d279a19cb248ffead10e7bbb5fdf3b9a9",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_baseline.txt": "0bfec25c5d9ca1fdd608035f82b86e2612e741361ed1548db33ea217564149e7",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl": "3878d3cc285f7ab655b549d04070fd618c72f1b67a9addab92a11bf9661bd3ab",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_corpus.txt": "6a16c02aef9d1f2567c771780f54b95aa11a25828e3be601a0d3e0bea72f53bd",
-    ".gemini/config/plugins/clearer-engineering/tests/fixtures/relaxamentos_deteccao.txt": "9dab75f749ec633e22099a5e7307cb6f41ab815f1e31c7330932fdc02e3170ae",
-    ".gemini/config/plugins/clearer-engineering/tests/fixtures/relaxamentos_justificados.txt": "85335f633b6454e4340fc44f6608252f1a6c5b52204496ebd8a5451b19b82466",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/relaxamentos_deteccao.txt": "2700f6a37dd1dba3bea25c3d5138cdd7ab709fe63649d52909889ffbd4583286",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/relaxamentos_justificados.txt": "160a7ef096aa3c7a9c02d412846b2a8ad7aff2c2114c98025cfad8bc03144003",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/review_batteries.txt": "b77e87cbf8ace7e178dd6b636ff7e3bb5c3180aef39a87cfd7e39e0e3f276b2d"
   },
   "a2b_all_paths": [
