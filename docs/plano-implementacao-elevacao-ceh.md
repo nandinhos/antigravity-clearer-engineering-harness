@@ -725,6 +725,11 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Pendente (desenvolvedor):** reinstalar pela `v2.0.0` e registrar o canário na IDE com artefatos brutos.
 - **Próximos passos sugeridos:** proteção da `main`, Codex CLI como 4º host pelo guia, e troca do `clearer-muse` vendorizado pelo pacote gerado.
 
+### 0.78 Canário da v2.0.0 aceito ([Handoff 087](./temp_implementation/handoffs/handoff-087-e17-canario-v2-0-0-aceito.md))
+
+- **E17 aceita:** hash do gate instalado igual ao da tag `v2.0.0`, sequência temporal coerente e resposta bruta da IDE com o bloqueio; `.ceh/canario-hook` não criado.
+- **Ressalvas baixas:** citar os passos da transcrição na E17; o commit foi direto para a `main`, o que reforça a proteção da `main` (AY2).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
