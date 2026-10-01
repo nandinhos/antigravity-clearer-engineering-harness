@@ -5,6 +5,7 @@ Normativo do PR-08 (Handoff 035, Onda 2 - G7).
 from __future__ import annotations
 
 import json
+import os
 import shlex
 import subprocess
 from pathlib import Path
