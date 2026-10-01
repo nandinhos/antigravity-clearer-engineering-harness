@@ -250,9 +250,9 @@ run_evidence() {
     echo "--- [2. Plugins Instalados e Concorrentes] ---"
     _plugins_dir="$HOME/.gemini/config/plugins"
     if [ -d "$_plugins_dir" ]; then
-        ls -1 "$_plugins_dir" 2>/dev/null | while IFS= read -r p; do
-            if [ -d "$_plugins_dir/$p" ]; then
-                echo "  • $p"
+        for _plugin_entry in "$_plugins_dir"/*; do
+            if [ -d "$_plugin_entry" ]; then
+                echo "  • $(basename "$_plugin_entry")"
             fi
         done
     else
@@ -264,8 +264,8 @@ run_evidence() {
     _brain_dir="$HOME/.gemini/antigravity-ide/brain"
     _found_transcript=""
     if [ -d "$_brain_dir" ]; then
-        # Localiza o transcript.jsonl mais recente modificado nas últimas 24h
-        _found_transcript=$(find "$_brain_dir" -type f -name "transcript.jsonl" 2>/dev/null | xargs ls -t 2>/dev/null | head -n 1 || true)
+        # Localiza o transcript.jsonl mais recente de forma compatível com POSIX sh
+        _found_transcript=$(find "$_brain_dir" -type f -name "transcript.jsonl" -exec ls -t {} + 2>/dev/null | head -n 1 || true)
     fi
 
     if [ -n "$_found_transcript" ] && [ -f "$_found_transcript" ]; then
