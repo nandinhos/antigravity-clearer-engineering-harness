@@ -7,8 +7,12 @@ set -u
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PLUGIN_DIR" || exit 1
 
+ORIGINAL_HOME="${HOME:-}"
 TMP_HOME="$(mktemp -d "${TMPDIR:-/tmp}/ceh-alltests-XXXXXX")"
 trap 'rm -rf "$TMP_HOME"' EXIT
+if [[ -n "$ORIGINAL_HOME" && -f "$ORIGINAL_HOME/.gitconfig" ]]; then
+    cp "$ORIGINAL_HOME/.gitconfig" "$TMP_HOME/.gitconfig"
+fi
 export HOME="$TMP_HOME"
 
 TOTAL_TESTS=0
@@ -224,7 +228,7 @@ run_test "Review Batteries: baterias adversariais das revisões (pendências em 
 
 # 20. PR-QA-A Differential Fuzzing vs Baseline
 run_test "Differential Fuzz: Comparação automática contra baseline e detecção de relaxamentos (PR-QA-A)" \
-    "python3 '$PLUGIN_DIR/tests/test_gate_differential_fuzz.py' >/dev/null 2>&1"
+    "python3 '$PLUGIN_DIR/tests/test_gate_differential_fuzz.py' >/dev/null"
 
 # 21. PR-07 Environment Tokens & Non-Downgrade Invariant
 run_test "Environment Tokens: Detecção por token explícito e invariante de não rebaixamento (PR-07)" \
