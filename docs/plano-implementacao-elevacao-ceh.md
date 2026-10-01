@@ -742,11 +742,25 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Motivo:** nove incidentes da trilha vieram de diferenças entre o sandbox da revisão e a IDE do Antigravity (código de saída, variáveis de ambiente, plugins concorrentes, sistema de arquivos, evidência não observável pelo revisor).
 - **Decisões propostas ao Conselho:** D1 barreira no servidor (regra na `main`); D2 matriz de onde cada verificação vale; D3 evidência da IDE gerada por script; D4 paridade de ambiente nos testes (`ceh-doctor`, job com variáveis do Claude); D5 `v2.1.1` com CA1/CA2; D6 papéis, com a ata do Conselho sem poder de homologar sozinha.
 
-### 0.81 Deliberação do Conselho e despachos ([Handoff 090](./temp_implementation/handoffs/handoff-090-deliberacao-conselho-sandbox-vs-ide-e-despachos.md))
+### 0.81 Deliberação do Conselho: decisões finais e ordem dos PRs ([Handoff 090](./temp_implementation/handoffs/handoff-090-deliberacao-conselho-sandbox-vs-ide-e-despachos.md))
 
-- **Resultado:** HOMOLOGADO COM RESSALVAS (5 votos favoráveis com ressalvas construtivas, 0 rejeições, certeza média 0.89).
-- **Consensos:** D1-A unânime (0 aprovações, sem bypass, job `ci-ok`); D2 aprovada com acréscimo de `agy CLI headless` e separação Linux vs macOS; D3 fusão de `ceh-ide-probe` no `ceh-doctor --evidence` em POSIX `sh`; D4 casefold incondicional (`lower()`) no parser do gate; D5 PR único `v2.1.1` com CA1/CA2 e baseline após controles; D6 ata do Conselho não homologa sem comando e saída verificáveis.
-- **Despachos:** D1 no GitHub imediato; PR de D4+D3+D2/D6; PR v2.1.1 (CA1/CA2).
+- **Estado:** CONFORME. Substitui o rascunho do agente publicado no `8a4898e`.
+- **Votos reclassificados pelo texto dos pareceres:** 5/5 com ressalvas, 0 rejeições, certeza média de 0.87. O `agent` não votou: parou no *workspace trust* e precisa de `--trust`. A ata registrou 3/3 por falha do extrator, que pegou o modelo ecoado no parecer do Codex e não reconheceu o "HOMOLOGADO COM RESSALVAS" do Hermes.
+- **Correção do Handoff 088:** o CA1 cai para BAIXA. Dentro de um repositório git, um `.ceh/config.json` local invalida o selo; não gera certificado canônico (observado).
+- **Decisões:**
+  - **D1-A:** ruleset na `main`, com 0 aprovações e bypass vazio; os 4 `Validate` como check até existir o `ci-ok`; prova autenticada e push direto rejeitado, colhidos pelo desenvolvedor.
+  - **D2:** matriz com as colunas agy CLI headless, IDE-Linux e IDE-macOS, e a tupla de evidência.
+  - **D3:** fundida no `ceh-doctor --evidence`, em POSIX `sh`; o pacote prova integridade, não autenticidade.
+  - **D4:** casefold só no basename do executável e no componente `.ceh`. O `lower()` no comando inteiro afrouxaria 16 decisões do corpus, por exemplo `rm -rf $HOME` e `git checkout -B main`.
+  - **D5:** `v2.1.1` com o CA1 e o CA2, em três commits ordenados, e o diff do corpus restrito aos apertos declarados.
+  - **D6:** homologar exige comando e saída reproduzíveis; papel de operador do release.
+- **Hermes:** acolhidas H2, H4 (adaptada), H8, H9, H10 (restrita) e H11; adiadas H1, H5, H7 (anexo) e H12; rejeitadas H3, H6 e H7 (HMAC e tempo externo).
+- **Ordem:**
+  1. D1 (desenvolvedor);
+  2. PR de infraestrutura: `ci-ok`, `CLAUDE*`, helper de diretório temporário, casefold, `ceh-doctor` e documentação;
+  3. troca do check obrigatório para `ci-ok`;
+  4. PR `v2.1.1`;
+  5. PR de documentação CA5–CA8.
 
 ## 1. Objetivo
 
