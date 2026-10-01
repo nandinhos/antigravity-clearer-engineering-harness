@@ -3,6 +3,7 @@
 test_hermes_remediation.py — Bateria de testes de falsificabilidade (RED-GREEN)
 para os achados da Fase A1 da Auditoria do Hermes (F02, F03, F04, F05, F10, F01).
 """
+import json
 import os
 import shutil
 import tempfile
@@ -296,6 +297,72 @@ class TestHermesRemediationPhaseA2(unittest.TestCase):
             cert_file.exists(),
             f"F08: Certificado NÃO deveria ser emitido quando a worktree é modificada durante os testes! Cert: {cert_file.read_text() if cert_file.exists() else ''}"
         )
+
+
+class TestHermesRemediationPhaseB(unittest.TestCase):
+    """Bateria de testes para a Fase B (Empacotador, Aliases, Manifestos: F09, F11, F12, F14, F15)."""
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp(prefix="ceh_phase_b_")
+        self.package_tool = str(Path(_SCRIPTS_DIR).parents[0] / "tools" / "package.py")
+        self.source_dir = Path(_SCRIPTS_DIR).parents[0]
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+    def test_f15_evidence_report_detect_env_valid(self):
+        """F15: evidence_report.detect_env() detecta o ambiente real sem falha de AttributeError."""
+        import evidence_report
+        res = evidence_report.detect_env()
+        self.assertNotIn("AttributeError", res, f"F15: detect_env() retornou AttributeError: {res}")
+        self.assertTrue(res.startswith(("DEVELOPMENT", "PRODUCTION", "STAGING")), f"Formato de ambiente inesperado: {res}")
+
+    def test_f14_muse_manifest_version_matches_plugin_json(self):
+        """F14: O manifesto do Muse empacotado reflete a versão canônica de plugin.json."""
+        out_muse = Path(self.tmp_dir) / "muse_pkg"
+        res = subprocess.run([sys.executable, self.package_tool, "--host", "muse", "--out", str(out_muse)], capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"package.py falhou: {res.stderr}")
+
+        plugin_json = json.loads((self.source_dir / "plugin.json").read_text(encoding="utf-8"))
+        canonical_ver = plugin_json["version"]
+
+        manifest = json.loads((out_muse / ".muse-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["version"], canonical_ver, f"F14: Versão do Muse ({manifest['version']}) difere de plugin.json ({canonical_ver})")
+
+    def test_f09_claude_settings_matcher_includes_all_edit_tools(self):
+        """F09: A configuração do Claude Code gerada pelo empacotador intercepta Write, Edit, MultiEdit e NotebookEdit."""
+        out_claude = Path(self.tmp_dir) / "claude_pkg"
+        res = subprocess.run([sys.executable, self.package_tool, "--host", "claude-code", "--out", str(out_claude)], capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"package.py falhou: {res.stderr}")
+
+        settings = json.loads((out_claude / ".claude" / "settings.json").read_text(encoding="utf-8"))
+        matchers = [hook["matcher"] for hook in settings["hooks"]["PreToolUse"]]
+        combined = "|".join(matchers)
+        for expected in ["Write", "Edit", "MultiEdit", "NotebookEdit"]:
+            self.assertIn(expected, combined, f"F09: Matcher PreToolUse do Claude não cobre {expected}: {combined}")
+
+    def test_f11_package_refuses_unmanaged_nonempty_directory(self):
+        """F11: package.py se recusa a apagar e sobrescrever diretório não vazio sem o marcador .ceh-package-managed."""
+        unsafe_dir = Path(self.tmp_dir) / "user_data"
+        unsafe_dir.mkdir()
+        sentinel = unsafe_dir / "user_sentinel.txt"
+        sentinel.write_text("critical user content\n")
+
+        res = subprocess.run([sys.executable, self.package_tool, "--host", "muse", "--out", str(unsafe_dir)], capture_output=True, text=True)
+        self.assertNotEqual(res.returncode, 0, "F11: package.py deveria abortar ao receber diretório não vazio não gerenciado!")
+        self.assertTrue(sentinel.exists(), "F11: Arquivo do usuário FOI APAGADO pelo package.py!")
+
+    def test_f12_rc_aliases_line_anchoring(self):
+        """F12: rc_aliases.remove_ceh_block não apaga linhas válidas de configuração que contêm marcadores como strings em echo."""
+        import rc_aliases
+        user_rc = (
+            '# Mock .bashrc\n'
+            f'echo "{rc_aliases.START_MARKER}"\n'
+            'export USER_SETTING=keep\n'
+            f'echo "{rc_aliases.END_MARKER}"\n'
+        )
+        cleaned = rc_aliases.remove_ceh_block(user_rc)
+        self.assertIn("export USER_SETTING=keep", cleaned, "F12 RED: remove_ceh_block removeu configuração legítima do usuário!")
+        self.assertEqual(cleaned, user_rc, "F12: Marcadores em strings não deveriam acionar a remoção de bloco!")
 
 
 if __name__ == "__main__":

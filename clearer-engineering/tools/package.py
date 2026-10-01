@@ -102,6 +102,38 @@ def package_antigravity(out_dir: Path) -> None:
     _copy_dir_deterministic(scripts_src, scripts_dst)
 
 
+def get_canonical_version() -> str:
+    plugin_json = SOURCE_DIR / "plugin.json"
+    if plugin_json.is_file():
+        try:
+            return json.loads(plugin_json.read_text(encoding="utf-8")).get("version", "2.0.0")
+        except Exception:
+            pass
+    return "2.0.0"
+
+
+PACKAGE_MANAGED_MARKER = ".ceh-package-managed"
+
+
+def _safe_clean_destination(target_dir: Path) -> None:
+    if not target_dir.exists():
+        return
+    resolved = target_dir.resolve()
+    for dangerous in [Path.home(), Path("/"), Path("/etc"), Path("/var"), Path("/usr"), SOURCE_DIR, SOURCE_DIR.parent]:
+        if resolved == dangerous.resolve():
+            sys.exit(f"ERRO DE SEGURANÇA: Destino '{target_dir}' coincide com caminho crítico do sistema/repositório. Abortando.")
+
+    entries = list(target_dir.iterdir())
+    if entries:
+        marker = target_dir / PACKAGE_MANAGED_MARKER
+        if not marker.exists():
+            sys.exit(
+                f"ERRO DE SEGURANÇA: Destino '{target_dir}' não está vazio e não contém o marcador de pacote '{PACKAGE_MANAGED_MARKER}'. "
+                "Recusando apagar diretório não gerenciado pelo CEH."
+            )
+    shutil.rmtree(target_dir)
+
+
 def package_muse(out_dir: Path, plugin_id: str | None = None) -> None:
     """Empacota o plugin para Muse Code a partir da estrutura observada em E1b/E15."""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -135,7 +167,7 @@ def package_muse(out_dir: Path, plugin_id: str | None = None) -> None:
         "displayName": "CLEARER Muse Harness",
         "name": pkg_name,
         "schemaVersion": 1,
-        "version": "1.4.1"
+        "version": get_canonical_version()
     }
 
     _write_json_deterministic(out_dir / ".muse-plugin" / "plugin.json", manifest_data)
@@ -184,7 +216,7 @@ def package_claude_code(out_dir: Path) -> None:
                             "type": "command"
                         }
                     ],
-                    "matcher": "Write|Edit"
+                    "matcher": "Write|Edit|MultiEdit|NotebookEdit"
                 }
             ]
         }
@@ -239,6 +271,7 @@ def package_host(host: str, out_dir: Path, plugin_id: str | None = None) -> Tupl
     else:
         raise ValueError(f"Host '{host}' nao suportado. Opcoes: {SUPPORTED_HOSTS}")
 
+    _write_json_deterministic(out_dir / PACKAGE_MANAGED_MARKER, {"managed_by": "ceh-package", "version": get_canonical_version()})
     pkg_hash, files = calculate_package_hash(out_dir)
     return pkg_hash, len(files)
 
@@ -258,8 +291,7 @@ def main() -> int:
         results = {}
         for h in SUPPORTED_HOSTS:
             host_out = out_base / h
-            if host_out.exists():
-                shutil.rmtree(host_out)
+            _safe_clean_destination(host_out)
             pkg_hash, count = package_host(h, host_out, plugin_id=args.plugin_id)
             results[h] = {"hash": pkg_hash, "file_count": count, "out_dir": str(host_out)}
 
@@ -275,8 +307,7 @@ def main() -> int:
         parser.error("Informe --host <host> ou utilize --all.")
 
     target_host = "claude-code" if args.host == "claude" else args.host
-    if out_base.exists():
-        shutil.rmtree(out_base)
+    _safe_clean_destination(out_base)
 
     pkg_hash, count = package_host(target_host, out_base, plugin_id=args.plugin_id)
 

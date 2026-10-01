@@ -154,18 +154,48 @@ deploy_harness() {
     fi
     python3 "$PACKAGE_PY" --host antigravity --out "$PKG_TMP_DIR"
 
-    # 3.2 Deploy Plugin Assets from generated package
-    rm -rf "$TARGET_PLUGIN_DIR"
-    mkdir -p "$TARGET_PLUGIN_DIR"
-    cp -r "$PKG_TMP_DIR/." "$TARGET_PLUGIN_DIR/"
+    # 3.2 Staging & Transactional Deployment (F13)
+    local STAGING_DIR
+    STAGING_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-staging-XXXXXX")
+    cp -r "$PKG_TMP_DIR/." "$STAGING_DIR/"
+    rm -f "$STAGING_DIR/.ceh-package-managed"
     rm -rf "$PKG_TMP_DIR"
 
     if [[ -d "$SOURCE_DIR/evals" ]]; then
-        cp -r "$SOURCE_DIR/evals" "$TARGET_PLUGIN_DIR/"
-        chmod +x "$TARGET_PLUGIN_DIR/evals"/* 2>/dev/null || true
+        cp -r "$SOURCE_DIR/evals" "$STAGING_DIR/"
+        chmod +x "$STAGING_DIR/evals"/* 2>/dev/null || true
     fi
-    chmod +x "$TARGET_PLUGIN_DIR/scripts"/*
-    chmod +x "$TARGET_PLUGIN_DIR/tests"/*
+    chmod +x "$STAGING_DIR/scripts"/*
+    chmod +x "$STAGING_DIR/tests"/*
+
+    # Backup existing installation if present
+    local BACKUP_DIR=""
+    if [[ -d "$TARGET_PLUGIN_DIR" ]]; then
+        BACKUP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-backup-plugin-XXXXXX")
+        cp -r "$TARGET_PLUGIN_DIR/." "$BACKUP_DIR/"
+    fi
+
+    # Validate staging plugin via agy CLI if available before committing to active dir
+    if command -v agy >/dev/null 2>&1; then
+        log_info "Validating staging plugin with Antigravity CLI..."
+        local validate_output
+        local validate_status=0
+        validate_output=$(agy plugin validate "$STAGING_DIR" 2>&1) || validate_status=$?
+        echo "$validate_output"
+        if [[ $validate_status -ne 0 && "${SKIP_DIAGNOSTICS:-0}" -ne 1 ]]; then
+            log_error "Plugin validation failed on staging (exit $validate_status). Aborting without modifying active install."
+            rm -rf "$STAGING_DIR"
+            [[ -n "$BACKUP_DIR" ]] && rm -rf "$BACKUP_DIR"
+            exit "$validate_status"
+        fi
+    fi
+
+    # Commit deployment atomically
+    rm -rf "$TARGET_PLUGIN_DIR"
+    mkdir -p "$TARGET_PLUGIN_DIR"
+    cp -r "$STAGING_DIR/." "$TARGET_PLUGIN_DIR/"
+    rm -rf "$STAGING_DIR"
+    [[ -n "$BACKUP_DIR" ]] && rm -rf "$BACKUP_DIR"
 
     # Copy Agent Profile from canonical source
     local AGENT_PROFILE_SRC="$SOURCE_DIR/clearer-engineering/profiles/clearer-harness.agent.md"
@@ -177,26 +207,6 @@ deploy_harness() {
     fi
 
     log_success "Assets installed to $GEMINI_CONFIG_DIR"
-
-    # Register and validate via agy CLI if available
-    if command -v agy >/dev/null 2>&1; then
-        log_info "Validating plugin with Antigravity CLI..."
-        local validate_output
-        local validate_status=0
-        validate_output=$(agy plugin validate "$TARGET_PLUGIN_DIR" 2>&1) || validate_status=$?
-        echo "$validate_output"
-        if [[ $validate_status -eq 0 ]]; then
-            log_success "Plugin validated and active in Antigravity."
-        else
-            log_error "Plugin validation failed with exit code $validate_status."
-            if [[ "${SKIP_DIAGNOSTICS:-0}" -eq 1 ]]; then
-                log_warn "Proceeding despite validation failure because --skip-diagnostics is active."
-            else
-                log_error "Aborting installation due to plugin validation failure. (Pass --skip-diagnostics to bypass)."
-                exit "$validate_status"
-            fi
-        fi
-    fi
 }
 
 
