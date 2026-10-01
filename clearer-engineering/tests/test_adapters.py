@@ -371,6 +371,34 @@ class TestHostAdapters(unittest.TestCase):
             self.assertIsNone(target)
             self.assertTrue(force_deny)
 
+    def test_gate_decision_independent_of_claude_env(self):
+        """D4 item 5 / H10: Prova que a decisão avaliada pelo gate não se altera pela presença de variáveis CLAUDE*."""
+        from ceh_core.engine import evaluate
+
+        commands = [
+            ("ls -la", "allow"),
+            ("rm -rf /", "deny"),
+            ("git status", "allow"),
+        ]
+        claude_vars = {
+            "CLAUDECODE": "1",
+            "CLAUDE_PROJECT_DIR": "/tmp",
+            "CLAUDE_CODE_ENTRYPOINT": "cli",
+            "CLAUDE_PID": "12345",
+        }
+
+        for cmd, expected_decision in commands:
+            with patch.dict(os.environ, {}, clear=True):
+                req_clean = Request(command=cmd, cwd="/tmp", explicit_env="development")
+                dec_clean = evaluate(req_clean)
+                self.assertEqual(dec_clean.decision, expected_decision)
+
+            with patch.dict(os.environ, claude_vars, clear=False):
+                req_claude = Request(command=cmd, cwd="/tmp", explicit_env="development")
+                dec_claude = evaluate(req_claude)
+                self.assertEqual(dec_claude.decision, expected_decision)
+                self.assertEqual(dec_clean.decision, dec_claude.decision)
+
 
 if __name__ == "__main__":
     unittest.main()

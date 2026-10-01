@@ -192,7 +192,7 @@ def evaluate_rm_command(
 ) -> tuple[str, str, str, str] | None:
     """Avalia a segurança de comandos 'rm' por tokens."""
     tokens = tokenize_command(cmd_line, posix=True)
-    if not tokens or tokens[0] != "rm":
+    if not tokens or tokens[0].lower() != "rm":
         return None
 
     is_recursive, is_force, targets = parse_rm_tokens(tokens)

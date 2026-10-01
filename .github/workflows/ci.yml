@@ -252,3 +252,76 @@ jobs:
       - name: Run Full E2E Simulation & Integration Lifecycle
         run: |
           ./clearer-engineering/tests/run-e2e-simulation.sh
+
+      - name: Run CEH Doctor Verification & Diagnostics
+        run: |
+          sh clearer-engineering/scripts/ceh-doctor.sh --self-check
+          sh clearer-engineering/scripts/ceh-doctor.sh --evidence
+
+      - name: Verify CEH Doctor under Apple Legacy Bash 3.2 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --self-check
+          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --evidence
+
+  claude-env:
+    name: Claude Code Environment Parity (ubuntu-latest - Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Make scripts executable
+        run: |
+          chmod +x clearer-engineering/scripts/*.sh
+          chmod +x clearer-engineering/tests/*.sh
+          chmod +x evals/run.sh
+          chmod +x install.sh
+          chmod +x uninstall.sh
+
+      - name: Run Canonical Suite under Claude Code Environment (Parity Test)
+        env:
+          CLAUDECODE: "1"
+          CLAUDE_PROJECT_DIR: "${{ github.workspace }}"
+          CLAUDE_CODE_ENTRYPOINT: "cli"
+          USER: "runner"
+        run: |
+          echo "=== Executing Canonical Test Suite with Claude Code Environment Variables ==="
+          ./clearer-engineering/tests/run-all-tests.sh
+
+      - name: Run CEH Doctor under Claude Code Environment
+        env:
+          CLAUDECODE: "1"
+          CLAUDE_PROJECT_DIR: "${{ github.workspace }}"
+          CLAUDE_CODE_ENTRYPOINT: "cli"
+          USER: "runner"
+        run: |
+          sh clearer-engineering/scripts/ceh-doctor.sh --self-check
+          sh clearer-engineering/scripts/ceh-doctor.sh --evidence
+
+  ci-ok:
+    name: CI Aggregated Status (ci-ok)
+    runs-on: ubuntu-latest
+    needs: [validate, claude-env]
+    if: always()
+    steps:
+      - name: Evaluate Upstream Quality Gates
+        run: |
+          echo "=== CEH CI Aggregated Quality Gate Evaluation ==="
+          echo "Validate Job Status: ${{ needs.validate.result }}"
+          echo "Claude Environment Job Status: ${{ needs.claude-env.result }}"
+
+          if [[ "${{ needs.validate.result }}" == "success" && "${{ needs.claude-env.result }}" == "success" ]]; then
+            echo "✔ ALL REQUIRED CI GATES PASSED (ci-ok: SUCCESS)"
+            exit 0
+          else
+            echo "✖ ONE OR MORE CI GATES FAILED"
+            exit 1
+          fi
