@@ -730,6 +730,13 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **E17 aceita:** hash do gate instalado igual ao da tag `v2.0.0`, sequência temporal coerente e resposta bruta da IDE com o bloqueio; `.ceh/canario-hook` não criado.
 - **Ressalvas baixas:** citar os passos da transcrição na E17; o commit foi direto para a `main`, o que reforça a proteção da `main` (AY2).
 
+### 0.79 Análise da v2.1.0 — remediação da auditoria Hermes ([Handoff 088](./temp_implementation/handoffs/handoff-088-analise-v2-1-0-remediacao-hermes.md))
+
+- **Sólida:** suíte 76/76, retrato e corpus idênticos, CI verde; F02, F03, F04, F10 e F01 (no certificado) conferidos com os exemplos do plano; F06–F08 coerentes no `test-runner.sh`.
+- **CA1 (média, já existia):** escrita em outros arquivos do `.ceh/` por redirecionamento colado ou com descritor ainda passa, inclusive no `config.json`, que define o comando canônico quando não versionado.
+- **CA2 (média):** os apertos F01–F10 não entraram no corpus dourado; só o teste dedicado os protege.
+- **CA3 (média):** a proteção da `main` (Fase D) não foi comprovada (a evidência traz 401).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
