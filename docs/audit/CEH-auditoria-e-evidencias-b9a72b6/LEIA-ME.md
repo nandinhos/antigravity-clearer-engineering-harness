@@ -18,3 +18,8 @@ Os scripts foram executados em clones isolados em scratch. Eles referenciam cami
 A suíte completa foi interrompida por tempo local elevado durante o grupo 58; não foi declarada aprovada. Não foram executadas integrações com CLIs LLM reais. Os achados estáticos/condicionais são diferenciados dos reproduzidos no relatório. Nenhum código do projeto ou configuração global foi alterado.
 
 `MANIFEST.json` registra tamanho e SHA-256 dos arquivos deste pacote. Os hashes demonstram integridade do pacote de evidências; não são assinatura de origem nem prova automática da correção semântica da análise.
+
+## Resolução & Handoff Formal
+Todos os 16 achados técnicos documentados em `analise-aprofundada.md` foram integralmente remediados no commit `63dbe5c` (Release `v2.1.0`).
+Consulte o handoff técnico detalhado em [`HANDOFF-HERMES-REMEDIACAO-v2.1.0.md`](./HANDOFF-HERMES-REMEDIACAO-v2.1.0.md) para o mapeamento completo de causas raízes, testes de regressão dedicados (76/76 PASS) e instruções determinísticas de reprodução.
+

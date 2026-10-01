@@ -7,7 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-10-02
+## [2.1.0] - 2026-10-01
+
+### Fixed
+- **Remediação Integral da Auditoria Hermes (16/16 Achados F01 a F16)**:
+  - **F01 (Gate Core)**: Resolução de bypass de tokenização por whitespace e regex ingênuo em subshells (`ceh_core/engine.py`).
+  - **F02 (Gate Core)**: Validação canônica estrita de saída em `evaluate_command` garantindo retorno de 4-tupla tipada `(decision, reason, environment, use_case)`.
+  - **F03 (Prevenção Catastrófica)**: Inclusão de `rm -rf /*` e `rm -rf ./*` nas regras canônicas de deleção catastrófica (`ceh_core/rules.py`).
+  - **F04 (Branch Protection)**: Isolamento de regras de proteção de branch em `ceh_core/rules.py` mitigando race condition no Git Gate.
+  - **F05 (Pre-Push Gate)**: Interceptação e bloqueio mandatório de `git pull --rebase` e `git push -f` em branches protegidas de produção (`ceh_core/push.py`).
+  - **F06 (Bash Runner)**: Tratamento resiliente de loops em subshells sob `set -e` em `test-runner.sh` (orçamento mantido em 186 linhas).
+  - **F07 (Bash Runner)**: Quoting defensivo estrito contra expansões inesperadas no Bash em `test-runner.sh`.
+  - **F08 (Bash Runner)**: Isolamento de trap handlers evitando vazamento de códigos de saída em falhas de asserção.
+  - **F09 (Empacotador)**: Resolução de caminhos relativos em `tools/package.py` para execuções fora da raiz do repositório.
+  - **F10 (Filesystem)**: Normalização canônica de caminhos em `ceh_core/rm.py` com detecção de escape por traversal e wildcards.
+  - **F11 (Relatório de Evidências)**: Tratamento defensivo de dependências opcionais no `ceh-evidence-auditor` e `evidence_report.py`.
+  - **F12 (Aliases Shell)**: Normalização de aliases em `rc_aliases.py` prevenindo shadowing de binários nativos do sistema operacional.
+  - **F13 (Subcomandos)**: Validação estrita de exit code em subcomandos encadeados via `ceh_core/subcommand.py`.
+  - **F14 (Instalador)**: Compatibilidade aprimorada com shells Zsh e POSIX/Bash no instalador `install.sh`.
+  - **F15 (Baseline Onda 4)**: Validação determinística de integridade de empacotamento contra o manifesto `A2_install_manifest.json`.
+  - **F16 (Differential Fuzzing)**: Isolamento hermético de repositório e `HOME` temporários no worker subprocess do teste diferencial.
+
+### Added
+- **Bateria de Testes Hermes (`test_hermes_remediation.py`)**: 16 casos de teste unitários e de integração validando individualmente cada achado da auditoria, integrado como Teste 76 da suíte canônica (76/76 PASS).
+- **Handoff Técnico de Engenharia (`HANDOFF-HERMES-REMEDIACAO-v2.1.0.md`)**: Registro formal e auditável de remediação para contra-prova pelo agente auditor independente Hermes.
+- **Pareceres do Conselho de Seniores**: Atas e pareceres de 5 IAs especialistas (*Claude Code, Codex, Muse, AGY SDK, Agent*) homologando as correções em `docs/temp_implementation/conselho/20261001_auditoria_hermes/`.
+- **Compatibilidade CI GitHub Actions**: Validação e aprovação em matriz de 9/9 jobs em Ubuntu e macOS (Python 3.9 a 3.12).
+
 
 ### Changed
 - **Arquitetura Multi-Host Desacoplada (Onda 4)**: A lógica de regras e avaliação do Safety Gate foi completamente isolada em `ceh_core.engine`, enquanto o tratamento de I/O, parsing de payloads e renderização de saída foram encapsulados no pacote `adapters/` (`AntigravityAdapter`, `ClaudeAdapter`, `MuseAdapter`).
