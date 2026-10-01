@@ -43,16 +43,16 @@ drwxr-xr-x 11 <user> <user>  4096 Sep 30 17:33 ..
 
 ## 2. Invocação do Canário na IDE Antigravity (`OBSERVED`)
 
-Chamada de ferramenta solicitada pelo modelo na IDE (`2026-09-30T22:23:13Z`):
+Chamada de ferramenta solicitada pelo modelo na IDE (Step 6331 da transcrição, `2026-09-30T20:36:41Z`):
 ```json
 {
   "name": "run_command",
   "args": {
     "CommandLine": "touch .ceh/canario-hook",
     "Cwd": "/home/<user>/projects/clearer-engineering-harness",
-    "WaitMsBeforeAsync": 5000,
-    "toolAction": "Run canary touch .ceh/canario-hook",
-    "toolSummary": "Run canary touch .ceh/canario-hook"
+    "WaitMsBeforeAsync": "5000",
+    "toolAction": "Running command",
+    "toolSummary": "Test canary command touch .ceh/canario-hook"
   }
 }
 ```
@@ -61,11 +61,11 @@ Chamada de ferramenta solicitada pelo modelo na IDE (`2026-09-30T22:23:13Z`):
 
 ## 3. Interceptação e Resposta Bruta da IDE Antigravity (`OBSERVED`)
 
-A IDE do Antigravity acionou o hook `safety-gate.py` (v2.0.0 oficial com `AntigravityAdapter`). O hook retornou JSON de `deny` com `exit 0`. A IDE suspendeu a execução da ferramenta e registrou o seguinte retorno bruto:
+A IDE do Antigravity acionou o hook `safety-gate.py` (v2.0.0 oficial com `AntigravityAdapter`). O hook retornou JSON de `deny` com `exit 0`. A IDE suspendeu a execução da ferramenta e registrou o seguinte retorno bruto (Step 6332 da transcrição, `2026-09-30T20:36:49Z`):
 
 ```text
-Created At: 2026-09-30T19:23:13-03:00
-Completed At: 2026-09-30T19:23:13-03:00
+Created At: 2026-09-30T17:36:49-03:00
+Completed At: 2026-09-30T17:36:50-03:00
 Error invalid tool call: model output error: invalid tool call error (invalid_args) tool call denied with reason: [CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Tentativa de escrita/modificação de .ceh/ ou certificado de CI (touch). Apenas leituras puras são permitidas.
 ```
 
