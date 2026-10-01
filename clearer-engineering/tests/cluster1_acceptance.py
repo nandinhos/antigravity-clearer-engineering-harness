@@ -282,7 +282,6 @@ def main():
 
     # T4: sem config, alvo parcial difere do comando auto-detectado e não certifica
     (ceh_dir / "config.json").unlink()
-    (fix_dir / "pytest.ini").write_text("[pytest]\n")
     (fix_dir / "requirements.txt").write_text("")
     commit_all(fix_dir, "auto-detecção python sem config")
     run_partial_py = run_runner(fix_dir, "python3 -m unittest tests.test_smoke")

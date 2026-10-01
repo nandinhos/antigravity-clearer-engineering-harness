@@ -198,5 +198,105 @@ class TestHermesRemediationPhaseA1(unittest.TestCase):
         self.assertEqual(evaluate(req2).decision, "allow")
 
 
+class TestHermesRemediationPhaseA2(unittest.TestCase):
+    """Bateria de testes para a Fase A2 (Runner Bash: F06, F07, F08)."""
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp(prefix="ceh_runner_test_")
+        self.runner_script = str(Path(_SCRIPTS_DIR) / "test-runner.sh")
+        self.original_cwd = os.getcwd()
+        self.original_path = os.environ.get("PATH", "")
+
+        # Inicializar repo Git limpo
+        subprocess.run(["git", "init", "-b", "dev"], cwd=self.tmp_dir, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "Tester"], cwd=self.tmp_dir, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "t@t.l"], cwd=self.tmp_dir, check=True, capture_output=True)
+        (Path(self.tmp_dir) / "tracked.txt").write_text("initial content\n")
+        subprocess.run(["git", "add", "."], cwd=self.tmp_dir, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "init"], cwd=self.tmp_dir, check=True, capture_output=True)
+        os.chdir(self.tmp_dir)
+
+    def tearDown(self):
+        os.chdir(self.original_cwd)
+        os.environ["PATH"] = self.original_path
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+    def test_f06_sail_adaptation_revokes_canonical_verification_when_command_differs(self):
+        """F06: Se o adapter de runtime trocar o comando para Sail, canonical_verified DEVE ser false se diferir da suíte canônica."""
+        import json
+        # Configurar comando canonico explícito
+        ceh_dir = Path(self.tmp_dir) / ".ceh"
+        ceh_dir.mkdir(parents=True, exist_ok=True)
+        config_file = ceh_dir / "config.json"
+        config_file.write_text(json.dumps({"canonical_test_command": "bash canonical.sh"}))
+        subprocess.run(["git", "add", "."], cwd=self.tmp_dir, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "add config"], cwd=self.tmp_dir, check=True, capture_output=True)
+
+        # Criar mock docker e mock sail
+        bin_dir = Path(self.tmp_dir) / "fake_bin"
+        bin_dir.mkdir()
+        mock_docker = bin_dir / "docker"
+        mock_docker.write_text("#!/bin/sh\nif [ \"$1\" = \"info\" ]; then exit 0; fi\nif [ \"$1\" = \"compose\" ] && [ \"$2\" = \"ps\" ]; then echo 'laravel.test'; exit 0; fi\nexit 0\n")
+        mock_docker.chmod(0o755)
+
+        vendor_bin = Path(self.tmp_dir) / "vendor" / "bin"
+        vendor_bin.mkdir(parents=True)
+        mock_sail = vendor_bin / "sail"
+        mock_sail.write_text("#!/bin/sh\necho 'Sail mock ran'\nexit 0\n")
+        mock_sail.chmod(0o755)
+
+        (Path(self.tmp_dir) / "docker-compose.yml").write_text("version: '3'\n")
+        (Path(self.tmp_dir) / ".gitignore").write_text("fake_bin/\n")
+        subprocess.run(["git", "add", "."], cwd=self.tmp_dir, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "add mocks and sail"], cwd=self.tmp_dir, check=True, capture_output=True)
+
+        os.environ["PATH"] = f"{bin_dir}:{self.original_path}"
+
+        res = subprocess.run(["bash", self.runner_script], cwd=self.tmp_dir, capture_output=True, text=True)
+        cert_file = ceh_dir / "last-ci-run.json"
+        self.assertTrue(cert_file.exists(), f"F06: Certificado deveria ser emitido pelo mock. Out: {res.stdout}\nErr: {res.stderr}")
+        cert = json.loads(cert_file.read_text())
+        self.assertFalse(
+            cert.get("canonical_verified", False),
+            f"F06 RED: canonical_verified deveria ser False quando o runtime adapter troca a suíte canônica por Sail! Cert: {cert}"
+        )
+
+    def test_f07_missing_pytest_does_not_silently_fallback_to_unittest(self):
+        """F07: Projeto com pytest.ini sem pytest no PATH não pode rodar unittest silenciosamente e emitir PASS."""
+        (Path(self.tmp_dir) / "pytest.ini").write_text("[pytest]\n")
+        # Criar um teste que passaria no unittest
+        test_file = Path(self.tmp_dir) / "test_sample.py"
+        test_file.write_text("import unittest\nclass T(unittest.TestCase):\n    def test_ok(self):\n        pass\n")
+        subprocess.run(["git", "add", "."], cwd=self.tmp_dir, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "add pytest.ini and test"], cwd=self.tmp_dir, check=True, capture_output=True)
+
+        # Mascarar pytest do PATH
+        fake_bin = Path(self.tmp_dir) / "no_pytest_bin"
+        fake_bin.mkdir()
+        # Copiar executáveis essenciais exceto pytest
+        os.environ["PATH"] = "/usr/bin:/bin"
+
+        # Se pytest for chamado via command -v pytest, simular ausência
+        res = subprocess.run(
+            ["bash", "-c", f"PATH='/bin:/usr/bin' which pytest 2>/dev/null || true"],
+            capture_output=True, text=True
+        )
+        if not res.stdout.strip():
+            # Executar test-runner
+            res_runner = subprocess.run(["bash", self.runner_script], cwd=self.tmp_dir, capture_output=True, text=True)
+            self.assertNotEqual(res_runner.returncode, 0, "F07: Runner deveria falhar quando pytest está ausente em projeto pytest.")
+            self.assertIn("pytest", res_runner.stdout.lower() + res_runner.stderr.lower())
+
+    def test_f08_dirty_worktree_after_tests_revokes_certificate(self):
+        """F08: Se a execução do teste sujar a worktree (modificar arquivo rastreado ou criar não commitado), o certificado NÃO pode ser emitido."""
+        dirty_test_cmd = 'python3 -c "open(\\"tracked.txt\\", \\"a\\").write(\\"dirty\\\\n\\")"'
+        res = subprocess.run(["bash", self.runner_script, dirty_test_cmd], cwd=self.tmp_dir, capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"O comando de teste em si teve sucesso (exit 0). Output: {res.stdout}\nErr: {res.stderr}")
+        cert_file = Path(self.tmp_dir) / ".ceh" / "last-ci-run.json"
+        self.assertFalse(
+            cert_file.exists(),
+            f"F08: Certificado NÃO deveria ser emitido quando a worktree é modificada durante os testes! Cert: {cert_file.read_text() if cert_file.exists() else ''}"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
