@@ -28,7 +28,7 @@ from ceh_core.environment import (
     ENV_SEVERITY,
 )
 from ceh_core.rm import evaluate_rm_command
-from ceh_core.push import check_pre_push_ci_gate, is_remote_deletion
+from ceh_core.push import check_pre_push_ci_gate, is_remote_deletion, parse_git_push_tokens
 from ceh_core.git import evaluate_git_subcommand
 from ceh_core.git_invocation import resolve_git_invocation
 from ceh_core.find import evaluate_find_command
@@ -149,19 +149,20 @@ def evaluate_subcommand(
                     else:
                         candidate = s_res
 
+    # 0. Protecao de Integridade do Certificado de CI (G9, PR-10) — executa ANTES de qualquer desembrulho
+    is_tampering, cert_reason = is_cert_tampering(sub_eval)
+    if is_tampering:
+        return ("deny", cert_reason, env, "CERTIFICATE_INTEGRITY")
+
     shell_inner = extract_shell_c_command(sub_raw)
     if shell_inner and eval_command_fn is not None:
         return eval_command_fn(
             shell_inner,
             explicit_env=explicit_env,
             base_cwd=base_cwd,
-            depth=depth + 1
+            depth=depth + 1,
+            env_floor=env,
         )
-
-    # 0. Protecao de Integridade do Certificado de CI (G9, PR-10)
-    is_tampering, cert_reason = is_cert_tampering(sub_eval)
-    if is_tampering:
-        return ("deny", cert_reason, env, "CERTIFICATE_INTEGRITY")
 
     # 0. Avaliacao Estrita de 'rm' por tokens (G1, G4 e PR-04b)
     rm_res = evaluate_rm_command(sub_norm, env, env_evidence=env_evidence, base_cwd=base_cwd)
@@ -219,6 +220,16 @@ def evaluate_subcommand(
             if ENV_SEVERITY.get(sub_env, 0) > ENV_SEVERITY.get(env, 0):
                 env, env_evidence = sub_env, sub_env_evidence
 
+        if git_subcmd == "reset":
+            if any(a == "--hard" or a.startswith("--hard=") for a in git_args):
+                desc = "Destructive Git reset discarding uncommitted changes (git reset --hard)"
+                use_case_code = "GIT_HISTORY"
+                if build_destructive_fn is not None:
+                    return finalize(build_destructive_fn(env, env_evidence, desc, use_case_code, "Controle de Versão (Git)"))
+                return finalize(("deny", desc, env, use_case_code))
+            else:
+                return finalize(("allow", f"Safe Git operation permitted ({env_evidence}).", env, "GENERAL"))
+
         if git_subcmd in ("checkout", "restore", "switch"):
             is_dest, desc, use_case_code = evaluate_git_subcommand(git_subcmd, git_args)
             if is_dest:
@@ -262,8 +273,15 @@ def evaluate_subcommand(
                 return finalize(build_destructive_fn(env, env_evidence, desc, use_case_code, use_case_label))
             return finalize(("deny", desc, env, use_case_code))
 
-    # AJ2: Delecao remota de branch no push graduada como GIT_HISTORY (DEV allow, HML ask, PROD deny)
+    # AJ2: Delecao remota de branch no push ou force push graduado como GIT_HISTORY (DEV allow, HML ask, PROD deny)
     if is_git_push and env in ("production", "staging"):
+        _, _, p_flags = parse_git_push_tokens(git_args)
+        if p_flags.get("force"):
+            force_desc = "Force pushing to remote repository (git push --force)"
+            if build_destructive_fn is not None:
+                return finalize(build_destructive_fn(env, env_evidence, force_desc, "GIT_HISTORY", "Controle de Versão (Git)"))
+            return finalize(("deny", force_desc, env, "GIT_HISTORY"))
+
         is_del, del_desc = is_remote_deletion(git_args)
         if is_del:
             if build_destructive_fn is not None:

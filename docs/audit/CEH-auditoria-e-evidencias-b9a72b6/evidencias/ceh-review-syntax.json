@@ -1,0 +1,78 @@
+{
+  "clearer-engineering/config/aliases.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/ceh-help.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/conselho-seniores.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/detect-project.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/diff-audit.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/doc-audit.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/evidence-report.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/preflight.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/setup-branches.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/task-monitor.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/scripts/test-runner.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/tests/run-adversarial-tests.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/tests/run-all-tests.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/tests/run-e2e-simulation.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "clearer-engineering/tests/run-install-verification.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "docs/temp_implementation/scripts/probe_cluster1_contract_gaps.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "evals/run.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "install.sh": {
+    "exit": 0,
+    "stderr": ""
+  },
+  "uninstall.sh": {
+    "exit": 0,
+    "stderr": ""
+  }
+}

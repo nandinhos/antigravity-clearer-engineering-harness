@@ -1,0 +1,181 @@
+Você está deliberando como integrante do CONSELHO DE SENIORES do CLEARER Engineering Harness (CEH).
+Sua identidade e delegação nesta sessão:
+ENGENHEIRO DE SISTEMAS & PORTABILIDADE — Especialista em arquitetura POSIX, portabilidade entre Linux/macOS/BSD, segurança de runtime de shell e performance de baixo nível.
+
+OBJETO DE AVALIAÇÃO:
+=== DOCUMENTO SOB AVALIAÇÃO (abstracao-remediacao-auditoria-hermes.md) ===\n# Abstração Completa e Modelagem Arquitetural de Remediação (Auditoria Hermes b9a72b6)
+
+**Data:** 2026-10-01  
+**Autor:** Antigravity (Pair Programming sob o CLEARER Engineering Harness)  
+**Alvo:** Auditoria Independente do Hermes (`b9a72b6`) e 16 achados técnicos (F01 a F16)  
+**Status:** Proposta Formal para Deliberação do Conselho de Seniores e Validação do Desenvolvedor  
+
+---
+
+## 1. Princípios Invariantes de Remediação
+
+A remediação dos achados levantados pelo Hermes não deve introduzir sobre-engenharia nem fragilizar os 75 testes e 5 medições de baseline já consolidados. Ela se apoia em 6 invariantes fundamentais:
+
+1. **Invariante 1 — Preservação Semântica de Redirecionamento (F01)**:
+   A análise léxica (`lexer.py`) deve tratar operadores de redirecionamento (`>`, `>>`, `1>`, `2>`, `&>`, etc.) e seus alvos como elementos de primeira classe, mesmo quando não delimitados por espaços (`cat f>.ceh/cert`). Redirecionamentos associados a um comando ou subshell pertencem ao contexto do comando externo e NUNCA podem ser descartados ao desembrulhar comandos internos (`bash -c`, subshells `(...)`).
+
+2. **Invariante 2 — Monotonicidade e Herança Estrita de Contexto de Ambiente (F02)**:
+   A severidade do ambiente detectado é monotonicamente não-decrescente durante a avaliação recursiva de pipelines ou subcomandos:
+   $$\text{env}_{\text{efetivo}} = \max(\text{env}_{\text{ancestral}}, \text{env}_{\text{prefixo}}, \text{env}_{\text{interno}})$$
+   O desembrulho de wrappers (`env VAR=val`, `bash -c`, `sudo`) DEVE propagar o ambiente já resolvido para as chamadas internas (`depth + 1`), sendo proibido rebaixar `production` ou `staging` para `development`.
+
+3. **Invariante 3 — Canonicalização de Identidade do Binário Git (F03)**:
+   A invocação de comandos Git deve ser normalizada pela resolução canônica do binário (`basename` validado contra executáveis Git suportados: `git`, `/usr/bin/git`, `/usr/local/bin/git`, `/mingw64/bin/git`, `git.exe`), garantindo que flags de push e branch gates sejam aplicadas de maneira uniforme independentemente de caminho absoluto ou relativo.
+
+4. **Invariante 4 — Consumo de Flags Estruturadas sobre Regex Textual (F04, F05)**:
+   A detecção de operações destrutivas (`reset --hard`, `clean -f`, `push --force`) deve consultar a AST de flags estruturadas já produzida pelo parser (`parse_push_args`, `resolve_git_invocation`), e não regexes textuais com limites rígidos de palavras (`\b-f\b`), suportando permutações de argumentos (`git reset HEAD --hard`), agrupamentos (`-vf`) e mapeamento determinístico de refs padrão (`remote.origin.push`, `push.default`).
+
+5. **Invariante 5 — Integridade Pós-Execução do Certificado Canônico (F06, F07, F08)**:
+   Um certificado de CI (`last-ci-run.json`) só é válido se:
+   - A worktree estiver limpa ANTES e DEPOIS da execução da suíte.
+   - O comando executado coincidir estritamente com o comando canônico declarado (`canonical_verified: true`), proibindo substituição silenciosa de suites (Sail/Docker ou unittest no lugar de pytest).
+
+6. **Invariante 6 — Transacionalidade de Efeitos Colaterais (F09 a F16)**:
+   Operações de sistema de arquivos e empacotamento (instalação, remoção de aliases, geração de pacotes em `--out`) devem operar sob staging atômico (`mktemp -d`), recusar exclusões cegas (`rmtree` sem marker ou propriedade) e tratar arquivos e diretórios por inspeção física de tipo no filesystem (`os.path.isdir`), não por suposição de extensão.
+
+---
+
+## 2. Modelagem Abstrata dos 16 Achados (F01 a F16)
+
+### Bloco A: Segurança & Integridade de Certificado (P1)
+
+#### [F01] Redirecionamento Adjacente e Desembrulho de Shell
+- **Causa Raiz**: O lexer separa tokens por espaço via `shlex.split`, unindo `sample.txt>.ceh/...` em um token único cujo `startswith('>')` é falso. Em `subcommand.py`, `extract_shell_c_command` extrai apenas a string do `-c` e descarta a cauda de redirecionamento externo.
+- **Abstração Proposta**:
+  1. No `lexer.py`: Refinar o analisador léxico de pré-tokenização para normalizar delimitadores de redirecionamento não contidos em aspas (inserir espaçamento canônico em `>` ou tokenizar via FSM).
+  2. No `subcommand.py`: Ao encontrar subshell `(...)` ou wrapper `bash -c '...'`, a FSM extrai a operação de redirecionamento externa e avalia a escrita no alvo ANTES de avaliar o comando interno.
+
+#### [F02] Rebaixamento de Ambiente Produtivo em Desembrulho de Shell
+- **Causa Raiz**: `subcommand.py:154–159` passa `explicit_env` original para `eval_command_fn(depth + 1)`, perdendo o ambiente produtivo já descoberto a partir de `env APP_ENV=production` no prefixo do comando atual.
+- **Abstração Proposta**:
+  Calcular `effective_env` antes do desembrulho e passá-lo explicitamente para o `depth + 1`:
+  ```python
+  inner_env = env if is_higher_severity(env, explicit_env) else explicit_env
+  return eval_command_fn(shell_inner, explicit_env=inner_env, depth=depth + 1)
+  ```
+
+#### [F03] Evasão do Push Gate via Caminho Absoluto do Git
+- **Causa Raiz**: `git_invocation.py:33` testa literalmente `tokens[0] != "git"`. Se o token for `/usr/bin/git`, `/mingw64/bin/git` ou `./bin/git`, a função descarta a invocação Git.
+- **Abstração Proposta**:
+  Canonicalizar o executável:
+  ```python
+  cmd_basename = os.path.basename(tokens[0]).lower()
+  is_git_bin = cmd_basename in ("git", "git.exe") or tokens[0].endswith("/git")
+  ```
+
+#### [F04] Evasão de Regras Destrutivas por Ordem ou Agrupamento de Flags
+- **Causa Raiz**: `rules.py:52` usa `\bgit\s+reset\s+--hard\b` (não casa com `git reset HEAD --hard`) e `\bgit\s+push\s+.*-f\b` (não casa com `-vf`).
+- **Abstração Proposta**:
+  Desacoplar a checagem destrutiva de regex frágil:
+  1. Para `git reset`: tokenizar argumentos do subcomando; se `--hard` ou `--merge` estiver presente em qualquer posição de argumento, classificar como destrutivo.
+  2. Para `git push`: consultar `parse_push_args` que já decompõe flags semânticas (`is_force`).
+
+#### [F05] Push sem Refspec Explícito com Mapeamento Arbitrário de Branch
+- **Causa Raiz**: `push.py:217` presume que push sem refspec envia o commit de `HEAD`. Se o usuário configurou `remote.origin.push = unchecked:dev` ou `push.default = matching`, Git envia outras branches sem certificação.
+- **Abstração Proposta**:
+  Ao avaliar push sem refspecs explícitos (`git push origin`), inspecionar a configuração local do repositório (`git config --get remote.<remote>.push` e `git config --get push.default`). Se houver refspec configurado apontando para refs diferentes de HEAD, exigir que todas as refs alvo correspondam a commits certificados ou negar conservadoramente (`FAIL_CLOSED`).
+
+#### [F06] Substituição Silenciosa da Suíte Canônica no Runtime Sail
+- **Causa Raiz**: `test-runner.sh:88` marca `CANONICAL_VERIFIED=true` antes de verificar o runtime Sail. Na linha 122, ele substitui `TEST_CMD="./vendor/bin/sail test"`, que roda uma suíte diferente da canônica declarada (`bash canonical.sh`).
+- **Abstração Proposta**:
+  Se o comando canônico configurado for alterado ou adaptado para outro binário/transporte, `CANONICAL_VERIFIED` só permanece `true` se a suíte executada dentro do container corresponder semanticamente ao transporte do mesmo comando canônico (`./vendor/bin/sail test` apenas se o canônico for `php artisan test` ou `sail test`). Se o canônico for um script específico (`bash canonical.sh`), executar o script via `docker compose exec` ou invalidar `CANONICAL_VERIFIED`.
+
+#### [F07] Fallback Silencioso de Pytest para Unittest Parcial
+- **Causa Raiz**: `test-runner.sh:34–39` faz fallback para `unittest` caso `pytest` não esteja no PATH, ignorando a suíte pytest existente e emitindo certificado para um subconjunto benigno.
+- **Abstração Proposta**:
+  Se `pytest.ini`, `setup.cfg` ou `pyproject.toml` indicarem uso de pytest, a ausência do runner pytest no ambiente de teste DEVE abortar com código de erro de infraestrutura (exit > 0), impedindo que um teste parcial unittest emita certificado canônico.
+
+#### [F08] Emissão de Certificado com Worktree Suja Pós-Execução
+- **Causa Raiz**: `test-runner.sh:95–104` checa `WORKTREE_DIRTY` apenas *antes* da execução da suíte de testes.
+- **Abstração Proposta**:
+  Adicionar re-checagem de worktree imediatamente após o término do comando de teste (`EXIT_CODE==0`). Se arquivos forem modificados ou criados (fora de `.ceh/` e caches ignorados), marcar `WORKTREE_DIRTY=1`, emitir alerta explícito e RECUSAR a emissão do certificado.
+
+#### [F09] Cobertura de Ferramentas no Manifesto Claude Code
+- **Causa Raiz**: `tools/package.py:165–193` gera matchers apenas para `Bash` e `Write|Edit`, deixando de cobrir `MultiEdit` e `NotebookEdit` que o adaptador já suporta.
+- **Abstração Proposta**:
+  Sincronizar o gerador de manifesto para exportar matchers cobrindo a lista exata de ferramentas suportadas pelo `ClaudeAdapter`: `Bash`, `Write`, `Edit`, `MultiEdit`, `NotebookEdit`.
+
+---
+
+### Bloco B: Operacional, Empacotamento & Distribuição (P2)
+
+#### [F10] `rm -rf` em Diretórios Pontuados (`customer.db/`)
+- **Causa Raiz**: `rm.py:177–182` presume que qualquer caminho com `.` no último componente e sem barra final é um arquivo único seguro.
+- **Abstração Proposta**:
+  Se o comando contiver `-r` ou `-R`, verificar a existência física no disco: se `os.path.isdir(target)`, é diretório e DEVE seguir a política de deleção recursiva, rejeitando o atalho de arquivo único. Se o arquivo não existir fisicamente, a presença de flag recursiva `-r/-R` impede o atalho de arquivo único seguro.
+
+#### [F11] Remoção Destrutiva de Destino não Gerenciado no Empacotador
+- **Causa Raiz**: `tools/package.py:255` chama `shutil.rmtree(out_dir)` sem verificar marcadores de propriedade.
+- **Abstração Proposta**:
+  Exigir que o diretório de destino contenha um marker (`.ceh-package-managed`) ou recusar a deleção se o diretório já contiver arquivos do usuário sem flag explícita `--force-clean`.
+
+#### [F12] Substring em Remoção de Aliases de Shell
+- **Causa Raiz**: `scripts/rc_aliases.py:78` busca marcadores `# BEGIN` e `# END` via substring em vez de ancoragem em linhas completas.
+- **Abstração Proposta**:
+  Ancorar a busca a linhas exatas via regex `^\s*#\s*BEGIN CEH ALIASES\s*$` e `^\s*#\s*END CEH ALIASES\s*$`. Se o arquivo estiver malformado, preservar o arquivo original intacto.
+
+#### [F13] Instalação Não Transacional em `install.sh`
+- **Causa Raiz**: Remove a instalação anterior antes de validar a integridade dos novos arquivos.
+- **Abstração Proposta**:
+  Instalar em diretório temporário `~/.gemini/config/plugins/.clearer-engineering.tmp`, executar autodiagnóstico de sanidade e, somente com sucesso comprovado (3/3), realizar a substituição atômica via `mv`.
+
+#### [F14] Inconsistência de Versão no Manifesto Muse
+- **Causa Raiz**: `package.py:138` fixa versão `1.4.1` hardcoded para o Muse.
+- **Abstração Proposta**:
+  Extrair a versão dinamicamente de uma fonte canônica única (`plugin.json` ou constante de versão do core) para todos os adaptadores e manifestos.
+
+#### [F15] `AttributeError` na Detecção de Ambiente do `evidence_report.py`
+- **Causa Raiz**: `evidence_report.py:126` invoca `gate.detect_environment()` que foi movido para `ceh_core.environment.detect_environment`.
+- **Abstração Proposta**:
+  Importar diretamente `from ceh_core.environment import detect_environment`.
+
+#### [F16] Dependências Ausentes no Pacote Antigravity
+- **Causa Raiz**: O pacote copia testes que referenciam ferramentas do repositório pai (`tools/package.py`, `install.sh`).
+- **Abstração Proposta**:
+  Separar a suíte canônica de desenvolvimento (repo completo) dos testes de aceitação embutidos no pacote distribuído, garantindo que o bundle seja 100% autocontido.
+
+---
+
+## 3. Matriz de Falsificabilidade Pré-Fixação (TDD Estrito)
+
+Antes de qualquer patch de código, cada um dos achados F01 a F16 será coberto por um teste de regressão automatizado que **falha comprovadamente** no código atual (`RED`) e passa após o patch cirúrgico (`GREEN`).
+
+| ID | Teste Proposto | Comportamento Esperado (RED atual) | Comportamento Pós-Fix (GREEN) |
+|---|---|---|---|
+| F01 | `test_f01_adjacent_redirection_and_wrappers` | `allow` (vazamento) | `deny` (bloqueio de integridade G9) |
+| F02 | `test_f02_shell_unwrap_monotonic_env` | `allow` em dev | `deny` em production |
+| F03 | `test_f03_absolute_path_git_invocation` | `allow` (burlar CI gate) | `deny` (PRE_PUSH_CI gate) |
+| F04 | `test_f04_git_flag_permutations_and_grouping` | `allow` destrutivo | `deny` / `ask` conforme ambiente |
+| F05 | `test_f05_push_refspec_matching_and_config` | `allow` commit desmarcado | `deny` (ref não certificada) |
+| F06 | `test_f06_sail_runtime_suite_fidelity` | `canonical_verified: true` | `canonical_verified: false` |
+| F07 | `test_f07_pytest_missing_runner_rejection` | fallback unittest passa | erro de infraestrutura (exit > 0) |
+| F08 | `test_f08_post_test_dirty_worktree_rejection` | certificado emitido | recusa de emissão (dirty pós-teste) |
+| F09 | `test_f09_claude_manifest_tool_coverage` | matchers incompletos | matchers cobrem 100% das tools |
+| F10 | `test_f10_dotted_directory_rm_rejection` | `allow` (falso arquivo) | `deny` (diretório com `-r`) |
+| F11 | `test_f11_package_out_safety_marker` | apaga diretório com arquivos | recusa apagar sem marker |
+| F12 | `test_f12_rc_alias_line_anchoring` | remove substring em texto | remove apenas blocos de comentários exatos |
+| F13 | `test_f13_install_transactional_staging` | falha deixa perfil vazio | falha preserva versão anterior intacta |
+| F14 | `test_f14_package_versions_unified` | Muse em 1.4.1 | todos em 2.0.0 |
+| F15 | `test_f15_evidence_report_env_detection` | `UNKNOWN (AttributeError)` | `PRODUCTION` / `DEV` correto |
+| F16 | `test_f16_package_bundle_self_contained` | testes falham por falta de arquivos | testes do bundle passam de forma autônoma |\n\n=== INSTRUÇÃO ESPECÍFICA DO DEVELOPER ===\nDeliberar sobre a abstracao formal e o plano de remediacao dos 16 achados tecnicos (F01 a F16) mapeados na auditoria independente do Hermes (commit b9a72b6). Avaliar a solidez dos 6 invariantes propostos, a completude da matriz de testes TDD (RED-GREEN), o isolamento de blast radius e a viabilidade da sequencia em 4 fases (A, B, C, D).\n\n
+
+INSTRUÇÕES DO PROTOCOLO SYSTEM ONE:
+1. Avalie o material estritamente sob o ponto de vista da sua delegação técnica.
+2. Não produza enrolação, preâmbulos protocolares ou elogios.
+3. Responda obrigatoriamente preenchendo o contrato de saída abaixo:
+
+--- CONTRATO DE SAÍDA MANDATÓRIO ---
+VEREDITO: [HOMOLOGADO | RESSALVAS | REJEITADO]
+CERTEZA: [número entre 0.0 e 1.0 fundamentado em evidência física]
+ANALISE_ESPECIALIZADA:
+<análise técnica cirúrgica detalhando pontos fortes ou vulnerabilidades sob sua ótica>
+RISCOS_IDENTIFICADOS:
+<lista de riscos reais ou 'Nenhum risco observado'>
+RECOMENDACAO_FINAL:
+<ação prática direta e verificável recomendada>
+------------------------------------

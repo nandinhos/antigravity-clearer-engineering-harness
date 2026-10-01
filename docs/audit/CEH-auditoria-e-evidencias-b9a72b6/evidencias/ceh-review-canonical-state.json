@@ -1,0 +1,15 @@
+{
+  "total_defined_groups": 75,
+  "completed_pass": 55,
+  "completed_fail": 2,
+  "failed_groups": [
+    "Smoke-Eval: Harness falsifiability and fail-closed criteria (5/5 PASS)",
+    "Cluster 2 Acceptance: contratos R6-R8"
+  ],
+  "last_started": [
+    "58",
+    "Install Verification: Idempot\u00eancia, simetria byte a byte e valida\u00e7\u00e3o honesta (PR-11)"
+  ],
+  "finished": false,
+  "termination": "stopped_by_reviewer_after_excessive_local_runtime"
+}

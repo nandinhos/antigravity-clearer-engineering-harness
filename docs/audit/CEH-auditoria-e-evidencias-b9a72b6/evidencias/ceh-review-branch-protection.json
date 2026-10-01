@@ -1,0 +1,16 @@
+{
+  "rulesets": [],
+  "main_rules": [],
+  "main_protection": {
+    "status": 401,
+    "body": "{\r\n  \"message\": \"Requires authentication\",\r\n  \"documentation_url\": \"https://docs.github.com/rest\",\r\n  \"status\": \"401\"\r\n}"
+  },
+  "dev_protection": {
+    "status": 401,
+    "body": "{\r\n  \"message\": \"Requires authentication\",\r\n  \"documentation_url\": \"https://docs.github.com/rest\",\r\n  \"status\": \"401\"\r\n}"
+  },
+  "staging_protection": {
+    "status": 401,
+    "body": "{\r\n  \"message\": \"Requires authentication\",\r\n  \"documentation_url\": \"https://docs.github.com/rest\",\r\n  \"status\": \"401\"\r\n}"
+  }
+}

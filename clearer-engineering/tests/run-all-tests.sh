@@ -314,6 +314,10 @@ run_test "Cross-Host Mutations: Falsificabilidade por mutação no Muse e Claude
 run_test "Multi-Host Package Generator: Determinismo, manifestos observados, completude e controle negativo (PR-16)" \
     "python3 '$PLUGIN_DIR/tests/test_package.py' >/dev/null 2>&1"
 
+# 43. Hermes Remediation Suite (F01, F02, F03, F04, F05, F10)
+run_test "Hermes Remediation: Correções de integridade, piso de ambiente, parser git e atalho rm (Fase A1)" \
+    "python3 '$PLUGIN_DIR/tests/test_hermes_remediation.py' >/dev/null 2>&1"
+
 
 
 echo ""

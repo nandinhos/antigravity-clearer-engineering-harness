@@ -33,7 +33,7 @@ def extract_push_args_from_cmd(cmd_line: str, base_cwd: Path | None = None) -> t
     i = 0
     while i < len(tokens):
         t = tokens[i]
-        if t == "git":
+        if os.path.basename(t) in ("git", "git.exe"):
             i += 1
             continue
         if t == "-C" and i + 1 < len(tokens):
@@ -242,6 +242,19 @@ def check_pre_push_ci_gate(
 
         # Sem refspec ou apenas deleções: valida HEAD atual
         if not src_checked and not refspecs:
+            rem_name = remote or "origin"
+            try:
+                res_push = subprocess.run(["git", "config", "--get", f"remote.{rem_name}.push"], cwd=repo_root, capture_output=True, text=True)
+                if res_push.returncode == 0 and res_push.stdout.strip():
+                    return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push sem refspec bloqueado (FAIL_CLOSED): remote.{rem_name}.push configurado para '{res_push.stdout.strip()}'. Especifique o refspec explicitamente."
+                res_def = subprocess.run(["git", "config", "--get", "push.default"], cwd=repo_root, capture_output=True, text=True)
+                if res_def.returncode == 0:
+                    pdef = res_def.stdout.strip().lower()
+                    if pdef not in ("", "simple", "current", "upstream"):
+                        return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push sem refspec bloqueado (FAIL_CLOSED): push.default configurado como '{pdef}'. Especifique o refspec explicitamente."
+            except Exception:
+                pass
+
             head_commit = resolve_commit_hash(repo_root, "HEAD")
             if head_commit is None:
                 return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: HEAD não pôde ser resolvido para um commit válido."

@@ -117,6 +117,7 @@ def evaluate_command(
     base_cwd: Path | str | None = None,
     depth: int = 0,
     scan_suffixes: bool = True,
+    env_floor: str | None = None,
 ) -> tuple[str, str, str, str]:
     """
     Avalia uma linha de comando contra regras de seguranca por ambiente.
@@ -143,6 +144,9 @@ def evaluate_command(
 
     cmd_normalized = cmd_line.strip()
     env, env_evidence = detect_environment(explicit_env, cmd_normalized, target_dir=base_cwd)
+    if env_floor and ENV_SEVERITY.get(env_floor, 0) > ENV_SEVERITY.get(env, 0):
+        env = env_floor
+        env_evidence = f"Inherited environment floor ({env_floor.upper()}) from outer wrapper"
 
     # 0. Early Catastrophic Check sobre a linha completa antes de decomposicao lexica (P2, Handoff 062)
     for pattern, reason in CATASTROPHIC_PATTERNS:
@@ -176,7 +180,7 @@ def evaluate_command(
         if sub_inner is not None:
             evaluations.append(evaluate_command(
                 sub_inner, explicit_env=explicit_env, base_cwd=current_cwd,
-                depth=depth + 1, scan_suffixes=scan_suffixes,
+                depth=depth + 1, scan_suffixes=scan_suffixes, env_floor=current_env
             ))
             continue
 

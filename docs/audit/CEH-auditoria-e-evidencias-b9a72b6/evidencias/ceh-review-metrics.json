@@ -1,0 +1,112 @@
+{
+  "groups": {
+    "docs_outros": {
+      "files": 31,
+      "lines": 5693,
+      "bytes": 363143
+    },
+    "conteudo_politicas": {
+      "files": 32,
+      "lines": 2616,
+      "bytes": 142472
+    },
+    "runtime": {
+      "files": 39,
+      "lines": 7253,
+      "bytes": 305182
+    },
+    "testes_evals": {
+      "files": 59,
+      "lines": 14199,
+      "bytes": 910721
+    },
+    "historico_evidencias": {
+      "files": 697,
+      "lines": 41067,
+      "bytes": 2928326
+    }
+  },
+  "files": 858,
+  "largest": [
+    [
+      3792,
+      "docs/temp_implementation/evidence/help-contracts/git-log.txt"
+    ],
+    [
+      2254,
+      "docs/temp_implementation/evidence/help-contracts/git-show.txt"
+    ],
+    [
+      2182,
+      "docs/temp_implementation/conselho/20260927_171054/parecer_codex.md"
+    ],
+    [
+      2068,
+      "docs/temp_implementation/evidence/help-contracts/git-diff.txt"
+    ],
+    [
+      1519,
+      "prd/Prompt - CLEARER Engineering Harness para Google Antigravity.md"
+    ],
+    [
+      1024,
+      "docs/temp_implementation/evidence/onda4/baseline-v1.4.0/A1_gate_corpus.expected.jsonl"
+    ],
+    [
+      1024,
+      "clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl"
+    ],
+    [
+      1007,
+      "docs/plano-implementacao-elevacao-ceh.md"
+    ],
+    [
+      653,
+      "clearer-engineering/tests/test_gate_differential_fuzz.py"
+    ],
+    [
+      630,
+      "docs/temp_implementation/evidence/help-contracts/git-status.txt"
+    ],
+    [
+      573,
+      "clearer-engineering/tests/run-install-verification.sh"
+    ],
+    [
+      562,
+      "clearer-engineering/tests/tools/onda4_baseline.py"
+    ],
+    [
+      533,
+      "clearer-engineering/scripts/conselho-seniores.sh"
+    ],
+    [
+      514,
+      "clearer-engineering/tests/test_cross_host_conformance.py"
+    ],
+    [
+      497,
+      "docs/temp_implementation/scripts/host_probe.py"
+    ],
+    [
+      484,
+      "clearer-engineering/tests/test_hook_context.py"
+    ],
+    [
+      484,
+      "clearer-engineering/tests/fixtures/review_batteries.txt"
+    ],
+    [
+      461,
+      "clearer-engineering/tests/cluster1_acceptance.py"
+    ],
+    [
+      443,
+      "clearer-engineering/tests/test_content_schema.py"
+    ],
+    [
+      437,
+      "clearer-engineering/tests/test_git_canonicalization.py"
+    ]
+  ]
+}

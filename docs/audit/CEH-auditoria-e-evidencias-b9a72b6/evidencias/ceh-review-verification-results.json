@@ -1,0 +1,17 @@
+[
+  {
+    "name": "evals",
+    "exit_code": 0,
+    "seconds": 55.82
+  },
+  {
+    "name": "adversarial",
+    "exit_code": 0,
+    "seconds": 14.73
+  },
+  {
+    "name": "doc-audit",
+    "exit_code": 0,
+    "seconds": 29.61
+  }
+]
