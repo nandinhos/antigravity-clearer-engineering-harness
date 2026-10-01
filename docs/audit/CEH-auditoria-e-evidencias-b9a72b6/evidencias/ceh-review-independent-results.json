@@ -1,0 +1,151 @@
+[
+  {
+    "label": "no_certificate_control",
+    "command": "git push origin HEAD:dev",
+    "decision": "deny",
+    "environment": "production",
+    "use_case": "PRE_PUSH_CI"
+  },
+  {
+    "label": "absolute_git_no_certificate",
+    "command": "/usr/bin/git push origin HEAD:dev",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "GENERAL"
+  },
+  {
+    "label": "redirect_control",
+    "command": "cat sample.txt > .ceh/last-ci-run.json",
+    "decision": "deny",
+    "environment": "production",
+    "use_case": "CERTIFICATE_INTEGRITY"
+  },
+  {
+    "label": "redirect_adjacent",
+    "command": "cat sample.txt>.ceh/last-ci-run.json",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "GENERAL"
+  },
+  {
+    "label": "redirect_outer_shell",
+    "command": "bash -c 'echo ok' > .ceh/last-ci-run.json",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "GENERAL"
+  },
+  {
+    "label": "redirect_outer_subshell",
+    "command": "(echo ok) > .ceh/last-ci-run.json",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "GENERAL"
+  },
+  {
+    "label": "production_prefix_control",
+    "command": "env APP_ENV=production php artisan migrate:fresh",
+    "decision": "deny",
+    "environment": "production",
+    "use_case": "DATABASE"
+  },
+  {
+    "label": "production_prefix_shell",
+    "command": "env APP_ENV=production bash -c 'php artisan migrate:fresh'",
+    "decision": "allow",
+    "environment": "development",
+    "use_case": "DATABASE"
+  },
+  {
+    "label": "reset_control",
+    "command": "git reset --hard HEAD",
+    "decision": "deny",
+    "environment": "production",
+    "use_case": "GIT_HISTORY"
+  },
+  {
+    "label": "reset_option_order",
+    "command": "git reset HEAD --hard",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "GENERAL"
+  },
+  {
+    "label": "rm_directory_dot",
+    "command": "rm -rf customer.db",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "FILESYSTEM_SAFE"
+  },
+  {
+    "label": "rm_directory_control",
+    "command": "rm -rf customer",
+    "decision": "deny",
+    "environment": "production",
+    "use_case": "FILESYSTEM"
+  },
+  {
+    "label": "force_control",
+    "command": "git push --force origin HEAD:dev",
+    "decision": "deny",
+    "environment": "production",
+    "use_case": "GIT_HISTORY"
+  },
+  {
+    "label": "force_grouped_flags",
+    "command": "git push -vf origin HEAD:dev",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "PRE_PUSH_CI"
+  },
+  {
+    "label": "nonhead_refspec_control",
+    "command": "git push origin unchecked:dev",
+    "decision": "deny",
+    "environment": "production",
+    "use_case": "PRE_PUSH_CI"
+  },
+  {
+    "label": "nonhead_refspec_git_config",
+    "command": "git push origin",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "PRE_PUSH_CI"
+  },
+  {
+    "label": "matching_refspec_colon",
+    "command": "git push origin :",
+    "decision": "allow",
+    "environment": "production",
+    "use_case": "PRE_PUSH_CI"
+  },
+  {
+    "label": "antigravity_lifecycle",
+    "command": "cat sample.txt>.ceh/last-ci-run.json",
+    "response": {
+      "decision": "allow",
+      "reason": "Command complies with CEH safety policy (Env: DEVELOPMENT, Source: Git branch 'dev' (canonical dev branch))."
+    },
+    "exit_code": 0
+  },
+  {
+    "label": "antigravity_lifecycle",
+    "command": "env APP_ENV=production bash -c 'php artisan migrate:fresh'",
+    "response": {
+      "decision": "allow",
+      "reason": "[CEH DEV PERMITTED - Caso de Uso: Banco de Dados] Comando destrutivo liberado para ambiente de DESENVOLVIMENTO/TESTE (Destructive Laravel migration (migrate:fresh / migrate:reset)). Ambiente: DEVELOPMENT (Evidência: Git branch 'dev' (canonical dev branch)).\nAssegure a disponibilidade de backup e rollback para fins de correção."
+    },
+    "exit_code": 0
+  },
+  {
+    "label": "aliases_string_markers",
+    "before": "echo \"# BEGIN CLEARER ENGINEERING HARNESS (CEH) ALIASES\"\nexport USER_SETTING=keep\necho \"# END CLEARER ENGINEERING HARNESS (CEH) ALIASES\"\n",
+    "after": "echo \"\"\n",
+    "user_setting_preserved": false
+  },
+  {
+    "label": "package_destination_sentinel",
+    "exit_code": 0,
+    "sentinel_exists": false,
+    "manifest_version": "1.4.1"
+  }
+]

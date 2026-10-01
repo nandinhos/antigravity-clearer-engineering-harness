@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/b9a72b6b6dbd898dd737609bada8036866e56646/clearer-engineering/scripts/test-runner.sh",
+      "title": "clearer-engineering/scripts/test-runner.sh",
+      "accessed": "2026-09-30"
+    },
+    {
+      "id": 2,
+      "url": "https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/b9a72b6b6dbd898dd737609bada8036866e56646/clearer-engineering/scripts/ceh_core/subcommand.py",
+      "title": "clearer-engineering/scripts/ceh_core/subcommand.py",
+      "accessed": "2026-09-30"
+    },
+    {
+      "id": 3,
+      "url": "https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/b9a72b6b6dbd898dd737609bada8036866e56646/clearer-engineering/scripts/ceh_core/rules.py",
+      "title": "clearer-engineering/scripts/ceh_core/rules.py",
+      "accessed": "2026-09-30"
+    },
+    {
+      "id": 4,
+      "url": "https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/b9a72b6b6dbd898dd737609bada8036866e56646/clearer-engineering/scripts/ceh_core/push.py",
+      "title": "clearer-engineering/scripts/ceh_core/push.py",
+      "accessed": "2026-09-30"
+    },
+    {
+      "id": 5,
+      "url": "https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/b9a72b6b6dbd898dd737609bada8036866e56646/clearer-engineering/tools/package.py",
+      "title": "clearer-engineering/tools/package.py",
+      "accessed": "2026-09-30"
+    },
+    {
+      "id": 6,
+      "url": "https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/b9a72b6b6dbd898dd737609bada8036866e56646/docs/architecture/adr-007-protecao-certificado-modelo-ameacas.md",
+      "title": "docs/architecture/adr-007-protecao-certificado-modelo-ameacas.md",
+      "accessed": "2026-09-30"
+    }
+  ]
+}

@@ -359,7 +359,7 @@ class TestGateDifferentialFuzz(unittest.TestCase):
 
         # 3. Extrai scripts da linha de base hermeticamente via git archive
         cls.baseline_dir = tempfile.mkdtemp(prefix="ceh_diff_baseline_")
-        archive_cmd = f"git archive {cls.baseline_sha} clearer-engineering/scripts | tar -x -C '{cls.baseline_dir}'"
+        archive_cmd = f"git -c safe.directory='*' archive {cls.baseline_sha} clearer-engineering/scripts | tar -x -C '{cls.baseline_dir}'"
         proc = subprocess.run(["bash", "-c", archive_cmd], cwd=REPO_ROOT, capture_output=True, text=True)
         if proc.returncode != 0:
             shutil.rmtree(cls.baseline_dir, ignore_errors=True)

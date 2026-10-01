@@ -30,7 +30,8 @@ def resolve_git_invocation(
     while tokens and "=" in tokens[0] and not tokens[0].startswith(("-", "=")):
         tokens = tokens[1:]
 
-    if not tokens or tokens[0] != "git":
+    import os
+    if not tokens or os.path.basename(tokens[0]) not in ("git", "git.exe"):
         return False, None, [], None, cmd_line, None
 
     current_dir = Path.cwd().resolve() if base_cwd is None else Path(normalize_path(base_cwd, resolve_home=False))

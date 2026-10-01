@@ -69,17 +69,32 @@ def remove_orphan_aliases(content, alias_conf_path):
     return "".join(filtered)
 
 
+def find_line_anchored(text: str, marker: str, start: int = 0) -> int:
+    pos = start
+    while True:
+        idx = text.find(marker, pos)
+        if idx == -1:
+            return -1
+        is_line_start = (idx == 0 or text[idx - 1] == '\n')
+        after_idx = idx + len(marker)
+        is_line_end = (after_idx >= len(text) or text[after_idx] in ('\n', '\r'))
+        if is_line_start and is_line_end:
+            return idx
+        pos = idx + 1
+
+
 def remove_ceh_block(content):
     """
     Removes the bounded CEH marker block.
     AN1 fix: Counts consecutive preceding newlines and only removes min(num_newlines, prefix_len).
     Never removes user configuration characters outside the block.
+    F12: Marcadores ancorados a linhas completas para evitar apagar linhas com strings.
     """
-    start_idx = content.find(START_MARKER)
+    start_idx = find_line_anchored(content, START_MARKER)
     if start_idx == -1:
         return content
 
-    end_idx = content.find(END_MARKER)
+    end_idx = find_line_anchored(content, END_MARKER, start_idx + len(START_MARKER))
     if end_idx == -1:
         return content
 

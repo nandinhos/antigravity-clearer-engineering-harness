@@ -19,24 +19,21 @@ if [[ -f "composer.json" ]]; then
     elif [[ -f "artisan" ]]; then
         DETECTED_CMD="php artisan test"
     fi
-elif [[ -f "package.json" ]]; then
-    if grep -q '"test"' package.json 2>/dev/null; then
-        if [[ -f "pnpm-lock.yaml" ]]; then
-            DETECTED_CMD="pnpm test"
-        elif [[ -f "yarn.lock" ]]; then
-            DETECTED_CMD="yarn test"
-        elif [[ -f "bun.lockb" ]] || [[ -f "bun.lock" ]]; then
-            DETECTED_CMD="bun test"
-        else
-            DETECTED_CMD="npm test"
-        fi
-    fi
-elif [[ -f "pytest.ini" ]] || [[ -f "conftest.py" ]] || [[ -d "tests" && ( -f "pyproject.toml" || -f "requirements.txt" ) ]]; then
+elif [[ -f "package.json" ]] && grep -q '"test"' package.json 2>/dev/null; then
+    if [[ -f "pnpm-lock.yaml" ]]; then DETECTED_CMD="pnpm test"
+    elif [[ -f "yarn.lock" ]]; then DETECTED_CMD="yarn test"
+    elif [[ -f "bun.lockb" ]] || [[ -f "bun.lock" ]]; then DETECTED_CMD="bun test"
+    else DETECTED_CMD="npm test"; fi
+elif [[ -f "pytest.ini" ]] || [[ -f "conftest.py" ]]; then
     if command -v pytest >/dev/null 2>&1; then
         DETECTED_CMD="pytest"
+    elif python3 -m pytest --version >/dev/null 2>&1; then
+        DETECTED_CMD="python3 -m pytest"
     else
-        DETECTED_CMD="python3 -m unittest"
+        echo "STATUS: NOT RUN"; echo "REASON: Projeto requer pytest, mas runner não está disponível."; exit 1
     fi
+elif [[ -d "tests" && ( -f "pyproject.toml" || -f "requirements.txt" ) ]]; then
+    DETECTED_CMD="python3 -m unittest"
 elif [[ -f "go.mod" ]]; then
     DETECTED_CMD="go test ./..."
 elif [[ -f "Cargo.toml" ]]; then
@@ -70,10 +67,7 @@ else
 fi
 
 if [[ -z "$TEST_CMD" ]]; then
-    echo "STATUS: NOT RUN"
-    echo "REASON: No test suite or command detected in this workspace."
-    echo "EXIT CODE: 1"
-    exit 1
+    echo "STATUS: NOT RUN"; echo "REASON: No test suite or command detected in this workspace."; echo "EXIT CODE: 1"; exit 1
 fi
 
 RAW_TEST_CMD="$TEST_CMD"
@@ -93,7 +87,9 @@ fi
 
 # A certificate must describe the commit, so the worktree must match HEAD
 WORKTREE_DIRTY=0
+HEAD_BEFORE=""
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    HEAD_BEFORE=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "untracked")
     DIRTY_FILES=$(git -C "$REPO_ROOT" status --porcelain -- ':(top)' ':(top,exclude).ceh/last-ci-run.json' ':(top,exclude).ceh/last-ci-run.log' 2>/dev/null)
     if [[ -n "$DIRTY_FILES" ]]; then
         WORKTREE_DIRTY=1
@@ -120,6 +116,7 @@ if [[ ${#ACTIVE_COMPOSE_SERVICES[@]} -gt 0 && ! "$TEST_CMD" =~ (docker|docker-co
         if [[ -f "vendor/bin/sail" ]]; then
             echo "[CEH RUNTIME ADAPTER] 🐳 Containers Laravel Sail ativos detectados. Despachando via Sail..."
             TEST_CMD="./vendor/bin/sail test"
+            [[ "$CANONICAL_CMD" != "./vendor/bin/sail test" ]] && CANONICAL_VERIFIED=false
         else
             echo "[CEH RUNTIME ADAPTER] 🐳 Containers Compose ativos detectados. Despachando via 'laravel.test'..."
             TEST_CMD="docker compose exec -T laravel.test $TEST_CMD"
@@ -144,9 +141,7 @@ echo "COMMAND:   $TEST_CMD"
 echo "=========================================="
 echo ""
 
-# Execute command and capture output and exit code
 OUTPUT_FILE=$(mktemp)
-
 set +e
 eval "$TEST_CMD" > "$OUTPUT_FILE" 2>&1
 EXIT_CODE=$?
@@ -156,23 +151,24 @@ cat "$OUTPUT_FILE"
 echo ""
 echo "=========================================="
 echo "EXIT CODE: $EXIT_CODE"
-if [[ $EXIT_CODE -eq 0 ]]; then
-    echo "STATUS:    PASS"
-else
-    echo "STATUS:    FAIL"
-fi
+if [[ $EXIT_CODE -eq 0 ]]; then echo "STATUS:    PASS"; else echo "STATUS:    FAIL"; fi
 echo "=========================================="
 
-# Emit Pre-Push CI Clearance Certificate
+# Re-validate worktree and HEAD state post-run before certificate emission (F08)
+DIRTY_AFTER=""
+HEAD_AFTER=""
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    HEAD_AFTER=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "untracked")
+    DIRTY_AFTER=$(git -C "$REPO_ROOT" status --porcelain -- ':(top)' ':(top,exclude).ceh/last-ci-run.json' ':(top,exclude).ceh/last-ci-run.log' 2>/dev/null)
+fi
+
 CEH_DIR="$REPO_ROOT/.ceh"
-if [[ $WORKTREE_DIRTY -eq 0 ]]; then
+if [[ $WORKTREE_DIRTY -eq 0 && "$HEAD_BEFORE" == "$HEAD_AFTER" && -z "$DIRTY_AFTER" ]]; then
     mkdir -p "$CEH_DIR" 2>/dev/null || true
     if [[ -d "$CEH_DIR" ]]; then
         CURRENT_COMMIT=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "untracked")
         NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        STATUS_STR="FAIL"
-        [[ $EXIT_CODE -eq 0 ]] && STATUS_STR="PASS"
-
+        STATUS_STR="FAIL"; [[ $EXIT_CODE -eq 0 ]] && STATUS_STR="PASS"
         python3 -c '
 import json, os, sys
 p, c, t, cmd, raw, v, s, code = sys.argv[1:]
@@ -180,8 +176,10 @@ with open(p + ".tmp", "w", encoding="utf-8") as f:
     json.dump({"commit_hash": c, "timestamp": t, "command": cmd, "normalized_runner": raw, "canonical_verified": v == "true", "status": s, "exit_code": int(code)}, f, indent=2, ensure_ascii=False)
 os.replace(p + ".tmp", p)
 ' "$CEH_DIR/last-ci-run.json" "$CURRENT_COMMIT" "$NOW_ISO" "$TEST_CMD" "$RAW_TEST_CMD" "$CANONICAL_VERIFIED" "$STATUS_STR" "$EXIT_CODE"
-        cp "$OUTPUT_FILE" "$CEH_DIR/last-ci-run.log"  # saída bruta citada pelo evidence-report
+        cp "$OUTPUT_FILE" "$CEH_DIR/last-ci-run.log"
     fi
+elif [[ $WORKTREE_DIRTY -eq 0 ]]; then
+    echo "[CEH WARNING] ⚠️ A execução dos testes alterou a worktree ou HEAD. Certificado CI NÃO será emitido."
 fi
 
 rm -f "$OUTPUT_FILE"

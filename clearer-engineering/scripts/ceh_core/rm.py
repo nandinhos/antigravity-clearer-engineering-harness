@@ -135,7 +135,7 @@ def is_target_catastrophic(target: str, cwd: Path | str | None = None) -> tuple[
     return False, ""
 
 
-def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None) -> bool:
+def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None, is_recursive: bool = False) -> bool:
     """S1: Atalho seguro restrito a diretórios no cwd, arquivo único ou /tmp/."""
     cwd_str = str(cwd) if cwd is not None else str(Path.cwd().resolve())
 
@@ -173,8 +173,8 @@ def is_target_safe(target: str, is_force: bool, cwd: Path | str | None = None) -
     if rel.startswith("node_modules/.cache") or rel == "node_modules/.cache":
         return True
 
-    # (b) Arquivo único com extensão dentro do cwd
-    if is_force and not rel.endswith("/"):
+    # (b) Arquivo único com extensão dentro do cwd (desabilitado se for recursivo F10)
+    if is_force and not is_recursive and not rel.endswith("/"):
         parts = rel.split(os.sep)
         first, last = parts[0], parts[-1]
         norm_first = "/" + first.lstrip("/")
@@ -233,7 +233,7 @@ def evaluate_rm_command(
         return "allow", "Comando geral seguro.", env, "GENERAL"
 
     # 2. G1 / S1: Atalho de limpeza segura
-    if all(is_target_safe(t, is_force, base_cwd) for t in targets):
+    if all(is_target_safe(t, is_force, base_cwd, is_recursive=is_recursive) for t in targets):
         return "allow", f"Safe development operation permitted ({env_evidence}).", env, "FILESYSTEM_SAFE"
 
     # 3. Exclusão recursiva ou forçada fora do atalho seguro

@@ -120,10 +120,8 @@ FORBIDDEN_EXEC_STATE_RE = re.compile(r"\b(su[íi]tes?|evals?|smoke)\b.*\b(pass(e
 
 def detect_env() -> str:
     try:
-        spec = importlib.util.spec_from_file_location("ceh_safety_gate", HERE.with_name("safety-gate.py"))
-        gate = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(gate)
-        env, evidence = gate.detect_environment()
+        from ceh_core.environment import detect_environment
+        env, evidence = detect_environment(str(Path.cwd()))
         return f"{env.upper()} (evidência: {evidence})"
     except Exception as exc:  # o relatório nunca inventa ambiente
         return f"UNKNOWN ({exc.__class__.__name__})"

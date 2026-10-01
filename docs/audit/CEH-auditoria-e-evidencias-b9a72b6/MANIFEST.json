@@ -1,0 +1,121 @@
+{
+  "reviewed_commit": "b9a72b6b6dbd898dd737609bada8036866e56646",
+  "canonical_run_complete": false,
+  "files": [
+    {
+      "path": "analise-aprofundada.md",
+      "bytes": 31461,
+      "sha256": "a8f0bef031909d51f358dda3a144cf42e4fe33d81517bd3f2b35e4930e70a568"
+    },
+    {
+      "path": "LEIA-ME.md",
+      "bytes": 2102,
+      "sha256": "a2f15b253406b0106810217cdc8274f3c8f3168cebf0df681b8d1c521dde7d13"
+    },
+    {
+      "path": "evidencias/ceh-review-independent.py",
+      "bytes": 4584,
+      "sha256": "23a9fcd018fcc4c3c65bbacd882945eb5cf5a1d02217796bfb816d9e46104fbe"
+    },
+    {
+      "path": "evidencias/ceh-review-independent-results.json",
+      "bytes": 4500,
+      "sha256": "60e441e36e57e9d4eb2a1d38b8eef7b047ef9fd85cc05a78dfbaaeee81300106"
+    },
+    {
+      "path": "evidencias/ceh-review-probes.py",
+      "bytes": 4402,
+      "sha256": "0b9eb710d07fe898c826793bb3345faccdddb661f0dd89fe28f4c6db13354dd1"
+    },
+    {
+      "path": "evidencias/ceh-review-probes.json",
+      "bytes": 3424,
+      "sha256": "a9b30ea8ba1b236e6cfc6b8a4ec53fb89cb9a9c406ce253021722d87f9480f20"
+    },
+    {
+      "path": "evidencias/ceh-review-verification.py",
+      "bytes": 924,
+      "sha256": "4f0e95ebf3da86124f1fb169b5c363c073a8fec539e7558f1b2eed6bd62fc6cc"
+    },
+    {
+      "path": "evidencias/ceh-review-verification-results.json",
+      "bytes": 225,
+      "sha256": "7354c4c9cfad212310121a36f57b858b86925f9980275b14b644b018b787f9fa"
+    },
+    {
+      "path": "evidencias/ceh-review-canonical-state.json",
+      "bytes": 473,
+      "sha256": "6a67c22e6f76cd257280788769b5eb1943d742ba2d043c467ec9890372875757"
+    },
+    {
+      "path": "evidencias/ceh-review-canonical-linux.log",
+      "bytes": 18820,
+      "sha256": "e35ecedbf1686f71cbcbd4050884b325e56f384908dfcfa3c37f1c3af127e11f"
+    },
+    {
+      "path": "evidencias/ceh-review-verified-evals.log",
+      "bytes": 2112,
+      "sha256": "3fdd691cbb1f5c834919d625dbd02e9fe665306d14cdef903b82aa7d613ffc31"
+    },
+    {
+      "path": "evidencias/ceh-review-verified-adversarial.log",
+      "bytes": 1853,
+      "sha256": "a0db69d2b432866a0f1dece93c70a8d2486f198041f7614faae1ff1d83308cc8"
+    },
+    {
+      "path": "evidencias/ceh-review-verified-doc-audit.log",
+      "bytes": 2318,
+      "sha256": "04a9ff86fa08b14770b905ebd8a042b6961eb8c5cda5e094dd53c51e0d51dc2a"
+    },
+    {
+      "path": "evidencias/ceh-review-api.json",
+      "bytes": 178349,
+      "sha256": "6d5ced3094e63dce80ce40001aec6c5f80318af20511d8f6552ff33f04191aca"
+    },
+    {
+      "path": "evidencias/ceh-review-branch-protection.json",
+      "bytes": 663,
+      "sha256": "060ccefefbd6c6714d1870409458d80c81c7108097ee42f6449634ecb1e22377"
+    },
+    {
+      "path": "evidencias/ceh-review-metrics.json",
+      "bytes": 2424,
+      "sha256": "64cb2443644fc4dffe4b032ff207c58e098d3d1e8f0c95cf7097af080c7ae0a9"
+    },
+    {
+      "path": "evidencias/ceh-review-syntax.json",
+      "bytes": 1613,
+      "sha256": "5490f12f9d6f1c0422c0b3ed6fe8fd0ab29060d0ea745abe5979fd7e6fb14db5"
+    },
+    {
+      "path": "evidencias/ceh-review-shellcheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidencias/ceh-review-primary-sources.json",
+      "bytes": 1759,
+      "sha256": "78a61c82a3a9510aa8c959358cbca0850e9f7f127d331d9bb3397cd8d942720c"
+    },
+    {
+      "path": "evidencias/ceh-review-source-map.json",
+      "bytes": 2958,
+      "sha256": "552cc461f81b0c34d7e73fc8276bf87b3080e35bd50c30a4c63c91986154aad6"
+    },
+    {
+      "path": "evidencias/ceh-review-citations.json",
+      "bytes": 1961,
+      "sha256": "b4ecee2e51de5d22645294049febc7260f72877405582846b0f98b3900481374"
+    },
+    {
+      "path": "evidencias/ceh-security-findings.md",
+      "bytes": 9696,
+      "sha256": "f11d1d031b7a24511a1ece551d18c7b6a29c8b6a28fec82f2914953f29eb28ad"
+    },
+    {
+      "path": "evidencias/ceh-package-review-probe.py",
+      "bytes": 3374,
+      "sha256": "fed5aae69e917052159934b56ce90ecf773338c916bb9b469bca318f0bed7df3"
+    }
+  ]
+}

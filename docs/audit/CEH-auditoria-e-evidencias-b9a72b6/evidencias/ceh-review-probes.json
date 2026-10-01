@@ -1,0 +1,67 @@
+[
+  {
+    "probe": "pytest_fallback",
+    "exit": 0,
+    "stdout": "=== [CEH Deterministic Test Runner] ===\nTimestamp: 2026-10-01T02:08:32Z\nWorking Directory: /mnt/c/Users/atiga/AppData/Local/hermes/cache/scratch/ceh-review-pytest-dckm85ba\n\n==========================================\nCOMMAND:   python3 -m unittest\n==========================================\n\n.\n----------------------------------------------------------------------\nRan 1 test in 0.003s\n\nOK\n\n==========================================\nEXIT CODE: 0\nSTATUS:    PASS\n==========================================\n",
+    "stderr": "",
+    "certificate": {
+      "commit_hash": "1d604a35d2497373edafc67eca974de1ac41e39a",
+      "timestamp": "2026-10-01T02:08:33Z",
+      "command": "python3 -m unittest",
+      "normalized_runner": "python3 -m unittest",
+      "canonical_verified": true,
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "gate": {
+      "decision": "allow",
+      "reason": "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual.",
+      "environment": "development",
+      "use_case": "PRE_PUSH_CI"
+    }
+  },
+  {
+    "probe": "post_test_dirty",
+    "exit": 0,
+    "stdout": "=== [CEH Deterministic Test Runner] ===\nTimestamp: 2026-10-01T02:08:35Z\nWorking Directory: /mnt/c/Users/atiga/AppData/Local/hermes/cache/scratch/ceh-review-post-test-qlh9bmjx\n\n==========================================\nCOMMAND:   bash tests.sh\n==========================================\n\nPASS assertion evaluated generated source\n\n==========================================\nEXIT CODE: 0\nSTATUS:    PASS\n==========================================\n",
+    "stderr": "",
+    "certificate": {
+      "commit_hash": "27ee60f8e7552ca7065b98efab9a81ebbbe561b8",
+      "timestamp": "2026-10-01T02:08:36Z",
+      "command": "bash tests.sh",
+      "normalized_runner": "bash tests.sh",
+      "canonical_verified": true,
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "git_status": " M source.txt\n",
+    "gate": {
+      "decision": "allow",
+      "reason": "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual.",
+      "environment": "development",
+      "use_case": "PRE_PUSH_CI"
+    }
+  },
+  {
+    "probe": "runtime_replaces_canonical",
+    "exit": 0,
+    "canonical_direct_exit": 9,
+    "stdout": "=== [CEH Deterministic Test Runner] ===\nTimestamp: 2026-10-01T02:08:41Z\nWorking Directory: /mnt/c/Users/atiga/AppData/Local/hermes/cache/scratch/ceh-review-runtime-h8ox2lth\n\n[CEH RUNTIME ADAPTER] 🐳 Containers Laravel Sail ativos detectados. Despachando via Sail...\n==========================================\nCOMMAND:   ./vendor/bin/sail test\n==========================================\n\nDIFFERENT Sail test command passed\n\n==========================================\nEXIT CODE: 0\nSTATUS:    PASS\n==========================================\n",
+    "stderr": "",
+    "certificate": {
+      "commit_hash": "60a571ec2b12bce09d0641fc78850e75cad1223a",
+      "timestamp": "2026-10-01T02:08:42Z",
+      "command": "./vendor/bin/sail test",
+      "normalized_runner": "bash canonical.sh",
+      "canonical_verified": true,
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "gate": {
+      "decision": "allow",
+      "reason": "Pre-Push CI Gate validado: suíte canônica aprovada para o commit atual.",
+      "environment": "development",
+      "use_case": "PRE_PUSH_CI"
+    }
+  }
+]

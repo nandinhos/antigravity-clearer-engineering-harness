@@ -182,10 +182,30 @@ def is_cert_tampering(cmd: str) -> tuple[bool, str]:
     if not tokens:
         return False, ""
 
-    # Verifica redirecionamentos de escrita para qualquer arquivo
-    for tok in tokens:
-        if any(tok.startswith(r) for r in (">", ">>", "1>", "2>", "&>")):
-            return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Redirecionamento de escrita para .ceh/ ou certificado de CI."
+    # Verifica redirecionamentos de escrita para qualquer arquivo (inclusive adjacentes sem espaco F01a)
+    in_quote = None
+    escaped = False
+    has_unquoted_redirect = False
+    for char in clean_cmd:
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\":
+            if in_quote != "'":
+                escaped = True
+            continue
+        if in_quote:
+            if char == in_quote:
+                in_quote = None
+            continue
+        if char in ("'", '"'):
+            in_quote = char
+            continue
+        if char == ">":
+            has_unquoted_redirect = True
+            break
+    if has_unquoted_redirect:
+        return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Redirecionamento de escrita para .ceh/ ou certificado de CI."
 
     idx = 0
     while idx < len(tokens):
