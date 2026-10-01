@@ -1,13 +1,13 @@
 # ADR 006: Separação entre Núcleo Portável (Stdlib-Only) e Adaptadores de Host
 
 ## Status
-**ACEITO** (Direção arquitetural adotada; núcleo implementado em `ceh_core/` e adaptador Antigravity ativo; adaptadores adicionais e suíte de conformidade multi-host planejados para a Onda 4 / v2.0.0)
+**ACEITO & CONCLUÍDO** (Núcleo desacoplado em `ceh_core/` com interface canônica `evaluate(Request) -> Decision`; adaptadores para Google Antigravity, Claude Code e Muse Code implementados em `clearer-engineering/scripts/adapters/`; suíte de conformidade cross-host com 1.016 casos validada em 100% de paridade na v2.0.0 e refinada com remediação Hermes na v2.1.0)
 
 ---
 
 ## Contexto & Problema
 
-O **CLEARER Engineering Harness (CEH)** foi inicialmente concebido como um plugin de governança acoplado ao ecossistema do Google Antigravity. O objetivo de evolução arquitetural do harness é estruturar as políticas de segurança e engenharia sob um **núcleo de comportamento desacoplado**, a partir do qual adaptadores para diferentes ambientes (Antigravity, Claude Code, Cursor, Codex, terminal) possam ser integrados mantendo regras equivalentes.
+O **CLEARER Engineering Harness (CEH)** foi inicialmente concebido como um plugin de governança acoplado ao ecossistema do Google Antigravity. O objetivo de evolução arquitetural do harness é estruturar as políticas de segurança e engenharia sob um **núcleo de comportamento desacoplado**, a partir do qual adaptadores para diferentes ambientes (Antigravity, Claude Code, Muse Code, terminal) possam ser integrados mantendo regras equivalentes.
 
 Se a lógica de segurança, parsing de shell e avaliação de regras depender de APIs proprietárias de um único host ou de dependências externas pesadas, a replicação do harness para outros ambientes resultará em divergência semântica e complexidade de manutenção.
 
@@ -35,10 +35,12 @@ Os adaptadores são camadas de integração responsáveis por traduzir o protoco
 
 - **Adaptadores Implementados e Validados**:
   - **Antigravity Hook Adapter**: `hooks.json` intercepta chamadas de ferramenta e invoca `safety-gate.py`.
+  - **Claude Code Adapter**: Tradução bidirecional para o hook `PreToolUse` do Claude Code (`adapters/claude.py`).
+  - **Muse Code Adapter**: Protocolo de interceptação baseado em payload JSON do Muse (`adapters/muse.py` e `adapters/fallback.py`).
   - **Terminal / CLI Adapter**: Scripts executáveis como `agy-ceh` e `ceh-branches`.
-- **Adaptadores Planejados (Trabalho Futuro — Onda 4 / v2.0.0)**:
-  - Adaptadores dedicados para Claude Code (`hosts/claude-code/`), Cursor e outros ambientes, conforme cronograma da Onda 4.
-  - Suíte formal de conformidade multi-host para demonstrar empiricamente a equivalência de vereditos entre os diferentes adaptadores antes de declarar paridade funcional.
+- **Conformidade Cross-Host & Empacotador**:
+  - Empacotador determinístico multi-host em `tools/package.py` para Antigravity, Claude Code e Muse Code.
+  - Suíte de conformidade cross-host garantindo que os três adaptadores produzam idênticos vereditos para a matriz canônica de 1.016 comandos.
 
 ---
 

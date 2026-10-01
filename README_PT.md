@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Testes-65%2F65%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Testes-76%2F76%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalista-blueviolet.svg)](#-filosofia-ponytail-mode--ast-first)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-o-risk-dial)
@@ -42,8 +42,8 @@ Instale ou atualize o CEH no Linux, macOS ou WSL executando no terminal:
 # Versão estável mais recente
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
 
-# Versão fixada (SemVer — disponível após publicação da tag v2.0.0)
-curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.0.0/install.sh | CEH_VERSION=2.0.0 bash
+# Versão fixada (SemVer — disponível após publicação da tag v2.1.0)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.1.0/install.sh | CEH_VERSION=2.1.0 bash
 ```
 
 ---
