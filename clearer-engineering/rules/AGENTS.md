@@ -109,7 +109,12 @@ Toda codificação sob o CEH é regida pela filosofia **Ponytail Mode (Senior Mi
 5. **Código Limpo & Idiomático**: Seguir estritamente as convenções da linguagem e da stack do projeto.
 6. **Tipagem Estrita & Robustez**: Proibido uso de tipos soltos (`any`/`mixed`) sem validação de tipo. Tratamento defensivo de nulos, timeouts e exceções.
 7. **Blast Radius Mínimo & Cirúrgico**: Alterar apenas o estritamente necessário. Proibido ruído de formatação, refatorações oportunistas ou alterações cosméticas fora de escopo.
-8. **Testes Comportamentais & Determinísticos**: Cobrir o comportamento real e cenários de borda. Proibido "fake pass" ou testes frágeis.
+8. **Testes Comportamentais & Determinísticos (Metodologia Ponytail)**:
+   - *Inspecionar Primeiro*: Mapear testes existentes, runtime (`NATIVE_HOST` vs `SAIL`/`DOCKER`) e convenções antes de propor código.
+   - *Priorização pelo Risco*: Foco estrito na escala `CRÍTICO → ALTO → MÉDIO → BAIXO`. Cobertura percentual não é objetivo; mitigação comprovada de risco é. Proibido *test bloat* (testes redundantes para inflar métricas sintéticas).
+   - *Escada da Menor Verificação Suficiente*: `Unitário (memória, ms) → Integração (banco/serviço local) → E2E (browser)`. Interrompa no primeiro degrau viável. Testes E2E pesados são terminantemente proibidos sem justificativa formal de risco CRÍTICO.
+   - *Contrato BDD & Tríade de Casos*: Testar comportamento observável (`DADO / QUANDO / ENTÃO`), cobrindo a tríade `Caminho Feliz (Happy) + Falha Prevista (Unhappy) + Borda (Edge)`.
+   - *Fronteira Rígida de Mocks*: Mocks estritamente restritos a fronteiras externas reais (gateways de pagamento, APIs de terceiros, relógio, disparo de e-mails/SMS). Proibido simular regras de negócio ou lógica relacional em mocks.
 9. **Zero Regressão**: Toda alteração deve passar por auto-auditoria de diff (`scripts/diff-audit.sh`) antes da entrega.
 10. **Protocolo de Comunicação Executiva & Ponytail UX (Diretrizes Cognitivas)**:
     A experiência do desenvolvedor deve ser de altíssima densidade informacional e mínima fadiga cognitiva, seguindo 10 heurísticas inegociáveis:
