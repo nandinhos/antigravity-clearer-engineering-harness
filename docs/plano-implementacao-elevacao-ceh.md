@@ -779,6 +779,14 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **CB4 (média):** o `gate-normalization.md` descreve como vigente a cobertura de redirecionamento colado, que é o CA1 da v2.1.1.
 - **Baixas:** matriz D2 com `OBSERVED` usado como status; job `claude-env` com 3 variáveis; `REJEITADO COM RESSALVAS` vira `RESSALVAS`; helper de diretório temporário não usado; teste H10 que não passa pelo payload; `--evidence` sem comparação com a tag.
 
+### 0.83 PR #9, segunda rodada ([Handoff 092](./temp_implementation/handoffs/handoff-092-revisao-pr9-rodada-2.md))
+
+- **Estado:** falta um ajuste pequeno antes do merge.
+- **Conferido:** CI verde no `21df5fa`; suíte 76/76 com o ambiente real do Claude Code; baseline 5/5; corpus 1.024 → 1.051 com prefixo preservado.
+- **Resolvidos:** CB2–CB10. O mutante do casefold morre em 4 dos 5 pontos, e as quatro adulterações da instalação são detectadas.
+- **CB11 (média, bloqueia):** o `--verify` reprova uma instalação limpa feita pelo `install.sh` (`tools/package.py` ausente, `evals/` acusado como estranho). Falta também o teste versionado do `--verify` no CI.
+- **Baixas:** filtro `*/tests*` largo demais; `.lower()` do lexer sem pino (`Sudo GIT push origin dev`); retrato da Onda 4 regenerado inteiro sem declaração (sem afrouxamento); matriz e papéis incompletos; rótulo "tag/workspace" no `--evidence`.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
