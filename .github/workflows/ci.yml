@@ -252,3 +252,134 @@ jobs:
       - name: Run Full E2E Simulation & Integration Lifecycle
         run: |
           ./clearer-engineering/tests/run-e2e-simulation.sh
+
+      - name: Run CEH Doctor Verification & Diagnostics
+        run: |
+          sh clearer-engineering/scripts/ceh-doctor.sh --self-check
+          sh clearer-engineering/scripts/ceh-doctor.sh --evidence
+          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-XXXXXX")
+          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
+          HOME="$DOC_TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$DOC_TMP_HOME"
+
+      - name: Verify CEH Doctor under Apple Legacy Bash 3.2 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --self-check
+          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --evidence
+          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-mac-XXXXXX")
+          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
+          HOME="$DOC_TMP_HOME" /bin/bash clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$DOC_TMP_HOME"
+
+  claude-env:
+    name: Claude Code Environment Parity (ubuntu-latest - Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Make scripts executable
+        run: |
+          chmod +x clearer-engineering/scripts/*.sh
+          chmod +x clearer-engineering/tests/*.sh
+          chmod +x evals/run.sh
+          chmod +x install.sh
+          chmod +x uninstall.sh
+
+      - name: Run Canonical Suite under Claude Code Environment (Parity Test)
+        env:
+          CLAUDECODE: "1"
+          CLAUDE_PROJECT_DIR: "${{ github.workspace }}"
+          CLAUDE_CODE_ENTRYPOINT: "cli"
+          CLAUDE_ADDITIONAL_DIRECTORIES: "/tmp/mock-claude-dirs"
+          CLAUDE_AFTER_LAST_COMPACT: "false"
+          CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "50"
+          CLAUDE_AUTO_BACKGROUND_TASKS: "1"
+          CLAUDE_CODE_ACCOUNT_UUID: "mock-account-uuid-0000"
+          CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1"
+          CLAUDE_CODE_BASE_REF: "refs/heads/main"
+          CLAUDE_CODE_CHILD_SESSION: "0"
+          CLAUDE_CODE_CONTAINER_ID: "mock-container-0"
+          CLAUDE_CODE_DEBUG: "0"
+          CLAUDE_CODE_DIAGNOSTICS_FILE: "/tmp/mock-claude-diag.log"
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "0"
+          CLAUDE_CODE_ENVIRONMENT_RUNNER_VERSION: "0.1.0"
+          CLAUDE_CODE_EXECPATH: "/usr/local/bin/claude"
+          CLAUDE_CODE_MESSAGING_SOCKET: "/tmp/mock-claude.sock"
+          CLAUDE_CODE_ORGANIZATION_UUID: "mock-org-uuid-0000"
+          CLAUDE_CODE_REMOTE: "0"
+          CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE: "local"
+          CLAUDE_CODE_REMOTE_SESSION_ID: "mock-remote-session-0"
+          CLAUDE_CODE_SESSION_ID: "mock-session-id-0000"
+          CLAUDE_CODE_VERSION: "0.2.29"
+          CLAUDE_EFFORT: "high"
+          CLAUDE_PID: "12345"
+          USER: "runner"
+        run: |
+          echo "=== Executing Canonical Test Suite with Claude Code Environment Variables ==="
+          ./clearer-engineering/tests/run-all-tests.sh
+
+      - name: Run CEH Doctor under Claude Code Environment
+        env:
+          CLAUDECODE: "1"
+          CLAUDE_PROJECT_DIR: "${{ github.workspace }}"
+          CLAUDE_CODE_ENTRYPOINT: "cli"
+          CLAUDE_ADDITIONAL_DIRECTORIES: "/tmp/mock-claude-dirs"
+          CLAUDE_AFTER_LAST_COMPACT: "false"
+          CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "50"
+          CLAUDE_AUTO_BACKGROUND_TASKS: "1"
+          CLAUDE_CODE_ACCOUNT_UUID: "mock-account-uuid-0000"
+          CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1"
+          CLAUDE_CODE_BASE_REF: "refs/heads/main"
+          CLAUDE_CODE_CHILD_SESSION: "0"
+          CLAUDE_CODE_CONTAINER_ID: "mock-container-0"
+          CLAUDE_CODE_DEBUG: "0"
+          CLAUDE_CODE_DIAGNOSTICS_FILE: "/tmp/mock-claude-diag.log"
+          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "0"
+          CLAUDE_CODE_ENVIRONMENT_RUNNER_VERSION: "0.1.0"
+          CLAUDE_CODE_EXECPATH: "/usr/local/bin/claude"
+          CLAUDE_CODE_MESSAGING_SOCKET: "/tmp/mock-claude.sock"
+          CLAUDE_CODE_ORGANIZATION_UUID: "mock-org-uuid-0000"
+          CLAUDE_CODE_REMOTE: "0"
+          CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE: "local"
+          CLAUDE_CODE_REMOTE_SESSION_ID: "mock-remote-session-0"
+          CLAUDE_CODE_SESSION_ID: "mock-session-id-0000"
+          CLAUDE_CODE_VERSION: "0.2.29"
+          CLAUDE_EFFORT: "high"
+          CLAUDE_PID: "12345"
+          USER: "runner"
+        run: |
+          sh clearer-engineering/scripts/ceh-doctor.sh --self-check
+          sh clearer-engineering/scripts/ceh-doctor.sh --evidence
+          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-claude-XXXXXX")
+          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
+          HOME="$DOC_TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$DOC_TMP_HOME"
+
+  ci-ok:
+    name: CI Aggregated Status (ci-ok)
+    runs-on: ubuntu-latest
+    needs: [validate, claude-env]
+    if: always()
+    steps:
+      - name: Evaluate Upstream Quality Gates
+        run: |
+          echo "=== CEH CI Aggregated Quality Gate Evaluation ==="
+          echo "Validate Job Status: ${{ needs.validate.result }}"
+          echo "Claude Environment Job Status: ${{ needs.claude-env.result }}"
+
+          if [[ "${{ needs.validate.result }}" == "success" && "${{ needs.claude-env.result }}" == "success" ]]; then
+            echo "✔ ALL REQUIRED CI GATES PASSED (ci-ok: SUCCESS)"
+            exit 0
+          else
+            echo "✖ ONE OR MORE CI GATES FAILED"
+            exit 1
+          fi

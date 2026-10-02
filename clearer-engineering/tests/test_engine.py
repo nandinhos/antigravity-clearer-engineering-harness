@@ -19,12 +19,16 @@ if _SCRIPTS_DIR not in sys.path:
 
 from ceh_core.engine import Request, Decision, evaluate
 
+_TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+sys.path.insert(0, str(_TOOLS_DIR))
+from test_helpers import mkdtemp_resolved
+
 
 class TestEngineAgnostic(unittest.TestCase):
     def setUp(self):
         self.repo_root = Path(__file__).resolve().parents[2]
         self.corpus_path = self.repo_root / "clearer-engineering" / "tests" / "fixtures" / "gate_corpus.expected.jsonl"
-        self.tmp_repo = tempfile.mkdtemp(prefix="ceh_engine_sandbox_")
+        self.tmp_repo = str(mkdtemp_resolved(prefix="ceh_engine_sandbox_"))
         self.original_cwd = os.getcwd()
 
         subprocess.run(["git", "init", "-b", "dev"], cwd=self.tmp_repo, check=True, capture_output=True)
@@ -43,10 +47,10 @@ class TestEngineAgnostic(unittest.TestCase):
         shutil.rmtree(self.tmp_repo, ignore_errors=True)
 
     def test_engine_corpus_evaluation(self):
-        """Verifica a avaliacao de evaluate(Request) contra amostra de todas as 1.024 decisoes do corpus."""
+        """Verifica a avaliacao de evaluate(Request) contra amostra de todas as 1.051 decisoes do corpus."""
         self.assertTrue(self.corpus_path.is_file(), "Arquivo de corpus de referencia nao encontrado.")
         lines = [json.loads(ln) for ln in self.corpus_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
-        self.assertEqual(len(lines), 1024, "Corpus de teste deve conter 1.024 avaliacoes de referencia.")
+        self.assertEqual(len(lines), 1057, "Corpus de teste deve conter 1.057 avaliacoes de referencia.")
 
         command_lines = [l for l in lines if l.get("type") == "command"]
         self.assertGreater(len(command_lines), 1000, "Deve haver mais de 1000 comandos de avaliacao no corpus.")

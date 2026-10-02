@@ -29,6 +29,7 @@ echo -e "  ${GREEN}ceh-branches${NC}    : Auditar e configurar topologia de bran
 echo -e "  ${GREEN}ceh-preflight${NC}   : Executar diagnóstico de prontidão e integridade do projeto"
 echo -e "  ${GREEN}ceh-evals${NC}       : Executar smoke-eval determinístico de robustez e falsificabilidade (5/5 PASS)"
 echo -e "  ${GREEN}ceh-conselho${NC}    : Convocar a banca multi-agente do Conselho de Seniores (6 modelos CLI)"
+echo -e "  ${GREEN}ceh-doctor${NC}      : Diagnóstico de integridade, verificação estrutural e evidência (D3/D4)"
 echo -e "  ${GREEN}ceh-help${NC}        : Exibir este guia rápido"
 
 echo ""

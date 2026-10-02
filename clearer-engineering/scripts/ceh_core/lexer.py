@@ -204,7 +204,7 @@ def resolve_command_head(tokens: list[str]) -> tuple[int, str | None]:
     """
     n, idx = len(tokens), 0
     while idx < n:
-        tok = os.path.basename(tokens[idx])
+        tok = os.path.basename(tokens[idx]).lower()
         if tok == "rtk":
             idx += 2 if (idx + 1 < n and tokens[idx + 1] == "proxy") else 1
             continue

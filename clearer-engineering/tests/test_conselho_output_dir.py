@@ -17,9 +17,14 @@ import os
 import shutil
 import subprocess
 import tempfile
+import sys
 import unittest
 from pathlib import Path
 from typing import Optional
+
+_TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+sys.path.insert(0, str(_TOOLS_DIR))
+from test_helpers import mkdtemp_resolved
 
 
 # Absolute path to the conselho-seniores.sh under test
@@ -67,7 +72,7 @@ class TestConselhoOutputDir(unittest.TestCase):
 
     def setUp(self) -> None:
         # Create a temporary git repo simulating the user's project (resolved for macOS symlinks)
-        self.user_repo = Path(tempfile.mkdtemp(prefix="ceh-user-repo-")).resolve()
+        self.user_repo = mkdtemp_resolved(prefix="ceh-user-repo-")
         subprocess.run(
             ["git", "init", str(self.user_repo)],
             capture_output=True,
@@ -79,10 +84,10 @@ class TestConselhoOutputDir(unittest.TestCase):
         )
 
         # Create a non-git temporary directory for fallback tests (resolved)
-        self.no_git_dir = Path(tempfile.mkdtemp(prefix="ceh-no-git-")).resolve()
+        self.no_git_dir = mkdtemp_resolved(prefix="ceh-no-git-")
 
         # Create a fake external install path for scenario (b)
-        self.external_dir = Path(tempfile.mkdtemp(prefix="ceh-external-plugin-")).resolve()
+        self.external_dir = mkdtemp_resolved(prefix="ceh-external-plugin-")
         self.external_script = self.external_dir / "conselho-seniores.sh"
         shutil.copy2(SCRIPT_PATH, self.external_script)
 

@@ -287,6 +287,10 @@ ONDA4_DECLARED_NEW_PATHS = {
     ".gemini/config/plugins/clearer-engineering/tests/tools/test_mutation_p17.py",
     # Onda 5 - Remediação Hermes (v2.1.0)
     ".gemini/config/plugins/clearer-engineering/tests/test_hermes_remediation.py",
+    # PR Infraestrutura (D3/D4)
+    ".gemini/config/plugins/clearer-engineering/scripts/ceh-doctor.sh",
+    ".gemini/config/plugins/clearer-engineering/tests/tools/test_helpers.py",
+    ".gemini/config/plugins/clearer-engineering/tests/test_doctor_verify.py",
 }
 
 

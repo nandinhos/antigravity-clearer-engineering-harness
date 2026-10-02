@@ -25,10 +25,14 @@ spec.loader.exec_module(safety_gate)
 
 from hook_context import resolve_hook_target, evaluate_hook_payload
 
+_TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+sys.path.insert(0, str(_TOOLS_DIR))
+from test_helpers import mkdtemp_resolved
+
 
 class TestHookContext(unittest.TestCase):
     def setUp(self):
-        self.tmp_dir = Path(tempfile.mkdtemp(prefix="ceh-test-hook-ctx-"))
+        self.tmp_dir = mkdtemp_resolved(prefix="ceh-test-hook-ctx-")
         self.orig_cwd = os.getcwd()
 
     def tearDown(self):

@@ -358,7 +358,7 @@ for agent in "${TARGET_AGENTS[@]}"; do
       muse)   echo "muse exec \"<prompt>\"" ;;
       hermes) echo "hermes chat -q \"<prompt>\" --oneshot -Q" ;;
       agy)    echo "agy -p \"<prompt>\" --mode plan" ;;
-      agent)  echo "agent -p \"<prompt>\" --mode plan" ;;
+      agent)  echo "agent --trust -p \"<prompt>\" --mode plan" ;;
     esac
     AGENT_STATUS["$agent"]="DRY_RUN"
     AGENT_VERDICTS["$agent"]="SIMULADO"
@@ -392,7 +392,7 @@ for agent in "${TARGET_AGENTS[@]}"; do
       exit_code=$?
       ;;
     agent)
-      timeout "$TIMEOUT_SECS" agent -p "$prompt" --mode plan > "$resp_file" 2>&1
+      timeout "$TIMEOUT_SECS" agent --trust -p "$prompt" --mode plan > "$resp_file" 2>&1
       exit_code=$?
       ;;
     *)
@@ -417,16 +417,16 @@ for agent in "${TARGET_AGENTS[@]}"; do
     AGENT_VERDICTS["$agent"]="SEM_RESPOSTA"
     AGENT_CONFIDENCE["$agent"]="0.0"
   else
-    # Extrai a última linha de veredito/certeza (evitando capturar o template do prompt repetido pelo modelo)
-    verd="$(grep -E '^VEREDITO:' "$resp_file" | tail -n1 | sed -E 's/VEREDITO:[[:space:]]*//' | tr -d '\r' || true)"
-    cert="$(grep -E '^CERTEZA:' "$resp_file" | tail -n1 | sed -E 's/CERTEZA:[[:space:]]*//' | tr -d '\r' || true)"
+    # Extrai a última linha de veredito/certeza que não seja template (evitando formulário ecoado)
+    verd="$(grep -E '^VEREDITO:' "$resp_file" | grep -v -E '(\[|\|)' | tail -n1 | sed -E 's/VEREDITO:[[:space:]]*//; s/[[:space:]]+$//' | tr -d '\r' || true)"
+    cert="$(grep -E '^CERTEZA:' "$resp_file" | grep -v -E '(\[|\|)' | tail -n1 | sed -E 's/CERTEZA:[[:space:]]*//; s/[[:space:]]+$//' | tr -d '\r' || true)"
 
-    # Se contiver colchetes ou pipe (template de formulário), invalida
-    if [[ "$verd" =~ [\[\|] ]]; then
-      verd=""
-    fi
-    if [[ "$cert" =~ [\[\|] ]]; then
-      cert=""
+    # Normalização de variantes textuais válidas (ex: 'HOMOLOGADO COM RESSALVAS' -> 'RESSALVAS')
+    # CB7: REJEITADO tem precedência máxima — 'REJEITADO COM RESSALVAS' deve ser 'REJEITADO'
+    if [[ "$verd" == *"REJEITAD"* ]]; then
+      verd="REJEITADO"
+    elif [[ "$verd" == *"RESSALVA"* ]]; then
+      verd="RESSALVAS"
     fi
 
     # Validação estrita de veredito (D4b): sem fallback por grep em arquivo solto
