@@ -53,9 +53,11 @@ O gate estático do CEH atua como **defesa em profundidade e disciplina operacio
 - **Pipes de Download/Execução**: `curl ... | bash`, `wget -O - ... | sh`. O payload remoto não é observável antes da execução.
 - **Execução Remota ou em Contêineres**: `ssh user@remote ...`, `docker exec ...`. O ambiente e binários de destino são isolados do host local.
 - **Código Proveniente de Arquivo ou Redirecionamento de Stdin**: `python script.py`, `bash file.sh`, `mysql < dump.sql`. O script interno não é interpretado pelo gate de shell.
+- **Comandos via Interpretadores Inline**: `python3 -c "open('.ceh/...', 'w')"`, `perl -e '...'`, `node -e '...'`. Chamadas a interpretadores com comandos inline em strings de linguagens de alto nível não são submetidas à análise estática de AST das linguagens hóspedes, sendo avaliadas pelo binário de chamada.
 - **Comandos Montados Dinamicamente**: `eval "$CMD"`, `find ... | xargs rm`. A resolução final ocorre apenas no runtime do shell.
 - **Alvos Opacos de Automação**: `make -C /path target`, `npm --prefix /path run build`, `npm run <script>`. A receita interna de execução reside em arquivos de build (`Makefile`, `package.json`).
 - **Extração de Arquivos Compactados**: `tar -xzf archive.tar.gz`, `unzip archive.zip`. O gate não inspeciona árvores empacotadas no momento da descompactação.
+- **Janela de TOCTOU (Time-of-Check to Time-of-Use) em Symlinks**: A resolução de symlinks (`Path.resolve()`) ocorre no instante da avaliação da ferramenta. Se um symlink for modificado concorrentemente entre o instante de checagem do hook e a execução do processo no SO, existe uma janela física de TOCTOU. O gate mitiga esse vetor bloqueando a própria criação de symlinks para `.ceh/` (`ln -s .ceh`), mas a limitação concorrente em espaço de usuário do host é inerente a pre-tool hooks.
 
 *Comportamento do Gate*: Todos os comandos acima são avaliados conforme seu binário e argumentos visíveis (gerando `allow` por padrão caso não contenham alvos explícitos bloqueados, conforme controles `H062-LIMITE` na bateria).
 

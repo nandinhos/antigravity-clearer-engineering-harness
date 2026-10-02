@@ -147,6 +147,7 @@ run_verify() {
 
     _ref_tmp=""
     _source_core="$_ref_dir/clearer-engineering"
+    _ref_mode="crua"
     # CB11: Derivação canônica da referência fiel ao install.sh (pacote antigravity + evals)
     if [ -f "$_ref_dir/clearer-engineering/tools/package.py" ] && command -v python3 >/dev/null 2>&1; then
         _ref_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ceh-verify-ref-XXXXXX")
@@ -156,10 +157,19 @@ run_verify() {
                 cp -r "$_ref_dir/evals" "$_ref_tmp/"
             fi
             _source_core="$_ref_tmp"
+            _ref_mode="pacote"
         else
             rm -rf "$_ref_tmp"
             _ref_tmp=""
         fi
+    fi
+
+    # CB18: Impressão da referência utilizada e aviso explícito em caso de fallback
+    if [ "$_ref_mode" = "pacote" ]; then
+        echo "  • Referência: Pacote oficial gerado via tools/package.py"
+    else
+        echo "  • Referência: Árvore crua do repositório ($_source_core)"
+        echo "  ⚠️ AVISO: Falha ao gerar pacote canônico. A verificação pode conter falsos positivos e o resultado é INCONCLUSIVO."
     fi
 
     _target_core="$INSTALLED_PLUGIN_DIR"
@@ -167,12 +177,15 @@ run_verify() {
     _checked=0
 
     # 1. Compara todos os arquivos da árvore de referência contra o instalado (excluindo cache e metadados)
-    # CB12: Sem filtro de tests genérico, assegurando que scripts e testes arbitrários sejam validados
+    # CB12 / CB17: Exclusão estrita apenas de diretório .git e arquivos canônicos (.gitignore, .gitkeep)
     _source_files=$(find "$_source_core" -type f \
         ! -path "*/__pycache__*" \
         ! -name "*.pyc" \
         ! -name "*.pyo" \
-        ! -name ".git*" \
+        ! -path "*/.git/*" \
+        ! -name ".git" \
+        ! -name ".gitignore" \
+        ! -name ".gitkeep" \
         ! -name ".ceh-package-managed" 2>/dev/null | sort)
 
     for _src_file in $_source_files; do
@@ -197,11 +210,15 @@ run_verify() {
     done
 
     # 2. Sentido inverso: detecta arquivos estranhos ou não autorizados na instalação
+    # CB12 / CB17: Não permite arquivos estranhos com prefixo .git (ex: scripts/.gitevil.py)
     _target_files=$(find "$_target_core" -type f \
         ! -path "*/__pycache__*" \
         ! -name "*.pyc" \
         ! -name "*.pyo" \
-        ! -name ".git*" \
+        ! -path "*/.git/*" \
+        ! -name ".git" \
+        ! -name ".gitignore" \
+        ! -name ".gitkeep" \
         ! -name ".ceh-package-managed" 2>/dev/null | sort)
 
     for _tgt_file in $_target_files; do

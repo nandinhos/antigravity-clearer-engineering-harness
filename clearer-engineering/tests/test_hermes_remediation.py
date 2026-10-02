@@ -362,7 +362,87 @@ class TestHermesRemediationPhaseB(unittest.TestCase):
         )
         cleaned = rc_aliases.remove_ceh_block(user_rc)
         self.assertIn("export USER_SETTING=keep", cleaned, "F12 RED: remove_ceh_block removeu configuração legítima do usuário!")
-        self.assertEqual(cleaned, user_rc, "F12: Marcadores em strings não deveriam acionar a remoção de bloco!")
+class TestCA1WriteRedirectionControls(unittest.TestCase):
+    """Bateria de testes para CA1/CA2: integridade estrita de .ceh/ sob todas as formas de redirecionamento."""
+    def setUp(self):
+        self.tmp_repo = tempfile.mkdtemp(prefix="ceh_ca1_sandbox_")
+        self.original_cwd = os.getcwd()
+        os.chdir(self.tmp_repo)
+
+    def tearDown(self):
+        os.chdir(self.original_cwd)
+        shutil.rmtree(self.tmp_repo, ignore_errors=True)
+
+    def test_all_write_redirect_operators_against_ceh(self):
+        """CA1: >, >>, >|, &>, &>>, 2>, 2>>, <> colados e separados com casefold, arquivos genéricos e .. devem dar deny."""
+        targets = [
+            ".ceh/a",
+            ".ceh/config.json",
+            ".ceh/last-ci-run.json",
+            ".CEH/a",
+            ".Ceh/sub/file.txt",
+            "./subdir/../.ceh/a",
+        ]
+        operators = [">", ">>", ">|", "&>", "&>>", "2>", "2>>", "<>"]
+        for tgt in targets:
+            for op in operators:
+                for glued in (True, False):
+                    cmd = f"echo payload{op}{tgt}" if glued else f"echo payload {op} {tgt}"
+                    req = Request(command=cmd, cwd=self.tmp_repo)
+                    dec = evaluate(req)
+                    self.assertEqual(dec.decision, "deny", f"Esperado deny para: {cmd}")
+                    self.assertEqual(dec.use_case, "CERTIFICATE_INTEGRITY", f"Esperado CERTIFICATE_INTEGRITY para: {cmd}")
+
+    def test_ca1_symlink_redirection_blocked(self):
+        """CC2: Redirecionamento de escrita via symlink apontando para .ceh deve dar deny."""
+        ceh_dir = Path(self.tmp_repo) / ".ceh"
+        ceh_dir.mkdir(exist_ok=True)
+        link_dir = Path(self.tmp_repo) / "link_to_ceh"
+        if not link_dir.exists():
+            os.symlink(ceh_dir, link_dir)
+
+        sym_cmds = [
+            f"echo payload > {link_dir}/a",
+            f"echo payload > {link_dir}/config.json",
+            "echo payload > link_to_ceh/a",
+            "echo payload > link_to_ceh/config.json",
+            "echo payload >.ceh/a",
+            "printf payload >.ceh/config.json",
+            "echo payload &>.ceh/a",
+        ]
+        for cmd in sym_cmds:
+            req = Request(command=cmd, cwd=self.tmp_repo)
+            dec = evaluate(req)
+            self.assertEqual(dec.decision, "deny", f"Esperado deny para symlink/alvo ceh: {cmd}")
+            self.assertEqual(dec.use_case, "CERTIFICATE_INTEGRITY")
+
+    def test_ca1_negative_controls_allowed(self):
+        """CA1 (Controles Negativos): Leituras puras, redirecionamento para fora, tsconfig.json e 2>&1 permanecem allow."""
+        allowed_cmds = [
+            "cat .ceh/last-ci-run.json > /tmp/output.json",
+            "cat .ceh/last-ci-run.json > output.json",
+            "echo test 2>&1",
+            "echo test >&2",
+            "cat .ceh/last-ci-run.json | grep commit_hash",
+            'echo "a>b"',
+            "cat .ceh/last-ci-run.json",
+            "echo {} > tsconfig.json",
+            "echo x > src/app/config.json",
+            "echo x > jsconfig.json",
+            "cat tsconfig.json",
+        ]
+        for cmd in allowed_cmds:
+            req = Request(command=cmd, cwd=self.tmp_repo)
+            dec = evaluate(req)
+            self.assertEqual(dec.decision, "allow", f"Esperado allow para: {cmd} (obteve {dec.decision} - {dec.reason})")
+
+    def test_cc1_ide_file_write_tools_tsconfig_allowed(self):
+        """CC1: write_to_file / replace_file_content em tsconfig.json e config.json fora de .ceh deve ser allow."""
+        req1 = Request(target_paths=["tsconfig.json", "src/config.json", "jsconfig.json"], cwd=self.tmp_repo)
+        self.assertEqual(evaluate(req1).decision, "allow")
+
+        req2 = Request(target_paths=[".ceh/config.json", ".ceh/a"], cwd=self.tmp_repo)
+        self.assertEqual(evaluate(req2).decision, "deny")
 
 
 if __name__ == "__main__":

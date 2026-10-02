@@ -96,18 +96,24 @@ def is_protected_target(target_path: str, resolved_target_dir: Path | None = Non
     if not target_path:
         return False
     clean = target_path.replace("\\", "/").strip("'\"")
-    if any(name in clean for name in ("last-ci-run.json", "last-ci-run.log", "last-evals-run.json")):
+    if any(name in clean.lower() for name in ("last-ci-run.json", "last-ci-run.log", "last-evals-run.json")):
         return True
-    if re.search(r"(?:^|/)\.ceh(?:/|$)", clean):
+    if re.search(r"(?:^|/)\.ceh(?:/|$)", clean, re.I):
         return True
-    if resolved_target_dir is not None:
-        try:
-            full = (resolved_target_dir / Path(clean)).resolve()
+    try:
+        norm = normalize_path(clean, cwd=resolved_target_dir)
+        if re.search(r"(?:^|/)\.ceh(?:/|$)", norm, re.I):
+            return True
+        full = Path(norm).resolve()
+        if resolved_target_dir is not None:
             ceh_dir = (resolved_target_dir / ".ceh").resolve()
-            if ceh_dir == full or ceh_dir in full.parents:
+            if ceh_dir == full or ceh_dir in full.parents or any(p.lower() == ".ceh" for p in full.parts):
                 return True
-        except Exception:
-            pass
+        else:
+            if any(p.lower() == ".ceh" for p in full.parts):
+                return True
+    except (OSError, ValueError):
+        pass
     return False
 
 
