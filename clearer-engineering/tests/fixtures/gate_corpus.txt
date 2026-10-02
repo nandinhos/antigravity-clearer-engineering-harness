@@ -381,3 +381,43 @@ RAW:git -C sub status
 # CB13: Proteção contra mutantes do lexer com casefold em comandos prefixados
 RAW:Sudo GIT push origin dev
 RAW:ENV GIT push origin dev
+# CA2: Casos F01-F10 da Remediação Hermes no Corpus Dourado
+RAW:cat sample.txt>.ceh/last-ci-run.json
+RAW:bash -c 'echo ok' > .ceh/last-ci-run.json
+RAW:cat .ceh/last-ci-run.json
+RAW:echo "a>b"
+RAW:env APP_ENV=production bash -c 'php artisan migrate:fresh'
+RAW:bash -c 'ls -la'
+RAW:/usr/bin/git push origin HEAD:dev
+RAW:/usr/bin/git status
+RAW:git reset HEAD --hard
+RAW:git push -vf origin HEAD:dev
+RAW:git reset HEAD README.md
+RAW:git push origin
+RAW:rm -rf customer.db
+RAW:rm -f build.log
+# CA2: Cenários de Redirecionamento CA1 e Controles Negativos
+RAW:echo payload>.ceh/last-ci-run.json
+RAW:echo payload>>.ceh/last-ci-run.json
+RAW:echo payload>|.ceh/last-ci-run.json
+RAW:echo payload&>.ceh/last-ci-run.json
+RAW:echo payload&>>.ceh/last-ci-run.json
+RAW:echo payload 2>.ceh/last-ci-run.json
+RAW:echo payload 2>>.ceh/last-ci-run.json
+RAW:echo payload<>.ceh/last-ci-run.json
+RAW:echo payload > .ceh/last-ci-run.json
+RAW:echo payload >> .ceh/last-ci-run.json
+RAW:echo payload >| .ceh/last-ci-run.json
+RAW:echo payload &> .ceh/last-ci-run.json
+RAW:echo payload &>> .ceh/last-ci-run.json
+RAW:echo payload 2> .ceh/last-ci-run.json
+RAW:echo payload 2>> .ceh/last-ci-run.json
+RAW:echo payload <> .ceh/last-ci-run.json
+RAW:echo payload > .CEH/last-ci-run.json
+RAW:echo payload>.Ceh/last-ci-run.json
+RAW:echo payload > ./subdir/../.ceh/last-ci-run.json
+RAW:cat .ceh/last-ci-run.json > /tmp/output.json
+RAW:cat .ceh/last-ci-run.json > output.json
+RAW:echo test 2>&1
+RAW:echo test >&2
+RAW:cat .ceh/last-ci-run.json | grep commit_hash

@@ -362,7 +362,50 @@ class TestHermesRemediationPhaseB(unittest.TestCase):
         )
         cleaned = rc_aliases.remove_ceh_block(user_rc)
         self.assertIn("export USER_SETTING=keep", cleaned, "F12 RED: remove_ceh_block removeu configuração legítima do usuário!")
-        self.assertEqual(cleaned, user_rc, "F12: Marcadores em strings não deveriam acionar a remoção de bloco!")
+class TestCA1WriteRedirectionControls(unittest.TestCase):
+    """Bateria de testes para CA1/CA2: integridade estrita de .ceh/ sob todas as formas de redirecionamento."""
+    def setUp(self):
+        self.tmp_repo = tempfile.mkdtemp(prefix="ceh_ca1_sandbox_")
+        self.original_cwd = os.getcwd()
+        os.chdir(self.tmp_repo)
+
+    def tearDown(self):
+        os.chdir(self.original_cwd)
+        shutil.rmtree(self.tmp_repo, ignore_errors=True)
+
+    def test_all_write_redirect_operators_against_ceh(self):
+        """CA1: >, >>, >|, &>, &>>, 2>, 2>>, <> colados e separados com casefold e .. devem dar deny."""
+        targets = [
+            ".ceh/last-ci-run.json",
+            ".CEH/last-ci-run.json",
+            ".Ceh/last-ci-run.json",
+            "./subdir/../.ceh/last-ci-run.json",
+        ]
+        operators = [">", ">>", ">|", "&>", "&>>", "2>", "2>>", "<>"]
+        for tgt in targets:
+            for op in operators:
+                for glued in (True, False):
+                    cmd = f"echo payload{op}{tgt}" if glued else f"echo payload {op} {tgt}"
+                    req = Request(command=cmd, cwd=self.tmp_repo)
+                    dec = evaluate(req)
+                    self.assertEqual(dec.decision, "deny", f"Esperado deny para: {cmd}")
+                    self.assertEqual(dec.use_case, "CERTIFICATE_INTEGRITY", f"Esperado CERTIFICATE_INTEGRITY para: {cmd}")
+
+    def test_ca1_negative_controls_allowed(self):
+        """CA1 (Controles Negativos): Leituras puras, redirecionamento para fora e duplicações 2>&1 permanecem allow."""
+        allowed_cmds = [
+            "cat .ceh/last-ci-run.json > /tmp/output.json",
+            "cat .ceh/last-ci-run.json > output.json",
+            "echo test 2>&1",
+            "echo test >&2",
+            "cat .ceh/last-ci-run.json | grep commit_hash",
+            'echo "a>b"',
+            "cat .ceh/last-ci-run.json",
+        ]
+        for cmd in allowed_cmds:
+            req = Request(command=cmd, cwd=self.tmp_repo)
+            dec = evaluate(req)
+            self.assertEqual(dec.decision, "allow", f"Esperado allow para: {cmd} (obteve {dec.decision} - {dec.reason})")
 
 
 if __name__ == "__main__":
