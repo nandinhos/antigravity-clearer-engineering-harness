@@ -797,6 +797,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **Ressalvas baixas (para a v2.1.1):** filtro `.git*` largo (CB17); queda silenciosa para a árvore crua se o `package.py` falhar (CB18).
 - **Próximos passos:** merge do #9; troca do check obrigatório para `ci-ok`; PR `v2.1.1` (CA1 + CA2).
 
+### 0.85 Revisão do PR #11 — v2.1.1 ([Handoff 094](./temp_implementation/handoffs/handoff-094-revisao-pr11-v2-1-1.md))
+
+- **Estado:** AJUSTES NECESSÁRIOS.
+- **Conferido:** CI verde; o CA1 cobre as formas de redirecionamento coladas, com descritor e com variação de caixa; CB17 e CB18 aplicados.
+- **CC1 (alta):** qualquer `*config.json` passou a ser protegido (`tsconfig.json`, `src/config.json`), inclusive no `write_to_file` da IDE.
+- **CC2 (média):** `rules.py` sem `import Path`; o `NameError` é engolido, e a resolução de symlink (`echo x > link/a`) não funciona.
+- **CC3 (média):** o CA1 não está pinado; 0 de 64 casos da bateria e só os 4 do CA5 no corpus diferem da v2.1.0.
+- **CC4 (média, processo):** o `gate_baseline` foi movido para o commit intermediário `048ed06` e escondeu 6 afrouxamentos (CA5); contra `4a637fe` ou `e608ea7`, o fuzz reprova.
+- **Baixas:** ordem dos commits; TOCTOU e escrita por interpretador sem registro; `gate-normalization.md` desatualizado.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
