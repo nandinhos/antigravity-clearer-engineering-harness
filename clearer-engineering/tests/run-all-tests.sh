@@ -15,6 +15,7 @@ if [[ -n "$ORIGINAL_HOME" && -f "$ORIGINAL_HOME/.gitconfig" ]]; then
 fi
 export HOME="$TMP_HOME"
 
+SUITE_START=$(date +%s)
 TOTAL_TESTS=0
 PASSED_TESTS=0
 FAILED_TESTS=0
@@ -35,10 +36,18 @@ run_test() {
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
     echo "------------------------------------------------------------"
     echo "Running Test $TOTAL_TESTS: $name"
+    local t_start t_end t_dur
+    t_start=$(date +%s)
     if eval "$cmd"; then
-        log_pass "$name"
+        t_end=$(date +%s)
+        t_dur=$((t_end - t_start))
+        echo "$t_dur $TOTAL_TESTS $name" >> "$TMP_HOME/durations.txt"
+        log_pass "$name (${t_dur}s)"
     else
-        log_fail "$name"
+        t_end=$(date +%s)
+        t_dur=$((t_end - t_start))
+        echo "$t_dur $TOTAL_TESTS $name" >> "$TMP_HOME/durations.txt"
+        log_fail "$name (${t_dur}s)"
     fi
 }
 
@@ -328,13 +337,23 @@ run_test "Doctor Verify: Integridade da instalação limpa e detecção de adult
 
 
 
+SUITE_DURATION=$(( $(date +%s) - SUITE_START ))
+
 echo ""
 echo "============================================================"
 echo "TEST RESULTS SUMMARY:"
-echo "Total Tests:   $TOTAL_TESTS"
-echo "Passed Tests:  $PASSED_TESTS"
-echo "Failed Tests:  $FAILED_TESTS"
+echo "Total Tests:    $TOTAL_TESTS"
+echo "Passed Tests:   $PASSED_TESTS"
+echo "Failed Tests:   $FAILED_TESTS"
+echo "Total Duration: ${SUITE_DURATION}s"
 echo "============================================================"
+if [[ -f "$TMP_HOME/durations.txt" ]]; then
+    echo "Top 5 Slower Tests (Ponytail Wall-Clock Telemetry):"
+    sort -rn -k1,1 "$TMP_HOME/durations.txt" | head -n 5 | while read -r dur num name; do
+        printf "  • %4ds | Test %02d: %s\n" "$dur" "$num" "$name"
+    done
+    echo "============================================================"
+fi
 
 if [[ $FAILED_TESTS -eq 0 ]]; then
     echo -e "\033[0;32mALL CEH HARNESS TESTS PASSED SUCCESSFULLY (100%)\033[0m"
