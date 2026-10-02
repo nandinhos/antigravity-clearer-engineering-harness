@@ -823,6 +823,17 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
   3. confirmação do `ci-ok` como check obrigatório;
   4. PR de documentação (CA6–CA8).
 
+### 0.87 Release v2.1.1 e avanço da linha de base ([Handoff 096](./temp_implementation/handoffs/handoff-096-release-v2-1-1-e-avanco-da-linha-de-base.md))
+
+- **Conferido:**
+  - merges `fd9faa8` (`dev`) e `4fe0523` (`main`), com o CI verde;
+  - tag `v2.1.1` → `4fe0523` e release publicada;
+  - `scripts/` da tag idênticos aos do `9c3c708`, que foi o homologado.
+- **CE1 (média):** a tag publica `plugin.json` com 2.1.0 e não tem entrada 2.1.1 no CHANGELOG. Recomendado manter a tag e corrigir na 2.1.2.
+- **CE2:** canário da v2.1.1 na IDE, feito pelo desenvolvedor, ainda pendente.
+- **CE3:** ruleset com `ci-ok` afirmado sem a saída bruta.
+- **Patch de linha de base:** `gate_baseline` → `fd9faa8`, listas zeradas e 3 hashes no A2a (`docs/temp_implementation/patches/0001-baseline-v2.1.1-fd9faa8.patch`). Validado com a suíte 77/77 e aplica limpo sobre `fd9faa8`.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
