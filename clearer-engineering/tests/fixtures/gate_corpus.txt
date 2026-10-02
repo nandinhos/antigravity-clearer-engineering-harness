@@ -368,4 +368,16 @@ RAW:git diff --output=.ceh/last-ci-run.json
 RAW:git log -1 --output=.ceh/last-ci-run.json
 RAW:git show --output=.ceh/last-ci-run.json HEAD
 RAW:git log -1 -o .ceh/last-ci-run.json
-
+# CB3: Variantes de Casefold no executável e controles negativos de case-sensitivity
+RAW:GIT push origin dev
+RAW:Git push origin dev
+RAW:/usr/bin/GIT push origin dev
+RAW:GIT -C . push origin dev
+RAW:RM -rf $HOME
+RAW:FIND . -delete
+RAW:PYTHON3 -c "import os; os.system('rm -rf /')"
+RAW:git checkout -B main
+RAW:git -C sub status
+# CB13: Proteção contra mutantes do lexer com casefold em comandos prefixados
+RAW:Sudo GIT push origin dev
+RAW:ENV GIT push origin dev

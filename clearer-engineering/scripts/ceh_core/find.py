@@ -142,7 +142,7 @@ def evaluate_find_command(
     if idx >= len(tokens):
         return None
 
-    cmd_base = os.path.basename(tokens[idx])
+    cmd_base = os.path.basename(tokens[idx]).lower()
     if cmd_base != "find":
         return None
 

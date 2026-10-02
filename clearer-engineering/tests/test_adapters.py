@@ -371,6 +371,105 @@ class TestHostAdapters(unittest.TestCase):
             self.assertIsNone(target)
             self.assertTrue(force_deny)
 
+    def test_gate_decision_independent_of_claude_env(self):
+        """CB9 / D4 item 5 / H10: Prova que a avaliação do hook via evaluate_hook_payload
+        para Antigravity e Muse é 100% independente da presença de variáveis CLAUDE* no ambiente."""
+        import shutil
+        from ceh_core.engine import evaluate
+        from hook_context import evaluate_hook_payload
+
+        _TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+        if str(_TOOLS_DIR) not in sys.path:
+            sys.path.insert(0, str(_TOOLS_DIR))
+        from test_helpers import mkdtemp_resolved
+
+        tmp_dir = mkdtemp_resolved(prefix="ceh_env_indep_")
+        try:
+            # Lista de variáveis CLAUDE* reais do Apêndice A do Handoff 091
+            claude_vars = {
+                "CLAUDECODE": "1",
+                "CLAUDE_PROJECT_DIR": "/tmp/mock-claude-project",
+                "CLAUDE_CODE_ENTRYPOINT": "cli",
+                "CLAUDE_ADDITIONAL_DIRECTORIES": "/tmp/mock-dirs",
+                "CLAUDE_AFTER_LAST_COMPACT": "false",
+                "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50",
+                "CLAUDE_AUTO_BACKGROUND_TASKS": "1",
+                "CLAUDE_CODE_ACCOUNT_UUID": "mock-acc-00",
+                "CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD": "1",
+                "CLAUDE_CODE_BASE_REF": "refs/heads/main",
+                "CLAUDE_CODE_CHILD_SESSION": "0",
+                "CLAUDE_CODE_CONTAINER_ID": "mock-c-0",
+                "CLAUDE_CODE_DEBUG": "0",
+                "CLAUDE_CODE_DIAGNOSTICS_FILE": "/tmp/mock-diag.log",
+                "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "0",
+                "CLAUDE_CODE_ENVIRONMENT_RUNNER_VERSION": "0.1.0",
+                "CLAUDE_CODE_EXECPATH": "/usr/local/bin/claude",
+                "CLAUDE_CODE_MESSAGING_SOCKET": "/tmp/mock.sock",
+                "CLAUDE_CODE_ORGANIZATION_UUID": "mock-org-00",
+                "CLAUDE_CODE_REMOTE": "0",
+                "CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE": "local",
+                "CLAUDE_CODE_REMOTE_SESSION_ID": "mock-rsess-0",
+                "CLAUDE_CODE_SESSION_ID": "mock-sess-0",
+                "CLAUDE_CODE_VERSION": "0.2.29",
+                "CLAUDE_EFFORT": "high",
+                "CLAUDE_PID": "99999",
+            }
+
+            test_cases = [
+                # (nome, payload, expected_native_dec_key, expected_native_dec_val)
+                (
+                    "antigravity_safe",
+                    {"toolCall": {"name": "run_command", "args": {"CommandLine": "ls -la", "Cwd": str(tmp_dir)}}},
+                    "decision",
+                    "allow"
+                ),
+                (
+                    "antigravity_destructive",
+                    {"toolCall": {"name": "run_command", "args": {"CommandLine": "rm -rf /", "Cwd": str(tmp_dir)}}},
+                    "decision",
+                    "deny"
+                ),
+                (
+                    "muse_safe",
+                    {"tool_name": "bash", "tool_input": {"command": "git status", "workdir": str(tmp_dir)}},
+                    None,
+                    {}
+                ),
+                (
+                    "muse_destructive",
+                    {"tool_name": "bash", "tool_input": {"command": "rm -rf /", "workdir": str(tmp_dir)}},
+                    "decision",
+                    "block"
+                ),
+            ]
+
+            for name, payload, dec_key, expected_val in test_cases:
+                with self.subTest(case=name):
+                    # 1. Execução sob ambiente limpo
+                    with patch.dict(os.environ, {}, clear=True):
+                        resp_clean = evaluate_hook_payload(payload, evaluate)
+
+                    # 2. Execução sob ambiente carregado com as variáveis CLAUDE*
+                    with patch.dict(os.environ, claude_vars, clear=False):
+                        resp_claude = evaluate_hook_payload(payload, evaluate)
+
+                    # 3. Decisão deve ser a esperada
+                    if dec_key is None:
+                        self.assertEqual(resp_clean, expected_val, f"Resposta limpa incorreta para {name}")
+                        self.assertEqual(resp_claude, expected_val, f"Resposta sob claude_vars incorreta para {name}")
+                    else:
+                        self.assertEqual(resp_clean.get(dec_key), expected_val, f"Decisão limpa incorreta para {name}")
+                        self.assertEqual(resp_claude.get(dec_key), expected_val, f"Decisão sob claude_vars incorreta para {name}")
+
+                    # 4. Formato e conteúdo da resposta devem ser estritamente idênticos (zero vazamento de host)
+                    self.assertEqual(
+                        resp_clean,
+                        resp_claude,
+                        f"Divergência de payload renderizado entre ambiente limpo e com variáveis CLAUDE* para {name}"
+                    )
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
 
 if __name__ == "__main__":
     unittest.main()

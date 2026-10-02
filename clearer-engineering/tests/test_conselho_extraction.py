@@ -8,12 +8,17 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import sys
 from pathlib import Path
+
+_TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+sys.path.insert(0, str(_TOOLS_DIR))
+from test_helpers import mkdtemp_resolved
 
 
 class TestConselhoExtraction(unittest.TestCase):
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp(prefix="ceh-test-conselho-"))
+        self.tmp = mkdtemp_resolved(prefix="ceh-test-conselho-")
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -25,14 +30,14 @@ class TestConselhoExtraction(unittest.TestCase):
         # Reproduces the exact extraction logic from conselho-seniores.sh
         bash_script = f"""
         resp_file="{resp_file}"
-        verd="$(grep -E '^VEREDITO:' "$resp_file" | tail -n1 | sed -E 's/VEREDITO:[[:space:]]*//' | tr -d '\\r' || true)"
-        cert="$(grep -E '^CERTEZA:' "$resp_file" | tail -n1 | sed -E 's/CERTEZA:[[:space:]]*//' | tr -d '\\r' || true)"
+        verd="$(grep -E '^VEREDITO:' "$resp_file" | grep -v -E '(\\[|\\|)' | tail -n1 | sed -E 's/VEREDITO:[[:space:]]*//; s/[[:space:]]+$//' | tr -d '\\r' || true)"
+        cert="$(grep -E '^CERTEZA:' "$resp_file" | grep -v -E '(\\[|\\|)' | tail -n1 | sed -E 's/CERTEZA:[[:space:]]*//; s/[[:space:]]+$//' | tr -d '\\r' || true)"
 
-        if [[ "$verd" =~ [\\[\\|] ]]; then
-          verd=""
-        fi
-        if [[ "$cert" =~ [\\[\\|] ]]; then
-          cert=""
+        # Normalização de variantes (CB7)
+        if [[ "$verd" == *"REJEITAD"* ]]; then
+          verd="REJEITADO"
+        elif [[ "$verd" == *"RESSALVA"* ]]; then
+          verd="RESSALVAS"
         fi
 
         case "$verd" in
@@ -87,6 +92,28 @@ VEREDITO: HOMOLOGADO
         verd, cert = self._extract_verdict_confidence(content)
         self.assertEqual(verd, "HOMOLOGADO")
         self.assertEqual(cert, "N/D")
+
+    def test_variant_homologado_com_ressalvas_yields_ressalvas(self):
+        """Variante textual 'HOMOLOGADO COM RESSALVAS' deve normalizar para 'RESSALVAS'."""
+        content = """
+# Parecer Técnico
+VEREDITO: HOMOLOGADO COM RESSALVAS
+CERTEZA: 0.85
+"""
+        verd, cert = self._extract_verdict_confidence(content)
+        self.assertEqual(verd, "RESSALVAS")
+        self.assertEqual(cert, "0.85")
+
+    def test_variant_rejeitado_com_ressalvas_yields_rejeitado_cb7(self):
+        """CB7: Variante 'REJEITADO COM RESSALVAS' deve ter precedência REJEITADO, nunca sumir."""
+        content = """
+# Parecer Técnico
+VEREDITO: REJEITADO COM RESSALVAS
+CERTEZA: 0.95
+"""
+        verd, cert = self._extract_verdict_confidence(content)
+        self.assertEqual(verd, "REJEITADO")
+        self.assertEqual(cert, "0.95")
 
 
 if __name__ == "__main__":

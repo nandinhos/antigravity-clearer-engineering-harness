@@ -83,7 +83,7 @@ def extract_shell_commands_from_code(code: str, interp_family: str) -> list[str]
 
 
 def resolve_interpreter_head(cmd_token: str) -> str | None:
-    base = os.path.basename(cmd_token)
+    base = os.path.basename(cmd_token).lower()
     if base.startswith("python") or base == "pypy":
         return "python"
     if base in ("node", "nodejs"):

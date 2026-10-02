@@ -18,6 +18,10 @@ import unittest
 from pathlib import Path
 from importlib import import_module
 
+_TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+sys.path.insert(0, str(_TOOLS_DIR))
+from test_helpers import mkdtemp_resolved
+
 SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
@@ -109,7 +113,7 @@ class TestGitCanonicalization(unittest.TestCase):
     # G3: Detecção de ambiente no repositório de destino da flag -C
     # --------------------------------------------------------------------------
     def test_g3_environment_detected_from_target_repo_in_dash_C(self):
-        tmp_dir = tempfile.mkdtemp(prefix="ceh_test_c_env_")
+        tmp_dir = str(mkdtemp_resolved(prefix="ceh_test_c_env_"))
         orig_cwd = os.getcwd()
         try:
             # Cria repositório fixture em branch 'main' (produção)
@@ -431,6 +435,56 @@ class TestGitCanonicalization(unittest.TestCase):
             for env in ["development", "staging", "production"]:
                 decision, _, _, _ = evaluate_command(cmd, explicit_env=env)
                 self.assertEqual(decision, "allow", f"Esperado allow para '{cmd}' em '{env}', obteve '{decision}'")
+
+    # --------------------------------------------------------------------------
+    # CB3: Casefold no executável e controles semânticos de flags/argumentos
+    # --------------------------------------------------------------------------
+    def test_cb3_casefold_executable_and_semantic_controls(self):
+        """CB3: Garante que variações de caixa no executável são normalizadas e negadas,
+        enquanto argumentos e flags preservam sensibilidade estrita à caixa."""
+        
+        # 1. Variantes de caixa no executável Git devem receber 'deny' (em repo com CI ou branch protegida)
+        # CB13: Inclui prefixos transparentes com casefold (Sudo, ENV) para matar mutantes do lexer
+        git_variants = [
+            "GIT push origin dev",
+            "Git push origin dev",
+            "/usr/bin/GIT push origin dev",
+            "GIT -C . push origin dev",
+            "Sudo GIT push origin dev",
+            "ENV GIT push origin dev",
+        ]
+        for cmd in git_variants:
+            decision, reason, _, use_case = evaluate_command(cmd, explicit_env="development")
+            self.assertEqual(decision, "deny", f"Esperado deny para '{cmd}', obteve '{decision}': {reason}")
+            self.assertEqual(use_case, "PRE_PUSH_CI")
+
+        # 2. Executáveis destrutivos do sistema com maiúsculas
+        rm_cmd = "RM -rf $HOME"
+        decision, reason, _, use_case = evaluate_command(rm_cmd, explicit_env="development")
+        self.assertEqual(decision, "deny", f"Esperado deny para '{rm_cmd}', obteve '{decision}': {reason}")
+        self.assertEqual(use_case, "CATASTROPHIC")
+
+        find_cmd = "FIND . -delete"
+        decision, reason, _, use_case = evaluate_command(find_cmd, explicit_env="production")
+        self.assertEqual(decision, "deny", f"Esperado deny para '{find_cmd}', obteve '{decision}': {reason}")
+        self.assertEqual(use_case, "FILESYSTEM")
+
+        py_cmd = 'PYTHON3 -c "import os; os.system(\'rm -rf /\')"'
+        decision, reason, _, use_case = evaluate_command(py_cmd, explicit_env="development")
+        self.assertEqual(decision, "deny", f"Esperado deny para '{py_cmd}', obteve '{decision}': {reason}")
+        self.assertEqual(use_case, "CATASTROPHIC")
+
+        # 3. Controles semânticos (Case Sensitivity em flags e opções):
+        # -B maiúsculo em produção continua sendo 'deny'
+        b_cmd = "git checkout -B main"
+        decision, _, _, use_case = evaluate_command(b_cmd, explicit_env="production")
+        self.assertEqual(decision, "deny", f"Esperado deny para '{b_cmd}' em produção")
+        self.assertEqual(use_case, "GIT_HISTORY")
+
+        # -C sub status em produção continua sendo 'allow'
+        c_status = "git -C sub status"
+        decision, _, _, _ = evaluate_command(c_status, explicit_env="production")
+        self.assertEqual(decision, "allow", f"Esperado allow para '{c_status}' em produção")
 
 
 if __name__ == "__main__":

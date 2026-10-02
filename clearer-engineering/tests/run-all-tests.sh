@@ -322,6 +322,10 @@ run_test "Multi-Host Package Generator: Determinismo, manifestos observados, com
 run_test "Hermes Remediation: Correções de integridade, piso de ambiente, parser git e atalho rm (Fase A1)" \
     "python3 '$PLUGIN_DIR/tests/test_hermes_remediation.py' >/dev/null 2>&1"
 
+# 44. Doctor Verify Integrity Suite (CB11 / CB12)
+run_test "Doctor Verify: Integridade da instalação limpa e detecção de adulterações (CB11/CB12)" \
+    "python3 '$PLUGIN_DIR/tests/test_doctor_verify.py' >/dev/null 2>&1"
+
 
 
 echo ""

@@ -24,6 +24,11 @@ if _SCRIPTS_DIR not in sys.path:
 from ceh_core.engine import Request, Decision, evaluate
 from hook_context import find_adapter
 
+_TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+if str(_TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_TOOLS_DIR))
+from test_helpers import mkdtemp_resolved
+
 
 def build_synthetic_terminal_payload(host: str, command: str, target_dir: Path | str) -> dict[str, Any]:
     """Gera payload sintético fiel de comando com as mesmas chaves dos payloads gravados."""
@@ -154,7 +159,7 @@ class TestCrossHostConformance(unittest.TestCase):
         cls.adapters_fixtures = cls.fixtures_dir / "adapters"
 
         # Criar repositórios git herméticos para simular os 3 ambientes canônicos
-        cls.sandbox_dir = tempfile.mkdtemp(prefix="ceh_cross_conformance_")
+        cls.sandbox_dir = str(mkdtemp_resolved(prefix="ceh_cross_conformance_"))
         cls.repos = {}
         for b in ["dev", "staging", "main"]:
             r_path = Path(cls.sandbox_dir) / b
@@ -257,14 +262,14 @@ class TestCrossHostConformance(unittest.TestCase):
         Executa em processo todos os comandos do gate_corpus (1.016 comandos e integrações) nos 3 hosts:
         - Decisão e use_case rigorosamente iguais entre Antigravity, Claude Code, Muse e CEH Core engine.
         - Respostas de renderização e exit codes rigorosamente de acordo com a tabela observada.
-        - Total: 1.016 comandos × 3 hosts = 3.048 avaliações (BJ2).
+        - Total: 1.043 comandos × 3 hosts = 3.129 avaliações (BJ2).
         """
         self.assertTrue(self.corpus_file.is_file(), f"Arquivo de corpus não encontrado: {self.corpus_file}")
         entries = [json.loads(line) for line in self.corpus_file.read_text(encoding="utf-8").splitlines() if line.strip()]
 
-        # BJ2: Filtra estritamente os comandos e integrações reais (1.014 command + 2 integration = 1.016)
+        # BJ2: Filtra estritamente os comandos e integrações reais (1.041 command + 2 integration = 1.043)
         command_entries = [e for e in entries if e.get("type") in ("command", "integration")]
-        self.assertEqual(len(command_entries), 1016, "Corpus deve conter exatamente 1.016 entradas de comando e integração.")
+        self.assertEqual(len(command_entries), 1049, "Corpus deve conter exatamente 1.049 entradas de comando e integração.")
 
         evaluated_count = 0
         divergences: list[str] = []
@@ -352,7 +357,7 @@ class TestCrossHostConformance(unittest.TestCase):
 
             evaluated_count += 1
 
-        self.assertEqual(evaluated_count, 1016, "Devem ser avaliadas exatamente 1.016 entradas de comando.")
+        self.assertEqual(evaluated_count, 1049, "Devem ser avaliadas exatamente 1.049 entradas de comando.")
         self.assertEqual(
             len(divergences), 0,
             f"Encontrada(s) {len(divergences)} divergência(s) de conformidade cross-host:\n" + "\n".join(divergences[:15])
