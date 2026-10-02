@@ -27,24 +27,23 @@ A medição empírica realizada sobre o corpus dourado de decisões do CEH (331 
 
 No shell e no Git, variáveis de ambiente (`$HOME`), switches de opção (`-B` ≠ `-b`, `-C` ≠ `-c`) e nomes de branches diferenciam rigorosamente maiúsculas de minúsculas.
 
-### 2.2 Os Dois Pontos Canônicos de Aplicação do Casefold
-O casefold é restrito estritamente a dois pontos onde a tolerância à caixa não causa colisão semântica:
+### 2.2 Os Pontos Canônicos de Aplicação do Casefold
 
-1. **No basename do executável (`argv[0]`)**:
+1. **No basename do executável (`argv[0]`) — Vigente (PR #9)**:
    - Após a remoção do caminho de diretório (`os.path.basename`), o identificador da ferramenta é normalizado para minúsculas:
-     - `GIT`, `Git`, `/usr/bin/GIT` ➔ `git`
+     - `GIT`, `Git`, `/usr/bin/GIT`, `GIT -C .` ➔ `git`
      - `RM`, `Rm`, `/bin/RM` ➔ `rm`
      - `FIND`, `Find` ➔ `find`
      - `PYTHON`, `Python3`, `NODE`, `Node` ➔ interpretadores reconhecidos
-   - Os argumentos e opções subsequentes do comando permanecem **rigorosamente intactos**.
+   - Os argumentos e opções subsequentes do comando permanecem **rigorosamente intactos** (preservando `-B`, `-C`, `-S`, variáveis `$HOME`, etc.).
 
-2. **No componente `.ceh` em alvos de escrita e redirecionamento**:
-   - Em operações que afetam arquivos internos do harness, os componentes de caminho `.CEH/`, `.Ceh/` ou `.ceh/` são tratados de forma insensível à caixa:
-     - `> .CEH/config.json` ➔ interceptado como tentativa de mutação de integridade.
+2. **No componente `.ceh` em alvos de escrita — Vigente vs Planejado**:
+   - *Vigente (PR #9 e versões anteriores)*: Em comandos com argumento de arquivo separado (ex: `echo x > .ceh/config.json`, `cp f .ceh/config.json`, `rm -rf .ceh`), caminhos com `.ceh/` ou `.CEH/` já são interceptados.
+   - *Planejado para v2.1.1 (CA1)*: O suporte a operadores de redirecionamento colados sem espaço (`echo x >.ceh/a`, `printf x >.CEH/a`, `&>.ceh/a`) e com file descriptors (`1>.ceh/a`) está formalmente mapeado para a entrega da versão `v2.1.1` (Issue/Handoff CA1).
 
 ---
 
-## 3. Resolução Canônica de Caminhos
+## 3. Resolução Canônica de Caminhos — Vigente (PR #9)
 
 1. **Symlinks e Ancestrais Reais**:
    - Caminhos de diretório e repositório são inspecionados com resolução canônica física (`Path.resolve()` / `os.path.realpath`).
@@ -59,9 +58,15 @@ O casefold é restrito estritamente a dois pontos onde a tolerância à caixa n�
 
 ## 4. Normalização de Redirecionamentos e Destinos de Escrita
 
-O Safety Gate monitora operadores de redirecionamento de shell para proteger artefatos de integridade:
-- **Operadores Monitorados**: `>`, `>>`, `>|`, `&>`, `&>>`, `N>`, `N>>`, `<>` (unidos ao alvo ou separados por espaço).
-- **Exclusão de Descritores de Arquivo Puros**:
-  - Construções como `2>&1` ou `>&2` são duplicações de file descriptor e não alvos em disco, sendo categorizadas adequadamente sem falsos positivos.
+### 4.1 Comportamento Vigente (PR #9)
+O Safety Gate monitora ferramentas de escrita e redirecionamentos padrão com separação de espaço:
 - **Comandos com Destino Explícito**:
   - `tee`, `dd of=...`, `cp ... dest`, `mv ... dest`, `install ... dest` e `ln -s ... dest` são avaliados contra destinos protegidos (`.ceh/`).
+- **Redirecionamento com Espaço**:
+  - Operadores `>` e `>>` seguidos de espaço e caminho de destino protegido são bloqueados.
+
+### 4.2 Comportamento Planejado (Alvo da Versão v2.1.1 / CA1)
+A expansão da cobertura de lexer para redirecionamentos avançados faz parte da esteira **v2.1.1**:
+- **Operadores Sintáticos Adicionais**: `>`, `>>`, `>|`, `&>`, `&>>`, `N>`, `N>>`, `<>` colados diretamente ao alvo (ex: `echo x >.ceh/a`, `echo x &>.ceh/a`).
+- **Exclusão de Descritores de Arquivo Puros**:
+  - Garantia de que `2>&1` ou `>&2` continuem categorizados como duplicações de file descriptor sem gerar falsos positivos de escrita.

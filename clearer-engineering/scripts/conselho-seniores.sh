@@ -422,7 +422,10 @@ for agent in "${TARGET_AGENTS[@]}"; do
     cert="$(grep -E '^CERTEZA:' "$resp_file" | grep -v -E '(\[|\|)' | tail -n1 | sed -E 's/CERTEZA:[[:space:]]*//; s/[[:space:]]+$//' | tr -d '\r' || true)"
 
     # Normalização de variantes textuais válidas (ex: 'HOMOLOGADO COM RESSALVAS' -> 'RESSALVAS')
-    if [[ "$verd" == *"RESSALVA"* ]]; then
+    # CB7: REJEITADO tem precedência máxima — 'REJEITADO COM RESSALVAS' deve ser 'REJEITADO'
+    if [[ "$verd" == *"REJEITAD"* ]]; then
+      verd="REJEITADO"
+    elif [[ "$verd" == *"RESSALVA"* ]]; then
       verd="RESSALVAS"
     fi
 

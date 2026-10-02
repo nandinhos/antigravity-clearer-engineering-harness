@@ -1022,3 +1022,30 @@
 {"command": "git log -1 -o .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-347-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
 {"command": "git log -1 -o .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-347-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
 {"command": "git log -1 -o .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-347-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "GIT push origin dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-348-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "GIT push origin dev", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-348-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "GIT push origin dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-348-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "Git push origin dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-349-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "Git push origin dev", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-349-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "Git push origin dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-349-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "/usr/bin/GIT push origin dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-350-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "/usr/bin/GIT push origin dev", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-350-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "/usr/bin/GIT push origin dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-350-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "GIT -C . push origin dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-351-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "GIT -C . push origin dev", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-351-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "GIT -C . push origin dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-351-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "RM -rf $HOME", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-352-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "RM -rf $HOME", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-352-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "RM -rf $HOME", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-352-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "FIND . -delete", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-353-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "FIND . -delete", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-353-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "FIND . -delete", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-353-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "PYTHON3 -c \"import os; os.system('rm -rf /')\"", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-354-dev", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "PYTHON3 -c \"import os; os.system('rm -rf /')\"", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-354-sta", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "PYTHON3 -c \"import os; os.system('rm -rf /')\"", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-354-pro", "type": "command", "use_case": "CATASTROPHIC"}
+{"command": "git checkout -B main", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-355-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -B main", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-355-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git checkout -B main", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-355-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git -C sub status", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-356-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git -C sub status", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-356-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git -C sub status", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-356-pro", "type": "command", "use_case": "GENERAL"}

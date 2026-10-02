@@ -150,60 +150,47 @@ run_verify() {
     _divergences=0
     _checked=0
 
-    # Compara manifestos de arquivos essenciais
-    _files_to_check="
-plugin.json
-scripts/safety-gate.py
-scripts/rc_aliases.py
-scripts/conselho-seniores.sh
-scripts/detect-project.sh
-scripts/diff-audit.sh
-scripts/evidence-report.sh
-scripts/preflight.sh
-scripts/setup-branches.sh
-scripts/test-runner.sh
-scripts/ceh-doctor.sh
-rules/AGENTS.md
-config/aliases.sh
-profiles/clearer-harness.agent.md
-"
+    # 1. Compara todos os arquivos da árvore de referência contra o instalado (excluindo cache)
+    _source_files=$(find "$_source_core" -type f \
+        ! -path "*/__pycache__*" \
+        ! -path "*/tests*" \
+        ! -name "*.pyc" \
+        ! -name "*.pyo" 2>/dev/null | sort)
 
-    for _rel in $_files_to_check; do
-        _src_file="$_source_core/$_rel"
+    for _src_file in $_source_files; do
+        _rel=$(echo "$_src_file" | sed "s|^$_source_core/||")
         _tgt_file="$_target_core/$_rel"
+        _checked=$((_checked + 1))
 
-        if [ -f "$_src_file" ]; then
-            _checked=$((_checked + 1))
-            if [ ! -f "$_tgt_file" ]; then
-                echo "  ✖ Ausente no instalado: $_rel"
-                _divergences=$((_divergences + 1))
-                continue
-            fi
-            _src_hash=$(calc_sha256 "$_src_file")
-            _tgt_hash=$(calc_sha256 "$_tgt_file")
-            if [ "$_src_hash" != "$_tgt_hash" ]; then
-                echo "  ✖ Divergência de hash em $_rel:"
-                echo "      Referência: $_src_hash"
-                echo "      Instalado:  $_tgt_hash"
-                _divergences=$((_divergences + 1))
-            fi
+        if [ ! -f "$_tgt_file" ]; then
+            echo "  ✖ Ausente no instalado: $_rel"
+            _divergences=$((_divergences + 1))
+            continue
+        fi
+
+        _src_hash=$(calc_sha256 "$_src_file")
+        _tgt_hash=$(calc_sha256 "$_tgt_file")
+        if [ "$_src_hash" != "$_tgt_hash" ]; then
+            echo "  ✖ Divergência de hash em $_rel:"
+            echo "      Referência: $_src_hash"
+            echo "      Instalado:  $_tgt_hash"
+            _divergences=$((_divergences + 1))
         fi
     done
 
-    # Compara ceh_core/*.py e adapters/*.py
-    for _sub in ceh_core adapters; do
-        if [ -d "$_source_core/scripts/$_sub" ]; then
-            for _py in "$_source_core/scripts/$_sub"/*.py; do
-                [ -f "$_py" ] || continue
-                _fname=$(basename "$_py")
-                _checked=$((_checked + 1))
-                _src_hash=$(calc_sha256 "$_py")
-                _tgt_hash=$(calc_sha256 "$_target_core/scripts/$_sub/$_fname")
-                if [ "$_src_hash" != "$_tgt_hash" ]; then
-                    echo "  ✖ Divergência em scripts/$_sub/$_fname"
-                    _divergences=$((_divergences + 1))
-                fi
-            done
+    # 2. Sentido inverso: detecta arquivos estranhos ou não autorizados na instalação
+    _target_files=$(find "$_target_core" -type f \
+        ! -path "*/__pycache__*" \
+        ! -path "*/tests*" \
+        ! -name "*.pyc" \
+        ! -name "*.pyo" 2>/dev/null | sort)
+
+    for _tgt_file in $_target_files; do
+        _rel=$(echo "$_tgt_file" | sed "s|^$_target_core/||")
+        _src_file="$_source_core/$_rel"
+        if [ ! -f "$_src_file" ]; then
+            echo "  ✖ Arquivo não autorizado / estranho na instalação: $_rel"
+            _divergences=$((_divergences + 1))
         fi
     done
 
@@ -224,18 +211,32 @@ run_evidence() {
     _utc_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u)
     echo "Data UTC: $_utc_date"
     echo "Host OS: $(uname -s 2>/dev/null) $(uname -r 2>/dev/null) ($(uname -m 2>/dev/null))"
-    echo "Hostname: $(hostname 2>/dev/null || echo 'desconhecido')"
+    echo "Hostname: [REDACTED_HOSTNAME]"
     echo "Shell: $SHELL ($($SHELL --version 2>&1 | head -n 1 || echo 'sh'))"
 
     echo ""
     echo "--- [1. Integridade do Safety Gate] ---"
     _gate_installed="$INSTALLED_PLUGIN_DIR/scripts/safety-gate.py"
-    if [ -f "$_gate_installed" ]; then
-        echo "Caminho: $_gate_installed"
-        echo "SHA-256 instalado: $(calc_sha256 "$_gate_installed")"
-    else
-        echo "Caminho: NÃO INSTALADO em $INSTALLED_PLUGIN_DIR"
+    _gate_ref=""
+    if [ -n "$REPO_ROOT" ] && [ -f "$REPO_ROOT/clearer-engineering/scripts/safety-gate.py" ]; then
+        _gate_ref="$REPO_ROOT/clearer-engineering/scripts/safety-gate.py"
     fi
+
+    if [ -f "$_gate_installed" ]; then
+        _hash_inst=$(calc_sha256 "$_gate_installed")
+        echo "Caminho: $(echo "$_gate_installed" | sed "s|$HOME|~|g")"
+        echo "SHA-256 instalado:  $_hash_inst"
+        if [ -n "$_gate_ref" ]; then
+            _hash_ref=$(calc_sha256 "$_gate_ref")
+            echo "SHA-256 referência: $_hash_ref"
+            if [ "$_hash_inst" = "$_hash_ref" ]; then
+                echo "Comparação com tag/workspace: ✔ IDÊNTICO"
+            else
+                echo "Comparação com tag/workspace: ✖ DIVERGENTE"
+            fi
+        fi
+    fi
+
 
     if [ -n "$REPO_ROOT" ] && [ -d "$REPO_ROOT/.git" ]; then
         _commit=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "desconhecido")
@@ -261,33 +262,37 @@ run_evidence() {
 
     echo ""
     echo "--- [3. Índices de Transcrição da Sessão (Ressalva BK1)] ---"
+    if [ -n "$STEP_CALL" ] && [ -n "$STEP_RESP" ]; then
+        echo "Passo de chamada do canário (BK1):  $STEP_CALL"
+        echo "Passo de resposta do canário (BK1): $STEP_RESP"
+    fi
+
     _brain_dir="$HOME/.gemini/antigravity-ide/brain"
     _found_transcript=""
     if [ -d "$_brain_dir" ]; then
-        # Localiza o transcript.jsonl mais recente de forma compatível com POSIX sh
         _found_transcript=$(find "$_brain_dir" -type f -name "transcript.jsonl" -exec ls -t {} + 2>/dev/null | head -n 1 || true)
     fi
 
     if [ -n "$_found_transcript" ] && [ -f "$_found_transcript" ]; then
-        echo "Transcrição ativa mais recente: $_found_transcript"
+        echo "Transcrição ativa mais recente: $(echo "$_found_transcript" | sed "s|$HOME|~|g")"
         _total_steps=$(wc -l < "$_found_transcript" 2>/dev/null | tr -d ' ' || echo "0")
         echo "Total de passos registrados: $_total_steps"
         echo "Últimos 3 passos (amostra de índices):"
         tail -n 3 "$_found_transcript" | awk -F',' '{for(i=1;i<=NF;i++) if($i ~ /"step_index":/ || $i ~ /"type":/ || $i ~ /"status":/) printf "%s ", $i; print ""}' 2>/dev/null || true
     else
-        echo "Nenhuma transcrição ativa localizada em $_brain_dir (execução direta via CLI/terminal)."
+        echo "Nenhuma transcrição ativa localizada (execução direta via CLI/terminal)."
     fi
 
     echo ""
     echo "--- [4. Manifesto SHA-256 de Componentes Críticos] ---"
-    _ref_dir="${1:-$REPO_ROOT}"
+    _ref_dir="${1:-$REPO_ARG}"
     _target_dir="$INSTALLED_PLUGIN_DIR"
     if [ ! -d "$_target_dir" ] && [ -n "$_ref_dir" ] && [ -d "$_ref_dir/clearer-engineering" ]; then
         _target_dir="$_ref_dir/clearer-engineering"
     fi
 
     if [ -d "$_target_dir" ]; then
-        echo "Raiz de leitura: $_target_dir"
+        echo "Raiz de leitura: $(echo "$_target_dir" | sed "s|$HOME|~|g")"
         find "$_target_dir/scripts" "$_target_dir/rules" "$_target_dir/profiles" -type f 2>/dev/null | sort | while IFS= read -r f; do
             _h=$(calc_sha256 "$f")
             _rel=$(echo "$f" | sed "s|^$_target_dir/||")
@@ -305,15 +310,21 @@ show_help() {
     echo "Uso: $0 [OPÇÕES]"
     echo ""
     echo "Opções:"
-    echo "  --self-check       Executa auto-teste rápido de dependências do host (Python, sh, gate)"
-    echo "  --verify [REPO]    Verifica a integridade byte-a-byte dos arquivos instalados contra o repositório"
-    echo "  --evidence [REPO]  Gera pacote consolidado de evidência de host e integridade (D3 / BK1)"
-    echo "  --help             Exibe esta mensagem de ajuda"
+    echo "  --self-check                  Executa auto-teste rápido de dependências do host (Python, sh, gate)"
+    echo "  --verify [REPO]               Verifica a integridade do conjunto completo de arquivos instalados contra o repositório"
+    echo "  --evidence [REPO]             Gera pacote consolidado de evidência de host e integridade (D3 / BK1)"
+    echo "  --step-call <N>               Registra índice do passo da chamada do canário na evidência (BK1)"
+    echo "  --step-resp <M>               Registra índice do passo da resposta do canário na evidência (BK1)"
+    echo "  --help                        Exibe esta mensagem de ajuda"
     echo ""
     echo "Se nenhuma opção for fornecida, executa --self-check e --verify."
 }
 
-# Despacho de argumentos
+STEP_CALL=""
+STEP_RESP=""
+REPO_ARG="$REPO_ROOT"
+ACTION=""
+
 if [ $# -eq 0 ]; then
     run_self_check
     echo ""
@@ -321,22 +332,63 @@ if [ $# -eq 0 ]; then
     exit $?
 fi
 
-case "$1" in
-    --self-check)
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --self-check)
+            ACTION="self-check"
+            shift
+            ;;
+        --verify)
+            ACTION="verify"
+            shift
+            if [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; then
+                REPO_ARG="$1"
+                shift
+            fi
+            ;;
+        --evidence)
+            ACTION="evidence"
+            shift
+            if [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; then
+                REPO_ARG="$1"
+                shift
+            fi
+            ;;
+        --step-call)
+            shift
+            STEP_CALL="$1"
+            shift
+            ;;
+        --step-resp)
+            shift
+            STEP_RESP="$1"
+            shift
+            ;;
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "Opção desconhecida: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+case "$ACTION" in
+    self-check)
         run_self_check
         ;;
-    --verify)
-        run_verify "$2"
+    verify)
+        run_verify "$REPO_ARG"
         ;;
-    --evidence)
-        run_evidence "$2"
-        ;;
-    --help|-h)
-        show_help
+    evidence)
+        run_evidence "$REPO_ARG"
         ;;
     *)
-        echo "Opção desconhecida: $1"
         show_help
         exit 1
         ;;
 esac
+

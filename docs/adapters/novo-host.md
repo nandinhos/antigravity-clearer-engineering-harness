@@ -79,18 +79,18 @@ Este guia sintetiza as lições aprendidas e os padrões consolidados ao longo d
 
 ---
 
-## 6. Matriz "Onde Cada Verificação Vale" (D2 / Handoff 090)
+## 6. Matriz "Onde Cada Verificação Vale" (D2 / Handoff 090 / Handoff 091)
 
-Toda afirmação técnica sob o CEH exige rigor epistêmico. A semântica `OBSERVED` só é válida no ambiente em que a observação física de fato ocorreu. Fora dele, a conclusão é estritamente `INFERRED`.
+Toda afirmação técnica sob o CEH exige rigor epistêmico. A matriz estabelece onde cada classe de verificação é **fisicamente verificável** versus **não verificável**. Uma prova observada em um ambiente só se torna `OBSERVED` naquele contexto específico; fora dele, extrapolações constituem `INFERRED`.
 
 | Verificação / Prova | Sandbox de Revisão | CI Linux (Ubuntu) | CI macOS (Bash 3.2) | IDE-Linux | IDE-macOS | agy CLI Headless | Claude Code CLI Local |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Suíte Canônica (`run-all-tests.sh`)** | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` |
-| **Paridade Claude (`claude-env`)** | `OBSERVED` | `OBSERVED` | `INFERRED` | `OBSERVED` | `INFERRED` | `INFERRED` | `OBSERVED` |
-| **Compatibilidade macOS Bash 3.2** | N/A | N/A | `OBSERVED` | N/A | `OBSERVED` | N/A | N/A |
-| **Transmissão/Bloqueio Real na IDE** | `INFERRED` | `INFERRED` | `INFERRED` | `OBSERVED` | `OBSERVED` | N/A | N/A |
-| **Integridade de Instalação (`ceh-doctor --verify`)** | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` | `OBSERVED` |
-| **Ruleset GitHub (`gh api` autenticado)** | N/A (sem token) | N/A | N/A | `OBSERVED` (Dev) | `OBSERVED` (Dev) | `OBSERVED` (Dev) | `OBSERVED` (Dev) |
+| **Suíte Canônica (`run-all-tests.sh`)** | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui |
+| **Paridade Claude (`claude-env`)** | Verificável aqui | Verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Não verificável aqui | Verificável aqui |
+| **Compatibilidade macOS Bash 3.2** | Não verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Não verificável aqui |
+| **Transmissão/Bloqueio Real na IDE** | Não verificável aqui | Não verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Verificável aqui (código saída) | Não verificável aqui |
+| **Integridade de Instalação (`ceh-doctor --verify`)** | Verificável aqui (mock) | Não verificável aqui | Não verificável aqui | Verificável aqui (real) | Verificável aqui (real) | Verificável aqui | Verificável aqui |
+| **Ruleset GitHub (`gh api` autenticado)** | Não verificável aqui | Não verificável aqui | Não verificável aqui | Verificável aqui (Dev) | Verificável aqui (Dev) | Verificável aqui (Dev) | Verificável aqui (Dev) |
 
 ### 6.1 A Tupla de Evidência Canônica (Codex)
 Toda evidência formalizada em relatórios deve ser estruturada pela tupla de 6 elementos:
@@ -100,17 +100,10 @@ Uma afirmação alegando funcionamento em IDE sem teste real na IDE é categoriz
 
 ---
 
-## 7. Papéis Canônicos de Engenharia e Release (D6 / Handoff 090)
+## 7. Papéis Canônicos de Engenharia e Release (D6 / Handoff 089 / Handoff 090 / Handoff 091)
 
-1. **Agente de Execução (IDE / Antigravity)**:
-   - Implementa o código cirúrgico seguindo o plano e as restrições arquiteturais.
-   - Executa a suíte canônica local e gera certificados de voo (`test-runner.sh`).
-   - Abre os Pull Requests correspondentes para a branch `dev`.
-2. **Revisor Independente (Sandbox Isolado)**:
-   - Realiza revisão adversarial de diff linha a linha.
-   - Executa auditoria formal de falsificabilidade e não-regressão.
-   - Homologa despachos com base em comandos e saídas reproduzíveis.
-3. **Operador do Release (Desenvolvedor)**:
-   - Papel exclusivo e soberano do desenvolvedor humano.
-   - Executa canários de release no terminal do host (fora da sessão do agente).
-   - Gerencia a proteção de branches no GitHub e realiza as publicações de tag.
+| Papel | O que FAZ (Responsabilidades e Autorizações) | O que NÃO PODE FAZER (Restrições Invioláveis) |
+|---|---|---|
+| **Agente de Execução**<br>*(IDE / Antigravity)* | • Implementa o código cirúrgico conforme o plano.<br>• Executa a suíte canônica de testes localmente.<br>• **Autorizado a emitir certificados de voo** através da execução limpa do `test-runner.sh`.<br>• Abre Pull Requests para a branch `dev`. | ✖ **NUNCA faz push direto para a branch `main`**.<br>✖ **NUNCA edita ou forja manualmente os arquivos em `.ceh/`** (violação grave de integridade).<br>✖ Não altera rulesets ou configurações de governança do repositório.<br>✖ Não auto-aprova Pull Requests. |
+| **Revisor Independente**<br>*(Sandbox Isolado / Claude)* | • Realiza revisão adversarial de diff linha a linha.<br>• Executa auditoria formal de falsificabilidade (testes de mutação).<br>• Valida a paridade de ambiente e ausência de regressões.<br>• Emite pareceres formais de homologação ou solicitações de ajuste (Handoffs). | ✖ **NUNCA realiza merge de código em produção**.<br>✖ Não altera código em branches de release sem submissão de PR.<br>✖ Não homologa entregas sem evidência reproduzível ou com mutantes sobreviventes. |
+| **Operador do Release**<br>*(Desenvolvedor Humano)* | • **Autoridade soberana final** do ciclo de engenharia.<br>• Executa canários de release no terminal do host (fora de sessões de agentes).<br>• Configura rulesets, proteções de branch e credenciais no GitHub.<br>• Realiza merges na branch `main` e publica tags de versão oficiais. | ✖ N/A (Soberania humana de decisão e governança). |
