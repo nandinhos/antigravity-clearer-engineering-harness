@@ -269,7 +269,7 @@ class TestCrossHostConformance(unittest.TestCase):
 
         # BJ2: Filtra estritamente os comandos e integrações reais (1.041 command + 2 integration = 1.043)
         command_entries = [e for e in entries if e.get("type") in ("command", "integration")]
-        self.assertEqual(len(command_entries), 1043, "Corpus deve conter exatamente 1.043 entradas de comando e integração.")
+        self.assertEqual(len(command_entries), 1049, "Corpus deve conter exatamente 1.049 entradas de comando e integração.")
 
         evaluated_count = 0
         divergences: list[str] = []
@@ -357,7 +357,7 @@ class TestCrossHostConformance(unittest.TestCase):
 
             evaluated_count += 1
 
-        self.assertEqual(evaluated_count, 1043, "Devem ser avaliadas exatamente 1.043 entradas de comando.")
+        self.assertEqual(evaluated_count, 1049, "Devem ser avaliadas exatamente 1.049 entradas de comando.")
         self.assertEqual(
             len(divergences), 0,
             f"Encontrada(s) {len(divergences)} divergência(s) de conformidade cross-host:\n" + "\n".join(divergences[:15])

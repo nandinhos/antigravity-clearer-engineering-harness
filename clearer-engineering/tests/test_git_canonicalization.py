@@ -444,11 +444,14 @@ class TestGitCanonicalization(unittest.TestCase):
         enquanto argumentos e flags preservam sensibilidade estrita à caixa."""
         
         # 1. Variantes de caixa no executável Git devem receber 'deny' (em repo com CI ou branch protegida)
+        # CB13: Inclui prefixos transparentes com casefold (Sudo, ENV) para matar mutantes do lexer
         git_variants = [
             "GIT push origin dev",
             "Git push origin dev",
             "/usr/bin/GIT push origin dev",
             "GIT -C . push origin dev",
+            "Sudo GIT push origin dev",
+            "ENV GIT push origin dev",
         ]
         for cmd in git_variants:
             decision, reason, _, use_case = evaluate_command(cmd, explicit_env="development")

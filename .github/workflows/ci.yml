@@ -257,12 +257,20 @@ jobs:
         run: |
           sh clearer-engineering/scripts/ceh-doctor.sh --self-check
           sh clearer-engineering/scripts/ceh-doctor.sh --evidence
+          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-XXXXXX")
+          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
+          HOME="$DOC_TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$DOC_TMP_HOME"
 
       - name: Verify CEH Doctor under Apple Legacy Bash 3.2 (macOS)
         if: runner.os == 'macOS'
         run: |
           /bin/bash clearer-engineering/scripts/ceh-doctor.sh --self-check
           /bin/bash clearer-engineering/scripts/ceh-doctor.sh --evidence
+          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-mac-XXXXXX")
+          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
+          HOME="$DOC_TMP_HOME" /bin/bash clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$DOC_TMP_HOME"
 
   claude-env:
     name: Claude Code Environment Parity (ubuntu-latest - Python 3.12)
@@ -351,6 +359,10 @@ jobs:
         run: |
           sh clearer-engineering/scripts/ceh-doctor.sh --self-check
           sh clearer-engineering/scripts/ceh-doctor.sh --evidence
+          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-claude-XXXXXX")
+          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
+          HOME="$DOC_TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$DOC_TMP_HOME"
 
   ci-ok:
     name: CI Aggregated Status (ci-ok)

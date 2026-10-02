@@ -145,17 +145,35 @@ run_verify() {
         return 1
     fi
 
+    _ref_tmp=""
     _source_core="$_ref_dir/clearer-engineering"
+    # CB11: Derivação canônica da referência fiel ao install.sh (pacote antigravity + evals)
+    if [ -f "$_ref_dir/clearer-engineering/tools/package.py" ] && command -v python3 >/dev/null 2>&1; then
+        _ref_tmp=$(mktemp -d "${TMPDIR:-/tmp}/ceh-verify-ref-XXXXXX")
+        if python3 "$_ref_dir/clearer-engineering/tools/package.py" --host antigravity --out "$_ref_tmp" >/dev/null 2>&1; then
+            rm -f "$_ref_tmp/.ceh-package-managed"
+            if [ -d "$_ref_dir/evals" ]; then
+                cp -r "$_ref_dir/evals" "$_ref_tmp/"
+            fi
+            _source_core="$_ref_tmp"
+        else
+            rm -rf "$_ref_tmp"
+            _ref_tmp=""
+        fi
+    fi
+
     _target_core="$INSTALLED_PLUGIN_DIR"
     _divergences=0
     _checked=0
 
-    # 1. Compara todos os arquivos da árvore de referência contra o instalado (excluindo cache)
+    # 1. Compara todos os arquivos da árvore de referência contra o instalado (excluindo cache e metadados)
+    # CB12: Sem filtro de tests genérico, assegurando que scripts e testes arbitrários sejam validados
     _source_files=$(find "$_source_core" -type f \
         ! -path "*/__pycache__*" \
-        ! -path "*/tests*" \
         ! -name "*.pyc" \
-        ! -name "*.pyo" 2>/dev/null | sort)
+        ! -name "*.pyo" \
+        ! -name ".git*" \
+        ! -name ".ceh-package-managed" 2>/dev/null | sort)
 
     for _src_file in $_source_files; do
         _rel=$(echo "$_src_file" | sed "s|^$_source_core/||")
@@ -181,9 +199,10 @@ run_verify() {
     # 2. Sentido inverso: detecta arquivos estranhos ou não autorizados na instalação
     _target_files=$(find "$_target_core" -type f \
         ! -path "*/__pycache__*" \
-        ! -path "*/tests*" \
         ! -name "*.pyc" \
-        ! -name "*.pyo" 2>/dev/null | sort)
+        ! -name "*.pyo" \
+        ! -name ".git*" \
+        ! -name ".ceh-package-managed" 2>/dev/null | sort)
 
     for _tgt_file in $_target_files; do
         _rel=$(echo "$_tgt_file" | sed "s|^$_target_core/||")
@@ -193,6 +212,8 @@ run_verify() {
             _divergences=$((_divergences + 1))
         fi
     done
+
+    [ -n "$_ref_tmp" ] && rm -rf "$_ref_tmp"
 
     echo "  • Total de arquivos verificados: $_checked"
     if [ "$_divergences" -eq 0 ]; then
@@ -222,6 +243,11 @@ run_evidence() {
         _gate_ref="$REPO_ROOT/clearer-engineering/scripts/safety-gate.py"
     fi
 
+    _exact_tag=""
+    if [ -n "$REPO_ROOT" ] && [ -d "$REPO_ROOT/.git" ]; then
+        _exact_tag=$(git -C "$REPO_ROOT" describe --tags --exact-match 2>/dev/null || echo "")
+    fi
+
     if [ -f "$_gate_installed" ]; then
         _hash_inst=$(calc_sha256 "$_gate_installed")
         echo "Caminho: $(echo "$_gate_installed" | sed "s|$HOME|~|g")"
@@ -229,10 +255,20 @@ run_evidence() {
         if [ -n "$_gate_ref" ]; then
             _hash_ref=$(calc_sha256 "$_gate_ref")
             echo "SHA-256 referência: $_hash_ref"
-            if [ "$_hash_inst" = "$_hash_ref" ]; then
-                echo "Comparação com tag/workspace: ✔ IDÊNTICO"
+            if [ -n "$_exact_tag" ]; then
+                echo "Origem da referência: Tag oficial '$_exact_tag'"
+                if [ "$_hash_inst" = "$_hash_ref" ]; then
+                    echo "Comparação com tag: ✔ IDÊNTICO"
+                else
+                    echo "Comparação com tag: ✖ DIVERGENTE"
+                fi
             else
-                echo "Comparação com tag/workspace: ✖ DIVERGENTE"
+                echo "Origem da referência: Workspace local (não é tag oficial)"
+                if [ "$_hash_inst" = "$_hash_ref" ]; then
+                    echo "Comparação com workspace: ✔ IDÊNTICO"
+                else
+                    echo "Comparação com workspace: ✖ DIVERGENTE"
+                fi
             fi
         fi
     fi

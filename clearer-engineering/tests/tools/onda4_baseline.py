@@ -290,6 +290,7 @@ ONDA4_DECLARED_NEW_PATHS = {
     # PR Infraestrutura (D3/D4)
     ".gemini/config/plugins/clearer-engineering/scripts/ceh-doctor.sh",
     ".gemini/config/plugins/clearer-engineering/tests/tools/test_helpers.py",
+    ".gemini/config/plugins/clearer-engineering/tests/test_doctor_verify.py",
 }
 
 

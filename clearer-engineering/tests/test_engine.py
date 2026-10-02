@@ -50,7 +50,7 @@ class TestEngineAgnostic(unittest.TestCase):
         """Verifica a avaliacao de evaluate(Request) contra amostra de todas as 1.051 decisoes do corpus."""
         self.assertTrue(self.corpus_path.is_file(), "Arquivo de corpus de referencia nao encontrado.")
         lines = [json.loads(ln) for ln in self.corpus_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
-        self.assertEqual(len(lines), 1051, "Corpus de teste deve conter 1.051 avaliacoes de referencia.")
+        self.assertEqual(len(lines), 1057, "Corpus de teste deve conter 1.057 avaliacoes de referencia.")
 
         command_lines = [l for l in lines if l.get("type") == "command"]
         self.assertGreater(len(command_lines), 1000, "Deve haver mais de 1000 comandos de avaliacao no corpus.")

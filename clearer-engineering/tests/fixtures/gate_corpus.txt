@@ -378,4 +378,6 @@ RAW:FIND . -delete
 RAW:PYTHON3 -c "import os; os.system('rm -rf /')"
 RAW:git checkout -B main
 RAW:git -C sub status
-
+# CB13: Proteção contra mutantes do lexer com casefold em comandos prefixados
+RAW:Sudo GIT push origin dev
+RAW:ENV GIT push origin dev

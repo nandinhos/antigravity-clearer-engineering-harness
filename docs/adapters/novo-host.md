@@ -88,7 +88,7 @@ Toda afirmação técnica sob o CEH exige rigor epistêmico. A matriz estabelece
 | **Suíte Canônica (`run-all-tests.sh`)** | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui | Verificável aqui |
 | **Paridade Claude (`claude-env`)** | Verificável aqui | Verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Não verificável aqui | Verificável aqui |
 | **Compatibilidade macOS Bash 3.2** | Não verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Não verificável aqui |
-| **Transmissão/Bloqueio Real na IDE** | Não verificável aqui | Não verificável aqui | Não verificável aqui | Verificável aqui | Não verificável aqui | Verificável aqui (código saída) | Não verificável aqui |
+| **Transmissão/Bloqueio Real na IDE** | Não verificável aqui | Não verificável aqui | Não verificável aqui | Verificável aqui | Verificável aqui (não observado nesta sessão) | Verificável aqui (código saída) | Não verificável aqui |
 | **Integridade de Instalação (`ceh-doctor --verify`)** | Verificável aqui (mock) | Não verificável aqui | Não verificável aqui | Verificável aqui (real) | Verificável aqui (real) | Verificável aqui | Verificável aqui |
 | **Ruleset GitHub (`gh api` autenticado)** | Não verificável aqui | Não verificável aqui | Não verificável aqui | Verificável aqui (Dev) | Verificável aqui (Dev) | Verificável aqui (Dev) | Verificável aqui (Dev) |
 
@@ -100,10 +100,10 @@ Uma afirmação alegando funcionamento em IDE sem teste real na IDE é categoriz
 
 ---
 
-## 7. Papéis Canônicos de Engenharia e Release (D6 / Handoff 089 / Handoff 090 / Handoff 091)
+## 7. Papéis Canônicos de Engenharia e Release (D6 / Handoff 089 / Handoff 090 / Handoff 091 / Handoff 092)
 
 | Papel | O que FAZ (Responsabilidades e Autorizações) | O que NÃO PODE FAZER (Restrições Invioláveis) |
 |---|---|---|
-| **Agente de Execução**<br>*(IDE / Antigravity)* | • Implementa o código cirúrgico conforme o plano.<br>• Executa a suíte canônica de testes localmente.<br>• **Autorizado a emitir certificados de voo** através da execução limpa do `test-runner.sh`.<br>• Abre Pull Requests para a branch `dev`. | ✖ **NUNCA faz push direto para a branch `main`**.<br>✖ **NUNCA edita ou forja manualmente os arquivos em `.ceh/`** (violação grave de integridade).<br>✖ Não altera rulesets ou configurações de governança do repositório.<br>✖ Não auto-aprova Pull Requests. |
+| **Agente de Execução**<br>*(IDE / Antigravity)* | • Implementa o código cirúrgico conforme o plano.<br>• Executa a suíte canônica de testes localmente.<br>• **Autorizado a emitir certificados de voo** através da execução limpa do `test-runner.sh`.<br>• Abre Pull Requests para a branch `dev`. | ✖ **NUNCA faz push direto para a branch `main`**.<br>✖ **NUNCA edita ou forja manualmente os arquivos em `.ceh/`** (violação grave de integridade).<br>✖ **NÃO homologa entregas** (competência exclusiva do Revisor Independente e do Operador Humano).<br>✖ **NÃO edita o plano de engenharia nem documentos de governança (`docs/plano-*`)**.<br>✖ **NÃO faz merge de Pull Requests** (atribuição do Operador de Release).<br>✖ Não altera rulesets ou configurações de governança do repositório.<br>✖ Não auto-aprova Pull Requests. |
 | **Revisor Independente**<br>*(Sandbox Isolado / Claude)* | • Realiza revisão adversarial de diff linha a linha.<br>• Executa auditoria formal de falsificabilidade (testes de mutação).<br>• Valida a paridade de ambiente e ausência de regressões.<br>• Emite pareceres formais de homologação ou solicitações de ajuste (Handoffs). | ✖ **NUNCA realiza merge de código em produção**.<br>✖ Não altera código em branches de release sem submissão de PR.<br>✖ Não homologa entregas sem evidência reproduzível ou com mutantes sobreviventes. |
 | **Operador do Release**<br>*(Desenvolvedor Humano)* | • **Autoridade soberana final** do ciclo de engenharia.<br>• Executa canários de release no terminal do host (fora de sessões de agentes).<br>• Configura rulesets, proteções de branch e credenciais no GitHub.<br>• Realiza merges na branch `main` e publica tags de versão oficiais. | ✖ N/A (Soberania humana de decisão e governança). |
