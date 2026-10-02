@@ -1,3 +1,9 @@
 # Lista de relaxamentos de segurança autorizados em relação à linha de base (gate_baseline.txt)
 # Formato: env|comando|de->para|ID-do-achado
-# Zerada a cada avanço da linha de base pela revisão (Handoff 071: linha de base e608ea7).
+# Declarados para a v2.1.1 sob linha de base 4a637fe (CA5: leituras puras com redirecionamento de saída externo).
+development|cat .ceh/last-ci-run.json > /tmp/output.json|deny->allow|CA5
+staging|cat .ceh/last-ci-run.json > /tmp/output.json|deny->allow|CA5
+production|cat .ceh/last-ci-run.json > /tmp/output.json|deny->allow|CA5
+development|cat .ceh/last-ci-run.json > output.json|deny->allow|CA5
+staging|cat .ceh/last-ci-run.json > output.json|deny->allow|CA5
+production|cat .ceh/last-ci-run.json > output.json|deny->allow|CA5

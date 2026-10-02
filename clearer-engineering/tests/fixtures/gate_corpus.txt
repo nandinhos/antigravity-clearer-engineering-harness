@@ -421,3 +421,15 @@ RAW:cat .ceh/last-ci-run.json > output.json
 RAW:echo test 2>&1
 RAW:echo test >&2
 RAW:cat .ceh/last-ci-run.json | grep commit_hash
+# CC3: Casos de escrita em arquivos genéricos do .ceh/ e controles de tsconfig
+RAW:echo x >.ceh/a
+RAW:echo x > .ceh/a
+RAW:printf x >.ceh/config.json
+RAW:echo x &>.ceh/a
+RAW:echo x >>.ceh/a
+RAW:echo x 2>.ceh/a
+RAW:echo x > .CEH/a
+RAW:echo x > ./sub/../.ceh/a
+RAW:echo {} > tsconfig.json
+RAW:cat tsconfig.json
+RAW:echo x > src/config.json

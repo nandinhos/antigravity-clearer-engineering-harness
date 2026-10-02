@@ -1169,3 +1169,36 @@
 {"command": "cat .ceh/last-ci-run.json | grep commit_hash", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-396-dev", "type": "command", "use_case": "GENERAL"}
 {"command": "cat .ceh/last-ci-run.json | grep commit_hash", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-396-sta", "type": "command", "use_case": "GENERAL"}
 {"command": "cat .ceh/last-ci-run.json | grep commit_hash", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-396-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x >.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-397-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-397-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-397-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-398-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-398-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-398-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "printf x >.ceh/config.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-399-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "printf x >.ceh/config.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-399-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "printf x >.ceh/config.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-399-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x &>.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-400-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x &>.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-400-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x &>.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-400-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >>.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-401-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >>.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-401-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >>.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-401-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x 2>.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-402-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x 2>.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-402-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x 2>.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-402-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .CEH/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-403-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .CEH/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-403-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .CEH/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-403-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > ./sub/../.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-404-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > ./sub/../.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-404-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > ./sub/../.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-404-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo {} > tsconfig.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-405-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo {} > tsconfig.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-405-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo {} > tsconfig.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-405-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cat tsconfig.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-406-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cat tsconfig.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-406-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cat tsconfig.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-406-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x > src/config.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-407-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x > src/config.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-407-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x > src/config.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-407-pro", "type": "command", "use_case": "GENERAL"}

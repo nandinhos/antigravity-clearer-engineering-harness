@@ -76,6 +76,7 @@ USE_CASE_DESTRUCTIVE_PATTERNS = [
 import os
 import re
 import shlex
+from pathlib import Path
 
 from ceh_core.normalize import strip_all_quotes, tokenize_command, normalize_path
 
@@ -168,24 +169,23 @@ def is_ceh_target(target: str, base_cwd: Path | str | None = None) -> bool:
     if not target:
         return False
     clean = strip_all_quotes(target).replace("\\", "/")
-    if any(name in clean.lower() for name in ("last-ci-run.json", "last-ci-run.log", "last-evals-run.json", "config.json")):
+    if any(name in clean.lower() for name in ("last-ci-run.json", "last-ci-run.log", "last-evals-run.json")):
         return True
     if re.search(r"(?:^|/)\.ceh(?:/|$)", clean, re.I):
         return True
     try:
-        norm = normalize_path(clean)
+        norm = normalize_path(clean, cwd=base_cwd)
         if re.search(r"(?:^|/)\.ceh(?:/|$)", norm, re.I):
             return True
+        full = Path(norm).resolve()
         if base_cwd is not None:
-            full = (Path(base_cwd).resolve() / Path(norm)).resolve()
             ceh_dir = (Path(base_cwd).resolve() / ".ceh").resolve()
             if full == ceh_dir or ceh_dir in full.parents or any(part.lower() == ".ceh" for part in full.parts):
                 return True
         else:
-            full = Path(norm).resolve()
             if any(part.lower() == ".ceh" for part in full.parts):
                 return True
-    except Exception:
+    except (OSError, ValueError):
         pass
     return False
 
