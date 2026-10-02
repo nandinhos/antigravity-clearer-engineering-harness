@@ -787,6 +787,16 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **CB11 (média, bloqueia):** o `--verify` reprova uma instalação limpa feita pelo `install.sh` (`tools/package.py` ausente, `evals/` acusado como estranho). Falta também o teste versionado do `--verify` no CI.
 - **Baixas:** filtro `*/tests*` largo demais; `.lower()` do lexer sem pino (`Sudo GIT push origin dev`); retrato da Onda 4 regenerado inteiro sem declaração (sem afrouxamento); matriz e papéis incompletos; rótulo "tag/workspace" no `--evidence`.
 
+### 0.84 PR #9 homologado ([Handoff 093](./temp_implementation/handoffs/handoff-093-pr9-homologado.md))
+
+- **Estado:** HOMOLOGADO (cabeça `286a341`).
+- **Conferido:** CI verde, com o `--verify` rodando sobre uma instalação real; suíte 77/77 com o ambiente real do Claude Code; baseline 5/5.
+- **Resolvidos:**
+  - CB11: instalação limpa → SUCESSO (131 arquivos); `test_doctor_verify.py` reprova o doctor anterior;
+  - CB12–CB16: o casefold está pinado nos 5 pontos, o A2 teve só a atualização pontual e o `--evidence` diferencia tag de workspace.
+- **Ressalvas baixas (para a v2.1.1):** filtro `.git*` largo (CB17); queda silenciosa para a árvore crua se o `package.py` falhar (CB18).
+- **Próximos passos:** merge do #9; troca do check obrigatório para `ci-ok`; PR `v2.1.1` (CA1 + CA2).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
