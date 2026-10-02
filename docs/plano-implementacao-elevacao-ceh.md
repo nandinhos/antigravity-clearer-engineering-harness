@@ -834,6 +834,15 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **CE3:** ruleset com `ci-ok` afirmado sem a saída bruta.
 - **Patch de linha de base:** `gate_baseline` → `fd9faa8`, listas zeradas e 3 hashes no A2a (`docs/temp_implementation/patches/0001-baseline-v2.1.1-fd9faa8.patch`). Validado com a suíte 77/77 e aplica limpo sobre `fd9faa8`.
 
+### 0.88 PR #13 homologado e roteiro do canário ([Handoff 097](./temp_implementation/handoffs/handoff-097-pr13-homologado-e-roteiro-do-canario.md))
+
+- **PR #13 homologado:**
+  - o commit do patch tem a árvore idêntica à do Handoff 096;
+  - CI verde;
+  - CE1 (nota na release, tag mantida) e CE3 (ruleset só com `ci-ok`, sem bypass) resolvidos.
+- **Correção do roteiro do canário:** um comando digitado no terminal do desenvolvedor não passa pelo hook e gravaria o arquivo. A tentativa de escrita tem que ser uma chamada de ferramenta do agente na IDE. Fora da sessão do agente fica só a coleta da evidência (`ceh-doctor --evidence`). A frase ambígua da D3 foi corrigida.
+- **Próximos passos:** merge do #13; canário E18 na IDE; v2.1.2 (versão e CHANGELOG); PR de documentação.
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
