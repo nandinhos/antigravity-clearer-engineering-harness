@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-10-02
+
+### Changed
+- **Metadados de Versão (CE1)**: Alinhamento de versão canônica para `2.1.2` no manifesto `clearer-engineering/plugin.json`.
+- **Documentação e Arquitetura**:
+  - Inclusão formal dos limites de symlinks pré-existentes com múltiplos destinos (`CD1`) e loops cíclicos com resposta fail-closed (`CD2`) no ADR 007 (`docs/architecture/adr-007-protecao-certificado-modelo-ameacas.md`).
+  - Registro consolidado do relatório e pacote de evidências do canário em runtime real na IDE em `docs/temp_implementation/evidence/e18-canario-v2-1-1.md` (E18).
+  - Atualização do histórico documental do `CHANGELOG.md` com os registros integrais das versões 2.1.1 e 2.1.2.
+
+## [2.1.1] - 2026-10-02
+
+### Security
+- **Normalização de Operadores de Redirecionamento Colados (CA1)**:
+  - Expansão do analisador léxico (`lexer.py`, `rules.py`) para capturar operadores colados diretamente ao alvo sem espaço (`>.ceh/a`, `>>.ceh/a`, `&>.ceh/a`, `&>>.ceh/a`, `1>.ceh/a`, `<>`) e bloquear compulsoriamente escritas arbitrárias em `.ceh/`.
+  - Exclusão estrita de duplicações puras de file descriptors (`2>&1`, `>&2`), preservando-as como `ALLOW`.
+- **Eliminação de Falso Positivo em `config.json` (CC1)**:
+  - Remoção de `"config.json"` da lista de substrings literais em `rules.py` e `engine.py`.
+  - Arquivos legítimos da IDE (`tsconfig.json`, `src/app/config.json`, `jsconfig.json`) liberados normalmente para edição (`ALLOW`). O arquivo `.ceh/config.json` permanece incondicionalmente bloqueado pela checagem de diretório `.ceh/`.
+- **Resolução Canônica de Symlinks (CC2)**:
+  - Importação de `Path` em `rules.py` e passagem de `base_cwd` para `normalize_path`, garantindo que symlinks relativos (`echo x > link_to_ceh/a`) sejam resolvidos contra o diretório de execução e devidamente bloqueados (`DENY`).
+  - Tratamento defensivo de exceções restrito a `(OSError, ValueError)` prevenindo fail-open por `NameError`.
+
+### Added
+- **Validação Honesta do Instalador (CB17 / CB18)**:
+  - Flag `--verify` no `ceh-doctor.sh` para verificação simétrica byte-a-byte contra o pacote canônico gerado por `tools/package.py`.
+  - Bateria de testes `test_doctor_verify.py` cobrindo 7 cenários de integridade e detecção ativa de adulterações.
+- **Cobertura de Bateria e Snapshot (CC3 / CC4)**:
+  - Bateria `TestCA1WriteRedirectionControls` enriquecida em `test_hermes_remediation.py` com alvos genéricos (`.ceh/a`, `.ceh/config.json`) e symlinks.
+  - Expansão do corpus de 1.193 para 1.204 avaliações idênticas em `gate_corpus.expected.jsonl`.
+  - Fuzz diferencial e rede de detecção sincronizados com autorização explícita dos 6 casos legítimos do CA5 (`cat .ceh/last-ci-run.json > ...`).
+
 ## [2.1.0] - 2026-10-01
 
 ### Fixed
