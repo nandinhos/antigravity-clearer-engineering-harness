@@ -77,7 +77,7 @@ import os
 import re
 import shlex
 
-from ceh_core.normalize import strip_all_quotes, tokenize_command
+from ceh_core.normalize import strip_all_quotes, tokenize_command, normalize_path
 
 CERT_FILES_REGEX = re.compile(
     r"(?:^|[\s\"'/])(?:\.ceh/)?(last-ci-run\.json|last-ci-run\.log|last-evals-run\.json)(?:[\s\"';&|]|$)"
@@ -173,7 +173,7 @@ def is_ceh_target(target: str, base_cwd: Path | str | None = None) -> bool:
     if re.search(r"(?:^|/)\.ceh(?:/|$)", clean, re.I):
         return True
     try:
-        norm = os.path.normpath(clean)
+        norm = normalize_path(clean)
         if re.search(r"(?:^|/)\.ceh(?:/|$)", norm, re.I):
             return True
         if base_cwd is not None:

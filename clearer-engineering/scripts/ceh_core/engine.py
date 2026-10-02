@@ -101,7 +101,7 @@ def is_protected_target(target_path: str, resolved_target_dir: Path | None = Non
     if re.search(r"(?:^|/)\.ceh(?:/|$)", clean, re.I):
         return True
     try:
-        norm = os.path.normpath(clean)
+        norm = normalize_path(clean)
         if re.search(r"(?:^|/)\.ceh(?:/|$)", norm, re.I):
             return True
         if resolved_target_dir is not None:

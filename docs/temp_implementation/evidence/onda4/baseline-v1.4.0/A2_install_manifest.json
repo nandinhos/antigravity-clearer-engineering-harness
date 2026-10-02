@@ -40,9 +40,9 @@
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/claude_code/recorded.jsonl": "c20d393e54eadbcc25a551aa3425077776d29b916735ff0a5aabcb8432f1abea",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/muse/cases.jsonl": "ccadfef64a6b3fa831b044b4ff9addaa9485826ba55d356817c2fb7300cdc734",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/adapters/muse/recorded.jsonl": "2a95d88e9c846497c4c2bccc5892daaa3b760464b82cf31cf558f33aad3e50c9",
-    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_baseline.txt": "0bfec25c5d9ca1fdd608035f82b86e2612e741361ed1548db33ea217564149e7",
-    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl": "c2b5e02eaa7d69178fe9889c6b994643b61b46f44dba7f4f0e95983641a027c8",
-    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_corpus.txt": "3b7281a27b0a71f12cfcfbaa46e3da73d21ac19acf6ebf4c4b037b8336e0959a",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_baseline.txt": "2179adc69e71b4a747c8725ad7bea0ff050f5252c7a94aa849606907095c393e",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_corpus.expected.jsonl": "96306aa6cd23fa9cd385fde76a29db46e09c87fa68f77c5d234cf7271f852c7a",
+    ".gemini/config/plugins/clearer-engineering/tests/fixtures/gate_corpus.txt": "33773c32466eab0c016e4c33eefb4f41538155801bcb604cd5d8ad9f223a6fb9",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/relaxamentos_deteccao.txt": "2700f6a37dd1dba3bea25c3d5138cdd7ab709fe63649d52909889ffbd4583286",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/relaxamentos_justificados.txt": "160a7ef096aa3c7a9c02d412846b2a8ad7aff2c2114c98025cfad8bc03144003",
     ".gemini/config/plugins/clearer-engineering/tests/fixtures/review_batteries.txt": "b77e87cbf8ace7e178dd6b636ff7e3bb5c3180aef39a87cfd7e39e0e3f276b2d"

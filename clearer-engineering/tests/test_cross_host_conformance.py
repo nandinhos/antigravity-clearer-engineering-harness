@@ -267,9 +267,9 @@ class TestCrossHostConformance(unittest.TestCase):
         self.assertTrue(self.corpus_file.is_file(), f"Arquivo de corpus não encontrado: {self.corpus_file}")
         entries = [json.loads(line) for line in self.corpus_file.read_text(encoding="utf-8").splitlines() if line.strip()]
 
-        # BJ2: Filtra estritamente os comandos e integrações reais (1.041 command + 2 integration = 1.043)
+        # BJ2: Filtra estritamente os comandos e integrações reais (1.161 command + 2 integration = 1.163)
         command_entries = [e for e in entries if e.get("type") in ("command", "integration")]
-        self.assertEqual(len(command_entries), 1049, "Corpus deve conter exatamente 1.049 entradas de comando e integração.")
+        self.assertEqual(len(command_entries), 1163, "Corpus deve conter exatamente 1.163 entradas de comando e integração.")
 
         evaluated_count = 0
         divergences: list[str] = []
@@ -357,7 +357,7 @@ class TestCrossHostConformance(unittest.TestCase):
 
             evaluated_count += 1
 
-        self.assertEqual(evaluated_count, 1049, "Devem ser avaliadas exatamente 1.049 entradas de comando.")
+        self.assertEqual(evaluated_count, 1163, "Devem ser avaliadas exatamente 1.163 entradas de comando.")
         self.assertEqual(
             len(divergences), 0,
             f"Encontrada(s) {len(divergences)} divergência(s) de conformidade cross-host:\n" + "\n".join(divergences[:15])
