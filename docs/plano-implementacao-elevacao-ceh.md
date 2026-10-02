@@ -807,6 +807,22 @@ Consequência: **no Antigravity, o bloqueio de produção por branch e o Pre-Pus
 - **CC4 (média, processo):** o `gate_baseline` foi movido para o commit intermediário `048ed06` e escondeu 6 afrouxamentos (CA5); contra `4a637fe` ou `e608ea7`, o fuzz reprova.
 - **Baixas:** ordem dos commits; TOCTOU e escrita por interpretador sem registro; `gate-normalization.md` desatualizado.
 
+### 0.86 PR #11 (v2.1.1) homologado ([Handoff 095](./temp_implementation/handoffs/handoff-095-pr11-v2-1-1-homologado.md))
+
+- **Estado:** HOMOLOGADO (cabeça `9c3c708`).
+- **Conferido:** CI verde; suíte 77/77 com o ambiente real do Claude Code; fuzz contra `4a637fe` com o CA5 declarado; baseline 5/5.
+- **Resolvidos:**
+  - CC1: `tsconfig.json` e `src/config.json` voltaram a ser permitidos, também via `write_to_file`;
+  - CC2: redirecionamento e `write_to_file` através de symlink para o `.ceh` dão deny;
+  - CC3: o CA1 está pinado (mutantes do CC1, do CC2 e do `ceh_core` sem o CA1 mortos);
+  - CC4 e CC6 também resolvidos.
+- **Ressalvas baixas:** `cp` e `tee` através de symlink já existente (CD1); loop de symlink fecha por exceção, não por regra (CD2); cabeçalho da lista de detecção (CD3).
+- **Próximos passos:**
+  1. merge e tag `v2.1.1`, com o canário na IDE pelo desenvolvedor;
+  2. a revisão avança o `gate_baseline` para o merge;
+  3. confirmação do `ci-ok` como check obrigatório;
+  4. PR de documentação (CA6–CA8).
+
 ## 1. Objetivo
 
 Levar o CEH de "harness para o Antigravity" a **núcleo de comportamento portável**, a partir do qual plugins para outros harnesses (Claude Code, Codex, Cursor etc.) sejam gerados com o mesmo comportamento verificável. Na ordem de execução:
