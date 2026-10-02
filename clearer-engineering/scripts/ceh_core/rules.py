@@ -155,21 +155,97 @@ def is_git_read_subcommand(args: list[str]) -> bool:
     return False
 
 def mentions_ceh_or_certs(cmd: str) -> bool:
-    """Detecta se o comando menciona arquivos de certificado ou o próprio diretório .ceh/ (AL1), desconsiderando exclusões (AM2)."""
+    """Detecta se o comando menciona arquivos de certificado ou o próprio diretório .ceh/ (AL1/CA1)."""
     clean_target = strip_ceh_exclusions(cmd)
     if CERT_FILES_REGEX.search(clean_target):
         return True
     clean = strip_all_quotes(clean_target)
-    if re.search(r"(?:^|[\s/=])(?:[^\s/]+/)*\.ceh(?:[/\s;&|*]|$)", clean, re.I):
+    return bool(re.search(r"(?:^|[\s/=>|&<>])(?:[^\s/]+/)*\.ceh(?:[/\s;&|*]|$)", clean, re.I))
+
+
+def is_ceh_target(target: str, base_cwd: Path | str | None = None) -> bool:
+    """Verifica se um caminho alvo resolve para dentro de .ceh/ ou certificado protegido (CA1)."""
+    if not target:
+        return False
+    clean = strip_all_quotes(target).replace("\\", "/")
+    if any(name in clean.lower() for name in ("last-ci-run.json", "last-ci-run.log", "last-evals-run.json", "config.json")):
         return True
+    if re.search(r"(?:^|/)\.ceh(?:/|$)", clean, re.I):
+        return True
+    try:
+        norm = os.path.normpath(clean)
+        if re.search(r"(?:^|/)\.ceh(?:/|$)", norm, re.I):
+            return True
+        if base_cwd is not None:
+            full = (Path(base_cwd).resolve() / Path(norm)).resolve()
+            ceh_dir = (Path(base_cwd).resolve() / ".ceh").resolve()
+            if full == ceh_dir or ceh_dir in full.parents or any(part.lower() == ".ceh" for part in full.parts):
+                return True
+        else:
+            full = Path(norm).resolve()
+            if any(part.lower() == ".ceh" for part in full.parts):
+                return True
+    except Exception:
+        pass
     return False
 
-def is_cert_tampering(cmd: str) -> tuple[bool, str]:
-    """
-    Detecta tentativas de alteração ou escrita nos certificados de CI ou no diretório .ceh/.
-    Regra fail-closed: qualquer menção aos arquivos protegidos ou ao diretório .ceh é bloqueada (DENY),
-    EXCETO leituras puras sem redirecionamento de escrita ou opções de saída em arquivo (Handoff 037 G9 / Handoff 049 PR-QA-C).
-    """
+
+def extract_write_redirect_targets(cmd: str) -> list[str]:
+    """Extrai alvos de redirecionamento de escrita em arquivo: >, >>, >|, &>, &>>, N>, N>>, <> (CA1)."""
+    targets, i, n = [], 0, len(cmd)
+    in_quote, escaped = None, False
+    while i < n:
+        c = cmd[i]
+        if escaped: escaped = False; i += 1; continue
+        if c == "\\":
+            if in_quote != "'": escaped = True
+            i += 1; continue
+        if in_quote:
+            if c == in_quote: in_quote = None
+            i += 1; continue
+        if c in ("'", '"'): in_quote = c; i += 1; continue
+
+        is_redir, op_len = False, 0
+        if cmd.startswith(("&>>",), i): is_redir, op_len = True, 3
+        elif cmd.startswith(("&>", "<>", ">>", ">|"), i): is_redir, op_len = True, 2
+        elif c == ">": is_redir, op_len = True, 1
+        elif c.isdigit():
+            j = i
+            while j < n and cmd[j].isdigit(): j += 1
+            if j < n and cmd.startswith(">>", j): is_redir, op_len = True, (j - i) + 2
+            elif j < n and cmd[j] == ">": is_redir, op_len = True, (j - i) + 1
+
+        if is_redir:
+            k = i + op_len
+            while k < n and cmd[k] in (" ", "\t"): k += 1
+            if k < n and cmd[k] == "&" and k + 1 < n and (cmd[k + 1].isdigit() or cmd[k + 1] == "-"):
+                i = k + 2; continue
+            tgt_chars, tgt_q, tgt_esc = [], None, False
+            while k < n:
+                tc = cmd[k]
+                if tgt_esc: tgt_chars.append(tc); tgt_esc = False; k += 1; continue
+                if tc == "\\":
+                    if tgt_q != "'": tgt_esc = True
+                    k += 1; continue
+                if tgt_q:
+                    if tc == tgt_q: tgt_q = None
+                    else: tgt_chars.append(tc)
+                    k += 1; continue
+                if tc in ("'", '"'): tgt_q = tc; k += 1; continue
+                if tc in (" ", "\t", ";", "&", "|", "<", ">"): break
+                tgt_chars.append(tc); k += 1
+            if tgt_chars: targets.append("".join(tgt_chars))
+            i = k; continue
+        i += 1
+    return targets
+
+
+def is_cert_tampering(cmd: str, base_cwd: Path | str | None = None) -> tuple[bool, str]:
+    """Detecta tentativas de alteração ou escrita nos certificados de CI ou .ceh/ (G9/CA1)."""
+    write_targets = extract_write_redirect_targets(cmd)
+    if any(is_ceh_target(t, base_cwd=base_cwd) for t in write_targets):
+        return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Redirecionamento de escrita para .ceh/ ou certificado de CI."
+
     if not mentions_ceh_or_certs(cmd):
         return False, ""
 
@@ -182,68 +258,33 @@ def is_cert_tampering(cmd: str) -> tuple[bool, str]:
     if not tokens:
         return False, ""
 
-    # Verifica redirecionamentos de escrita para qualquer arquivo (inclusive adjacentes sem espaco F01a)
-    in_quote = None
-    escaped = False
-    has_unquoted_redirect = False
-    for char in clean_cmd:
-        if escaped:
-            escaped = False
-            continue
-        if char == "\\":
-            if in_quote != "'":
-                escaped = True
-            continue
-        if in_quote:
-            if char == in_quote:
-                in_quote = None
-            continue
-        if char in ("'", '"'):
-            in_quote = char
-            continue
-        if char == ">":
-            has_unquoted_redirect = True
-            break
-    if has_unquoted_redirect:
-        return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Redirecionamento de escrita para .ceh/ ou certificado de CI."
-
     idx = 0
     while idx < len(tokens):
         tok = tokens[idx]
-        if tok in ("sudo", "env", "nohup", "time"):
-            idx += 1
-            continue
-        if tok.startswith("-") and "=" in tok:
-            idx += 1
-            continue
+        if tok in ("sudo", "env", "nohup", "time"): idx += 1; continue
+        if tok.startswith("-") and "=" in tok: idx += 1; continue
         break
 
     if idx >= len(tokens):
         return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Comando inválido mencionando .ceh/ ou certificado de CI."
 
-    base_cmd = os.path.basename(tokens[idx])
+    base_cmd = os.path.basename(tokens[idx]).lower()
     args = tokens[idx + 1:]
 
     # Leituras puras permitidas (ls .ceh, cat .ceh/last-ci-run.json, du -sh .ceh, diff ...)
     if base_cmd in ALLOWED_READ_CMDS:
-        # less possui opções de log (-o/-O/--log-file) que gravam em arquivo (PR-QA-C)
-        if base_cmd == "less":
-            if any(a in ("-o", "-O") or a.startswith(("--log-file", "--LOG-FILE")) or ((a.startswith("-o") or a.startswith("-O")) and len(a) > 2) for a in args):
-                return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ less com opção de escrita de log (-o/--log-file) mencionando .ceh/ ou certificado de CI."
+        if base_cmd == "less" and any(a in ("-o", "-O") or a.startswith(("--log-file", "--LOG-FILE")) or ((a.startswith("-o") or a.startswith("-O")) and len(a) > 2) for a in args):
+            return True, "[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ less com opção de escrita de log (-o/--log-file) mencionando .ceh/ ou certificado de CI."
         return False, ""
 
-    # git status|log|diff|show sem redirecionamento ou opções de escrita/execução (AM2 / PR-QA-C)
     if base_cmd == "git" and is_git_read_subcommand(args):
         return False, ""
     if base_cmd == "rtk" and args and args[0] == "git" and is_git_read_subcommand(args[1:]):
         return False, ""
 
-    # python3 -m json.tool .ceh/last-ci-run.json (leitura pura se não houver segundo posicional outfile)
-    if base_cmd in ("python", "python3") and len(args) >= 2:
-        if args[0] == "-m" and args[1] == "json.tool":
-            pos_args = [a for a in args[2:] if not a.startswith("-")]
-            if len(pos_args) <= 1:
-                return False, ""
+    if base_cmd in ("python", "python3") and len(args) >= 2 and args[0] == "-m" and args[1] == "json.tool":
+        if len([a for a in args[2:] if not a.startswith("-")]) <= 1:
+            return False, ""
 
     return True, f"[CEH CERTIFICATE INTEGRITY - G9/AL1] ⛔ Tentativa de escrita/modificação de .ceh/ ou certificado de CI ({base_cmd}). Apenas leituras puras são permitidas."
 

@@ -150,7 +150,7 @@ def evaluate_subcommand(
                         candidate = s_res
 
     # 0. Protecao de Integridade do Certificado de CI (G9, PR-10) — executa ANTES de qualquer desembrulho
-    is_tampering, cert_reason = is_cert_tampering(sub_eval)
+    is_tampering, cert_reason = is_cert_tampering(sub_eval, base_cwd=base_cwd)
     if is_tampering:
         return ("deny", cert_reason, env, "CERTIFICATE_INTEGRITY")
 
