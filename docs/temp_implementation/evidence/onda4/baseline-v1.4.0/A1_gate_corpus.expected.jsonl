@@ -1055,3 +1055,150 @@
 {"command": "ENV GIT push origin dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-358-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
 {"command": "ENV GIT push origin dev", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-358-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
 {"command": "ENV GIT push origin dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-358-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "cat sample.txt>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-359-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "cat sample.txt>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-359-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "cat sample.txt>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-359-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "bash -c 'echo ok' > .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-360-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "bash -c 'echo ok' > .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-360-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "bash -c 'echo ok' > .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-360-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "cat .ceh/last-ci-run.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-361-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-361-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-361-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"a>b\"", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-362-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"a>b\"", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-362-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo \"a>b\"", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-362-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "env APP_ENV=production bash -c 'php artisan migrate:fresh'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-363-dev", "type": "command", "use_case": "DATABASE"}
+{"command": "env APP_ENV=production bash -c 'php artisan migrate:fresh'", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-363-sta", "type": "command", "use_case": "DATABASE"}
+{"command": "env APP_ENV=production bash -c 'php artisan migrate:fresh'", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-363-pro", "type": "command", "use_case": "DATABASE"}
+{"command": "bash -c 'ls -la'", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-364-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "bash -c 'ls -la'", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-364-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "bash -c 'ls -la'", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-364-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "/usr/bin/git push origin HEAD:dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-365-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "/usr/bin/git push origin HEAD:dev", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-365-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "/usr/bin/git push origin HEAD:dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-365-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "/usr/bin/git status", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-366-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "/usr/bin/git status", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-366-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "/usr/bin/git status", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-366-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git reset HEAD --hard", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-367-dev", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset HEAD --hard", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-367-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset HEAD --hard", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-367-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push -vf origin HEAD:dev", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-368-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push -vf origin HEAD:dev", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-368-sta", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git push -vf origin HEAD:dev", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-368-pro", "type": "command", "use_case": "GIT_HISTORY"}
+{"command": "git reset HEAD README.md", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-369-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "git reset HEAD README.md", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-369-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "git reset HEAD README.md", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-369-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "git push origin", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-370-dev", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-370-sta", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "git push origin", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-370-pro", "type": "command", "use_case": "PRE_PUSH_CI"}
+{"command": "rm -rf customer.db", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-371-dev", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf customer.db", "decision": "ask", "env": "staging", "has_alerts": true, "id": "CMD-371-sta", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -rf customer.db", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-371-pro", "type": "command", "use_case": "FILESYSTEM"}
+{"command": "rm -f build.log", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-372-dev", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -f build.log", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-372-sta", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "rm -f build.log", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-372-pro", "type": "command", "use_case": "FILESYSTEM_SAFE"}
+{"command": "echo payload>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-373-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-373-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-373-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-374-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-374-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-374-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>|.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-375-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>|.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-375-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>|.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-375-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload&>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-376-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload&>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-376-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload&>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-376-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload&>>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-377-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload&>>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-377-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload&>>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-377-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-378-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-378-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-378-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-379-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-379-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-379-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload<>.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-380-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload<>.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-380-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload<>.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-380-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-381-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-381-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-381-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload >> .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-382-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload >> .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-382-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload >> .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-382-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload >| .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-383-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload >| .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-383-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload >| .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-383-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload &> .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-384-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload &> .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-384-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload &> .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-384-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload &>> .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-385-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload &>> .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-385-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload &>> .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-385-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2> .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-386-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2> .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-386-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2> .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-386-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>> .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-387-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>> .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-387-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload 2>> .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-387-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload <> .ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-388-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload <> .ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-388-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload <> .ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-388-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > .CEH/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-389-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > .CEH/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-389-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > .CEH/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-389-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>.Ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-390-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>.Ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-390-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload>.Ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-390-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > ./subdir/../.ceh/last-ci-run.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-391-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > ./subdir/../.ceh/last-ci-run.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-391-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo payload > ./subdir/../.ceh/last-ci-run.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-391-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "cat .ceh/last-ci-run.json > /tmp/output.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-392-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json > /tmp/output.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-392-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json > /tmp/output.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-392-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json > output.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-393-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json > output.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-393-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json > output.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-393-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo test 2>&1", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-394-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo test 2>&1", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-394-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo test 2>&1", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-394-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo test >&2", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-395-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo test >&2", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-395-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo test >&2", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-395-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json | grep commit_hash", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-396-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json | grep commit_hash", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-396-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cat .ceh/last-ci-run.json | grep commit_hash", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-396-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x >.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-397-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-397-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-397-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-398-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-398-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-398-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "printf x >.ceh/config.json", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-399-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "printf x >.ceh/config.json", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-399-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "printf x >.ceh/config.json", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-399-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x &>.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-400-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x &>.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-400-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x &>.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-400-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >>.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-401-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >>.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-401-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x >>.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-401-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x 2>.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-402-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x 2>.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-402-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x 2>.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-402-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .CEH/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-403-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .CEH/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-403-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > .CEH/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-403-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > ./sub/../.ceh/a", "decision": "deny", "env": "development", "has_alerts": false, "id": "CMD-404-dev", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > ./sub/../.ceh/a", "decision": "deny", "env": "staging", "has_alerts": false, "id": "CMD-404-sta", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo x > ./sub/../.ceh/a", "decision": "deny", "env": "production", "has_alerts": false, "id": "CMD-404-pro", "type": "command", "use_case": "CERTIFICATE_INTEGRITY"}
+{"command": "echo {} > tsconfig.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-405-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo {} > tsconfig.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-405-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo {} > tsconfig.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-405-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "cat tsconfig.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-406-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "cat tsconfig.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-406-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "cat tsconfig.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-406-pro", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x > src/config.json", "decision": "allow", "env": "development", "has_alerts": false, "id": "CMD-407-dev", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x > src/config.json", "decision": "allow", "env": "staging", "has_alerts": false, "id": "CMD-407-sta", "type": "command", "use_case": "GENERAL"}
+{"command": "echo x > src/config.json", "decision": "allow", "env": "production", "has_alerts": false, "id": "CMD-407-pro", "type": "command", "use_case": "GENERAL"}

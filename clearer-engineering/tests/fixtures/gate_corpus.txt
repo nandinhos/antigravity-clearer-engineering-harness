@@ -381,3 +381,55 @@ RAW:git -C sub status
 # CB13: Proteção contra mutantes do lexer com casefold em comandos prefixados
 RAW:Sudo GIT push origin dev
 RAW:ENV GIT push origin dev
+# CA2: Casos F01-F10 da Remediação Hermes no Corpus Dourado
+RAW:cat sample.txt>.ceh/last-ci-run.json
+RAW:bash -c 'echo ok' > .ceh/last-ci-run.json
+RAW:cat .ceh/last-ci-run.json
+RAW:echo "a>b"
+RAW:env APP_ENV=production bash -c 'php artisan migrate:fresh'
+RAW:bash -c 'ls -la'
+RAW:/usr/bin/git push origin HEAD:dev
+RAW:/usr/bin/git status
+RAW:git reset HEAD --hard
+RAW:git push -vf origin HEAD:dev
+RAW:git reset HEAD README.md
+RAW:git push origin
+RAW:rm -rf customer.db
+RAW:rm -f build.log
+# CA2: Cenários de Redirecionamento CA1 e Controles Negativos
+RAW:echo payload>.ceh/last-ci-run.json
+RAW:echo payload>>.ceh/last-ci-run.json
+RAW:echo payload>|.ceh/last-ci-run.json
+RAW:echo payload&>.ceh/last-ci-run.json
+RAW:echo payload&>>.ceh/last-ci-run.json
+RAW:echo payload 2>.ceh/last-ci-run.json
+RAW:echo payload 2>>.ceh/last-ci-run.json
+RAW:echo payload<>.ceh/last-ci-run.json
+RAW:echo payload > .ceh/last-ci-run.json
+RAW:echo payload >> .ceh/last-ci-run.json
+RAW:echo payload >| .ceh/last-ci-run.json
+RAW:echo payload &> .ceh/last-ci-run.json
+RAW:echo payload &>> .ceh/last-ci-run.json
+RAW:echo payload 2> .ceh/last-ci-run.json
+RAW:echo payload 2>> .ceh/last-ci-run.json
+RAW:echo payload <> .ceh/last-ci-run.json
+RAW:echo payload > .CEH/last-ci-run.json
+RAW:echo payload>.Ceh/last-ci-run.json
+RAW:echo payload > ./subdir/../.ceh/last-ci-run.json
+RAW:cat .ceh/last-ci-run.json > /tmp/output.json
+RAW:cat .ceh/last-ci-run.json > output.json
+RAW:echo test 2>&1
+RAW:echo test >&2
+RAW:cat .ceh/last-ci-run.json | grep commit_hash
+# CC3: Casos de escrita em arquivos genéricos do .ceh/ e controles de tsconfig
+RAW:echo x >.ceh/a
+RAW:echo x > .ceh/a
+RAW:printf x >.ceh/config.json
+RAW:echo x &>.ceh/a
+RAW:echo x >>.ceh/a
+RAW:echo x 2>.ceh/a
+RAW:echo x > .CEH/a
+RAW:echo x > ./sub/../.ceh/a
+RAW:echo {} > tsconfig.json
+RAW:cat tsconfig.json
+RAW:echo x > src/config.json

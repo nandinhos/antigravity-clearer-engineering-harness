@@ -136,6 +136,14 @@ class TestDoctorVerify(unittest.TestCase):
         proc = self._run_verify()
         self.assertEqual(proc.returncode, 1, "Esperado exit 1 para tests/conftest.py")
         self.assertIn("✖ Arquivo não autorizado / estranho na instalação: tests/conftest.py", proc.stdout)
+    def test_unauthorized_file_starting_with_dotgit_fails_verify_cb17(self):
+        """CB17: Arquivo estranho com prefixo .git (scripts/.gitevil.py) deve ser detectado."""
+        dotgit_file = self.plugin_dir / "scripts" / ".gitevil.py"
+        dotgit_file.write_text("# Rogue git prefix script\n", encoding="utf-8")
+
+        proc = self._run_verify()
+        self.assertEqual(proc.returncode, 1, "Esperado exit 1 para scripts/.gitevil.py")
+        self.assertIn("✖ Arquivo não autorizado / estranho na instalação: scripts/.gitevil.py", proc.stdout)
 
 
 if __name__ == "__main__":
