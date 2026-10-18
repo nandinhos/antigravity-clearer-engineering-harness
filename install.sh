@@ -317,7 +317,7 @@ run_self_diagnostics() {
 
 # Main Execution Flow
 main() {
-    local skip_diag=0
+    local skip_diag="${SKIP_DIAGNOSTICS:-0}"
     for arg in "$@"; do
         if [[ "$arg" == "--skip-diagnostics" ]]; then
             skip_diag=1

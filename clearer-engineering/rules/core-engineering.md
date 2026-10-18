@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # CLEARER Protocol & Core Engineering Principles
 
 ## 1. O Ciclo Completo de Engenharia (Pipeline Contínuo)

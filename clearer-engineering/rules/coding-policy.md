@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Coding Policy & Staff Engineering Craftsmanship
 
 ## 1. Inspect Before Edit & Context Grounding

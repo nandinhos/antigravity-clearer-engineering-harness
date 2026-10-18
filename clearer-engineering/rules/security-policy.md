@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Security Policy & Defensive Engineering
 
 ## 1. Security by Default
