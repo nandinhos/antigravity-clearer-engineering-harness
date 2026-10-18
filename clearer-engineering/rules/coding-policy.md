@@ -19,6 +19,7 @@
 - Trate sempre cenários de borda: entradas nulas/indefinidas, listas vazias, timeouts e desconexões.
 - Aplique *fail-fast* com mensagens de erro semânticas e contextuais.
 - Isole regras de negócio de detalhes de persistência e transporte (Clean Architecture / SOLID).
+- Recurso externo (bancos de dados, serviços de rede, filas, caches) só conecta no primeiro uso operacional, nunca durante import, build de módulos ou suíte de testes unitários sem I/O.
 
 ## 5. Root-Cause First para Bugs
 - Nunca aplique um patch cego para esconder sintomas.
