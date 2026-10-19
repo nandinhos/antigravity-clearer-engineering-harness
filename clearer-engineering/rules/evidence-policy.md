@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Evidence Policy & Classification Standards
 
 ## 1. Classificação de Fatos

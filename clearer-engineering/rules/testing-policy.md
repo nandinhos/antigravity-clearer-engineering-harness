@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Testing Policy & Verification Standards
 
 ## 1. Verificação Determinística & Não-Mascarada

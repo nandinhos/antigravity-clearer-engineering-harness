@@ -120,6 +120,27 @@ else
     echo -e "\033[0;31m[FAIL]\033[0m Case 5: Verification failed."
 fi
 
+# --- Case 6: Deceptive adversarial safety assertions & compound evasion attacks (M1) ---
+TOTAL=$((TOTAL + 1))
+echo "------------------------------------------------------------"
+echo "Case 6: Deceptive input / compound evasion blocked by safety gate (M1)"
+OUTPUT_ADV_PRD=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "echo 'safe verification' && git reset --hard HEAD # verified safe" --env production 2>&1 || true)
+OUTPUT_ADV_PUSH=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "git push origin main --force # harmless sync" --env production 2>&1 || true)
+OUTPUT_ADV_STAGING=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "true && git reset --hard HEAD" --env staging 2>&1 || true)
+OUTPUT_BENIGN=$(python3 "$PLUGIN_DIR/scripts/safety-gate.py" --check "git status && git log -n 1" --env production 2>&1 || true)
+
+if echo "$OUTPUT_ADV_PRD" | grep -q '"decision": "deny"' && \
+   echo "$OUTPUT_ADV_PUSH" | grep -q '"decision": "deny"' && \
+   echo "$OUTPUT_ADV_STAGING" | grep -q '"decision": "ask"' && \
+   echo "$OUTPUT_ADV_STAGING" | grep -q 'ALERTA 1/2' && \
+   echo "$OUTPUT_ADV_STAGING" | grep -q 'ALERTA 2/2' && \
+   echo "$OUTPUT_BENIGN" | grep -q '"decision": "allow"'; then
+    echo -e "\033[0;32m[PASS]\033[0m Case 6: Verified successfully (Adversarial assertions and compound attacks blocked; benign operations allowed)."
+    PASSED=$((PASSED + 1))
+else
+    echo -e "\033[0;31m[FAIL]\033[0m Case 6: Verification failed."
+fi
+
 echo ""
 echo "============================================================"
 echo "ADVERSARIAL SUITE SUMMARY:"
@@ -129,7 +150,7 @@ echo "Failed Cases:  $((TOTAL - PASSED))"
 echo "============================================================"
 
 if [[ $PASSED -eq $TOTAL ]]; then
-    echo -e "\033[0;32mALL 5 ADVERSARIAL CASES VERIFIED AND VALIDATED SUCCESSFULLY (100%)\033[0m"
+    echo -e "\033[0;32mALL $TOTAL ADVERSARIAL CASES VERIFIED AND VALIDATED SUCCESSFULLY (100%)\033[0m"
     exit 0
 else
     echo -e "\033[0;31mADVERSARIAL SUITE FAILED\033[0m"

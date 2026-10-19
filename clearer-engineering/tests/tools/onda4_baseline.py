@@ -291,6 +291,8 @@ ONDA4_DECLARED_NEW_PATHS = {
     ".gemini/config/plugins/clearer-engineering/scripts/ceh-doctor.sh",
     ".gemini/config/plugins/clearer-engineering/tests/tools/test_helpers.py",
     ".gemini/config/plugins/clearer-engineering/tests/test_doctor_verify.py",
+    # Metodologia Ponytail (Fast Cycle Runner)
+    ".gemini/config/plugins/clearer-engineering/tests/run-fast-tests.sh",
 }
 
 

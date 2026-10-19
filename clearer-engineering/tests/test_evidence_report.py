@@ -160,6 +160,109 @@ class EvidenceReportContract(unittest.TestCase):
         self.assertIn("[DESATUALIZADO]", out)
         self.assertIn("**NAO_VERIFICADO**", out)
 
+    def test_integrations_absent_is_silent_and_not_penalized(self):
+        # M2 (degradação graciosa): sem integrações declaradas, sem seção e sem penalidade
+        self.cert()
+        out = self.run_report()
+        self.assertNotIn("## INTEGRATIONS", out)
+        self.assertIn("**VERIFICADO**", out)
+
+    def test_integrations_validated_when_tests_pass(self):
+        # M2: Repositório com hook configurado e script existente alcança validated se testes PASS
+        (self.repo / "gate.py").write_text("#!/usr/bin/env python3\n")
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "test-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "python3 gate.py"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: add hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[validated] test-hook (hook)", out)
+        self.assertIn("**VERIFICADO**", out)
+
+    def test_integrations_configured_without_execution_blocks_verification(self):
+        # M2: Hook configurado sem execução de testes fica configured without execution e impede VERIFICADO
+        (self.repo / "gate.py").write_text("#!/usr/bin/env python3\n")
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "test-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "python3 gate.py"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: add hook without tests")
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[configured without execution] test-hook (hook)", out)
+        self.assertIn("**NAO_VERIFICADO**", out)
+
+    def test_integrations_pending_when_script_missing_fails_verification(self):
+        # M2: Hook com script ausente fica pending e leva a FALHOU
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "broken-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "python3 nonexistent_script.py"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: broken hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] broken-hook (hook)", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_mcp_validated_when_command_in_path_and_tests_pass(self):
+        # M2: Servidor MCP com comando existente no PATH alcança validated se testes PASS
+        (self.repo / ".mcp.json").write_text(json.dumps({
+            "mcpServers": {
+                "test-mcp": {"command": "python3"}
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: add mcp")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[validated] test-mcp (mcp)", out)
+        self.assertIn("**VERIFICADO**", out)
+
+    def test_integrations_mcp_pending_when_command_missing_fails_verification(self):
+        # M2: Servidor MCP com comando ausente no PATH fica pending e leva a FALHOU
+        (self.repo / ".mcp.json").write_text(json.dumps({
+            "mcpServers": {
+                "broken-mcp": {"command": "nonexistent_binary_xyz_12345"}
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: broken mcp")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] broken-mcp (mcp)", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_mcp_pending_when_file_corrupt(self):
+        # M2: Arquivo .mcp.json com JSON corrompido fica pending e leva a FALHOU
+        (self.repo / ".mcp.json").write_text("{ broken json: true")
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: corrupt mcp")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] .mcp.json (mcp)", out)
+        self.assertIn("**FALHOU**", out)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)
+

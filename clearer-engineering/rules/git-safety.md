@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Git Safety Policy & Repository Protection
 
 ## 1. Proteção de Trabalho Existente
