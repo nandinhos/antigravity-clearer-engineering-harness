@@ -10,7 +10,7 @@ cd "$PLUGIN_DIR"
 TOTAL_TESTS=0
 PASSED_TESTS=0
 FAILED_TESTS=0
-START_TIME=$(date +%s)
+START_MS=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || echo "$(( $(date +%s) * 1000 ))")
 
 log_pass() {
     echo -e "\033[0;32m[PASS]\033[0m $1"
@@ -68,8 +68,9 @@ run_fast "Content Schema Validation" "python3 '$PLUGIN_DIR/tests/test_content_sc
 # 5. Smoke Falsifiability
 run_fast "Harness Smoke-Eval (5/5 PASS)" "python3 '$PLUGIN_DIR/tests/cluster2_acceptance.py' --clean-eval-smoke"
 
-END_TIME=$(date +%s)
-TOTAL_DUR=$(( END_TIME - START_TIME ))
+END_MS=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || echo "$(( $(date +%s) * 1000 ))")
+TOTAL_MS=$(( END_MS - START_MS ))
+TOTAL_DUR_SEC=$(python3 -c "print(f'{$TOTAL_MS / 1000:.2f}')" 2>/dev/null || awk "BEGIN {printf \"%.2f\", $TOTAL_MS / 1000}")
 
 echo ""
 echo "============================================================"
@@ -77,11 +78,15 @@ echo "FAST SUITE SUMMARY:"
 echo "Total Tests:    $TOTAL_TESTS"
 echo "Passed Tests:   $PASSED_TESTS"
 echo "Failed Tests:   $FAILED_TESTS"
-echo "Total Duration: ${TOTAL_DUR}s"
+echo "Total Duration: ${TOTAL_DUR_SEC}s"
 echo "============================================================"
 
 if [[ $FAILED_TESTS -eq 0 ]]; then
-    echo -e "\033[0;32m✔ PONYTAIL FAST CYCLE VERIFIED (< 5s Target Achieved)\033[0m"
+    if [[ $TOTAL_MS -lt 5000 ]]; then
+        echo -e "\033[0;32m✔ PONYTAIL FAST CYCLE VERIFIED (${TOTAL_DUR_SEC}s < 5s Target Achieved)\033[0m"
+    else
+        echo -e "\033[0;32m✔ PONYTAIL FAST CYCLE VERIFIED (${TOTAL_DUR_SEC}s - Target: < 5s)\033[0m"
+    fi
     exit 0
 else
     echo -e "\033[0;31m✖ FAST TESTS FAILED\033[0m"

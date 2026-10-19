@@ -24,7 +24,9 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -134,6 +136,13 @@ def inspect_integrations(tests_state: str) -> list[dict]:
         try:
             data = json.loads(hook_file.read_text(encoding="utf-8"))
             if not isinstance(data, dict):
+                integrations.append({
+                    "name": hook_file.name,
+                    "type": "hook",
+                    "file": str(hook_file),
+                    "status": "pending",
+                    "detail": f"arquivo `{hook_file}` com estrutura inválida (esperado objeto/dicionário)",
+                })
                 continue
             for hook_name, hook_def in data.items():
                 if not isinstance(hook_def, dict) or not hook_def.get("enabled", True):
@@ -149,8 +158,48 @@ def inspect_integrations(tests_state: str) -> list[dict]:
                 broken = False
                 broken_reason = ""
                 for cmd in commands:
-                    parts = cmd.split()
-                    for part in parts[1:]:
+                    try:
+                        cmd_tokens = shlex.split(cmd)
+                    except Exception:
+                        cmd_tokens = cmd.split()
+                    if not cmd_tokens:
+                        continue
+
+                    idx = 0
+                    while idx < len(cmd_tokens) and re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*=", cmd_tokens[idx]):
+                        idx += 1
+
+                    if idx >= len(cmd_tokens):
+                        broken = True
+                        broken_reason = f"comando `{cmd}` contém apenas variáveis de ambiente"
+                        break
+
+                    first = cmd_tokens[idx]
+                    args = cmd_tokens[idx + 1:]
+
+                    if first.startswith((".", "/")) or "/" in first:
+                        first_path = Path(first)
+                        target_file = None
+                        if first_path.is_file():
+                            target_file = first_path
+                        elif (hook_file.parent / first).is_file():
+                            target_file = hook_file.parent / first
+
+                        if target_file is None:
+                            broken = True
+                            broken_reason = f"executável local `{first}` não encontrado"
+                            break
+                        elif not os.access(target_file, os.X_OK):
+                            broken = True
+                            broken_reason = f"executável local `{first}` sem permissão de execução"
+                            break
+                    else:
+                        if not shutil.which(first):
+                            broken = True
+                            broken_reason = f"comando `{first}` ausente no PATH"
+                            break
+
+                    for part in args:
                         if part.endswith((".py", ".sh", ".js")):
                             target_script = Path(part)
                             if not target_script.is_file() and not (hook_file.parent / part).is_file():
@@ -180,17 +229,45 @@ def inspect_integrations(tests_state: str) -> list[dict]:
             continue
         try:
             data = json.loads(mcp_file.read_text(encoding="utf-8"))
-            servers = data.get("mcpServers") if isinstance(data, dict) else None
+            if not isinstance(data, dict):
+                integrations.append({
+                    "name": mcp_file.name,
+                    "type": "mcp",
+                    "file": str(mcp_file),
+                    "status": "pending",
+                    "detail": f"arquivo `{mcp_file}` com estrutura inválida (esperado objeto/dicionário)",
+                })
+                continue
+            servers = data.get("mcpServers")
+            if servers is not None and not isinstance(servers, dict):
+                integrations.append({
+                    "name": mcp_file.name,
+                    "type": "mcp",
+                    "file": str(mcp_file),
+                    "status": "pending",
+                    "detail": f"arquivo `{mcp_file}` com `mcpServers` inválido (esperado objeto/dicionário)",
+                })
+                continue
             if isinstance(servers, dict):
                 for srv_name, srv_def in servers.items():
                     cmd = srv_def.get("command") if isinstance(srv_def, dict) else None
                     if not cmd:
                         status = "pending"
                         detail = f"servidor MCP `{srv_name}` sem comando declarado"
-                    elif cmd.startswith((".", "/")) and not Path(cmd).is_file():
-                        status = "pending"
-                        detail = f"servidor MCP `{srv_name}`: executável local `{cmd}` não encontrado"
-                    elif not cmd.startswith((".", "/")) and not shutil.which(cmd):
+                    elif (cmd.startswith((".", "/")) or "/" in cmd):
+                        target_cmd = None
+                        if Path(cmd).is_file():
+                            target_cmd = Path(cmd)
+                        elif (mcp_file.parent / cmd).is_file():
+                            target_cmd = mcp_file.parent / cmd
+
+                        if target_cmd is None:
+                            status = "pending"
+                            detail = f"servidor MCP `{srv_name}`: executável local `{cmd}` não encontrado"
+                        elif not os.access(target_cmd, os.X_OK):
+                            status = "pending"
+                            detail = f"servidor MCP `{srv_name}`: executável local `{cmd}` sem permissão de execução"
+                    elif not shutil.which(cmd):
                         status = "pending"
                         detail = f"servidor MCP `{srv_name}`: comando `{cmd}` ausente no PATH"
                     elif tests_state == "PASS":

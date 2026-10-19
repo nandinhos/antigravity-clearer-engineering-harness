@@ -262,6 +262,144 @@ class EvidenceReportContract(unittest.TestCase):
         self.assertIn("[pending] .mcp.json (mcp)", out)
         self.assertIn("**FALHOU**", out)
 
+    def test_integrations_pending_when_direct_executable_missing_fails_verification(self):
+        # M2: Hook com executável direto ausente (parts[0]) fica pending e leva a FALHOU
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "broken-direct-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "./nonexistent_gate.sh --check"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: broken direct hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] broken-direct-hook (hook)", out)
+        self.assertIn("executável local `./nonexistent_gate.sh` não encontrado", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_pending_when_system_binary_missing_fails_verification(self):
+        # M2: Hook com comando ausente no PATH (parts[0]) fica pending e leva a FALHOU
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "broken-binary-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "nonexistent_binary_xyz_98765"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: broken binary hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] broken-binary-hook (hook)", out)
+        self.assertIn("comando `nonexistent_binary_xyz_98765` ausente no PATH", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_pending_when_hooks_json_is_list(self):
+        # M2: hooks.json com lista [] em vez de dict fica pending e leva a FALHOU
+        (self.repo / "hooks.json").write_text("[]\n")
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: list hooks.json")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] hooks.json (hook)", out)
+        self.assertIn("estrutura inválida (esperado objeto/dicionário)", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_mcp_pending_when_mcp_json_is_list(self):
+        # M2: .mcp.json com lista [] em vez de dict fica pending e leva a FALHOU
+        (self.repo / ".mcp.json").write_text("[]\n")
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: list .mcp.json")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] .mcp.json (mcp)", out)
+        self.assertIn("estrutura inválida (esperado objeto/dicionário)", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_mcp_pending_when_command_field_missing(self):
+        # M2: servidor MCP sem campo 'command' fica pending e leva a FALHOU
+        (self.repo / ".mcp.json").write_text(json.dumps({
+            "mcpServers": {
+                "server-without-command": {"args": ["run"]}
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: mcp without command")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] server-without-command (mcp)", out)
+        self.assertIn("servidor MCP `server-without-command` sem comando declarado", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_pending_when_direct_executable_lacks_x_bit(self):
+        # PR-17: Executável direto sem permissão de execução (+x) fica pending e leva a FALHOU
+        gate = self.repo / "gate.sh"
+        gate.write_text("#!/bin/sh\necho ok\n")
+        gate.chmod(0o644)
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "no-x-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "./gate.sh"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: non executable gate")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] no-x-hook (hook)", out)
+        self.assertIn("sem permissão de execução", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_validated_when_env_prefix_present_and_tests_pass(self):
+        # PR-17: Atribuições de variáveis de ambiente no comando (ex: PYTHONPATH=lib python3 gate.py) são ignoradas no parse do binário
+        (self.repo / "gate.py").write_text("#!/usr/bin/env python3\n")
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "env-prefix-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "PYTHONPATH=. FOO=bar python3 gate.py"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: env prefix hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[validated] env-prefix-hook (hook)", out)
+        self.assertIn("**VERIFICADO**", out)
+
+    def test_integrations_mcp_pending_when_direct_executable_lacks_x_bit(self):
+        # PR-17: Executável MCP local sem permissão de execução (+x) fica pending e leva a FALHOU
+        mcp_bin = self.repo / "mcp_server"
+        mcp_bin.write_text("#!/bin/sh\necho ok\n")
+        mcp_bin.chmod(0o644)
+        (self.repo / ".mcp.json").write_text(json.dumps({
+            "mcpServers": {
+                "no-x-mcp": {"command": "./mcp_server"}
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: non executable mcp")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] no-x-mcp (mcp)", out)
+        self.assertIn("sem permissão de execução", out)
+        self.assertIn("**FALHOU**", out)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)
