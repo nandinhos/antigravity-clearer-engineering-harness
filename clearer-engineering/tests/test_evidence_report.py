@@ -341,6 +341,65 @@ class EvidenceReportContract(unittest.TestCase):
         self.assertIn("servidor MCP `server-without-command` sem comando declarado", out)
         self.assertIn("**FALHOU**", out)
 
+    def test_integrations_pending_when_direct_executable_lacks_x_bit(self):
+        # PR-17: Executável direto sem permissão de execução (+x) fica pending e leva a FALHOU
+        gate = self.repo / "gate.sh"
+        gate.write_text("#!/bin/sh\necho ok\n")
+        gate.chmod(0o644)
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "no-x-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "./gate.sh"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: non executable gate")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] no-x-hook (hook)", out)
+        self.assertIn("sem permissão de execução", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_validated_when_env_prefix_present_and_tests_pass(self):
+        # PR-17: Atribuições de variáveis de ambiente no comando (ex: PYTHONPATH=lib python3 gate.py) são ignoradas no parse do binário
+        (self.repo / "gate.py").write_text("#!/usr/bin/env python3\n")
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "env-prefix-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "PYTHONPATH=. FOO=bar python3 gate.py"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: env prefix hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[validated] env-prefix-hook (hook)", out)
+        self.assertIn("**VERIFICADO**", out)
+
+    def test_integrations_mcp_pending_when_direct_executable_lacks_x_bit(self):
+        # PR-17: Executável MCP local sem permissão de execução (+x) fica pending e leva a FALHOU
+        mcp_bin = self.repo / "mcp_server"
+        mcp_bin.write_text("#!/bin/sh\necho ok\n")
+        mcp_bin.chmod(0o644)
+        (self.repo / ".mcp.json").write_text(json.dumps({
+            "mcpServers": {
+                "no-x-mcp": {"command": "./mcp_server"}
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: non executable mcp")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] no-x-mcp (mcp)", out)
+        self.assertIn("sem permissão de execução", out)
+        self.assertIn("**FALHOU**", out)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)
