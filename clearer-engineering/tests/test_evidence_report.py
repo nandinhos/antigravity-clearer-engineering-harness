@@ -262,6 +262,85 @@ class EvidenceReportContract(unittest.TestCase):
         self.assertIn("[pending] .mcp.json (mcp)", out)
         self.assertIn("**FALHOU**", out)
 
+    def test_integrations_pending_when_direct_executable_missing_fails_verification(self):
+        # M2: Hook com executável direto ausente (parts[0]) fica pending e leva a FALHOU
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "broken-direct-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "./nonexistent_gate.sh --check"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: broken direct hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] broken-direct-hook (hook)", out)
+        self.assertIn("executável local `./nonexistent_gate.sh` não encontrado", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_pending_when_system_binary_missing_fails_verification(self):
+        # M2: Hook com comando ausente no PATH (parts[0]) fica pending e leva a FALHOU
+        (self.repo / "hooks.json").write_text(json.dumps({
+            "broken-binary-hook": {
+                "enabled": True,
+                "PreToolUse": [{"matcher": "run_command", "hooks": [{"command": "nonexistent_binary_xyz_98765"}]}]
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: broken binary hook")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] broken-binary-hook (hook)", out)
+        self.assertIn("comando `nonexistent_binary_xyz_98765` ausente no PATH", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_pending_when_hooks_json_is_list(self):
+        # M2: hooks.json com lista [] em vez de dict fica pending e leva a FALHOU
+        (self.repo / "hooks.json").write_text("[]\n")
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: list hooks.json")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] hooks.json (hook)", out)
+        self.assertIn("estrutura inválida (esperado objeto/dicionário)", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_mcp_pending_when_mcp_json_is_list(self):
+        # M2: .mcp.json com lista [] em vez de dict fica pending e leva a FALHOU
+        (self.repo / ".mcp.json").write_text("[]\n")
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: list .mcp.json")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] .mcp.json (mcp)", out)
+        self.assertIn("estrutura inválida (esperado objeto/dicionário)", out)
+        self.assertIn("**FALHOU**", out)
+
+    def test_integrations_mcp_pending_when_command_field_missing(self):
+        # M2: servidor MCP sem campo 'command' fica pending e leva a FALHOU
+        (self.repo / ".mcp.json").write_text(json.dumps({
+            "mcpServers": {
+                "server-without-command": {"args": ["run"]}
+            }
+        }))
+        sh(self.repo, "git", "add", ".")
+        sh(self.repo, "git", "commit", "-qm", "feat: mcp without command")
+        new_head = sh(self.repo, "git", "rev-parse", "HEAD")
+        self.cert(commit=new_head)
+        out = self.run_report()
+        self.assertIn("## INTEGRATIONS", out)
+        self.assertIn("[pending] server-without-command (mcp)", out)
+        self.assertIn("servidor MCP `server-without-command` sem comando declarado", out)
+        self.assertIn("**FALHOU**", out)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

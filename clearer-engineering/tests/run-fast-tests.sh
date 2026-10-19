@@ -81,7 +81,11 @@ echo "Total Duration: ${TOTAL_DUR}s"
 echo "============================================================"
 
 if [[ $FAILED_TESTS -eq 0 ]]; then
-    echo -e "\033[0;32m✔ PONYTAIL FAST CYCLE VERIFIED (< 5s Target Achieved)\033[0m"
+    if [[ $TOTAL_DUR -le 5 ]]; then
+        echo -e "\033[0;32m✔ PONYTAIL FAST CYCLE VERIFIED (< 5s Target Achieved)\033[0m"
+    else
+        echo -e "\033[0;32m✔ PONYTAIL FAST CYCLE VERIFIED (${TOTAL_DUR}s - Target: < 5s)\033[0m"
+    fi
     exit 0
 else
     echo -e "\033[0;31m✖ FAST TESTS FAILED\033[0m"
