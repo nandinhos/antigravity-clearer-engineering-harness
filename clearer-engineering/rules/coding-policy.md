@@ -29,3 +29,7 @@ trigger: always_on
 - Nunca aplique um patch cego para esconder sintomas.
 - Siga rigorosamente: Sintoma → Reprodução → Observação → Hipótese → Causa Raiz → Teste de Regressão → Correção Mínima.
 
+## 6. Execução Determinística de Comandos Inline (`run_command`)
+- **Proibido `python3 -c` ou `php -r` Multi-Linha**: Nunca invoque `python3 -c`, `php -r` ou `node -e` contendo quebras de linha literais (`\n`) dentro de `run_command`, pois comandos multi-linha aprovados na Antigravity IDE corrompem a gramática do `permission_grant_store.go`.
+- Utilize sempre one-liners em linha única (separados por `;`) ou crie scripts temporários em `<artifactDir>/scratch/`.
+

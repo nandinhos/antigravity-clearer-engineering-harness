@@ -69,3 +69,6 @@ Identifique o objetivo da tarefa e ative o workflow correspondente:
    - `UNKNOWN`: Informações não encontradas (nunca alucine).
    - Entregue sempre o **Response Contract** completo com testes executados e diff auditado.
 
+4. **Ergonomia Dual-Host (Antigravity IDE & CLI)**:
+   - **Planos Interativos (`RequestFeedback`)**: Em tarefas `HIGH` ou quando o desenvolvedor solicitar planejamento antes da execução na Antigravity IDE, crie o artefato `implementation_plan.md` com `ArtifactMetadata.RequestFeedback = true` para habilitar o botão nativo **Proceed**.
+   - **Confirmação em `HOMOLOGACAO` (`ask_question`)**: Quando um comando em `staging` receber bloqueio `[CEH CONTEXT LOCK]` (`ask -> deny`), acione a tool `ask_question` exibindo os **2 Alertas Explícitos** (Impacto + Backup/Rollback) e oriente o comando exato para execução segura pelo desenvolvedor.

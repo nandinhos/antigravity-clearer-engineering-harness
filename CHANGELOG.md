@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-10-20
+
+### Added
+- **Validação Estrutural de Frontmatter YAML em Rules (`U01` / `U05`)**:
+  - Inclusão do frontmatter obrigatório `trigger: always_on` no topo de `clearer-engineering/rules/AGENTS.md`, eliminando erros de parsing no `rules.go` do Antigravity.
+  - Novo teste `test_rules_frontmatter` e `test_cli_aliases_parity_with_ceh_help` em `test_content_schema.py` e checagem estrutural no `doc-audit.py`.
+- **Heurística 12 (Anti-Silent Working Loop) & Proteção de `permission_grant_store.go` (`U02` / `U03`)**:
+  - Adição da Heurística 12 em `AGENTS.md` exigindo feedback textual curto entre sequências de mais de 2 chamadas de ferramentas consecutivas.
+  - Proibição de `python3 -c` / `php -r` com quebras de linha literais (`\n`) em `run_command` (`AGENTS.md` e `coding-policy.md`).
+- **Aliases `ceh-doctor` e `ceh-report` (`U08`)**:
+  - Sincronização de `ceh-doctor` e `ceh-report` em `config/aliases.sh`, `scripts/rc_aliases.py` e `scripts/ceh-help.sh`.
+- **Inteligência Anti-Stub e `docker_service` no `test-runner.sh` (`U09`)**:
+  - Detecção que ignora o stub padrão `"no test specified"` do `package.json`, suporte opcional à chave `"docker_service"` em `.ceh/config.json` e ampliação de containers Compose reconhecidos (`laravel.test`, `app`, `web`, `php`, `backend`).
+- **Ergonomia Dual-Host Antigravity IDE & CLI (`U10` / `U11`)**:
+  - Orientação de uso de `ArtifactMetadata.RequestFeedback = true` para planos na IDE e `ask_question` para os 2 Alertas Explícitos em `HOMOLOGACAO` (`adapters/antigravity.py`, `skills/clearer/SKILL.md`).
+
+### Fixed
+- **Caminho Resolvível em `clearer-engineering/hooks.json` (`U04`)**:
+  - Uso de `"python3 \"$HOME/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py\""` nos 4 matchers de `PreToolUse`, garantindo resolução em qualquer diretório de projeto e paridade SHA-256 no `ceh-doctor.sh --verify`.
+
 ## [2.1.2] - 2026-10-02
 
 ### Changed

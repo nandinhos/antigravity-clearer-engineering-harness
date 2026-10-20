@@ -110,3 +110,19 @@ Ou executando localmente:
 ```bash
 ./uninstall.sh
 ```
+
+---
+
+## 6. Troubleshooting: Latência ("Working / Generating") & Higiene de Frontmatter
+
+### 6.1. Diagnóstico de Lentidão por Saturação de Pool (`HTTP 503 No Capacity Available`)
+Quando servidores upstream retornam `HTTP 503 UNAVAILABLE` para um pool de modelo específico (ex: `gemini-3.8-flash-high` ou `gemini-3.8-flash-medium`), o Antigravity IDE/CLI realiza retentativas com backoff exponencial sem exibir o erro 503 na tela principal. Para diagnosticar instantaneamente:
+
+```bash
+grep -iE "503|UNAVAILABLE|capacity|timeout" ~/.gemini/antigravity-cli/log/*.log ~/.antigravity-ide-server/data/logs/*/*/google.antigravity/*.log
+```
+
+- **Ação Recomendada**: Alterne imediatamente o seletor de modelo para **`Gemini 4 Argon (Medium)`**, que opera em pool dedicado de baixa latência.
+
+### 6.2. Verificação de Frontmatter YAML em Rules e Skills
+O parser interno em Go do Antigravity (`rules.go` e `skills.go`) exige que toda rule em `rules/*.md` comece na linha 1 com `---\ntrigger: always_on\n---` e toda skill em `skills/*/SKILL.md` comece com `---\nname: ...\ndescription: ...\n---`. Execute `ceh-doc-audit` para validar automaticamente a integridade estrutural.

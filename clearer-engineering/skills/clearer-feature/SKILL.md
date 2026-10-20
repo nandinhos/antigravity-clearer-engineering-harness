@@ -39,7 +39,7 @@ INSPECT → REQUIREMENTS → IMPACT → PLAN → IMPLEMENT → TEST → REVIEW �
 - Avalie o blast radius e dependências afetadas.
 
 ### Passo 4: Plano Interno de Implementação (Implementation Plan)
-Estruture mentalmente e valide os seguintes pontos:
+Estruture mentalmente e valide os seguintes pontos (em tarefas `HIGH` ou quando solicitado plano prévio na Antigravity IDE, grave `implementation_plan.md` no diretório de artefatos com `ArtifactMetadata.RequestFeedback = true`):
 1. Objetivo técnico e fluxo de dados.
 2. Arquivos envolvidos e novos símbolos.
 3. Tipagem estrita e arquitetura defensiva (tratamento de erros, nulos, limites).

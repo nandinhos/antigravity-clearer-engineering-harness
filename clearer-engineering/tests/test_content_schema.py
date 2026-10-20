@@ -171,6 +171,18 @@ class TestFrontmatterSchema(unittest.TestCase):
         self.assertIsInstance(desc, str, f"{profile_file}: 'description' deve ser string.")
         self.assertTrue(bool(desc and desc.strip()), f"{profile_file}: 'description' não pode ser vazio.")
 
+    def test_rules_frontmatter(self) -> None:
+        rules_dir = PLUGIN_DIR / "rules"
+        rule_files = sorted(rules_dir.glob("*.md"))
+        self.assertGreater(len(rule_files), 0, "Nenhuma rule encontrada em rules/*.md")
+
+        for rule_file in rule_files:
+            with self.subTest(rule=rule_file.name):
+                data, _, _ = parse_frontmatter(rule_file)
+                trigger = data.get("trigger")
+                self.assertIsInstance(trigger, str, f"{rule_file}: Campo 'trigger' deve ser string.")
+                self.assertTrue(bool(trigger and trigger.strip()), f"{rule_file}: Campo 'trigger' não pode ser vazio.")
+
 
 class TestToolCatalogIntegrity(unittest.TestCase):
     """Valida o catálogo de ferramentas e a comprovação física rigorosa de proveniência (PR-18b)."""
@@ -437,6 +449,25 @@ class TestContentStructure(unittest.TestCase):
             self.assertIn("description", data, f"{fm_path}: fallback stdlib não encontrou 'description'")
             if "tools" in data:
                 self.assertIsInstance(data["tools"], list, f"{fm_path}: tools deve ser lista")
+
+        for rule_path in sorted((PLUGIN_DIR / "rules").glob("*.md")):
+            content = rule_path.read_text(encoding="utf-8")
+            raw_yaml = content.split("---", 2)[1]
+            data = _simple_yaml_parse(raw_yaml)
+            self.assertIn("trigger", data, f"{rule_path}: fallback stdlib não encontrou 'trigger'")
+
+    def test_cli_aliases_parity_with_ceh_help(self) -> None:
+        """Garante que todos os comandos anunciados em ceh-help.sh estão definidos em config/aliases.sh (U08)."""
+        aliases_text = (PLUGIN_DIR / "config" / "aliases.sh").read_text(encoding="utf-8")
+        defined_aliases = set(re.findall(r"^alias\s+([a-zA-Z0-9_-]+)=", aliases_text, re.MULTILINE))
+        help_text = (PLUGIN_DIR / "scripts" / "ceh-help.sh").read_text(encoding="utf-8")
+        announced_cmds = set(re.findall(r"\$\{GREEN\}([a-zA-Z0-9_-]+)\$\{NC\}", help_text))
+        self.assertGreater(len(announced_cmds), 0)
+        self.assertEqual(
+            defined_aliases,
+            announced_cmds,
+            f"Divergência entre config/aliases.sh ({sorted(defined_aliases)}) e ceh-help.sh ({sorted(announced_cmds)})",
+        )
 
 
 if __name__ == "__main__":
