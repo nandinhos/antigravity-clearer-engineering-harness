@@ -282,6 +282,18 @@ def main():
     if not (gate_lines > 650 or runner_lines > 200 or not core_ok):
         checks_passed += 1
 
+    # Validação de frontmatter YAML em rules/*.md e skills/*/SKILL.md (U05)
+    rules_dir = repo_root / "clearer-engineering/rules"
+    skills_dir = repo_root / "clearer-engineering/skills"
+    for rf in sorted(rules_dir.glob("*.md")):
+        txt = rf.read_text(encoding="utf-8")
+        if not txt.startswith("---\n") or "trigger:" not in txt.split("---", 2)[1]:
+            errors.append(f"Rule sem frontmatter YAML 'trigger:' válido na linha 1: {rf.relative_to(repo_root)}")
+    for sf in sorted(skills_dir.glob("*/SKILL.md")):
+        txt = sf.read_text(encoding="utf-8")
+        if not txt.startswith("---\n") or "name:" not in txt.split("---", 2)[1]:
+            errors.append(f"Skill sem frontmatter YAML 'name:' válido na linha 1: {sf.relative_to(repo_root)}")
+
     print("-" * 50)
     if errors:
         print(f"FALHA: {len(errors)} inconsistência(s) encontrada(s):")

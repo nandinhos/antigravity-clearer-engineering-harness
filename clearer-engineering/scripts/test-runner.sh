@@ -19,7 +19,7 @@ if [[ -f "composer.json" ]]; then
     elif [[ -f "artisan" ]]; then
         DETECTED_CMD="php artisan test"
     fi
-elif [[ -f "package.json" ]] && grep -q '"test"' package.json 2>/dev/null; then
+elif [[ -f "package.json" ]] && grep -q '"test"' package.json 2>/dev/null && ! grep -q 'no test specified' package.json 2>/dev/null; then
     if [[ -f "pnpm-lock.yaml" ]]; then DETECTED_CMD="pnpm test"
     elif [[ -f "yarn.lock" ]]; then DETECTED_CMD="yarn test"
     elif [[ -f "bun.lockb" ]] || [[ -f "bun.lock" ]]; then DETECTED_CMD="bun test"
@@ -40,14 +40,16 @@ elif [[ -f "Cargo.toml" ]]; then
     DETECTED_CMD="cargo test"
 fi
 
-# Canonical command declared by the project overrides auto-detection
+# Canonical command & optional docker_service declared by the project
 CONFIG_CMD=""
+CONFIG_DOCKER_SVC=""
 CONFIG_OK=1
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     if [[ -f "$REPO_ROOT/.ceh/config.json" ]]; then
         if git cat-file -e "HEAD:.ceh/config.json" 2>/dev/null && git -C "$REPO_ROOT" diff --quiet HEAD -- .ceh/config.json 2>/dev/null; then
-            CONFIG_CMD=$(git -C "$REPO_ROOT" show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("canonical_test_command",""))' 2>/dev/null) || CONFIG_OK=0
+            CONFIG_CMD=$(git -C "$REPO_ROOT" show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("canonical_test_command",""))' 2>/dev/null) || CONFIG_OK=0
+            CONFIG_DOCKER_SVC=$(git -C "$REPO_ROOT" show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("docker_service",""))' 2>/dev/null || true)
         else
             CONFIG_OK=0
         fi
@@ -56,6 +58,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     fi
 elif [[ -f "$REPO_ROOT/.ceh/config.json" ]]; then
     CONFIG_CMD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("canonical_test_command",""))' "$REPO_ROOT/.ceh/config.json" 2>/dev/null) || CONFIG_OK=0
+    CONFIG_DOCKER_SVC=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("docker_service",""))' "$REPO_ROOT/.ceh/config.json" 2>/dev/null || true)
 fi
 
 if [[ $# -gt 0 ]]; then
@@ -121,9 +124,14 @@ if [[ ${#ACTIVE_COMPOSE_SERVICES[@]} -gt 0 && ! "$TEST_CMD" =~ (docker|docker-co
             echo "[CEH RUNTIME ADAPTER] 🐳 Containers Compose ativos detectados. Despachando via 'laravel.test'..."
             TEST_CMD="docker compose exec -T laravel.test $TEST_CMD"
         fi
-    elif [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " == *" app "* ]]; then
-        echo "[CEH RUNTIME ADAPTER] 🐳 Container 'app' ativo detectado. Despachando via container..."
-        TEST_CMD="docker compose exec -T app $TEST_CMD"
+    else
+        for cand_svc in "$CONFIG_DOCKER_SVC" app web php backend; do
+            if [[ -n "$cand_svc" && " ${ACTIVE_COMPOSE_SERVICES[*]} " == *" $cand_svc "* ]]; then
+                echo "[CEH RUNTIME ADAPTER] 🐳 Container '$cand_svc' ativo detectado. Despachando via container..."
+                TEST_CMD="docker compose exec -T $cand_svc $TEST_CMD"
+                break
+            fi
+        done
     fi
 elif [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
     [[ ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]] && echo "[CEH RUNTIME ADAPTER] ℹ️ Containers desligados. Executando diretamente no Host Nativo..."
@@ -169,13 +177,7 @@ if [[ $WORKTREE_DIRTY -eq 0 && "$HEAD_BEFORE" == "$HEAD_AFTER" && -z "$DIRTY_AFT
         CURRENT_COMMIT=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "untracked")
         NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         STATUS_STR="FAIL"; [[ $EXIT_CODE -eq 0 ]] && STATUS_STR="PASS"
-        python3 -c '
-import json, os, sys
-p, c, t, cmd, raw, v, s, code = sys.argv[1:]
-with open(p + ".tmp", "w", encoding="utf-8") as f:
-    json.dump({"commit_hash": c, "timestamp": t, "command": cmd, "normalized_runner": raw, "canonical_verified": v == "true", "status": s, "exit_code": int(code)}, f, indent=2, ensure_ascii=False)
-os.replace(p + ".tmp", p)
-' "$CEH_DIR/last-ci-run.json" "$CURRENT_COMMIT" "$NOW_ISO" "$TEST_CMD" "$RAW_TEST_CMD" "$CANONICAL_VERIFIED" "$STATUS_STR" "$EXIT_CODE"
+        python3 -c 'import json,os,sys; p,c,t,cmd,raw,v,s,code=sys.argv[1:]; open(p+".tmp","w",encoding="utf-8").write(json.dumps({"commit_hash":c,"timestamp":t,"command":cmd,"normalized_runner":raw,"canonical_verified":v=="true","status":s,"exit_code":int(code)},indent=2,ensure_ascii=False)); os.replace(p+".tmp",p)' "$CEH_DIR/last-ci-run.json" "$CURRENT_COMMIT" "$NOW_ISO" "$TEST_CMD" "$RAW_TEST_CMD" "$CANONICAL_VERIFIED" "$STATUS_STR" "$EXIT_CODE"
         cp "$OUTPUT_FILE" "$CEH_DIR/last-ci-run.log"
     fi
 elif [[ $WORKTREE_DIRTY -eq 0 ]]; then

@@ -137,7 +137,11 @@ class AntigravityAdapter(HostAdapter):
 
         if dec_val == "ask":
             dec_val = "deny"
-            suffix = "[CEH CONTEXT LOCK] Decisão 'ask' convertida para 'deny': ask não suspende a execução neste host (H1, Handoff 006)."
+            suffix = (
+                "[CEH CONTEXT LOCK] Decisão 'ask' convertida para 'deny': ask não suspende a execução neste host (H1, Handoff 006). "
+                "AÇÃO REQUERIDA NA IDE/CLI: Utilize a tool 'ask_question' apresentando os 2 Alertas Explícitos de HOMOLOGAÇÃO "
+                "(1. Impacto e Blast Radius; 2. Backup Prévio e Rollback Verificado) e forneça o comando exato para execução segura pelo desenvolvedor no terminal."
+            )
             reason_val = f"{reason_val}\n{suffix}" if reason_val else suffix
 
         res: dict[str, Any] = {"decision": dec_val}

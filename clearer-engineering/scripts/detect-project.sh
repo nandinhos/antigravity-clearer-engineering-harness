@@ -359,7 +359,11 @@ if [[ ${#CI_WORKFLOWS[@]} -gt 0 ]]; then
         if [[ " ${DOCKER_SERVICES_RUNNING[*]} " == *" laravel.test "* ]]; then
             echo "Local Execution:   Ambiente Docker ativo -> Use 'docker compose exec -T laravel.test <cmd>' ou './vendor/bin/sail test'"
         else
-            echo "Local Execution:   Ambiente Docker ativo -> Use 'docker compose exec -T ${DOCKER_SERVICES_RUNNING[0]} <cmd>'"
+            PRIMARY_SVC="${DOCKER_SERVICES_RUNNING[0]}"
+            for cand_svc in app web php backend; do
+                if [[ " ${DOCKER_SERVICES_RUNNING[*]} " == *" $cand_svc "* ]]; then PRIMARY_SVC="$cand_svc"; break; fi
+            done
+            echo "Local Execution:   Ambiente Docker ativo -> Use 'docker compose exec -T ${PRIMARY_SVC} <cmd>'"
         fi
     elif [[ "$RUNTIME_MODE" == "DOCKER_STOPPED" ]]; then
         echo "Local Execution:   Containers desligados -> Inicie com 'docker compose up -d' ou execute no host nativo se dependências existirem"

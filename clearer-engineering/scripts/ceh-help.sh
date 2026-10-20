@@ -30,6 +30,9 @@ echo -e "  ${GREEN}ceh-preflight${NC}   : Executar diagnóstico de prontidão e 
 echo -e "  ${GREEN}ceh-evals${NC}       : Executar smoke-eval determinístico de robustez e falsificabilidade (5/5 PASS)"
 echo -e "  ${GREEN}ceh-conselho${NC}    : Convocar a banca multi-agente do Conselho de Seniores (6 modelos CLI)"
 echo -e "  ${GREEN}ceh-doctor${NC}      : Diagnóstico de integridade, verificação estrutural e evidência (D3/D4)"
+echo -e "  ${GREEN}ceh-report${NC}      : Gerar relatório determinístico de evidências (Invariante 6)"
+echo -e "  ${GREEN}ceh-monitor${NC}     : Monitor em tempo real de tarefas em background e testes (cadência 25s)"
+echo -e "  ${GREEN}ceh-doc-audit${NC}   : Executar auditoria estrutural de documentação e frontmatters"
 echo -e "  ${GREEN}ceh-help${NC}        : Exibir este guia rápido"
 
 echo ""

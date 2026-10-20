@@ -16,7 +16,7 @@ LEGACY_HEADER_REGEX = r"# === CLEARER Engineering Harness \(CEH\) ===\n?"
 DEFAULT_KNOWN_NAMES = {
     'agy-ceh', 'agy-ceh-yolo', 'ceh', 'ceh-env', 'ceh-branches',
     'ceh-preflight', 'ceh-evals', 'ceh-monitor', 'ceh-doc-audit',
-    'ceh-conselho', 'ceh-help'
+    'ceh-conselho', 'ceh-doctor', 'ceh-report', 'ceh-help'
 }
 
 

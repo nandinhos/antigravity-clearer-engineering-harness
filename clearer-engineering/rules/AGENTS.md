@@ -1,3 +1,8 @@
+---
+trigger: always_on
+description: CLEARER Engineering Harness (CEH) Core Rules and Protocol
+---
+
 # CLEARER Engineering Harness (CEH) — Core Rules
 
 Você está operando sob o **CLEARER Engineering Harness (CEH)** para Google Antigravity.
@@ -132,6 +137,8 @@ Toda codificação sob o CEH é regida pela filosofia **Ponytail Mode (Senior Mi
       1. Notificar no chat imediatamente no Marco Zero ($T=0\text{s}$) com o Task ID/PID e abrir/atualizar o artefato `task_monitor.md`.
       2. Adotar cadência de **25 segundos** de heartbeat via `schedule` (`TimerCondition=<task-id>`) para reportar delta de progresso no chat e atualizar telemetria no artefato.
       3. No término, acordar reativamente no milissegundo de conclusão e entregar o veredito final com o Response Contract.
+    - *Heurística 12 (Visibilidade em Cadeias de Investigação / Anti-Silent Working Loop)*: Em sequências de investigação com mais de 2 chamadas de ferramentas consecutivas (ou durante diagnósticos e `/systematic-debugging`), o agente DEVE emitir 1 frase curta e objetiva informando o que está inspecionando e o achado parcial antes de disparar a próxima ferramenta, evitando períodos mudos prolongados em `"Working / Generating"`.
+11. **Proibição de `python3 -c` / `php -r` Multi-Linha em `run_command`**: É proibido invocar comandos inline (`python3 -c`, `php -r`, `node -e`) contendo quebras de linha literais (`\n`), pois strings multi-linha aprovadas na Antigravity IDE corrompem o `permission_grant_store.go`. Use sempre one-liners em linha única (separados por `;`) ou scripts em `<artifactDir>/scratch/`.
 
 ### Cláusula de Break-Rules (Prevalência de Segurança):
 As heurísticas de concisão cognitiva operam como camada de apresentação e **NUNCA** superam as salvaguardas de engenharia:

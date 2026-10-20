@@ -120,8 +120,10 @@ O CEH disponibiliza comandos de terminal integrados para auditoria rápida e tra
   - Loop contínuo a cada 25s: `ceh-monitor --live`
   - Exportar para markdown: `ceh-monitor --export task_monitor.md`
 - **`ceh-evals`**: Executa a suíte de meta-eval de falsificabilidade determinística (5/5 PASS em < 60s).
+- **`ceh-doctor`**: Executa diagnóstico de integridade (`--self-check`), verificação simétrica SHA-256 byte-a-byte da instalação (`--verify`) e geração de pacote de evidência (`--evidence`).
+- **`ceh-report`**: Gera o relatório determinístico de evidências calculado por código (`evidence-report.sh`).
+- **`ceh-doc-audit`**: Executa a auditoria estrutural de documentação, orçamento de linhas e frontmatters YAML (`doc-audit.sh`).
 - **`ceh-env`**: Identifica e audita o ambiente ativo (`DEV`, `HOMOLOGACAO`, `PRODUCAO`) e branch.
 - **`ceh-branches`**: Audita e configura a topologia canônica de branches (Modo Enterprise com 3 branches ou Clássico com 2 branches).
 - **`ceh-preflight`**: Executa o diagnóstico completo de prontidão de engenharia do repositório.
 - **`ceh-help`**: Guia interativo rápido com todos os comandos e atalhos do harness.
-
