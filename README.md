@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Tests-76%2F76%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Tests-77%2F77%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalist-blueviolet.svg)](#-ponytail-mode--ast-first-philosophy)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-the-risk-dial--execution-autonomy)
@@ -42,8 +42,8 @@ Install or update CEH across Linux, macOS, or WSL with a single command:
 # Latest stable release
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
 
-# Pinned release (SemVer — active upon v2.1.0 tag publication)
-curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.1.0/install.sh | CEH_VERSION=2.1.0 bash
+# Pinned release (SemVer — v2.1.3)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.1.3/install.sh | CEH_VERSION=2.1.3 bash
 ```
 
 ---
@@ -59,6 +59,8 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 | `ceh-env` | Instant detection of active environment (`DEV`/`STAGING`/`PROD`), branch, and safety policy. | Pre-coding sanity check. |
 | `ceh-branches` | Audits and sets up canonical project branches (Enterprise or Classic). | New repository setup. |
 | `ceh-preflight` | Runs the full engineering readiness and project integrity check. | Pre-release validation. |
+| `ceh-doctor` | Runs byte-for-byte installation integrity verification (`--verify`) and diagnostics. | Post-install & integrity check. |
+| `ceh-report` | Generates deterministic evidence reports (System One Invariant 6). | Audit & compliance output. |
 | `ceh-evals` | Runs deterministic smoke-eval suite (5/5 RFC 2119 criteria). | Harness falsifiability tests. |
 | `ceh-doc-audit` | Audits documentation structure, allowed states, and link portability. | Pre-release documentation hygiene. |
 | `ceh-conselho` | Invokes the dynamic multi-model Council of Seniors (optional add-on). | 360º multi-agent deliberation. |
@@ -235,7 +237,7 @@ CEH natively supports **2 Git topology modes**, proactively identified upon load
 CEH provides rigorous end-to-end verification, including infrastructure mutation testing:
 
 ```bash
-# 1. Run Complete Component & Integrity Suite (65 tests)
+# 1. Run Complete Component & Integrity Suite (77 tests)
 ./clearer-engineering/tests/run-all-tests.sh
 
 # 2. Run Adversarial Verification Suite (bypass & injection detection)

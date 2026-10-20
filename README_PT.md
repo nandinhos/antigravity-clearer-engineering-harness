@@ -5,7 +5,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Testes-76%2F76%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
+[![Tests](https://img.shields.io/badge/Testes-77%2F77%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalista-blueviolet.svg)](#-filosofia-ponytail-mode--ast-first)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-o-risk-dial)
@@ -42,8 +42,8 @@ Instale ou atualize o CEH no Linux, macOS ou WSL executando no terminal:
 # Versão estável mais recente
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
 
-# Versão fixada (SemVer — disponível após publicação da tag v2.1.0)
-curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.1.0/install.sh | CEH_VERSION=2.1.0 bash
+# Versão fixada (SemVer — v2.1.3)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.1.3/install.sh | CEH_VERSION=2.1.3 bash
 ```
 
 ---
@@ -59,6 +59,8 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 | `ceh-env` | Identifica instantaneamente o ambiente (`DEV`/`STAGING`/`PROD`), branch e rigores ativos. | Checagem rápida antes de codificar. |
 | `ceh-branches` | Audita e configura as branches do projeto (Modo Enterprise ou Clássico). | Setup de novos repositórios. |
 | `ceh-preflight` | Executa a verificação completa de prontidão e integridade do projeto. | Validação antes de releases. |
+| `ceh-doctor` | Verifica integridade byte a byte da instalação (`--verify`) e diagnóstico. | Checagem pós-instalação e integridade. |
+| `ceh-report` | Gera relatório determinístico de evidências (Invariante 6 System One). | Auditoria e conformidade. |
 | `ceh-evals` | Executa a bateria determinística de smoke-evals (5/5 critérios RFC 2119). | Testes de falsificabilidade do harness. |
 | `ceh-doc-audit` | Audita a estrutura documental, estados permitidos e portabilidade de links. | Higiene documental antes de releases. |
 | `ceh-conselho` | Convoca a banca multi-modelo do Conselho de Seniores (add-on opcional). | Deliberação e visão analítica 360º. |
@@ -235,7 +237,7 @@ O CEH apoia o desenvolvedor com **2 modos de topologia Git**, identificados proa
 O harness possui validação rigorosa de ponta a ponta, incluindo testes de mutação de infraestrutura:
 
 ```bash
-# 1. Executar suíte completa de componentes e integridade (65 testes)
+# 1. Executar suíte completa de componentes e integridade (77 testes)
 ./clearer-engineering/tests/run-all-tests.sh
 
 # 2. Executar suíte de testes adversariais (bypass e injeção de comandos)

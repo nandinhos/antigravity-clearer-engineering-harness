@@ -64,3 +64,16 @@ Antes de concluir qualquer entrega:
 1. Rodar `scripts/diff-audit.sh` para auditar o diff do Git.
 2. Garantir que não há arquivos temporários, logs soltos (`console.log`, `dd()`, `print()`), ou quebras de formatação em arquivos não relacionados.
 3. Emitir o **Response Contract** com evidências comprovadas (`OBSERVED` / `SUPPORTED`).
+
+---
+
+## 5. Padrão Global de Commits & Execução Determinística Inline
+
+### A. Padrão Obrigatório de Mensagens de Commit
+- **Idioma**: Exclusivamente **Português do Brasil (pt-BR)** em todos os projetos.
+- **Formato da 1ª Linha**: `<prefixo> (<escopo>): <descrição objetiva>` (mínimo 3 palavras, máximo **72 caracteres**; prefixos: `feat`, `fix`, `refactor`, `docs`, `test`, `style`, `perf`, `chore`).
+- **Corpo Detalhado**: Tópicos (`- ...`) explicando o que foi alterado e o porquê.
+- **Estritamente Proibido**: Uso de emojis na mensagem de commit e adição de rodapés de co-autoria ou sessão (`Co-Authored-By`, `Claude-Session` ou similares).
+
+### B. Proibição de Scripts Inline Multi-Linha em `run_command`
+- Nunca invocar `python3 -c`, `php -r` ou `node -e` contendo quebras de linha literais (`\n`), prevenindo corrupção de `permission_grant_store.go` na Antigravity IDE. Utilizar sempre one-liners separados por `;` ou scripts em `<artifactDir>/scratch/`.
