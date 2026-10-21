@@ -36,6 +36,11 @@ Ou execute a ferramenta integrada de auditoria do harness que consolida o tripé
 bash scripts/diff-audit.sh
 ```
 
+### 1.1 Rastreio de Código Conectado (Além do Diff)
+O revisor não inspeciona apenas as linhas modificadas no diff. Deve obrigatoriamente:
+1. **Rastrear Chamadores (`callers`)**: Mapear via `grep_search` chamadores de métodos, rotas ou funções que tiveram assinatura, visibilidade ou retorno alterados, identificando quebras em arquivos intocados fora do diff.
+2. **Avaliar Carga Esperada do Projeto**: Considerar o perfil de execução (script CLI isolado vs. lote massivo / API concorrente multi-tenant) para detectar check-then-write races, consumo acumulativo de memória e consultas N+1.
+
 ---
 
 ## 2. Bateria de Verificação Atômica (Speculative Fan-out - System One)
@@ -69,18 +74,23 @@ Classifique cada apontamento em um dos seguintes níveis:
 
 ---
 
-## 4. Formato Estruturado de Cada Finding
+## 4. Formato Estruturado em 4 Partes por Finding (Contrato Ponytail)
 
-Para cada problema identificado, estruture:
+Todo achado deve ser numerado globalmente (ex: 1 a N) e descrito em frases curtas e objetivas, com no máximo 1 a 2 sentenças por item:
 
 ```text
-### [SEVERIDADE] Título do Problema
-- Arquivo: path/to/file.ext:linha
-- Problema: Descrição precisa do defeito.
-- Impacto: Consequência para o sistema ou usuário.
-- Evidência: Linha do diff ou cenário de falha.
-- Correção Recomendada: Como corrigir de forma cirúrgica.
+N. **[SEVERIDADE] Título do Problema** (`caminho/arquivo.ext:L10-25`)
+   - **O que é:** O que o trecho faz ou qual é a sua responsabilidade no sistema.
+   - **Problema:** Cenário concreto de falha ("sob a entrada ou condição X, o sistema produz a quebra Y"). Sem teorizações vagas.
+   - **Correção:** A menor alteração que resolve integralmente o problema (preferencialmente eliminando código).
+   - **Se ignorarmos:** A consequência concreta para o sistema, dados ou usuário final.
 ```
+
+### 4.1 Encerramento do Relatório
+O relatório deve sempre finalizar com:
+- `Veredito`: `Aprovado para envio (Ship)` OU `Corrigir itens X e Y primeiro`.
+- `Potencial Lean`: `-N linhas / dependências possíveis` (quando houver código morto, abstrações prematuras ou duplicações identificadas).
+- `Não Verificado`: Linhas ou cenários que não puderam ser verificados e exigem atenção humana.
 
 ---
 
