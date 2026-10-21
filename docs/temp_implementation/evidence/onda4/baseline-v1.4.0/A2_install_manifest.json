@@ -2,7 +2,7 @@
   "a2a_non_code_count": 45,
   "a2a_non_code_files": {
     ".gemini/config/agents/clearer-harness/agent.md": "bea8d34e6b58321a80308c23c41621b3a1ed256e542713ad3e7e8128ea70c04c",
-    ".gemini/config/plugins/clearer-engineering/README.md": "6ae8b16c1ef33f78c87121f9729c592ebb758a8a72c667cdb4876814ae121fd4",
+    ".gemini/config/plugins/clearer-engineering/README.md": "4810fc8e83cb8b01d20123df78ef76bfd6a4fda194985739cfbb9b892ebbb504",
     ".gemini/config/plugins/clearer-engineering/README_PT.md": "295336cf7e2593da02d20e681c6802c3c18707d5bba4a6880fbd82d56f50e334",
     ".gemini/config/plugins/clearer-engineering/agents/architect/agent.md": "9577d89cc1b6b12ea074b11c10144a94d3a4d5438c113b828868027ed1d45cff",
     ".gemini/config/plugins/clearer-engineering/agents/evidence-auditor/agent.md": "e65921a02ddb4e13ab032e2efb5f1e34987d48addacaa4b4188dc4de851a6270",

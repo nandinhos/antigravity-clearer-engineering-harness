@@ -26,7 +26,7 @@ Em vez de depender de prompts vagos ou suposições não comprovadas, o CEH oper
 - **Identificação Prévia de Ambiente & Rigores Granulares**: Safety Gate ativo com políticas diferenciadas para `DEV` (liberdade com salvaguarda local), `HOMOLOGACAO` (confirmação com 2 alertas) e `PRODUCAO` (comandos destrutivos sumariamente bloqueados - fora de cogitação).
 - **Epistemologia System One ("Like a Jev")**: Desacoplamento estrito entre conteúdo e julgamento, avaliações atômicas univariadas em espaço fechado e certeza materializada por evidências físicas.
 - **Heartbeat Proativo de Background (25s)**: Cadência ativa de 25 segundos para tarefas longas e testes assíncronos, com monitor em tempo real (`ceh-monitor`) e eliminação de sensação de travamento.
-- **Filosofia Ponytail Mode & AST First**: "Entender muito, construir pouco e entregar certo". Escada de decisão anti-over-engineering, menor diff funcional e priorização de AST relacional com degradação graciosa.
+- **Filosofia Ponytail Mode & AST First**: "Entender muito, construir pouco e entregar certo". Escada de decisão v5 (7 degraus), rastreio de callers fora do diff, contrato de review em 4 partes, gestão de débitos via `shortcut:` e navegação relacional AST com degradação graciosa.
 - **Topologias Canônicas Flexíveis**: Suporte nativo a **Modo Enterprise (3 branches: `dev` ➔ `staging` ➔ `main`)** e **Modo Clássico (2 branches: `dev` ➔ `main`)**, com assistente interativo `ceh-branches`.
 - **Execução Contínua em Nível MEDIUM**: Ciclo completo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` conduzido de ponta a ponta em **turno único (Single-Turn End-to-End)**.
 - **Deliberação Multi-Modelo (Add-on Conselho de Seniores)**: Banca multi-agente dinâmica que despacha consultas não-interativas para os CLIs de fronteira disponíveis (`claude`, `codex`, `muse`, `hermes`, `agy`, `agent`) fornecendo apoio analítico 360º.
@@ -83,21 +83,29 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 
 ## 🥋 Filosofia Ponytail Mode & Tríade de Economia de Tokens
 
-1. **Escada de Decisão Ponytail**: Antes de propor código ou instalar dependências, pergunte:
-   - *Isso precisa mesmo existir?* (YAGNI).
-   - *Já existe na base de código?* (Reutilize componentes e helpers existentes).
-   - *A biblioteca padrão (stdlib) resolve?* (Zero pacotes externos para tarefas triviais).
-   - *Existe API nativa da plataforma/runtime?* (Priorize os recursos nativos).
-   - *Uma intervenção cirúrgica resolve?* (Escreva o menor diff funcional possível).
-2. **AST First com Degradação Graciosa (Graphify)**:
+1. **Escada de Decisão Ponytail v5**: Antes de propor código ou adicionar dependências, pare no primeiro degrau viável:
+   - *Degrau 1 (YAGNI estrito)*: Isso precisa mesmo existir? Ignore recursos, opções ou abstrações especulativas não solicitadas.
+   - *Degrau 2 (Reúso no Repositório)*: Já existe na base de código? Reutilize helpers, traits, componentes e padrões como o código ao redor faz.
+   - *Degrau 3 (Biblioteca Padrão ou Plataforma)*: A stdlib ou recurso nativo resolve? Componente interno do projeto tem precedência sobre widget nativo.
+   - *Degrau 4 (Dependência Instalada)*: Uma dependência já presente no manifesto resolve? Proibido adicionar pacotes externos para poucas linhas.
+   - *Degrau 5 (Linha Única Cristalina)*: Pode ser expresso em uma linha legível de relance? Uma linha.
+   - *Degrau 6 (Mínimo Funcional)*: Apenas o código estritamente necessário para resolver o problema, sem camadas extras.
+   - *Degrau 7 (Verificação Determinística de Lógica Arriscada)*: Lógica nova não-trivial (desvio condicional, loop, parser, cálculo financeiro, auth/segurança) deixa obrigatoriamente um teste comportamental cirúrgico ou asserção autoverificável. Alterações triviais não exigem novos testes.
+2. **Inspeção de Código Conectado & Chamadores Fora do Diff (Grep Callers)**:
+   - A preguiça sênior aplica-se à solução, NUNCA à leitura. Ao alterar assinaturas ou tipos de retorno, é mandatório rastrear via `grep_search` todos os chamadores (`callers`) no repositório, garantindo que arquivos intocados não quebrem silenciosamente fora do diff.
+3. **Convenção de Atalhos Deliberados (`shortcut:`) & Débito Técnico Controlado**:
+   - Atalhos pragmáticos conscientes são aceitos sob o formato estrito: `// shortcut: <teto numérico>, <gatilho para upgrade>`. Marcadores sem caminho de evolução são rejeitados (`no-trigger`).
+4. **Modo de Questionamento Ativo (Ponytail Ultra)**:
+   - Agentes questionam premissas infladas ou solicitações de sobre-engenharia vindas do próprio usuário, propondo a alternativa mínima e mais robusta antes de codificar.
+5. **AST First com Degradação Graciosa (Graphify)**:
    - Se o projeto possuir Graphify (`graphify-out/graph.json` ou MCP), o agente prioriza consultas relacionais com custo zero de tokens.
    - Se não possuir Graphify, o agente aplica inspeção nativa cirúrgica (`grep_search` e leitura fatiada via `view_file`), sendo expressamente proibido fazer dumps de arquivos inteiros no contexto.
-3. **Compressão de Shell com Degradação Graciosa (RTK - Rust Token Killer)**:
+6. **Compressão de Shell com Degradação Graciosa (RTK - Rust Token Killer)**:
    - Suporte nativo ao [**RTK**](https://github.com/rtk-ai/rtk): proxy CLI compilado em Rust que intercepta saídas de terminal (`git`, `npm test`, `pytest`, `cargo test`, `docker`, `ruff`) reduzindo o volume de bash lido pelo agente em 60-90%.
    - **Automação no Runner**: O `test-runner.sh` envelopa automaticamente comandos de teste quando `rtk` está no `$PATH`.
    - **Safety Gate Tokenizado e Resiliente a Evasões**: O `safety-gate.py` remove prefixos de proxy e normaliza a decomposição de tokens antes de avaliar regras para barrar operações destrutivas em produção e homologação.
    - **Escape Hatch**: Acesso a logs brutos via `rtk proxy <cmd>` ou flag `-vvv`. Se o RTK não estiver instalado, a esteira degrada graciosamente sem travas.
-4. **Higiene de Contexto & Sandbox (context-mode)**:
+7. **Higiene de Contexto & Sandbox (context-mode)**:
    - Mantém dados brutos e histórico fora da janela direta de contexto via SQLite+FTS5, promovendo a mentalidade "think in code".
 
 > [!TIP]

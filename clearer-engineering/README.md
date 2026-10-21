@@ -24,7 +24,7 @@ The **CLEARER Engineering Harness (CEH)** is a production-grade software enginee
 
 Rather than relying on vague prompts or unverified model assumptions, CEH operates under the highest standards of **Staff Software Engineering**:
 - **Environment Awareness & Granular Safety Gate**: Proactive safety policies tailored to `DEV` (freedom with local safety), `HOMOLOGACAO` (2-step explicit alerts), and `PRODUCAO` (destructive actions strictly denied).
-- **Ponytail Mode & AST First Philosophy**: "Understand deeply, build concisely, deliver correctly". 5-step decision ladder, minimal functional diffs, and relational AST navigation with graceful fallback.
+- **Ponytail Mode & AST First Philosophy**: "Understand deeply, build concisely, deliver correctly". 7-step decision ladder (v5), caller inspection outside diffs, structured 4-part review contracts, shortcut debt ledger, and relational AST navigation with graceful fallback.
 - **Flexible Canonical Topologies**: Native support for **Enterprise Mode (3 branches: `dev` ➔ `staging` ➔ `main`)** and **Classic Mode (2 branches: `dev` ➔ `main`)**, with interactive `ceh-branches` helper.
 - **Continuous Execution for MEDIUM Risk**: The complete `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` cycle is conducted end-to-end in a **Single-Turn**.
 - **Anti-Hallucination Guardrails & Zero Fake Pass**: Prohibits speculative code creation and enforces that every technical claim must be substantiated by concrete execution logs or code references in `OBSERVED`.
@@ -70,21 +70,29 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 
 ## 🥋 Ponytail Mode & Token Economy Triad
 
-1. **Ponytail Decision Ladder**: Before proposing code or adding dependencies, ask:
-   - *Does this strictly need to exist?* (YAGNI).
-   - *Does it already exist in the codebase?* (Reuse existing traits, helpers, and components).
-   - *Does the standard library (stdlib) solve it?* (Zero external packages for trivial tasks).
-   - *Does a native platform API exist?* (Priorize framework and runtime native features).
-   - *Does a surgical intervention suffice?* (Write the smallest functional diff possible).
-2. **AST First with Graceful Fallback (Graphify)**:
+1. **Ponytail Decision Ladder v5**: Before proposing code or adding dependencies, stop at the first rung that holds:
+   - *Rung 1 (Strict YAGNI)*: Does this strictly need to exist? Skip unasked features, options, and speculative abstractions.
+   - *Rung 2 (Repository Reuse)*: Already in the codebase? Reuse existing helpers, traits, components, and patterns as surrounding code does.
+   - *Rung 3 (Standard Library or Platform)*: Does the stdlib or runtime feature do it? A house component beats a native widget.
+   - *Rung 4 (Installed Dependency)*: Does an existing manifest dependency solve it? Never add a dependency for a few lines.
+   - *Rung 5 (Single Clear Line)*: Can it be expressed in one line readable at a glance? One line.
+   - *Rung 6 (Minimum Functional)*: Only the minimum code strictly necessary to solve the task.
+   - *Rung 7 (Deterministic Check for Risky Logic)*: New non-trivial logic (branch, loop, parser, money, auth/security) leaves one behavioral test or self-check assertion behind. Trivial changes require none.
+2. **Connected Code & Caller Tracing (`Grep Callers`)**:
+   - Senior laziness applies to solutions, never to reading. When modifying shared signatures or return types, agents must `grep_search` all repo callers to ensure untouched files never break silently outside the diff.
+3. **Deliberate Shortcuts & Controlled Debt (`shortcut:`)**:
+   - Deliberate pragmatic shortcuts must follow the strict convention: `// shortcut: <numeric ceiling>, <upgrade trigger>`. Any marker lacking an upgrade path is rejected (`no-trigger`).
+4. **Active Questioning Mode (Ponytail Ultra)**:
+   - Agents actively challenge inflated requirements or over-engineered requests, proposing the minimal robust alternative before coding.
+5. **AST First with Graceful Fallback (Graphify)**:
    - If the project has Graphify (`graphify-out/graph.json` or MCP), the agent prioritizes zero-cost relational AST queries.
    - If Graphify is not present, the agent gracefully falls back to native surgical search (`grep_search` and sliced `view_file`), strictly prohibiting full file context dumps.
-3. **Shell Output Compression with Graceful Fallback (RTK - Rust Token Killer)**:
+6. **Shell Output Compression with Graceful Fallback (RTK - Rust Token Killer)**:
    - Native integration with [**RTK**](https://github.com/rtk-ai/rtk): high-performance Rust proxy CLI that compresses bash output (`git`, `npm test`, `pytest`, `cargo test`, `docker`, `ruff`) by 60-90% before the agent reads it.
    - **Runner Automation**: `test-runner.sh` automatically wraps detected test suites with `rtk` when present in `$PATH`.
    - **Evasion-Resistant Tokenized Safety Gate**: `safety-gate.py` strips proxy prefixes and normalizes tokenized invocations before evaluating security rules across production and staging.
    - **Escape Hatch**: Full raw logs remain accessible via `rtk proxy <cmd>` or `-vvv`. If RTK is not installed, the harness gracefully executes standard commands without friction.
-4. **Context Hygiene & Sandbox (context-mode)**:
+7. **Context Hygiene & Sandbox (context-mode)**:
    - Keeps heavy tool output and history out of the direct LLM context window via SQLite+FTS5, promoting a "think in code" approach.
 
 > [!TIP]

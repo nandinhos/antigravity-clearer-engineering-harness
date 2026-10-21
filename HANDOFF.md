@@ -97,18 +97,20 @@ Para resolver a fricção entre autonomia e governança, a seguinte arquitetura 
 
 ---
 
-## 5. Missão Concluída: Adaptação da Metodologia `i-have-adhd` no CEH
+---
+
+## 6. Missão Concluída: Elevação do Ponytail Mode para v5 / v5.3 no CEH
 
 > **Status:** `CONCLUÍDO & VALIDADO COM SUCESSO (100% TESTS PASSING)`  
-> **Branch:** `dev`  
-> **Garantia de Qualidade:** 34/34 testes passando na suíte `run-all-tests.sh` + 24/24 na `test_safety_matrix.py`.
+> **Branches:** `dev` ➔ `staging` ➔ `main`  
+> **Garantia de Qualidade:** 77/77 testes aprovados na suíte canônica `run-all-tests.sh` + validação no Antigravity CLI com 0 avisos.
 
 ### A. O que foi executado
-1. **Zero Over-Engineering de Código:** Nenhuma dependência externa ou submódulo adicionado.
-2. **Absorção Cirúrgica das 10 Heurísticas:** Integradas como padrão de Ponytail UX na Seção 6 de `rules/AGENTS.md`.
-3. **Cláusula Pétrea de Break-Rules:** Confirmada a precedência inegociável dos Safety Gates (`ASK` em staging com 2 alertas e `DENY` em produção).
-4. **Skill Dedicada `clearer-adhd`:** Criada em `skills/clearer-adhd/SKILL.md` para acionamento sob demanda ou via `/clearer-adhd`.
-5. **Roteamento Central Atualizado:** Dispatcher `/clearer` atualizado com a nova skill.
-6. **Suíte de Testes Expandida:** Adicionado Test 34 em `tests/run-all-tests.sh` validando a integridade das regras e arquivos.
-7. **Documentações Sincronizadas:** `docs/skills_and_commands.md`, `README.md` e `README_PT.md` atualizados.
+1. **Escada de Decisão Ponytail v5 (7 Degraus):** Incorporada na Seção 6 de `clearer-engineering/rules/AGENTS.md`, com o Degrau 7 exigindo verificação comportamental determinística para lógica arriscada (parsers, dinheiro, loops, auth/segurança).
+2. **Inspeção de Chamadores Conectados (`Grep Callers`):** Obrigação formal de rastrear todos os chamadores no repositório antes de concluir edições compartilhadas, blindando contra quebras invisíveis fora do diff.
+3. **Contrato de Finding em 4 Partes:** Padronizado na skill `clearer-review` e no subagente `ceh-reviewer` (*O que é*, *Problema concreto*, *Correção mínima*, *Se ignorarmos*), reduzindo a prosa de revisão em ~40% e introduzindo métricas de *Potencial Lean* (`-N linhas`).
+4. **Convenção de Atalhos Deliberados (`shortcut:`):** Formalizada em `rules/coding-policy.md` e `rules/AGENTS.md` com marcação estrita `<limite numérico>, <gatilho para upgrade>`, banindo débitos sem plano de saída (`no-trigger`).
+5. **Modo de Questionamento Ativo (Ponytail Ultra):** Dever profissional do agente de questionar premissas infladas ou sobre-engenharia do usuário antes de codificar.
+6. **Higiene de Tamanho de Regras:** Compressão cirúrgica de `rules/AGENTS.md` de 24.398 para 23.678 bytes, eliminando alertas de truncamento na compilação do plugin pelo Antigravity CLI.
+7. **Documentação Técnica Sincronizada:** `README.md`, `clearer-engineering/README.md`, `README_PT.md` e `docs/skills_and_commands.md` integralmente alinhados com a v5.
 
