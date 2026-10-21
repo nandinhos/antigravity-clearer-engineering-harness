@@ -53,7 +53,7 @@ O CEH expõe 10 skills principais no Antigravity, cada uma projetada para um pad
 
 ## 5. `/clearer-review` (Revisão Adversarial de Diff)
 - **Quando usar**: Inspeção de alterações antes de abrir um PR ou comitar código.
-- **Comportamento**: Inspeciona `git diff`, executa `scripts/diff-audit.sh`, avalia 7 verificações atômicas (System One), audita riscos de **"Testes Congeladores"** (`assertCount` cego em lookups) e lista achados classificados em `BLOCKER`, `HIGH`, `MEDIUM`, `LOW`, `INFO`.
+- **Comportamento**: Inspeciona `git diff`, executa `scripts/diff-audit.sh`, rastreia chamadores conectados (`callers`) fora do diff, avalia 7 verificações atômicas (System One), audita riscos de **"Testes Congeladores"** (`assertCount` cego em lookups) e estrutura cada achado no **Contrato Ponytail em 4 Partes** (*O que é*, *Problema concreto*, *Correção mínima*, *Se ignorarmos*). Conclui com Veredito (`Ship` vs `Fix`), Potencial *Lean* (`-N linhas`) e lista de caminhos não verificados.
 - **Exemplo**:
   ```text
   /clearer-review
