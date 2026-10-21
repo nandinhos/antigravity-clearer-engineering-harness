@@ -13,6 +13,7 @@ trigger: always_on
 - Limite as alterações estritamente ao escopo da tarefa.
 - Proibido reformatar arquivos inteiros ou introduzir ruído cosmético que dificulte o code review.
 - Preserve contratos de APIs públicas, interfaces, schemas e invariantes de tipos existentes.
+- Atalhos temporários deliberados devem seguir a convenção Ponytail: `// shortcut: <teto de escala>, <gatilho de refatoração>`. Comentários de atalho sem gatilho de saída são terminantemente proibidos (`no-trigger`).
 
 ## 3. Tipagem Estrita & Código Idiomático
 - Utilize tipagem forte e explícita em todas as assinaturas públicas e privadas.
