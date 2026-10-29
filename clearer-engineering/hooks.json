@@ -43,6 +43,16 @@
         ]
       }
     ]
+  },
+  "ceh-stop-guard": {
+    "enabled": true,
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 \"$HOME/.gemini/config/plugins/clearer-engineering/scripts/ceh-stop-guard.py\"",
+        "timeout": 10
+      }
+    ]
   }
 }
 
