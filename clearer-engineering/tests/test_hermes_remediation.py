@@ -12,16 +12,22 @@ import subprocess
 from pathlib import Path
 
 _SCRIPTS_DIR = str(Path(__file__).resolve().parents[1] / "scripts")
+_TOOLS_DIR = str(Path(__file__).resolve().parent / "tools")
 import sys
 if _SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, _SCRIPTS_DIR)
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
 
 from ceh_core.engine import Request, evaluate
+from ceh_core.environment import clear_environment_caches
+from test_helpers import mkdtemp_resolved
 
 
 class TestHermesRemediationPhaseA1(unittest.TestCase):
     def setUp(self):
-        self.tmp_repo = tempfile.mkdtemp(prefix="ceh_hermes_sandbox_")
+        clear_environment_caches()
+        self.tmp_repo = str(mkdtemp_resolved(prefix="ceh_hermes_sandbox_"))
         self.original_cwd = os.getcwd()
 
         # Configurar repo com branch dev e CI workflow
@@ -37,6 +43,7 @@ class TestHermesRemediationPhaseA1(unittest.TestCase):
         os.chdir(self.tmp_repo)
 
     def tearDown(self):
+        clear_environment_caches()
         os.chdir(self.original_cwd)
         shutil.rmtree(self.tmp_repo, ignore_errors=True)
 
@@ -202,7 +209,8 @@ class TestHermesRemediationPhaseA1(unittest.TestCase):
 class TestHermesRemediationPhaseA2(unittest.TestCase):
     """Bateria de testes para a Fase A2 (Runner Bash: F06, F07, F08)."""
     def setUp(self):
-        self.tmp_dir = tempfile.mkdtemp(prefix="ceh_runner_test_")
+        clear_environment_caches()
+        self.tmp_dir = str(mkdtemp_resolved(prefix="ceh_runner_test_"))
         self.runner_script = str(Path(_SCRIPTS_DIR) / "test-runner.sh")
         self.original_cwd = os.getcwd()
         self.original_path = os.environ.get("PATH", "")
@@ -217,6 +225,7 @@ class TestHermesRemediationPhaseA2(unittest.TestCase):
         os.chdir(self.tmp_dir)
 
     def tearDown(self):
+        clear_environment_caches()
         os.chdir(self.original_cwd)
         os.environ["PATH"] = self.original_path
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
@@ -238,6 +247,10 @@ class TestHermesRemediationPhaseA2(unittest.TestCase):
         mock_docker = bin_dir / "docker"
         mock_docker.write_text("#!/bin/sh\nif [ \"$1\" = \"info\" ]; then exit 0; fi\nif [ \"$1\" = \"compose\" ] && [ \"$2\" = \"ps\" ]; then echo 'laravel.test'; exit 0; fi\nexit 0\n")
         mock_docker.chmod(0o755)
+
+        mock_timeout = bin_dir / "timeout"
+        mock_timeout.write_text("#!/bin/sh\nshift\nexec \"$@\"\n")
+        mock_timeout.chmod(0o755)
 
         vendor_bin = Path(self.tmp_dir) / "vendor" / "bin"
         vendor_bin.mkdir(parents=True)
@@ -270,22 +283,34 @@ class TestHermesRemediationPhaseA2(unittest.TestCase):
         subprocess.run(["git", "add", "."], cwd=self.tmp_dir, check=True, capture_output=True)
         subprocess.run(["git", "commit", "-m", "add pytest.ini and test"], cwd=self.tmp_dir, check=True, capture_output=True)
 
-        # Mascarar pytest do PATH
+        # Mascarar pytest de forma hermética multi-plataforma (Linux e macOS)
         fake_bin = Path(self.tmp_dir) / "no_pytest_bin"
         fake_bin.mkdir()
-        # Copiar executáveis essenciais exceto pytest
-        os.environ["PATH"] = "/usr/bin:/bin"
+        mock_py = fake_bin / "python3"
+        mock_py.write_text(f"""#!/bin/sh
+if [ "$1" = "-m" ] && [ "$2" = "pytest" ]; then
+    echo "No module named pytest" >&2
+    exit 1
+fi
+exec "{sys.executable}" "$@"
+""")
+        mock_py.chmod(0o755)
 
-        # Se pytest for chamado via command -v pytest, simular ausência
-        res = subprocess.run(
-            ["bash", "-c", f"PATH='/bin:/usr/bin' which pytest 2>/dev/null || true"],
-            capture_output=True, text=True
-        )
-        if not res.stdout.strip():
-            # Executar test-runner
-            res_runner = subprocess.run(["bash", self.runner_script], cwd=self.tmp_dir, capture_output=True, text=True)
-            self.assertNotEqual(res_runner.returncode, 0, "F07: Runner deveria falhar quando pytest está ausente em projeto pytest.")
-            self.assertIn("pytest", res_runner.stdout.lower() + res_runner.stderr.lower())
+        git_bin = shutil.which("git")
+        if git_bin and not (fake_bin / "git").exists():
+            os.symlink(git_bin, fake_bin / "git")
+
+        # Excluir diretórios de pytest do PATH mantendo fake_bin e sistema base
+        safe_paths = [str(fake_bin)]
+        for p in self.original_path.split(os.pathsep):
+            if p and not (Path(p) / "pytest").exists():
+                safe_paths.append(p)
+        os.environ["PATH"] = os.pathsep.join(safe_paths)
+
+        # Executar test-runner
+        res_runner = subprocess.run(["bash", self.runner_script], cwd=self.tmp_dir, capture_output=True, text=True)
+        self.assertNotEqual(res_runner.returncode, 0, "F07: Runner deveria falhar quando pytest está ausente em projeto pytest.")
+        self.assertIn("pytest", res_runner.stdout.lower() + res_runner.stderr.lower())
 
     def test_f08_dirty_worktree_after_tests_revokes_certificate(self):
         """F08: Se a execução do teste sujar a worktree (modificar arquivo rastreado ou criar não commitado), o certificado NÃO pode ser emitido."""
@@ -302,11 +327,13 @@ class TestHermesRemediationPhaseA2(unittest.TestCase):
 class TestHermesRemediationPhaseB(unittest.TestCase):
     """Bateria de testes para a Fase B (Empacotador, Aliases, Manifestos: F09, F11, F12, F14, F15)."""
     def setUp(self):
-        self.tmp_dir = tempfile.mkdtemp(prefix="ceh_phase_b_")
+        clear_environment_caches()
+        self.tmp_dir = str(mkdtemp_resolved(prefix="ceh_phase_b_"))
         self.package_tool = str(Path(_SCRIPTS_DIR).parents[0] / "tools" / "package.py")
         self.source_dir = Path(_SCRIPTS_DIR).parents[0]
 
     def tearDown(self):
+        clear_environment_caches()
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     def test_f15_evidence_report_detect_env_valid(self):
@@ -365,11 +392,13 @@ class TestHermesRemediationPhaseB(unittest.TestCase):
 class TestCA1WriteRedirectionControls(unittest.TestCase):
     """Bateria de testes para CA1/CA2: integridade estrita de .ceh/ sob todas as formas de redirecionamento."""
     def setUp(self):
-        self.tmp_repo = tempfile.mkdtemp(prefix="ceh_ca1_sandbox_")
+        clear_environment_caches()
+        self.tmp_repo = str(mkdtemp_resolved(prefix="ceh_ca1_sandbox_"))
         self.original_cwd = os.getcwd()
         os.chdir(self.tmp_repo)
 
     def tearDown(self):
+        clear_environment_caches()
         os.chdir(self.original_cwd)
         shutil.rmtree(self.tmp_repo, ignore_errors=True)
 

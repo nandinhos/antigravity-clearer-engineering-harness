@@ -12,6 +12,19 @@ echo "Target Directory: $TARGET_DIR"
 echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo ""
 
+# Portable timeout runner (supports Linux timeout, macOS gtimeout or direct fallback)
+_run_with_timeout() {
+    local secs="$1"
+    shift
+    if command -v timeout >/dev/null 2>&1; then
+        timeout "$secs" "$@"
+    elif command -v gtimeout >/dev/null 2>&1; then
+        gtimeout "$secs" "$@"
+    else
+        "$@"
+    fi
+}
+
 # 0. Environment Detection (DEV / HOMOLOGAÇÃO / PRODUÇÃO)
 DETECTED_ENV="development"
 ENV_EVIDENCE="Default fallback (local workspace)"
@@ -267,10 +280,10 @@ fi
 
 if command -v docker >/dev/null 2>&1; then
     DOCKER_AVAILABLE=1
-    if docker info >/dev/null 2>&1; then
+    if _run_with_timeout 2 docker info >/dev/null 2>&1; then
         DOCKER_RUNNING=1
         if [[ -f "docker-compose.yml" ]] || [[ -f "docker-compose.yaml" ]] || [[ -f "compose.yaml" ]] || [[ -f "compose.yml" ]]; then
-            ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
+            ACTIVE_COMPOSE=$(_run_with_timeout 3 docker compose ps --services --filter "status=running" 2>/dev/null || true)
             if [[ -n "$ACTIVE_COMPOSE" ]]; then
                 while IFS= read -r s; do
                     [[ -n "$s" ]] && DOCKER_SERVICES_RUNNING+=("$s")

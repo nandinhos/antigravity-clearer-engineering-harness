@@ -77,7 +77,7 @@ Toda alegação de conclusão, compatibilidade ou funcionamento deve ser auditá
 Adapte a sobrecarga e o rigor ao custo do erro:
 - **`LOW`** (consultas, extrações, renomeações locais): Baixa sobrecarga, execução ágil, sem orquestração pesada.
 - **`MEDIUM`** (padrão de engenharia: features, bugfixes, refatores, APIs): **Execução Contínua em Turno Único (Single-Turn End-to-End)**. O agente executa o ciclo completo `INSPECT → PLAN → IMPLEMENT → TEST → REVIEW → AUDIT` de forma autônoma e fluida quando o objetivo e limites estiverem claros, entregando o código pronto com o Contrato de Evidências.
-- **`HIGH`** (auth core, pagamentos, concorrência crítica, migrações destrutivas, segurança): Exige investigação profunda, evidências cruzadas, subagentes especializados, revisão adversarial, auditoria estrita e checkpoint humano obrigatório.
+- **`HIGH`** (auth core, pagamentos, concorrência crítica, migrações destrutivas, segurança): Exige investigação profunda, evidências cruzadas, subagentes especializados, revisão adversarial, auditoria estrita e checkpoint humano obrigatório. Sob o **Goldfish Isolation Protocol** (SDD 2.0), subagentes de revisão e auditoria (`ceh-reviewer`, `ceh-evidence-auditor`) operam estritamente amnésicos/stateless (em contexto novo alimentado exclusivamente pelo plano, diff do Git e arquivos referenciados, sem o viés ou histórico da conversa preliminar). Tarefas de risco `LOW` e `MEDIUM` continuam operando de forma ágil e contínua em turno único, sem o overhead de isolamento amnésico.
 
 ---
 

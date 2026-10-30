@@ -9,6 +9,14 @@ echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "Working Directory: $(pwd)"
 echo ""
 
+# Portable timeout runner (supports Linux timeout, macOS gtimeout or direct fallback)
+_run_with_timeout() {
+    local secs="$1"; shift
+    if command -v timeout >/dev/null 2>&1; then timeout "$secs" "$@"
+    elif command -v gtimeout >/dev/null 2>&1; then gtimeout "$secs" "$@"
+    else "$@"; fi
+}
+
 # Auto-detect the canonical test runner based on files
 DETECTED_CMD=""
 if [[ -f "composer.json" ]]; then
@@ -104,9 +112,9 @@ fi
 
 # Runtime Adapter: Detect if test command needs container dispatch
 ACTIVE_COMPOSE_SERVICES=()
-if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+if command -v docker >/dev/null 2>&1 && _run_with_timeout 2 docker info >/dev/null 2>&1; then
     if [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
-        ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
+        ACTIVE_COMPOSE=$(_run_with_timeout 3 docker compose ps --services --filter "status=running" 2>/dev/null || true)
         while IFS= read -r s; do
             [[ -n "$s" ]] && ACTIVE_COMPOSE_SERVICES+=("$s")
         done <<< "$ACTIVE_COMPOSE"
