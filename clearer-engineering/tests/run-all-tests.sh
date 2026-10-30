@@ -335,6 +335,10 @@ run_test "Hermes Remediation: Correções de integridade, piso de ambiente, pars
 run_test "Doctor Verify: Integridade da instalação limpa e detecção de adulterações (CB11/CB12)" \
     "python3 '$PLUGIN_DIR/tests/test_doctor_verify.py' >/dev/null 2>&1"
 
+# 45. Stop Guard Hook Suite (Encerramento Epistêmico de Features)
+run_test "Stop Guard Hook: Fechamento epistêmico com arquivo de estado .ceh/feature.json" \
+    "python3 '$PLUGIN_DIR/tests/test_stop_guard.py' >/dev/null 2>&1"
+
 
 
 SUITE_DURATION=$(( $(date +%s) - SUITE_START ))

@@ -104,9 +104,9 @@ fi
 
 # Runtime Adapter: Detect if test command needs container dispatch
 ACTIVE_COMPOSE_SERVICES=()
-if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+if command -v docker >/dev/null 2>&1 && timeout 2 docker info >/dev/null 2>&1; then
     if [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
-        ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
+        ACTIVE_COMPOSE=$(timeout 3 docker compose ps --services --filter "status=running" 2>/dev/null || true)
         while IFS= read -r s; do
             [[ -n "$s" ]] && ACTIVE_COMPOSE_SERVICES+=("$s")
         done <<< "$ACTIVE_COMPOSE"
