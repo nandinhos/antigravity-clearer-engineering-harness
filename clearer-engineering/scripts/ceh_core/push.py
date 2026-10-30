@@ -163,6 +163,14 @@ def resolve_commit_hash(repo_root: Path, rev: str) -> str | None:
     return None
 
 
+def is_tree_identical(repo_root: Path, c1: str, c2: str) -> bool:
+    """Verifica se duas revisões possuem árvore de arquivos idêntica (promoção/alinhamento com 0 diff)."""
+    try:
+        return subprocess.run(["git", "-C", str(repo_root), "diff", "--quiet", c1, c2], capture_output=True, timeout=3).returncode == 0
+    except Exception:
+        return False
+
+
 def check_pre_push_ci_gate(
     cmd: str,
     target_dir: Path | None = None,
@@ -238,7 +246,7 @@ def check_pre_push_ci_gate(
             resolved = resolve_commit_hash(repo_root, src)
             if resolved is None:
                 return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: refspec '{ref}' não pôde ser resolvido para um commit válido."
-            if resolved != cert_commit:
+            if resolved != cert_commit and not is_tree_identical(repo_root, resolved, cert_commit):
                 return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado por desatualização de testes: refspec '{ref}' ({resolved[:7]}) != Cert ({cert_commit[:7]})."
 
         # Sem refspec ou apenas deleções: valida HEAD atual
@@ -259,7 +267,7 @@ def check_pre_push_ci_gate(
             head_commit = resolve_commit_hash(repo_root, "HEAD")
             if head_commit is None:
                 return "deny", "[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado: HEAD não pôde ser resolvido para um commit válido."
-            if head_commit != cert_commit:
+            if head_commit != cert_commit and not is_tree_identical(repo_root, head_commit, cert_commit):
                 return "deny", f"[CEH PRE-PUSH CI GATE] ⛔ Push bloqueado por desatualização de testes: HEAD ({head_commit[:7]}) != Cert ({cert_commit[:7]})."
 
     except Exception as e:
