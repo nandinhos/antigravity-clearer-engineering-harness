@@ -20,32 +20,21 @@ _run_with_timeout() {
 # Auto-detect the canonical test runner based on files
 DETECTED_CMD=""
 if [[ -f "composer.json" ]]; then
-    if [[ -f "vendor/bin/pest" ]] || grep -q '"pestphp/pest"' composer.json 2>/dev/null; then
-        DETECTED_CMD="./vendor/bin/pest"
-    elif [[ -f "vendor/bin/phpunit" ]] || [[ -f "phpunit.xml" ]]; then
-        DETECTED_CMD="./vendor/bin/phpunit"
-    elif [[ -f "artisan" ]]; then
-        DETECTED_CMD="php artisan test"
-    fi
+    if [[ -f "vendor/bin/pest" ]] || grep -q '"pestphp/pest"' composer.json 2>/dev/null; then DETECTED_CMD="./vendor/bin/pest"
+    elif [[ -f "vendor/bin/phpunit" ]] || [[ -f "phpunit.xml" ]]; then DETECTED_CMD="./vendor/bin/phpunit"
+    elif [[ -f "artisan" ]]; then DETECTED_CMD="php artisan test"; fi
 elif [[ -f "package.json" ]] && grep -q '"test"' package.json 2>/dev/null && ! grep -q 'no test specified' package.json 2>/dev/null; then
     if [[ -f "pnpm-lock.yaml" ]]; then DETECTED_CMD="pnpm test"
     elif [[ -f "yarn.lock" ]]; then DETECTED_CMD="yarn test"
     elif [[ -f "bun.lockb" ]] || [[ -f "bun.lock" ]]; then DETECTED_CMD="bun test"
     else DETECTED_CMD="npm test"; fi
 elif [[ -f "pytest.ini" ]] || [[ -f "conftest.py" ]]; then
-    if command -v pytest >/dev/null 2>&1; then
-        DETECTED_CMD="pytest"
-    elif python3 -m pytest --version >/dev/null 2>&1; then
-        DETECTED_CMD="python3 -m pytest"
-    else
-        echo "STATUS: NOT RUN"; echo "REASON: Projeto requer pytest, mas runner não está disponível."; exit 1
-    fi
-elif [[ -d "tests" && ( -f "pyproject.toml" || -f "requirements.txt" ) ]]; then
-    DETECTED_CMD="python3 -m unittest"
-elif [[ -f "go.mod" ]]; then
-    DETECTED_CMD="go test ./..."
-elif [[ -f "Cargo.toml" ]]; then
-    DETECTED_CMD="cargo test"
+    if command -v pytest >/dev/null 2>&1; then DETECTED_CMD="pytest"
+    elif python3 -m pytest --version >/dev/null 2>&1; then DETECTED_CMD="python3 -m pytest"
+    else echo "STATUS: NOT RUN"; echo "REASON: Projeto requer pytest, mas runner não está disponível."; exit 1; fi
+elif [[ -d "tests" && ( -f "pyproject.toml" || -f "requirements.txt" ) ]]; then DETECTED_CMD="python3 -m unittest"
+elif [[ -f "go.mod" ]]; then DETECTED_CMD="go test ./..."
+elif [[ -f "Cargo.toml" ]]; then DETECTED_CMD="cargo test"
 fi
 
 # Canonical command & optional docker_service declared by the project
@@ -69,13 +58,10 @@ elif [[ -f "$REPO_ROOT/.ceh/config.json" ]]; then
     CONFIG_DOCKER_SVC=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("docker_service",""))' "$REPO_ROOT/.ceh/config.json" 2>/dev/null || true)
 fi
 
-if [[ $# -gt 0 ]]; then
-    TEST_CMD="$*"
-elif [[ -n "$CONFIG_CMD" ]]; then
-    TEST_CMD="$CONFIG_CMD"
-else
-    TEST_CMD="$DETECTED_CMD"
-fi
+FORCE_RUN=0; [[ "${1:-}" == "--force" ]] && { FORCE_RUN=1; shift; }
+if [[ $# -gt 0 ]]; then TEST_CMD="$*"
+elif [[ -n "$CONFIG_CMD" ]]; then TEST_CMD="$CONFIG_CMD"
+else TEST_CMD="$DETECTED_CMD"; fi
 
 if [[ -z "$TEST_CMD" ]]; then
     echo "STATUS: NOT RUN"; echo "REASON: No test suite or command detected in this workspace."; echo "EXIT CODE: 1"; exit 1
@@ -107,6 +93,18 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         echo "[CEH WARNING] ⚠️ Worktree com alterações não commitadas. Os testes rodam, mas o certificado NÃO será emitido."
         echo "[CEH WARNING] Commite, descarte ou adicione ao .gitignore:"
         echo "$DIRTY_FILES" | head -n 5 | sed 's/^/    /'
+    fi
+fi
+
+# Fast Promotion: se o commit atual tiver árvore idêntica ao último certificado aprovado, renova em 0.1s
+if [[ "$FORCE_RUN" -eq 0 && "$CANONICAL_VERIFIED" == "true" && "$WORKTREE_DIRTY" -eq 0 && -n "$HEAD_BEFORE" && -f "$REPO_ROOT/.ceh/last-ci-run.json" ]]; then
+    P_INFO=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(f"{d.get(\"commit_hash\",\"\")} {d.get(\"status\",\"\")} {str(d.get(\"canonical_verified\",False)).lower()}")' "$REPO_ROOT/.ceh/last-ci-run.json" 2>/dev/null || true)
+    P_C=$(echo "$P_INFO" | awk '{print $1}'); P_S=$(echo "$P_INFO" | awk '{print $2}'); P_V=$(echo "$P_INFO" | awk '{print $3}')
+    if [[ "$P_S" == "PASS" && "$P_V" == "true" && -n "$P_C" && "$P_C" != "$HEAD_BEFORE" ]] && git -C "$REPO_ROOT" diff --quiet "$P_C" "$HEAD_BEFORE" -- 2>/dev/null; then
+        echo "[CEH PROMOTION FAST-PATH] ⚡ Árvore idêntica ao commit certificado ($P_C). Renovando certificado canônico em 0.1s..."
+        NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        python3 -c 'import json,os,sys; p,c,t,cmd,raw,v,s,code=sys.argv[1:]; open(p+".tmp","w",encoding="utf-8").write(json.dumps({"commit_hash":c,"timestamp":t,"command":cmd,"normalized_runner":raw,"canonical_verified":v=="true","status":s,"exit_code":int(code)},indent=2,ensure_ascii=False)); os.replace(p+".tmp",p)' "$REPO_ROOT/.ceh/last-ci-run.json" "$HEAD_BEFORE" "$NOW_ISO" "$TEST_CMD" "$RAW_TEST_CMD" "true" "PASS" "0"
+        echo "STATUS:    PASS"; echo "EXIT CODE: 0"; exit 0
     fi
 fi
 
