@@ -248,6 +248,10 @@ class TestHermesRemediationPhaseA2(unittest.TestCase):
         mock_docker.write_text("#!/bin/sh\nif [ \"$1\" = \"info\" ]; then exit 0; fi\nif [ \"$1\" = \"compose\" ] && [ \"$2\" = \"ps\" ]; then echo 'laravel.test'; exit 0; fi\nexit 0\n")
         mock_docker.chmod(0o755)
 
+        mock_timeout = bin_dir / "timeout"
+        mock_timeout.write_text("#!/bin/sh\nshift\nexec \"$@\"\n")
+        mock_timeout.chmod(0o755)
+
         vendor_bin = Path(self.tmp_dir) / "vendor" / "bin"
         vendor_bin.mkdir(parents=True)
         mock_sail = vendor_bin / "sail"
