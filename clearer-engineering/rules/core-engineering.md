@@ -7,7 +7,7 @@ trigger: always_on
 ## 1. O Ciclo Completo de Engenharia (Pipeline Contínuo)
 Toda alteração de código passa pelas etapas fundamentais, executadas de forma contínua em tarefas de nível MEDIUM:
 - **Inspect**: Inspecione o estado atual do repositório, dependências, branches e arquivos alvo.
-- **Plan**: Defina o problema, o blast radius, os arquivos envolvidos, os contratos preservados e a estratégia de testes.
+- **Plan**: Defina o problema, o blast radius, os arquivos envolvidos, os contratos preservados e a estratégia de testes. Aplique a **Zero-Decision Rule** (SDD 2.0): o plano congela antecipadamente a lista exata de arquivos, schemas, rotas e tratamentos de borda, não delegando decisões arquiteturais para a fase de implementação. Se um desvio imprevisível surgir durante o código, acione a gestão por exceção em vez de improvisar.
 - **Implement**: Aplique as mudanças cirurgicamente com padrões de alto nível (SOLID, tipagem estrita).
 - **Test**: Execute a suíte de testes real e capture o exit code e saídas brutas.
 - **Review**: Realize uma revisão crítica e adversarial do diff gerado (`scripts/diff-audit.sh`).

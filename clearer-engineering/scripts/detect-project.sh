@@ -267,10 +267,10 @@ fi
 
 if command -v docker >/dev/null 2>&1; then
     DOCKER_AVAILABLE=1
-    if docker info >/dev/null 2>&1; then
+    if timeout 2 docker info >/dev/null 2>&1; then
         DOCKER_RUNNING=1
         if [[ -f "docker-compose.yml" ]] || [[ -f "docker-compose.yaml" ]] || [[ -f "compose.yaml" ]] || [[ -f "compose.yml" ]]; then
-            ACTIVE_COMPOSE=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
+            ACTIVE_COMPOSE=$(timeout 3 docker compose ps --services --filter "status=running" 2>/dev/null || true)
             if [[ -n "$ACTIVE_COMPOSE" ]]; then
                 while IFS= read -r s; do
                     [[ -n "$s" ]] && DOCKER_SERVICES_RUNNING+=("$s")

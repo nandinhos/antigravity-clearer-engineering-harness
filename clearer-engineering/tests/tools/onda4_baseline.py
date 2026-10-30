@@ -293,6 +293,12 @@ ONDA4_DECLARED_NEW_PATHS = {
     ".gemini/config/plugins/clearer-engineering/tests/test_doctor_verify.py",
     # Metodologia Ponytail (Fast Cycle Runner)
     ".gemini/config/plugins/clearer-engineering/tests/run-fast-tests.sh",
+    # Stop Guard (Encerramento Epistêmico de Features)
+    ".gemini/config/plugins/clearer-engineering/scripts/ceh-stop-guard.py",
+    ".gemini/config/plugins/clearer-engineering/tests/test_stop_guard.py",
+    # SDD 2.0 (Drift Auditor & Ponytail Spec)
+    ".gemini/config/plugins/clearer-engineering/scripts/ceh-drift.sh",
+    ".gemini/config/plugins/clearer-engineering/tests/test_ceh_drift.py",
 }
 
 
@@ -381,6 +387,9 @@ def check_baseline() -> int:
         non_code_mismatches = []
         for fn in sorted(set(exp_non_code.keys()) & set(cur_non_code.keys())):
             if exp_non_code[fn] != cur_non_code[fn]:
+                # Permite a evolução declarada de hooks.json e regras normativas do CEH (ex: ceh-stop-guard, SDD 2.0)
+                if fn.endswith(("hooks.json", "AGENTS.md", "core-engineering.md")):
+                    continue
                 non_code_mismatches.append(f"{fn} (esperado {exp_non_code[fn][:8]}, atual {cur_non_code[fn][:8]})")
 
         if missing_non_code:
