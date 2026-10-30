@@ -11,15 +11,10 @@ echo ""
 
 # Portable timeout runner (supports Linux timeout, macOS gtimeout or direct fallback)
 _run_with_timeout() {
-    local secs="$1"
-    shift
-    if command -v timeout >/dev/null 2>&1; then
-        timeout "$secs" "$@"
-    elif command -v gtimeout >/dev/null 2>&1; then
-        gtimeout "$secs" "$@"
-    else
-        "$@"
-    fi
+    local secs="$1"; shift
+    if command -v timeout >/dev/null 2>&1; then timeout "$secs" "$@"
+    elif command -v gtimeout >/dev/null 2>&1; then gtimeout "$secs" "$@"
+    else "$@"; fi
 }
 
 # Auto-detect the canonical test runner based on files
