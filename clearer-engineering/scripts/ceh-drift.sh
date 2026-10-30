@@ -128,11 +128,11 @@ echo -e "${CYAN}----------------------------------------------------------------
 
 # 3. Inspecionar cada documento
 for doc in "${DOC_FILES[@]}"; do
-  rel_doc="${doc#$REPO_ROOT/}"
-  doc_has_drift=false
+  rel_doc="${doc#"$REPO_ROOT"/}"
 
   # Extrai potenciais referências de caminhos de arquivos citados no markdown
   # Procura por strings com extensão comum ou padrão path/to/file
+  # shellcheck disable=SC2016
   mapfile -t REFS < <(grep -oE '`[a-zA-Z0-9_\.\/-]+\.[a-zA-Z0-9]+`|\[[^]]+\]\(([^)]+)\)' "$doc" 2>/dev/null | \
     sed -E 's/^`//; s/`$//; s/^\[[^]]+\]\(([^)#]+).*$/\1/' | \
     grep -vE '^(http|https|mailto|ftp):' | \
@@ -150,7 +150,6 @@ for doc in "${DOC_FILES[@]}"; do
       if [[ "$clean_ref" == *"/"* || "$clean_ref" =~ \.(py|php|js|ts|sh|go|rs|json|yaml|yml)$ ]]; then
         echo -e "${RED}[QUEBRA DE REFERÊNCIA]${RESET} $rel_doc cita '${clean_ref}', mas arquivo não existe no filesystem."
         BROKEN_REFS=$((BROKEN_REFS + 1))
-        doc_has_drift=true
       fi
     fi
 
@@ -170,7 +169,6 @@ for doc in "${DOC_FILES[@]}"; do
           if [[ "$doc_was_updated" == false ]]; then
             echo -e "${YELLOW}[DRIFT DETECTADO]${RESET} Código '$changed' foi modificado, mas a especificação '$rel_doc' não foi atualizada."
             DRIFT_COUNT=$((DRIFT_COUNT + 1))
-            doc_has_drift=true
           fi
         fi
       done
