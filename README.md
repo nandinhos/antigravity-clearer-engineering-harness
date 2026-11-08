@@ -42,8 +42,8 @@ Install or update CEH across Linux, macOS, or WSL with a single command:
 # Latest stable release
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
 
-# Pinned release (SemVer — v2.1.3)
-curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.1.3/install.sh | CEH_VERSION=2.1.3 bash
+# Pinned release (SemVer — v2.2.0)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.2.0/install.sh | CEH_VERSION=2.2.0 bash
 ```
 
 ---
