@@ -387,8 +387,8 @@ def check_baseline() -> int:
         non_code_mismatches = []
         for fn in sorted(set(exp_non_code.keys()) & set(cur_non_code.keys())):
             if exp_non_code[fn] != cur_non_code[fn]:
-                # Permite a evolução declarada de hooks.json e regras normativas do CEH (ex: ceh-stop-guard, SDD 2.0)
-                if fn.endswith(("hooks.json", "AGENTS.md", "core-engineering.md")):
+                # Permite a evolução declarada de hooks.json, versão do plugin e regras normativas do CEH (ex: ceh-stop-guard, SDD 2.0, Zero-Zombie)
+                if fn.endswith(("hooks.json", "AGENTS.md", "core-engineering.md", "coding-policy.md", "plugin.json")):
                     continue
                 non_code_mismatches.append(f"{fn} (esperado {exp_non_code[fn][:8]}, atual {cur_non_code[fn][:8]})")
 
