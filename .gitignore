@@ -25,6 +25,10 @@ google-creds.json
 scratch/
 .ceh/*
 !.ceh/config.json
+.context-mode/
+.github/context-mode/
+context-mode/
+stats-pid-*.json
 
 # Python
 __pycache__/

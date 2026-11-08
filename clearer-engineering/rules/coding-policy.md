@@ -34,3 +34,9 @@ trigger: always_on
 - **Proibido `python3 -c` ou `php -r` Multi-Linha**: Nunca invoque `python3 -c`, `php -r` ou `node -e` contendo quebras de linha literais (`\n`) dentro de `run_command`, pois comandos multi-linha aprovados na Antigravity IDE corrompem a gramática do `permission_grant_store.go`.
 - Utilize sempre one-liners em linha única (separados por `;`) ou crie scripts temporários em `<artifactDir>/scratch/`.
 
+## 7. Confinamento de Escopo e Proteção de Subprocesso (Zero-Zombie Policy)
+- **Proibição de Varreduras Abertas**: É terminantemente proibido disparar comandos de busca recursiva desmedida na raiz ou home (`find /`, `find ~`, `grep -r /`). Toda varredura deve ser estritamente delimitada a um diretório específico do workspace.
+- **Timeouts e Limpeza de Processos**: Comandos que executem ferramentas externas ou subprocessos devem impor timeout determinístico ($\le 30\text{s}$) e encerramento em árvore via `os.killpg(os.getpgid(pid), signal.SIGTERM)` para garantir que nenhum processo órfão permaneça consumindo recursos no SO/WSL.
+- **Ferramental Declarativo vs Scripts Procedurais**: Para inspeção de histórico ou diffs volumosos, priorizar ferramentas declarativas parametrizadas (`git_inspect.py` ou flags delimitadas) em vez de gerar código Python ad-hoc que infla os tokens de saída do modelo.
+
+
