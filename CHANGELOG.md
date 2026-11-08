@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Confinamento de Escopo & Proteção de Subprocesso (Zero-Zombie Policy)**:
+  - Adição da regra 15 em `AGENTS.md` e Seção 7 em `coding-policy.md` proibindo varreduras recursivas globais abertas na raiz ou home (`find /`, `find ~`, `grep -r /`).
+  - Exigência de timeout determinístico de execução ($\le 30\text{s}$) e encerramento em árvore via `os.killpg` para comandos de subprocesso, prevenindo vazamento de descritores e processos órfãos no WSL/host.
+  - Formalização da priorização de ferramentas declarativas parametrizadas (`git_inspect.py`) com schema JSON estruturado para economia de tokens de saída da LLM.
+
 ## [2.1.3] - 2026-10-20
 
 ### Added

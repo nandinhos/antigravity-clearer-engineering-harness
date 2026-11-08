@@ -134,6 +134,8 @@ Toda codificação sob o CEH é regida pela filosofia **Ponytail Mode (Senior Mi
       3. No término, acordar reativamente no milissegundo de conclusão e entregar o veredito final com o Response Contract.
     - *Heurística 12 (Visibilidade em Cadeias de Investigação / Anti-Silent Working Loop)*: Em sequências de investigação com mais de 2 chamadas de ferramentas consecutivas (ou durante diagnósticos e `/systematic-debugging`), o agente DEVE emitir 1 frase curta e objetiva informando o que está inspecionando e o achado parcial antes de disparar a próxima ferramenta, evitando períodos mudos prolongados em `"Working / Generating"`.
 14. **Proibição de `python3 -c` / `php -r` Multi-Linha em `run_command`**: É proibido invocar comandos inline (`python3 -c`, `php -r`, `node -e`) contendo quebras de linha literais (`\n`), pois strings multi-linha aprovadas na Antigravity IDE corrompem o `permission_grant_store.go`. Use sempre one-liners em linha única (separados por `;`) ou scripts em `<artifactDir>/scratch/`.
+15. **Confinamento de Escopo & Proteção de Subprocesso (Zero-Zombie Policy)**: É terminantemente proibido disparar comandos de varredura global recursiva não delimitada (`find /`, `find ~`, `grep -r /`). Todo subprocesso deve possuir timeout determinístico de execução ($\le 30\text{s}$) e encerramento em árvore via `os.killpg` para evitar exaustão de descritores e processos zumbis remanescentes no WSL/host. Para inspeção de histórico ou diffs volumosos, priorizar ferramentas declarativas (`git_inspect.py`) com schema JSON estruturado.
+
 
 ### Cláusula de Break-Rules (Prevalência de Segurança):
 As heurísticas de concisão cognitiva operam como camada de apresentação e **NUNCA** superam as salvaguardas de engenharia:
