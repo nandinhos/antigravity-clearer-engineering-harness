@@ -54,4 +54,11 @@ else
 fi
 
 echo ""
+echo "--- 5. System One Atomic Diff Decisions (gemini-decision-1) ---"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/ceh_decisions.py" ]] && command -v python3 >/dev/null 2>&1; then
+    python3 "$SCRIPT_DIR/ceh_decisions.py" diff-audit --human 2>/dev/null || true
+fi
+
+echo ""
 echo "=== Diff Audit Completed ==="
