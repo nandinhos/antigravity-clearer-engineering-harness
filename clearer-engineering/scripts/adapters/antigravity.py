@@ -27,6 +27,8 @@ class AntigravityAdapter(HostAdapter):
         "write_to_file",
         "replace_file_content",
         "multi_replace_file_content",
+        "write_file",
+        "edit_file",
     }
 
     @property
@@ -113,7 +115,7 @@ class AntigravityAdapter(HostAdapter):
             )
 
         elif tool_name in self.FILE_WRITE_TOOLS:
-            target_file = str(args.get("TargetFile", "")).strip()
+            target_file = str(args.get("Path") or args.get("TargetFile") or "").strip()
             if not target_file:
                 raise ValueError(f"Caminho de arquivo alvo ausente para ferramenta '{tool_name}'.")
 

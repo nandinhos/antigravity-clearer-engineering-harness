@@ -299,6 +299,9 @@ ONDA4_DECLARED_NEW_PATHS = {
     # SDD 2.0 (Drift Auditor & Ponytail Spec)
     ".gemini/config/plugins/clearer-engineering/scripts/ceh-drift.sh",
     ".gemini/config/plugins/clearer-engineering/tests/test_ceh_drift.py",
+    # Camada L1.5 System One (Gemini Decisions API - Antigravity Exclusive)
+    ".gemini/config/plugins/clearer-engineering/scripts/ceh_decisions.py",
+    ".gemini/config/plugins/clearer-engineering/tests/test_ceh_decisions.py",
 }
 
 

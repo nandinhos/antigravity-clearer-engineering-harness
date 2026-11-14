@@ -343,6 +343,10 @@ run_test "Stop Guard Hook: Fechamento epistêmico com arquivo de estado .ceh/fea
 run_test "Drift Auditor: Detecção determinística de drift código vs spec (SDD 2.0)" \
     "python3 '$PLUGIN_DIR/tests/test_ceh_drift.py' >/dev/null 2>&1"
 
+# 47. System One Decisions Engine Suite (Camada L1.5 Antigravity)
+run_test "System One Decisions Engine: Bateria atômica L1.5, Invariante 7 e Qualificação ADR 003" \
+    "python3 '$PLUGIN_DIR/tests/test_ceh_decisions.py' >/dev/null 2>&1"
+
 
 
 SUITE_DURATION=$(( $(date +%s) - SUITE_START ))
