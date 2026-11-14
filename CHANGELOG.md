@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.3.0] - 2026-11-14
+
+### Added
+- **Camada L1.5 Determinística (System One `ceh_decisions.py`)**: promoção de `ceh_decisions.py` e `test_ceh_decisions.py` ao plugin oficial do Antigravity e integração com `diff-audit.sh` (`--human` em pt-BR).
+- **Adaptador Antigravity (`write_file` / `edit_file`)**: suporte às ferramentas nativas com extração prioritária de `args.Path` e fallback legado `args.TargetFile` em `safety-gate.py`.
 
 ### Changed
 - **Compactação Lossless Ponytail das Regras `always_on` (`RULE-OPT-01`)**:
