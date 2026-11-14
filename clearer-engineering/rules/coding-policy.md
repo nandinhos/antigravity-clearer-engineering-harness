@@ -5,38 +5,22 @@ trigger: always_on
 # Coding Policy & Staff Engineering Craftsmanship
 
 ## 1. Inspect Before Edit & Context Grounding
-- Sempre leia os arquivos alvo e seus testes antes de propor ou aplicar edições.
-- Entenda os padrões de nomenclatura, estilo de código, injeção de dependências e arquitetura existentes no repositório.
-- A única fonte da verdade é o código e schemas observados (`OBSERVED`).
+- Leia os arquivos alvo, chamadores e testes antes de editar; siga os padrões e injeção existentes.
+- A única fonte da verdade é o código e schema `OBSERVED`.
 
 ## 2. Blast Radius Mínimo & Precisão Cirúrgica
-- Limite as alterações estritamente ao escopo da tarefa.
-- Proibido reformatar arquivos inteiros ou introduzir ruído cosmético que dificulte o code review.
-- Preserve contratos de APIs públicas, interfaces, schemas e invariantes de tipos existentes.
-- Atalhos temporários deliberados devem seguir a convenção Ponytail: `// shortcut: <teto de escala>, <gatilho de refatoração>`. Comentários de atalho sem gatilho de saída são terminantemente proibidos (`no-trigger`).
+- Limite edições ao escopo da tarefa; proibido reformatar arquivos inteiros ou gerar ruído cosmético.
+- Preserve contratos públicos, interfaces, schemas e invariantes de tipos.
+- Atalhos temporários exigem `// shortcut: <teto de escala>, <gatilho de refatoração>`; proibido `no-trigger`.
 
-## 3. Tipagem Estrita & Código Idiomático
-- Utilize tipagem forte e explícita em todas as assinaturas públicas e privadas.
-- Evite tipos genéricos ou permissivos (`any`, `mixed`, `dynamic`) sem validação de tipo na borda (*type narrowing/guards*).
-- Escreva código auto-documentado: nomes reveladores de intenção e responsabilidade única.
+## 3. Tipagem Estrita & Engenharia Defensiva
+- Tipagem forte explícita em assinaturas; evite `any`/`mixed`/`dynamic` sem *type narrowing* na borda.
+- Trate nulos, listas vazias, timeouts e desconexões com *fail-fast* e mensagens contextuais.
+- Isole regras de negócio da persistência/transporte (Clean Architecture / SOLID); recursos externos só conectam no primeiro uso operacional (nunca em import, build ou testes unitários sem I/O).
 
-## 4. Engenharia Defensiva & Resiliência
-- Trate sempre cenários de borda: entradas nulas/indefinidas, listas vazias, timeouts e desconexões.
-- Aplique *fail-fast* com mensagens de erro semânticas e contextuais.
-- Isole regras de negócio de detalhes de persistência e transporte (Clean Architecture / SOLID).
-- Recurso externo (bancos de dados, serviços de rede, filas, caches) só conecta no primeiro uso operacional, nunca durante import, build de módulos ou suíte de testes unitários sem I/O.
+## 4. Root-Cause First para Bugs
+- Nunca mascare sintomas: Sintoma → Reprodução → Observação → Hipótese → Causa Raiz → Teste de Regressão → Correção Mínima.
 
-## 5. Root-Cause First para Bugs
-- Nunca aplique um patch cego para esconder sintomas.
-- Siga rigorosamente: Sintoma → Reprodução → Observação → Hipótese → Causa Raiz → Teste de Regressão → Correção Mínima.
-
-## 6. Execução Determinística de Comandos Inline (`run_command`)
-- **Proibido `python3 -c` ou `php -r` Multi-Linha**: Nunca invoque `python3 -c`, `php -r` ou `node -e` contendo quebras de linha literais (`\n`) dentro de `run_command`, pois comandos multi-linha aprovados na Antigravity IDE corrompem a gramática do `permission_grant_store.go`.
-- Utilize sempre one-liners em linha única (separados por `;`) ou crie scripts temporários em `<artifactDir>/scratch/`.
-
-## 7. Confinamento de Escopo e Proteção de Subprocesso (Zero-Zombie Policy)
-- **Proibição de Varreduras Abertas**: É terminantemente proibido disparar comandos de busca recursiva desmedida na raiz ou home (`find /`, `find ~`, `grep -r /`). Toda varredura deve ser estritamente delimitada a um diretório específico do workspace.
-- **Timeouts e Limpeza de Processos**: Comandos que executem ferramentas externas ou subprocessos devem impor timeout determinístico ($\le 30\text{s}$) e encerramento em árvore via `os.killpg(os.getpgid(pid), signal.SIGTERM)` para garantir que nenhum processo órfão permaneça consumindo recursos no SO/WSL.
-- **Ferramental Declarativo vs Scripts Procedurais**: Para inspeção de histórico ou diffs volumosos, priorizar ferramentas declarativas parametrizadas (`git_inspect.py` ou flags delimitadas) em vez de gerar código Python ad-hoc que infla os tokens de saída do modelo.
-
-
+## 5. Execução Segura de Subprocessos & Inline (`run_command`)
+- Proibido `python3 -c`, `php -r` ou `node -e` com `\n` literal (corrompe `permission_grant_store.go`); use one-liners ou `<artifactDir>/scratch/`.
+- Proibido varredura global (`find /`, `find ~`, `grep -r /`); imponha timeout $\le 30\text{s}$ com `os.killpg` e use `git_inspect.py` para históricos/diffs extensos.

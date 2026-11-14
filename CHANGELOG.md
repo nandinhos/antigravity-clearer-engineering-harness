@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Compactação Lossless Ponytail das Regras `always_on` (`RULE-OPT-01`)**:
+  - Enxugamento sem perda semântica em `clearer-engineering/rules/AGENTS.md` (`24.905 bytes` $\to$ `12.092 bytes`, redução de `-51,45%`), eliminando integralmente o truncamento ativo de `978 bytes` acima do limite de `24.000 bytes` por regra do Google Antigravity IDE/CLI.
+  - Remoção de redundâncias textuais em `clearer-engineering/rules/coding-policy.md` (`3.423 bytes` $\to$ `1.642 bytes`) e `clearer-engineering/rules/core-engineering.md` (`2.087 bytes` $\to$ `990 bytes`), mantendo os quatro arquivos satélites (`evidence-policy.md`, `git-safety.md`, `security-policy.md`, `testing-policy.md`) intactos byte-a-byte.
+  - Preservadas 100% das cláusulas normativas, integridade do pacote no `ceh-doctor.sh --verify` (`138/138`) e aprovação integral na suíte canônica (`80/80 PASS`).
+
 ## [2.2.0] - 2026-11-08
 
 ### Added

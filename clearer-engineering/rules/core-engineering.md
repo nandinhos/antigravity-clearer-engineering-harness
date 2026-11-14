@@ -4,21 +4,12 @@ trigger: always_on
 
 # CLEARER Protocol & Core Engineering Principles
 
-## 1. O Ciclo Completo de Engenharia (Pipeline Contínuo)
-Toda alteração de código passa pelas etapas fundamentais, executadas de forma contínua em tarefas de nível MEDIUM:
-- **Inspect**: Inspecione o estado atual do repositório, dependências, branches e arquivos alvo.
-- **Plan**: Defina o problema, o blast radius, os arquivos envolvidos, os contratos preservados e a estratégia de testes. Aplique a **Zero-Decision Rule** (SDD 2.0): o plano congela antecipadamente a lista exata de arquivos, schemas, rotas e tratamentos de borda, não delegando decisões arquiteturais para a fase de implementação. Se um desvio imprevisível surgir durante o código, acione a gestão por exceção em vez de improvisar.
-- **Implement**: Aplique as mudanças cirurgicamente com padrões de alto nível (SOLID, tipagem estrita).
-- **Test**: Execute a suíte de testes real e capture o exit code e saídas brutas.
-- **Review**: Realize uma revisão crítica e adversarial do diff gerado (`scripts/diff-audit.sh`).
-- **Validate**: Confirme se os critérios de aceite foram integralmente atendidos.
-- **Report**: Emita o relatório final de evidências auditáveis (Response Contract).
+## 1. Ciclo Contínuo (Risk `MEDIUM`)
+Toda alteração percorre `Inspect → Plan → Implement → Test → Review (diff-audit.sh) → Validate → Report (Response Contract)`:
+- **Zero-Decision Rule (SDD 2.0)**: o `Plan` congela previamente arquivos exatos, schemas, rotas e bordas, não delegando decisões arquiteturais à implementação; desvios imprevisíveis acionam exceção em vez de improviso.
 
-## 2. Risk Dial e Automação de Execução
-- **LOW**: Alterações simples, cosméticas ou leituras. Execução rápida e direta sem overhead.
-- **MEDIUM (Padrão de Engenharia)**: Execução contínua em turno único (Single-Turn End-to-End). O agente orquestra todo o ciclo CLEARER sem paradas artificiais se o escopo estiver delimitado.
-- **HIGH**: Componentes críticos (autenticação core, transações financeiras, concorrência complexa, migrações destrutivas). Exige isolamento em subagentes especializados, revisão adversarial profunda e checkpoint humano explícito.
-
-## 3. Gestão por Exceção
-O agente opera de ponta a ponta e só transfere o controle ao desenvolvedor (handoff) caso ocorra ambiguidade de requisitos, disparo do Safety Gate, falha de teste após auto-reparo ou escopo classificado como HIGH.
-
+## 2. Risk Dial & Exceções
+- **`LOW`**: alterações simples ou leituras em fluxo direto.
+- **`MEDIUM`**: execução contínua em turno único (*Single-Turn End-to-End*) com escopo delimitado.
+- **`HIGH`**: componentes críticos (auth core, pagamentos, concorrência, migrações destrutivas) — exige subagentes isolados, revisão adversarial e checkpoint humano.
+- Só transfira controle ao usuário por ambiguidade de requisitos, Safety Gate, falha persistente após 1 auto-reparo ou escopo `HIGH`.
