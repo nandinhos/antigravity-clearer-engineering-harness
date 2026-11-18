@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-11-18
+
+### Added
+- **Matchers de Escrita AGY 2.0 (`hooks.json`)**: registro nativo de `write_file` e `edit_file` no `ceh-safety-gate` para proteção completa em instalações standalone no Antigravity 2.0.
+- **Fallback `payload.cwd` com Trava Git (`AntigravityAdapter`)**: suporte a `payload.cwd` (quando `args.Cwd` e `workspacePaths` estão ausentes) e resolução por tokens para `git -C <repo> push`, preservando `force_deny_push=True` fora de repositórios Git.
+- **Resiliência Offline (`ceh_decisions.py`)**: suporte ao formato `criteria` em lista no fallback offline `_eval_fallback_score`.
+
+### Fixed
+- **Orçamento de `<subagents>` no Antigravity 2.0 (`install.sh` / `aliases.sh`)**: removida a instalação da cópia duplicada em `~/.gemini/config/agents/clearer-harness/` (com limpeza idempotente de resíduos legados) e atualizados os aliases `agy-ceh`/`ceh`, evitando a expulsão do subagente nativo `browser` no orçamento de 12 subagentes.
+
 ## [2.3.0] - 2026-11-14
 
 ### Added

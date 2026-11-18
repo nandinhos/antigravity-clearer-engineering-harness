@@ -245,6 +245,33 @@ class TestHostAdapters(unittest.TestCase):
             self.assertEqual(resp_push.get("decision"), "deny")
             self.assertIn("[CEH PRE-PUSH CI GATE]", resp_push.get("reason", ""))
 
+            # 3b. git commit citando "git push" fora de repo Git -> allow (sem falso positivo regex)
+            clear_environment_caches()
+            p_plain_commit = {
+                "cwd": str(plain_dir),
+                "workspacePaths": [],
+                "toolCall": {"name": "run_command", "args": {"CommandLine": 'git commit -m "nota sobre git push"'}},
+            }
+            with patch.dict(os.environ, {}, clear=True):
+                resp_commit = evaluate_hook_payload(p_plain_commit, evaluate)
+            self.assertEqual(resp_commit.get("decision"), "allow")
+
+            # 3c. git -C <dev_repo> push a partir de plain_dir -> delega ao CI Gate oficial de dev_repo
+            ci_dir = dev_repo / ".github" / "workflows"
+            ci_dir.mkdir(parents=True, exist_ok=True)
+            (ci_dir / "ci.yml").write_text("name: CI\n", encoding="utf-8")
+            clear_environment_caches()
+            p_git_c_push = {
+                "cwd": str(plain_dir),
+                "workspacePaths": [],
+                "toolCall": {"name": "run_command", "args": {"CommandLine": f"git -C {dev_repo} push origin dev"}},
+            }
+            with patch.dict(os.environ, {}, clear=True):
+                resp_c_push = evaluate_hook_payload(p_git_c_push, evaluate)
+            self.assertEqual(resp_c_push.get("decision"), "deny")
+            self.assertIn("[CEH PRE-PUSH CI GATE]", resp_c_push.get("reason", ""))
+            self.assertIn("NENHUMA execução prévia comprovada", resp_c_push.get("reason", ""))
+
             # 4. Ferramentas AGY 2.0 write_file e edit_file contra .ceh/ -> deny
             for tool_name in ("write_file", "edit_file"):
                 with self.subTest(tool=tool_name):
