@@ -141,8 +141,6 @@ deploy_harness() {
     local TARGET_AGENT_DIR="$GEMINI_CONFIG_DIR/agents/clearer-harness"
 
     mkdir -p "$GEMINI_CONFIG_DIR/plugins"
-    mkdir -p "$GEMINI_CONFIG_DIR/agents"
-    mkdir -p "$TARGET_AGENT_DIR"
 
     # 3.1 Generate fresh Antigravity package on the fly (PR-16)
     local PKG_TMP_DIR
@@ -197,13 +195,9 @@ deploy_harness() {
     rm -rf "$STAGING_DIR"
     [[ -n "$BACKUP_DIR" ]] && rm -rf "$BACKUP_DIR"
 
-    # Copy Agent Profile from canonical source
-    local AGENT_PROFILE_SRC="$SOURCE_DIR/clearer-engineering/profiles/clearer-harness.agent.md"
-    if [[ -f "$AGENT_PROFILE_SRC" ]]; then
-        cp "$AGENT_PROFILE_SRC" "$TARGET_AGENT_DIR/agent.md"
-    else
-        log_error "Agent profile source not found at $AGENT_PROFILE_SRC"
-        exit 1
+    # Remove legacy global agent duplicate that exceeded <subagents> cap in Antigravity 2.0
+    if [[ -d "$TARGET_AGENT_DIR" ]]; then
+        rm -rf "$TARGET_AGENT_DIR"
     fi
 
     log_success "Assets installed to $GEMINI_CONFIG_DIR"

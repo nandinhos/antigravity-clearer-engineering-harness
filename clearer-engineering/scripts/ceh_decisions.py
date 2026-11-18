@@ -577,7 +577,12 @@ def _eval_fallback_score(
     lower_in: str,
 ) -> Tuple[float, Dict[str, float], float]:
     raw_crit = q_spec.get("criteria") or q_spec.get("levels")
-    levels = raw_crit if isinstance(raw_crit, dict) else {"1": "Low", "2": "Medium", "3": "High"}
+    if isinstance(raw_crit, dict):
+        levels = raw_crit
+    elif isinstance(raw_crit, list) and raw_crit:
+        levels = {str(idx): str(item) for idx, item in enumerate(raw_crit, 1)}
+    else:
+        levels = {"1": "Low", "2": "Medium", "3": "High"}
     keys = sorted(levels.keys(), key=lambda x: int(x) if str(x).isdigit() else 1)
 
     if q_id == "blast_radius_severity":

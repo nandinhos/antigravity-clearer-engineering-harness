@@ -17,6 +17,7 @@ from typing import Any
 
 from adapters.base import HostAdapter
 from ceh_core.engine import Request, Decision
+from ceh_core.environment import find_repo_root
 
 
 class AntigravityAdapter(HostAdapter):
@@ -60,8 +61,16 @@ class AntigravityAdapter(HostAdapter):
         args = args or {}
 
         raw_cwd = args.get("Cwd")
+        from_payload_cwd = False
         if raw_cwd is None and ws_root is not None:
             raw_cwd = str(ws_root)
+        if raw_cwd is None:
+            payload_cwd = payload.get("cwd")
+            if isinstance(payload_cwd, str) and payload_cwd.strip():
+                expanded_payload_cwd = os.path.expanduser(payload_cwd.strip())
+                if os.path.isabs(expanded_payload_cwd):
+                    raw_cwd = payload_cwd.strip()
+                    from_payload_cwd = True
 
         if not raw_cwd:
             return None, "production", True
@@ -77,6 +86,9 @@ class AntigravityAdapter(HostAdapter):
 
         if not resolved.is_dir():
             return None, "production", True
+
+        if from_payload_cwd and find_repo_root(resolved) is None:
+            return resolved, None, True
 
         return resolved, None, False
 

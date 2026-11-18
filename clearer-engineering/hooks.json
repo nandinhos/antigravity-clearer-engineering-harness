@@ -41,6 +41,26 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "matcher": "write_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py\"",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "edit_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.gemini/config/plugins/clearer-engineering/scripts/safety-gate.py\"",
+            "timeout": 15
+          }
+        ]
       }
     ]
   },
