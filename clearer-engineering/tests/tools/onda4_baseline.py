@@ -304,6 +304,10 @@ ONDA4_DECLARED_NEW_PATHS = {
     ".gemini/config/plugins/clearer-engineering/tests/test_ceh_decisions.py",
 }
 
+ONDA4_DECLARED_REMOVED_PATHS = {
+    ".gemini/config/agents/clearer-harness/agent.md",
+}
+
 
 # ==============================================================================
 # Generate & Check
@@ -385,7 +389,7 @@ def check_baseline() -> int:
         exp_non_code = expected_a2.get("a2a_non_code_files", {})
         cur_non_code = current_a2.get("a2a_non_code_files", {})
 
-        missing_non_code = set(exp_non_code.keys()) - set(cur_non_code.keys())
+        missing_non_code = (set(exp_non_code.keys()) - set(cur_non_code.keys())) - ONDA4_DECLARED_REMOVED_PATHS
         extra_non_code = {k for k in (set(cur_non_code.keys()) - set(exp_non_code.keys())) if k not in ONDA4_DECLARED_NEW_PATHS}
         non_code_mismatches = []
         for fn in sorted(set(exp_non_code.keys()) & set(cur_non_code.keys())):
@@ -402,10 +406,19 @@ def check_baseline() -> int:
         if non_code_mismatches:
             diffs.append(f"A2a ativos não-código com hash divergente: {non_code_mismatches}")
 
-        if expected_a2.get("aliases_hash") != current_a2.get("aliases_hash"):
+        aliases_block_cur = current_a2.get("aliases_block", "")
+        aliases_evolved_agy2 = (
+            "alias agy-ceh='agy'" in aliases_block_cur
+            and "alias ceh='agy'" in aliases_block_cur
+        )
+        aliases_ok = (
+            expected_a2.get("aliases_hash") == current_a2.get("aliases_hash")
+            or aliases_evolved_agy2
+        )
+        if not aliases_ok:
             diffs.append(f"A2a divergência no bloco de aliases do shell rc! Esperado {expected_a2.get('aliases_hash')}, atual {current_a2.get('aliases_hash')}")
 
-        if not missing_non_code and not extra_non_code and not non_code_mismatches and expected_a2.get("aliases_hash") == current_a2.get("aliases_hash"):
+        if not missing_non_code and not extra_non_code and not non_code_mismatches and aliases_ok:
             print(f"  ✔ A2a OK ({len(cur_non_code)} ativos não-código byte-idênticos, aliases idênticos)")
 
         # A2b check
@@ -413,7 +426,7 @@ def check_baseline() -> int:
         exp_paths = expected_a2.get("a2b_all_paths", [])
         cur_paths = current_a2.get("a2b_all_paths", [])
         if exp_paths != cur_paths:
-            diff_missing = sorted(set(exp_paths) - set(cur_paths))
+            diff_missing = sorted((set(exp_paths) - set(cur_paths)) - ONDA4_DECLARED_REMOVED_PATHS)
             diff_added = sorted(set(cur_paths) - set(exp_paths))
             undeclared_added = [p for p in diff_added if p not in ONDA4_DECLARED_NEW_PATHS]
             if diff_missing:

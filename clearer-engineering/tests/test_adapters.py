@@ -174,6 +174,122 @@ class TestHostAdapters(unittest.TestCase):
             self.assertIsNone(target)
             self.assertTrue(force_deny)
 
+    def test_antigravity_agy2_payload_cwd_and_write_tools(self):
+        """BL-02A / BL-02B: Valida fallback payload.cwd com trava Git e bloqueio write_file/edit_file."""
+        import shutil
+        import subprocess
+        from ceh_core.engine import evaluate
+        from ceh_core.environment import clear_environment_caches
+        from hook_context import evaluate_hook_payload
+
+        _TOOLS_DIR = Path(__file__).resolve().parent / "tools"
+        if str(_TOOLS_DIR) not in sys.path:
+            sys.path.insert(0, str(_TOOLS_DIR))
+        from test_helpers import mkdtemp_resolved
+
+        def _init_git_repo(repo_dir: Path, branch: str) -> None:
+            subprocess.run(["git", "init", "-b", branch], cwd=repo_dir, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.name", "CEH Test"], cwd=repo_dir, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "test@clearer.dev"], cwd=repo_dir, check=True, capture_output=True)
+            (repo_dir / "README.md").write_text("probe\n", encoding="utf-8")
+            subprocess.run(["git", "add", "README.md"], cwd=repo_dir, check=True, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init"], cwd=repo_dir, check=True, capture_output=True)
+
+        dev_repo = mkdtemp_resolved(prefix="ceh_agy2_dev_")
+        main_repo = mkdtemp_resolved(prefix="ceh_agy2_main_")
+        plain_dir = mkdtemp_resolved(prefix="ceh_agy2_plain_")
+        try:
+            _init_git_repo(dev_repo, "dev")
+            _init_git_repo(main_repo, "main")
+
+            # 1. payload.cwd em branch dev com workspacePaths=[] -> DEVELOPMENT (allow)
+            clear_environment_caches()
+            p_dev = {
+                "cwd": str(dev_repo),
+                "workspacePaths": [],
+                "toolCall": {"name": "run_command", "args": {"CommandLine": "ls -la"}},
+            }
+            target, env, force_deny = self.agy_adapter.resolve_target(p_dev)
+            self.assertEqual(target, dev_repo)
+            self.assertIsNone(env)
+            self.assertFalse(force_deny)
+            with patch.dict(os.environ, {}, clear=True):
+                resp_dev = evaluate_hook_payload(p_dev, evaluate)
+            self.assertEqual(resp_dev.get("decision"), "allow")
+            self.assertIn("DEVELOPMENT", resp_dev.get("reason", ""))
+
+            # 2. payload.cwd em branch main com comando destrutivo -> PRODUCTION LOCK (deny)
+            clear_environment_caches()
+            p_main = {
+                "cwd": str(main_repo),
+                "workspacePaths": [],
+                "toolCall": {"name": "run_command", "args": {"CommandLine": "git reset --hard"}},
+            }
+            with patch.dict(os.environ, {}, clear=True):
+                resp_main = evaluate_hook_payload(p_main, evaluate)
+            self.assertEqual(resp_main.get("decision"), "deny")
+            self.assertIn("[CEH PRODUCTION LOCK]", resp_main.get("reason", ""))
+
+            # 3. payload.cwd fora de repositório Git -> force_deny_push=True bloqueia git push
+            clear_environment_caches()
+            p_plain_push = {
+                "cwd": str(plain_dir),
+                "workspacePaths": [],
+                "toolCall": {"name": "run_command", "args": {"CommandLine": "git push origin dev"}},
+            }
+            target_p, _, force_deny_p = self.agy_adapter.resolve_target(p_plain_push)
+            self.assertEqual(target_p, plain_dir)
+            self.assertTrue(force_deny_p)
+            with patch.dict(os.environ, {}, clear=True):
+                resp_push = evaluate_hook_payload(p_plain_push, evaluate)
+            self.assertEqual(resp_push.get("decision"), "deny")
+            self.assertIn("[CEH PRE-PUSH CI GATE]", resp_push.get("reason", ""))
+
+            # 3b. git commit citando "git push" fora de repo Git -> allow (sem falso positivo regex)
+            clear_environment_caches()
+            p_plain_commit = {
+                "cwd": str(plain_dir),
+                "workspacePaths": [],
+                "toolCall": {"name": "run_command", "args": {"CommandLine": 'git commit -m "nota sobre git push"'}},
+            }
+            with patch.dict(os.environ, {}, clear=True):
+                resp_commit = evaluate_hook_payload(p_plain_commit, evaluate)
+            self.assertEqual(resp_commit.get("decision"), "allow")
+
+            # 3c. git -C <dev_repo> push a partir de plain_dir -> delega ao CI Gate oficial de dev_repo
+            ci_dir = dev_repo / ".github" / "workflows"
+            ci_dir.mkdir(parents=True, exist_ok=True)
+            (ci_dir / "ci.yml").write_text("name: CI\n", encoding="utf-8")
+            clear_environment_caches()
+            p_git_c_push = {
+                "cwd": str(plain_dir),
+                "workspacePaths": [],
+                "toolCall": {"name": "run_command", "args": {"CommandLine": f"git -C {dev_repo} push origin dev"}},
+            }
+            with patch.dict(os.environ, {}, clear=True):
+                resp_c_push = evaluate_hook_payload(p_git_c_push, evaluate)
+            self.assertEqual(resp_c_push.get("decision"), "deny")
+            self.assertIn("[CEH PRE-PUSH CI GATE]", resp_c_push.get("reason", ""))
+            self.assertIn("NENHUMA execução prévia comprovada", resp_c_push.get("reason", ""))
+
+            # 4. Ferramentas AGY 2.0 write_file e edit_file contra .ceh/ -> deny
+            for tool_name in ("write_file", "edit_file"):
+                with self.subTest(tool=tool_name):
+                    clear_environment_caches()
+                    p_write = {
+                        "cwd": str(dev_repo),
+                        "workspacePaths": [str(dev_repo)],
+                        "toolCall": {"name": tool_name, "args": {"Path": str(dev_repo / ".ceh" / "probe.json")}},
+                    }
+                    with patch.dict(os.environ, {}, clear=True):
+                        resp_w = evaluate_hook_payload(p_write, evaluate)
+                    self.assertEqual(resp_w.get("decision"), "deny")
+        finally:
+            clear_environment_caches()
+            shutil.rmtree(dev_repo, ignore_errors=True)
+            shutil.rmtree(main_repo, ignore_errors=True)
+            shutil.rmtree(plain_dir, ignore_errors=True)
+
     def test_claude_target_resolution(self):
         """Valida a resolução de diretório alvo no Claude Code via payload.cwd ou tool_input.Cwd."""
         with tempfile.TemporaryDirectory() as tmp_dir:

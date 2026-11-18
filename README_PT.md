@@ -42,8 +42,8 @@ Instale ou atualize o CEH no Linux, macOS ou WSL executando no terminal:
 # Versão estável mais recente
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
 
-# Versão fixada (SemVer — v2.3.0)
-curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.3.0/install.sh | CEH_VERSION=2.3.0 bash
+# Versão fixada (SemVer — v2.3.1)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.3.1/install.sh | CEH_VERSION=2.3.1 bash
 ```
 
 ---
@@ -52,9 +52,9 @@ curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engin
 
 Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.zshrc`) para acessar o kit de ferramentas:
 
-| Comando | O que faz | Contexto / Exemplo |
+| Comando | O que faz | Context / Exemplo |
 |---|---|---|
-| `ceh` / `agy-ceh` | Inicia o Antigravity CLI sob o perfil `clearer-harness`. | Uso diário no terminal. |
+| `ceh` / `agy-ceh` | Inicia o Antigravity CLI com o CLEARER Harness ativo. | Uso diário no terminal. |
 | `agy-ceh-yolo` | Inicia o Antigravity com auto-aprovação de edições seguras. | Modo ágil em desenvolvimento. |
 | `ceh-env` | Identifica instantaneamente o ambiente (`DEV`/`STAGING`/`PROD`), branch e rigores ativos. | Checagem rápida antes de codificar. |
 | `ceh-branches` | Audita e configura as branches do projeto (Modo Enterprise ou Clássico). | Setup de novos repositórios. |

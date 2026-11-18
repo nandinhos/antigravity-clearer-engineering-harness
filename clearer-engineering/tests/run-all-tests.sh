@@ -179,7 +179,7 @@ run_test "Skill: clearer-adhd packaged with Ponytail UX 10 Heuristics & Break-Ru
 
 # 7. Shell Aliases Configuration
 run_test "Shell alias template in config/aliases.sh declares 'agy-ceh'" \
-    "grep -q \"^alias agy-ceh='agy --agent clearer-harness'\" '$PLUGIN_DIR/config/aliases.sh'"
+    "grep -q \"^alias agy-ceh='agy'\" '$PLUGIN_DIR/config/aliases.sh'"
 
 run_test "Shell alias template in config/aliases.sh declares 'ceh-evals'" \
     "grep -q '^alias ceh-evals=' '$PLUGIN_DIR/config/aliases.sh'"

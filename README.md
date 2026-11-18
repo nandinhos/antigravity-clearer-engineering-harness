@@ -42,8 +42,8 @@ Install or update CEH across Linux, macOS, or WSL with a single command:
 # Latest stable release
 curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/main/install.sh | bash
 
-# Pinned release (SemVer — v2.3.0)
-curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.3.0/install.sh | CEH_VERSION=2.3.0 bash
+# Pinned release (SemVer — v2.3.1)
+curl -fsSL https://raw.githubusercontent.com/nandinhos/antigravity-clearer-engineering-harness/v2.3.1/install.sh | CEH_VERSION=2.3.1 bash
 ```
 
 ---
@@ -54,7 +54,7 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 
 | Command | What it does | Context / Example |
 |---|---|---|
-| `ceh` / `agy-ceh` | Starts Antigravity CLI under the `clearer-harness` profile. | Daily terminal workflow. |
+| `ceh` / `agy-ceh` | Starts Antigravity CLI with CLEARER Harness active. | Daily terminal workflow. |
 | `agy-ceh-yolo` | Starts Antigravity with auto-approved safe edits. | Continuous agile dev mode. |
 | `ceh-env` | Instant detection of active environment (`DEV`/`STAGING`/`PROD`), branch, and safety policy. | Pre-coding sanity check. |
 | `ceh-branches` | Audits and sets up canonical project branches (Enterprise or Classic). | New repository setup. |

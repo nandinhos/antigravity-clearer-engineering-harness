@@ -45,13 +45,13 @@ if [[ ! -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json" ]]
     exit 1
 fi
 
-if [[ ! -f "$TMP_HOME/.gemini/config/agents/clearer-harness/agent.md" ]]; then
-    echo "ERRO: agent.md não foi instalado em ~/.gemini/config/agents/clearer-harness"
+if [[ -e "$TMP_HOME/.gemini/config/agents/clearer-harness" ]]; then
+    echo "ERRO: duplicata legada ~/.gemini/config/agents/clearer-harness não deve ser criada no Antigravity 2.0"
     exit 1
 fi
 
-if ! cmp -s "$REPO_ROOT/clearer-engineering/profiles/clearer-harness.agent.md" "$TMP_HOME/.gemini/config/agents/clearer-harness/agent.md"; then
-    echo "ERRO: agent.md instalado difere byte a byte do perfil canônico em profiles/clearer-harness.agent.md"
+if [[ ! -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/profiles/clearer-harness.agent.md" ]]; then
+    echo "ERRO: profiles/clearer-harness.agent.md ausente no pacote instalado do plugin"
     exit 1
 fi
 
@@ -60,8 +60,14 @@ if [[ ! -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/config/aliases.
     exit 1
 fi
 
-# 1.2 Segunda instalação (idempotência)
+# 1.2 Segunda instalação (idempotência e limpeza automática de resíduo legado)
+mkdir -p "$TMP_HOME/.gemini/config/agents/clearer-harness"
+touch "$TMP_HOME/.gemini/config/agents/clearer-harness/agent.md"
 HOME="$TMP_HOME" bash "$REPO_ROOT/install.sh" >/dev/null
+if [[ -e "$TMP_HOME/.gemini/config/agents/clearer-harness" ]]; then
+    echo "ERRO: install.sh não removeu o resíduo legado ~/.gemini/config/agents/clearer-harness"
+    exit 1
+fi
 
 for rc in "$TMP_HOME/.bashrc" "$TMP_HOME/.zshrc"; do
     rc_name=$(basename "$rc")
