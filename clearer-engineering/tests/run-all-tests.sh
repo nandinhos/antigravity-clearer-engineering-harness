@@ -347,6 +347,10 @@ run_test "Drift Auditor: Detecção determinística de drift código vs spec (SD
 run_test "System One Decisions Engine: Bateria atômica L1.5, Invariante 7 e Qualificação ADR 003" \
     "python3 '$PLUGIN_DIR/tests/test_ceh_decisions.py' >/dev/null 2>&1"
 
+# 48. Test Runner Runtime Adapter docker_service host/none Suite
+run_test "Test Runner Docker Service: Suporte a docker_service host/none e regressão de dispatch" \
+    "python3 '$PLUGIN_DIR/tests/test_runner_docker_service.py' >/dev/null 2>&1"
+
 
 
 SUITE_DURATION=$(( $(date +%s) - SUITE_START ))
