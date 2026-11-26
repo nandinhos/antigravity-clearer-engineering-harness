@@ -46,7 +46,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     if [[ -f "$REPO_ROOT/.ceh/config.json" ]]; then
         if git cat-file -e "HEAD:.ceh/config.json" 2>/dev/null && git -C "$REPO_ROOT" diff --quiet HEAD -- .ceh/config.json 2>/dev/null; then
             CONFIG_CMD=$(git -C "$REPO_ROOT" show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("canonical_test_command",""))' 2>/dev/null) || CONFIG_OK=0
-            CONFIG_DOCKER_SVC=$(git -C "$REPO_ROOT" show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("docker_service",""))' 2>/dev/null || true)
+            CONFIG_DOCKER_SVC=$(git -C "$REPO_ROOT" show "HEAD:.ceh/config.json" 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("docker_service") or "")' 2>/dev/null || true)
         else
             CONFIG_OK=0
         fi
@@ -55,7 +55,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     fi
 elif [[ -f "$REPO_ROOT/.ceh/config.json" ]]; then
     CONFIG_CMD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("canonical_test_command",""))' "$REPO_ROOT/.ceh/config.json" 2>/dev/null) || CONFIG_OK=0
-    CONFIG_DOCKER_SVC=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("docker_service",""))' "$REPO_ROOT/.ceh/config.json" 2>/dev/null || true)
+    CONFIG_DOCKER_SVC=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("docker_service") or "")' "$REPO_ROOT/.ceh/config.json" 2>/dev/null || true)
 fi
 
 FORCE_RUN=0; [[ "${1:-}" == "--force" ]] && { FORCE_RUN=1; shift; }
@@ -110,7 +110,7 @@ fi
 
 # Runtime Adapter: Detect if test command needs container dispatch
 ACTIVE_COMPOSE_SERVICES=()
-if command -v docker >/dev/null 2>&1 && _run_with_timeout 2 docker info >/dev/null 2>&1; then
+if [[ "$CONFIG_DOCKER_SVC" != "host" && "$CONFIG_DOCKER_SVC" != "none" ]] && command -v docker >/dev/null 2>&1 && _run_with_timeout 2 docker info >/dev/null 2>&1; then
     if [[ -f "docker-compose.yml" || -f "docker-compose.yaml" || -f "compose.yaml" || -f "compose.yml" ]]; then
         ACTIVE_COMPOSE=$(_run_with_timeout 3 docker compose ps --services --filter "status=running" 2>/dev/null || true)
         while IFS= read -r s; do
@@ -120,7 +120,9 @@ if command -v docker >/dev/null 2>&1 && _run_with_timeout 2 docker info >/dev/nu
 fi
 
 # If containers are actively running and the command is a bare host command, adapt it
-if [[ ${#ACTIVE_COMPOSE_SERVICES[@]} -gt 0 && ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]]; then
+if [[ "$CONFIG_DOCKER_SVC" == "host" || "$CONFIG_DOCKER_SVC" == "none" ]]; then
+    echo "[CEH RUNTIME ADAPTER] 🖥️ docker_service='$CONFIG_DOCKER_SVC' declarado em .ceh/config.json. Executando no Host Nativo..."
+elif [[ ${#ACTIVE_COMPOSE_SERVICES[@]} -gt 0 && ! "$TEST_CMD" =~ (docker|docker-compose|sail) ]]; then
     if [[ " ${ACTIVE_COMPOSE_SERVICES[*]} " == *" laravel.test "* ]]; then
         if [[ -f "vendor/bin/sail" ]]; then
             echo "[CEH RUNTIME ADAPTER] 🐳 Containers Laravel Sail ativos detectados. Despachando via Sail..."

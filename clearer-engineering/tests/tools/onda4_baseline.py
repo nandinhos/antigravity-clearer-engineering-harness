@@ -302,6 +302,8 @@ ONDA4_DECLARED_NEW_PATHS = {
     # Camada L1.5 System One (Gemini Decisions API - Antigravity Exclusive)
     ".gemini/config/plugins/clearer-engineering/scripts/ceh_decisions.py",
     ".gemini/config/plugins/clearer-engineering/tests/test_ceh_decisions.py",
+    # Runtime Adapter docker_service host/none
+    ".gemini/config/plugins/clearer-engineering/tests/test_runner_docker_service.py",
 }
 
 ONDA4_DECLARED_REMOVED_PATHS = {

@@ -30,31 +30,19 @@ chmod +x install.sh
 
 O instalador irá:
 1. Validar pré-requisitos (`agy`, `python3`, `git`, `bash`).
-2. Validar a integridade do plugin com `agy plugin validate`.
-3. Instalar o plugin no Antigravity CLI com `agy plugin install`.
-4. Registrar o perfil global `clearer-harness` em `~/.gemini/config/agents/clearer-harness/agent.md`.
-5. Configurar os aliases `agy-ceh` e `agy-ceh-yolo` nos seus arquivos de shell (`~/.bashrc`, `~/.zshrc`, etc.).
-6. Executar a suíte de auto-diagnóstico pós-instalação.
+2. Validar a integridade do plugin com `agy plugin validate` (quando o CLI estiver disponível).
+3. Instalar o plugin no Antigravity em `~/.gemini/config/plugins/clearer-engineering` (removendo resíduos legados de cópia duplicada em `~/.gemini/config/agents/clearer-harness/` para respeitar o orçamento de 12 subagentes do Antigravity 2.0).
+4. Configurar os aliases canônicos (`ceh`, `agy-ceh`, `agy-ceh-yolo`, `ceh-doctor`, etc.) nos seus arquivos de shell (`~/.bashrc`, `~/.zshrc`, etc.).
+5. Executar a suíte de auto-diagnóstico pós-instalação.
 
 ---
 
-## 3. Verificação Pós-Instalação
+## 3. Verificação Pós-Instalação & Configuração por Projeto
 
-### Verificar Plugins Ativos
+### Verificar Plugins Ativos e Integridade
 ```bash
 agy plugin list
-```
-
-### Verificar Perfis de Agente
-```bash
-agy agent
-```
-Deverá exibir:
-```text
-Available agents:
-bc-harness
-clearer-harness
-gemini-orchestrator
+ceh-doctor --verify
 ```
 
 ### Iniciar uma Sessão
@@ -63,16 +51,32 @@ gemini-orchestrator
 # Modo padrão (com aprovação interativa de comandos)
 agy-ceh
 # ou
-agy --agent clearer-harness
+ceh
 
 # Modo autônomo seguro / YOLO (auto-aprova edições seguras e comandos validados pelo Safety Gate)
 agy-ceh-yolo
 # ou
-agy --agent clearer-harness --dangerously-skip-permissions --mode accept-edits
+agy --dangerously-skip-permissions --mode accept-edits
 ```
 
 > [!NOTE]
-> O perfil `clearer-harness` é configurado com a declaração explícita de ferramentas de mutação (`write_to_file`, `replace_file_content`) e de execução (`run_command`), permitindo que as flags de execução autônoma operem normalmente sem bloqueio por restrição de ambiente somente leitura.
+> A partir da `v2.3.1`, as regras (`rules/*.md`), skills, hooks (`hooks.json`) e subagentes (`ceh-*`) são carregados diretamente do plugin `clearer-engineering` no Antigravity 2.0, sem duplicar perfis em `~/.gemini/config/agents/clearer-harness/` e preservando o subagente nativo `browser`.
+
+### Configuração Opcional do Projeto (`.ceh/config.json`)
+Para projetos com esteira de CI ou ambiente híbrido host/Docker, crie e versione `.ceh/config.json` na raiz do repositório:
+
+```json
+{
+  "canonical_test_command": "bash clearer-engineering/tests/run-all-tests.sh",
+  "docker_service": "host"
+}
+```
+
+- `canonical_test_command`: comando integral de testes executado pelo `test-runner.sh` para emissão do Certificado de Voo (`.ceh/last-ci-run.json`).
+- `docker_service` *(opcional)*:
+  - `"host"` ou `"none"`: força execução no host nativo, pulando sondagens `docker info` / `docker compose ps` mesmo quando há containers ativos no workspace.
+  - `"<nome-do-serviço>"`: despacha o comando via `docker compose exec -T <nome-do-serviço>`.
+  - Omitido ou `null`: mantém a autodetecção padrão (`laravel.test`, `app`, `web`, `php`, `backend`).
 
 ---
 

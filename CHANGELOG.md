@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2] - 2026-11-26
+
+### Added
+- **Runtime Adapter `docker_service: "host" | "none"` (`test-runner.sh`)**: permite declarar explicitamente execução no host nativo em `.ceh/config.json` (`"docker_service": "host"` ou `"none"`), pulando sondagens `docker info` / `docker compose ps` e impedindo dispatch automático para containers; trata `"docker_service": null` de forma defensiva como omitido.
+- **Bateria Comportamental (`test_runner_docker_service.py`)**: 4 cenários determinísticos cobrindo `host`, `none`, omitido e `null`, registrados como Teste 48 na suíte canônica (`81/81 PASS`) e no baseline da Onda 4.
+
+### Fixed
+- **Alinhamento Documental AGY 2.0 & Metadados**: atualização de `docs/installation.md` (removendo referências obsoletas ao perfil global `clearer-harness` descontinuado na `v2.3.1` e documentando `.ceh/config.json`) e sincronização de badges (`81/81`) e versões fixadas (`v2.3.2`) em `README.md` e `README_PT.md`.
+
 ## [2.3.1] - 2026-11-18
 
 ### Added
