@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.3] - 2026-11-26
+
+### Changed
+- **Paralelização em Camadas da Suíte (`run-all-tests.sh`)**: execução paralela com `HOME` hermético isolado por worker (`--jobs N`, auto até 6) e estratificação em `--core` (75 testes funcionais cobrindo 12/12 domínios críticos em `~41s`), `--deep` (6 auditorias pesadas de mutação/fuzzing/baseline Onda 4 em `~24s`) e `--full` (81/81 em `~75s`), preservando `run_test()` síncrono para `cluster2_acceptance.py` (R6) e contagem `81/81` em `doc-audit.py`.
+- **Esteira CI Otimizada (Ponytail CI v2 — `.github/workflows/ci.yml`)**: `precheck` com fast-pass para `push` (`staging`/`main`) e `pull_request` (`~14–15s`), fast-path `docs_only`, matriz enxuta (`core-linux`, `py310-compat`, `macos-compat` único), cache de `shellcheck` v0.11.0, paridade `CLAUDECODE=1` inline (`15s`) e preservação integral do check obrigatório `CI Aggregated Status (ci-ok)` (redução comprovada de `62,4 min` para `3,2 min` de runner por ciclo de deploy, `-94,9%`).
+
+### Added
+- **Workflow de Auditoria Profunda (`.github/workflows/ci-deep-audit.yml`)**: execução automatizada semanal, manual (`workflow_dispatch`) e em PRs para `main` que alterem `ceh_core/`, `adapters/` ou `safety-gate.py`, rodando `run-all-tests.sh --deep`.
+
 ## [2.3.2] - 2026-11-26
 
 ### Added
