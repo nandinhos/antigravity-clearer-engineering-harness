@@ -4,7 +4,7 @@
 ### Framework de Engenharia de Software Orientado a Evidências para o Google Antigravity
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
+[![Antigravity](https://img.shields.io/badge/Antigravity-v2.0%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
 [![Tests](https://img.shields.io/badge/Testes-81%2F81%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalista-blueviolet.svg)](#-filosofia-ponytail-mode--ast-first)
@@ -245,13 +245,19 @@ O CEH apoia o desenvolvedor com **2 modos de topologia Git**, identificados proa
 O harness possui validação rigorosa de ponta a ponta, incluindo testes de mutação de infraestrutura:
 
 ```bash
-# 1. Executar suíte completa de componentes e integridade (77 testes)
+# 1. Executar suíte funcional Core em paralelo (75 testes, 12/12 domínios críticos, ~41s)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Executar suíte de testes adversariais (bypass e injeção de comandos)
+# 2. Executar suíte completa com Auditoria Profunda (81 testes: + fuzzing diferencial e mutações)
+./clearer-engineering/tests/run-all-tests.sh --full
+
+# 3. Executar ciclo rápido Ponytail (< 5s, 13 testes core)
+./clearer-engineering/tests/run-fast-tests.sh
+
+# 4. Executar suíte de testes adversariais (6 cenários de bypass e injeção)
 ./clearer-engineering/tests/run-adversarial-tests.sh
 
-# 3. Executar Smoke-Eval de Falsificabilidade (Baseline 3x, Derivas A/B e Fail-Closed)
+# 5. Executar Smoke-Eval de Falsificabilidade (Baseline 3x, Derivas A/B e Fail-Closed)
 ./evals/run.sh
 ```
 
@@ -261,9 +267,13 @@ Consulte [`evals/CRITERIA.md`](./evals/CRITERIA.md) para a matriz formal de 5 cr
 
 ## 🏛️ Decisões de Arquitetura (ADRs)
 
+- [Índice Canônico de ADRs](./docs/architecture/README.md)
 - [ADR 003 — System One Epistemology ("Like a Jev")](./docs/architecture/system-one-epistemology.md)
 - [ADR 004 — Governança de CI Mandatória & Pre-Push Safety Gate](./docs/architecture/ci-governance-policy.md)
 - [ADR 005 — Adaptador de Runtime & Estratégia de Testes de CI](./docs/architecture/runtime-and-ci-adapters.md)
+- [ADR 006 — Núcleo Portável (Stdlib-Only) e Adaptadores de Host](./docs/architecture/adr-006-nucleo-e-adaptadores.md)
+- [ADR 007 — Proteção de Integridade do Certificado de CI e Modelo de Ameaças](./docs/architecture/adr-007-protecao-certificado-modelo-ameacas.md)
+- [ADR 008 — Isenção Sintática Declaration-Only](./docs/architecture/adr-008-isencao-sintatica-declaration-only.md)
 
 ---
 
