@@ -21,8 +21,8 @@ EOF
 
 echo ""
 echo -e "${BOLD}${CYAN}▶ COMANDOS RÁPIDOS NO TERMINAL:${NC}"
-echo -e "  ${GREEN}ceh${NC}             : Iniciar o Antigravity CLI com o perfil do harness (atalho de agy-ceh)"
-echo -e "  ${GREEN}agy-ceh${NC}         : Iniciar o Antigravity com profile 'clearer-harness'"
+echo -e "  ${GREEN}ceh${NC}             : Iniciar o Antigravity CLI com o CLEARER Harness ativo (atalho de agy-ceh)"
+echo -e "  ${GREEN}agy-ceh${NC}         : Iniciar o Antigravity CLI com o CLEARER Harness ativo (AGY 2.0)"
 echo -e "  ${GREEN}agy-ceh-yolo${NC}    : Iniciar com auto-aprovação de edições seguras (modo contínuo)"
 echo -e "  ${GREEN}ceh-env${NC}         : Identificar o ambiente atual (DEV/HOMOLOGAÇÃO/PRODUÇÃO) e branch ativa"
 echo -e "  ${GREEN}ceh-branches${NC}    : Auditar e configurar topologia de branches (Modo Enterprise ou Clássico)"

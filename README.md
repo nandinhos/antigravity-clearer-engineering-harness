@@ -4,7 +4,7 @@
 ### Evidence-Driven Software Engineering Framework for Google Antigravity
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
+[![Antigravity](https://img.shields.io/badge/Antigravity-v2.0%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
 [![Tests](https://img.shields.io/badge/Tests-81%2F81%20(100%25)-brightgreen.svg)](./clearer-engineering/tests/)
 [![Smoke Evals](https://img.shields.io/badge/Smoke%20Evals-5%2F5%20(100%25)-blue.svg)](./evals/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalist-blueviolet.svg)](#-ponytail-mode--ast-first-philosophy)
@@ -245,13 +245,19 @@ CEH natively supports **2 Git topology modes**, proactively identified upon load
 CEH provides rigorous end-to-end verification, including infrastructure mutation testing:
 
 ```bash
-# 1. Run Complete Component & Integrity Suite (77 tests)
+# 1. Run Core Functional Suite in Parallel (75 tests, 12/12 critical domains, ~41s)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Run Adversarial Verification Suite (bypass & injection detection)
+# 2. Run Full Suite including Deep Audit (81 tests: + differential fuzz & mutation proofs)
+./clearer-engineering/tests/run-all-tests.sh --full
+
+# 3. Run Ponytail Fast Cycle (< 5s rapid feedback, 13 core tests)
+./clearer-engineering/tests/run-fast-tests.sh
+
+# 4. Run Adversarial Verification Suite (6 bypass & injection cases)
 ./clearer-engineering/tests/run-adversarial-tests.sh
 
-# 3. Run Falsifiability Smoke-Eval (Baseline 3x, Drifts A/B & Fail-Closed)
+# 5. Run Falsifiability Smoke-Eval (Baseline 3x, Drifts A/B & Fail-Closed)
 ./evals/run.sh
 ```
 
@@ -261,9 +267,13 @@ See [`evals/CRITERIA.md`](./evals/CRITERIA.md) for the formal 5-criteria matrix 
 
 ## 🏛️ Architecture Decision Records (ADRs)
 
+- [Canonical ADR Index](./docs/architecture/README.md)
 - [ADR 003 — System One Epistemology ("Like a Jev")](./docs/architecture/system-one-epistemology.md)
 - [ADR 004 — Mandatory CI Governance & Pre-Push Safety Gate](./docs/architecture/ci-governance-policy.md)
 - [ADR 005 — Runtime Adapter & CI Testing Strategy](./docs/architecture/runtime-and-ci-adapters.md)
+- [ADR 006 — Portable Stdlib-Only Core & Host Adapters](./docs/architecture/adr-006-nucleo-e-adaptadores.md)
+- [ADR 007 — CI Certificate Integrity & Threat Model](./docs/architecture/adr-007-protecao-certificado-modelo-ameacas.md)
+- [ADR 008 — Declaration-Only Syntactic Exemption](./docs/architecture/adr-008-isencao-sintatica-declaration-only.md)
 
 ---
 

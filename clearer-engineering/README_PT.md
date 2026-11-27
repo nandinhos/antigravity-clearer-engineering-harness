@@ -4,8 +4,8 @@
 ### Framework de Engenharia de Software Orientado a Evidências para o Google Antigravity
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Testes-65%2F65%20(100%25)-brightgreen.svg)](./tests/)
+[![Antigravity](https://img.shields.io/badge/Antigravity-v2.0%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
+[![Tests](https://img.shields.io/badge/Testes-81%2F81%20(100%25)-brightgreen.svg)](./tests/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalista-blueviolet.svg)](#-filosofia-ponytail-mode--ast-first)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-o-risk-dial)
 
@@ -47,11 +47,17 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 
 | Comando | O que faz | Contexto / Exemplo |
 |---|---|---|
-| `ceh` / `agy-ceh` | Inicia o Antigravity CLI sob o perfil `clearer-harness`. | Uso diário no terminal. |
+| `ceh` / `agy-ceh` | Inicia o Antigravity CLI com o CLEARER Harness ativo (AGY 2.0). | Uso diário no terminal. |
 | `agy-ceh-yolo` | Inicia o Antigravity com auto-aprovação de edições seguras. | Modo ágil em desenvolvimento. |
 | `ceh-env` | Identifica instantaneamente o ambiente (`DEV`/`STAGING`/`PROD`), branch e rigores ativos. | Checagem rápida antes de codificar. |
 | `ceh-branches` | Audita e configura as branches do projeto (Modo Enterprise ou Clássico). | Setup de novos repositórios. |
 | `ceh-preflight` | Executa a verificação completa de prontidão e integridade do projeto. | Validação antes de releases. |
+| `ceh-doctor` | Verifica integridade byte a byte da instalação (`--verify`) e diagnóstico. | Checagem pós-instalação e integridade. |
+| `ceh-report` | Gera relatório determinístico de evidências (Invariante 6 System One). | Auditoria e conformidade. |
+| `ceh-evals` | Executa a bateria determinística de smoke-evals (5/5 critérios RFC 2119). | Testes de falsificabilidade do harness. |
+| `ceh-doc-audit` | Audita a estrutura documental, estados permitidos e portabilidade de links. | Higiene documental antes de releases. |
+| `ceh-conselho` | Convoca a banca multi-modelo do Conselho de Seniores (add-on opcional). | Deliberação e visão analítica 360º. |
+| `ceh-monitor` | Painel interativo de telemetria e heartbeat (25s) para tarefas de background. | Acompanhamento de testes demorados. |
 | `ceh-help` | Exibe o guia interativo de ajuda rápida e atalhos no terminal. | Consulta de comandos e regras. |
 
 > **No Antigravity IDE**: O harness e o **Cockpit de Engenharia** (`engineering_cockpit.md`) são ativados automaticamente em todas as sessões, sem necessidade de configuração adicional no repositório.
@@ -70,12 +76,14 @@ Após a instalação, recarregue o shell com `source ~/.bashrc` (ou `source ~/.z
 
 ## 🥋 Filosofia Ponytail Mode & Tríade de Economia de Tokens
 
-1. **Escada de Decisão Ponytail**: Antes de propor código ou instalar dependências, pergunte:
-   - *Isso precisa mesmo existir?* (YAGNI).
-   - *Já existe na base de código?* (Reutilize componentes e helpers existentes).
-   - *A biblioteca padrão (stdlib) resolve?* (Zero pacotes externos para tarefas triviais).
-   - *Existe API nativa da plataforma/runtime?* (Priorize os recursos nativos).
-   - *Uma intervenção cirúrgica resolve?* (Escreva o menor diff funcional possível).
+1. **Escada de Decisão Ponytail v5**: Antes de propor código ou adicionar dependências, pare no primeiro degrau viável:
+   - *Degrau 1 (YAGNI estrito)*: Isso precisa mesmo existir? Ignore recursos, opções ou abstrações especulativas não solicitadas.
+   - *Degrau 2 (Reúso no Repositório)*: Já existe na base de código? Reutilize helpers, traits, componentes e padrões existentes.
+   - *Degrau 3 (Biblioteca Padrão ou Plataforma)*: A stdlib ou recurso nativo resolve? Componente interno prevalece sobre widget nativo.
+   - *Degrau 4 (Dependência Instalada)*: Uma dependência já presente no manifesto resolve? Proibido adicionar pacotes externos para poucas linhas.
+   - *Degrau 5 (Linha Única Cristalina)*: Pode ser expresso em uma linha legível de relance? Mantenha em 1 linha.
+   - *Degrau 6 (Mínimo Funcional)*: Apenas o código estritamente necessário para resolver o problema, sem camadas extras.
+   - *Degrau 7 (Verificação Determinística de Lógica Arriscada)*: Lógica nova não-trivial deixa obrigatoriamente um teste comportamental cirúrgico ou asserção autoverificável.
 2. **AST First com Degradação Graciosa (Graphify)**:
    - Se o projeto possuir Graphify (`graphify-out/graph.json` ou MCP), o agente prioriza consultas relacionais com custo zero de tokens.
    - Se não possuir Graphify, o agente aplica inspeção nativa cirúrgica (`grep_search` e leitura fatiada via `view_file`), sendo expressamente proibido fazer dumps de arquivos inteiros no contexto.
@@ -173,13 +181,19 @@ O CEH apoia o desenvolvedor com **2 modos de topologia Git**, identificados proa
 O harness possui validação rigorosa de ponta a ponta, incluindo testes de mutação de infraestrutura:
 
 ```bash
-# 1. Executar suíte completa de componentes e integridade (35 testes)
+# 1. Executar suíte funcional Core em paralelo (75 testes, 12/12 domínios críticos)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Executar suíte de testes adversariais (bypass e injeção de comandos)
+# 2. Executar suíte completa com Auditoria Profunda (81 testes: + fuzzing diferencial e mutações)
+./clearer-engineering/tests/run-all-tests.sh --full
+
+# 3. Executar ciclo rápido Ponytail (< 5s, 13 testes core)
+./clearer-engineering/tests/run-fast-tests.sh
+
+# 4. Executar suíte de testes adversariais (bypass e injeção de comandos)
 ./clearer-engineering/tests/run-adversarial-tests.sh
 
-# 3. Executar Smoke-Eval de Falsificabilidade (Baseline 3x, Derivas A/B e Fail-Closed)
+# 5. Executar Smoke-Eval de Falsificabilidade (Baseline 3x, Derivas A/B e Fail-Closed)
 ./evals/run.sh
 ```
 

@@ -4,8 +4,8 @@
 ### Evidence-Driven Software Engineering Framework for Google Antigravity
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Antigravity](https://img.shields.io/badge/Antigravity-v1.1%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
-[![Tests](https://img.shields.io/badge/Tests-65%2F65%20(100%25)-brightgreen.svg)](./tests/)
+[![Antigravity](https://img.shields.io/badge/Antigravity-v2.0%2B-purple.svg)](https://github.com/nandinhos/antigravity-clearer-engineering-harness)
+[![Tests](https://img.shields.io/badge/Tests-81%2F81%20(100%25)-brightgreen.svg)](./tests/)
 [![Ponytail Mode](https://img.shields.io/badge/Ponytail%20Mode-Senior%20Minimalist-blueviolet.svg)](#-ponytail-mode--ast-first-philosophy)
 [![Risk Dial](https://img.shields.io/badge/Risk%20Dial-LOW%20|%20MEDIUM%20|%20HIGH-orange.svg)](#-the-risk-dial--execution-autonomy)
 
@@ -47,11 +47,17 @@ Reload your shell with `source ~/.bashrc` (or `source ~/.zshrc`) to access the c
 
 | Command | What it does | Context / Example |
 |---|---|---|
-| `ceh` / `agy-ceh` | Starts Antigravity CLI under the `clearer-harness` profile. | Daily terminal workflow. |
+| `ceh` / `agy-ceh` | Starts Antigravity CLI with CLEARER Harness active (AGY 2.0). | Daily terminal workflow. |
 | `agy-ceh-yolo` | Starts Antigravity with auto-approved safe edits. | Continuous agile dev mode. |
 | `ceh-env` | Instant detection of active environment (`DEV`/`STAGING`/`PROD`), branch, and safety policy. | Pre-coding sanity check. |
 | `ceh-branches` | Audits and sets up canonical project branches (Enterprise or Classic). | New repository setup. |
 | `ceh-preflight` | Runs the full engineering readiness and project integrity check. | Pre-release validation. |
+| `ceh-doctor` | Runs byte-for-byte installation integrity verification (`--verify`) and diagnostics. | Post-install & integrity check. |
+| `ceh-report` | Generates deterministic evidence reports (System One Invariant 6). | Audit & compliance output. |
+| `ceh-evals` | Runs deterministic smoke-eval suite (5/5 RFC 2119 criteria). | Harness falsifiability tests. |
+| `ceh-doc-audit` | Audits documentation structure, allowed states, and link portability. | Pre-release documentation hygiene. |
+| `ceh-conselho` | Invokes the dynamic multi-model Council of Seniors (optional add-on). | 360º multi-agent deliberation. |
+| `ceh-monitor` | Real-time interactive telemetry dashboard & 25s heartbeat. | Background task tracker. |
 | `ceh-help` | Interactive quick guide and command cheat sheet in terminal. | Fast reference manual. |
 
 > **In Antigravity IDE**: Global rules, skills, hooks, and the **Engineering Cockpit** (`engineering_cockpit.md`) are active automatically across all workspaces.
@@ -181,13 +187,19 @@ CEH natively supports **2 Git topology modes**, proactively identified upon load
 CEH provides rigorous end-to-end verification, including infrastructure mutation testing:
 
 ```bash
-# 1. Run Complete Component & Integrity Suite (35 tests)
+# 1. Run Core Functional Suite in Parallel (75 tests, 12/12 critical domains)
 ./clearer-engineering/tests/run-all-tests.sh
 
-# 2. Run Adversarial Verification Suite (bypass & injection detection)
+# 2. Run Full Suite including Deep Audit (81 tests: + differential fuzz & mutation proofs)
+./clearer-engineering/tests/run-all-tests.sh --full
+
+# 3. Run Ponytail Fast Cycle (< 5s, 13 core tests)
+./clearer-engineering/tests/run-fast-tests.sh
+
+# 4. Run Adversarial Verification Suite (bypass & injection detection)
 ./clearer-engineering/tests/run-adversarial-tests.sh
 
-# 3. Run Falsifiability Smoke-Eval (Baseline 3x, Drifts A/B & Fail-Closed)
+# 5. Run Falsifiability Smoke-Eval (Baseline 3x, Drifts A/B & Fail-Closed)
 ./evals/run.sh
 ```
 
