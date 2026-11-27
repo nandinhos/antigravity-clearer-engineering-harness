@@ -1,0 +1,37 @@
+name: CEH Deep Audit (Mutation & Differential Fuzz)
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'clearer-engineering/scripts/ceh_core/**'
+      - 'clearer-engineering/scripts/adapters/**'
+      - 'clearer-engineering/scripts/safety-gate.py'
+
+concurrency:
+  group: ci-deep-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deep-audit:
+    name: Deep Audit (Differential Fuzz, Mutations & Onda 4 Baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Deep Audit Suite (--deep, Parallel)
+        run: |
+          chmod +x clearer-engineering/scripts/*.sh clearer-engineering/tests/*.sh evals/run.sh install.sh uninstall.sh
+          ./clearer-engineering/tests/run-all-tests.sh --deep

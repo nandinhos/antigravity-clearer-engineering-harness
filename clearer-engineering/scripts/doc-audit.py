@@ -84,7 +84,7 @@ def main():
 
         suite_script = repo_root / "clearer-engineering/tests/run-all-tests.sh"
         suite_text = suite_script.read_text(encoding="utf-8")
-        declared_runs = len(re.findall(r"^\s*run_test\s+", suite_text, re.MULTILINE))
+        declared_runs = len(re.findall(r"^\s*run_(?:deep_)?test\s+", suite_text, re.MULTILINE))
         suite_total = declared_runs
         plan_header = "\n".join(plano_text.splitlines()[:8])
         expected_count_claim = f"{suite_total}/{suite_total} testes aprovados"
