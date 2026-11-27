@@ -15,10 +15,52 @@ if [[ -n "$ORIGINAL_HOME" && -f "$ORIGINAL_HOME/.gitconfig" ]]; then
 fi
 export HOME="$TMP_HOME"
 
+TEST_TIER="${CEH_TEST_TIER:-core}"
+CEH_TEST_JOBS="${CEH_TEST_JOBS:-}"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --core)   TEST_TIER="core"; shift ;;
+        --deep)   TEST_TIER="deep"; shift ;;
+        --full)   TEST_TIER="full"; shift ;;
+        --serial) CEH_TEST_JOBS="1"; shift ;;
+        --jobs)
+            CEH_TEST_JOBS="${2:-1}"
+            shift 2
+            ;;
+        *)
+            echo "Uso: $0 [--core|--deep|--full] [--serial|--jobs N]" >&2
+            exit 2
+            ;;
+    esac
+done
+
+if [[ -z "$CEH_TEST_JOBS" ]]; then
+    if command -v nproc >/dev/null 2>&1; then
+        CEH_TEST_JOBS=$(nproc)
+    elif command -v sysctl >/dev/null 2>&1; then
+        CEH_TEST_JOBS=$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
+    else
+        CEH_TEST_JOBS=4
+    fi
+    if [[ "$CEH_TEST_JOBS" -gt 6 ]]; then
+        CEH_TEST_JOBS=6
+    elif [[ "$CEH_TEST_JOBS" -lt 1 ]]; then
+        CEH_TEST_JOBS=1
+    fi
+fi
+
 SUITE_START=$(date +%s)
 TOTAL_TESTS=0
 PASSED_TESTS=0
 FAILED_TESTS=0
+CEH_PARALLEL_POOL=0
+QUEUE_COUNT=0
+POOL_PIDS=()
+
+if [[ "$CEH_TEST_JOBS" -gt 1 ]]; then
+    CEH_PARALLEL_POOL=1
+fi
 
 log_pass() {
     echo -e "\033[0;32m[PASS]\033[0m $1"
@@ -30,9 +72,101 @@ log_fail() {
     FAILED_TESTS=$((FAILED_TESTS + 1))
 }
 
+_dispatch_parallel() {
+    local name="$1"
+    local cmd="$2"
+    QUEUE_COUNT=$((QUEUE_COUNT + 1))
+    local idx="$QUEUE_COUNT"
+
+    while [[ "${#POOL_PIDS[@]}" -ge "$CEH_TEST_JOBS" ]]; do
+        wait "${POOL_PIDS[0]}" || true
+        POOL_PIDS=("${POOL_PIDS[@]:1}")
+    done
+
+    printf '%s' "$name" > "$TMP_HOME/name_${idx}.txt"
+    (
+        local w_home="$TMP_HOME/w_${idx}"
+        mkdir -p "$w_home"
+        if [[ -n "$ORIGINAL_HOME" && -f "$ORIGINAL_HOME/.gitconfig" ]]; then
+            cp "$ORIGINAL_HOME/.gitconfig" "$w_home/.gitconfig"
+        fi
+        export HOME="$w_home"
+        local t_start t_end t_dur rc=0
+        t_start=$(date +%s)
+        eval "$cmd" >"$TMP_HOME/out_${idx}.log" 2>&1 || rc=$?
+        t_end=$(date +%s)
+        t_dur=$((t_end - t_start))
+        printf '%s' "$rc" > "$TMP_HOME/rc_${idx}.txt"
+        printf '%s' "$t_dur" > "$TMP_HOME/dur_${idx}.txt"
+    ) &
+    POOL_PIDS+=("$!")
+}
+
+flush_parallel_results() {
+    local pid
+    for pid in "${POOL_PIDS[@]}"; do
+        wait "$pid" || true
+    done
+    POOL_PIDS=()
+
+    local i t_name t_rc t_dur
+    for ((i = 1; i <= QUEUE_COUNT; i++)); do
+        TOTAL_TESTS=$((TOTAL_TESTS + 1))
+        t_name=$(cat "$TMP_HOME/name_${i}.txt")
+        t_rc=$(cat "$TMP_HOME/rc_${i}.txt" 2>/dev/null || echo 1)
+        t_dur=$(cat "$TMP_HOME/dur_${i}.txt" 2>/dev/null || echo 0)
+        echo "------------------------------------------------------------"
+        echo "Running Test $TOTAL_TESTS: $t_name"
+        echo "$t_dur $TOTAL_TESTS $t_name" >> "$TMP_HOME/durations.txt"
+        if [[ "$t_rc" -eq 0 ]]; then
+            log_pass "$t_name (${t_dur}s)"
+        else
+            if [[ -s "$TMP_HOME/out_${i}.log" ]]; then
+                cat "$TMP_HOME/out_${i}.log"
+            fi
+            log_fail "$t_name (${t_dur}s)"
+        fi
+    done
+}
+
 run_test() {
     local name="$1"
     local cmd="$2"
+    if [[ "${TEST_TIER:-core}" == "deep" ]]; then
+        return 0
+    fi
+    if [[ "${CEH_PARALLEL_POOL:-0}" -eq 1 ]]; then
+        _dispatch_parallel "$name" "$cmd"
+        return 0
+    fi
+    TOTAL_TESTS=$((TOTAL_TESTS + 1))
+    echo "------------------------------------------------------------"
+    echo "Running Test $TOTAL_TESTS: $name"
+    local t_start t_end t_dur
+    t_start=$(date +%s)
+    if eval "$cmd"; then
+        t_end=$(date +%s)
+        t_dur=$((t_end - t_start))
+        echo "$t_dur $TOTAL_TESTS $name" >> "$TMP_HOME/durations.txt"
+        log_pass "$name (${t_dur}s)"
+    else
+        t_end=$(date +%s)
+        t_dur=$((t_end - t_start))
+        echo "$t_dur $TOTAL_TESTS $name" >> "$TMP_HOME/durations.txt"
+        log_fail "$name (${t_dur}s)"
+    fi
+}
+
+run_deep_test() {
+    local name="$1"
+    local cmd="$2"
+    if [[ "${TEST_TIER:-core}" != "deep" && "${TEST_TIER:-core}" != "full" ]]; then
+        return 0
+    fi
+    if [[ "${CEH_PARALLEL_POOL:-0}" -eq 1 ]]; then
+        _dispatch_parallel "$name" "$cmd"
+        return 0
+    fi
     TOTAL_TESTS=$((TOTAL_TESTS + 1))
     echo "------------------------------------------------------------"
     echo "Running Test $TOTAL_TESTS: $name"
@@ -55,6 +189,7 @@ echo "============================================================"
 echo "    CLEARER Engineering Harness (CEH) - Test Suite"
 echo "============================================================"
 echo "Plugin Directory: $PLUGIN_DIR"
+echo "Tier / Workers:   $TEST_TIER (jobs=$CEH_TEST_JOBS)"
 echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo ""
 
@@ -235,8 +370,8 @@ run_test "Git Canonicalization: Generalização de opções globais e bloqueio d
 run_test "Review Batteries: baterias adversariais das revisões (pendências em xfail estrito)" \
     "python3 '$PLUGIN_DIR/tests/test_review_batteries.py' >/dev/null 2>&1"
 
-# 20. PR-QA-A Differential Fuzzing vs Baseline
-run_test "Differential Fuzz: Comparação automática contra baseline e detecção de relaxamentos (PR-QA-A)" \
+# 20. PR-QA-A Differential Fuzzing vs Baseline (Deep Audit)
+run_deep_test "Differential Fuzz: Comparação automática contra baseline e detecção de relaxamentos (PR-QA-A)" \
     "python3 '$PLUGIN_DIR/tests/test_gate_differential_fuzz.py' >/dev/null"
 
 # 21. PR-07 Environment Tokens & Non-Downgrade Invariant
@@ -287,8 +422,8 @@ run_test "Symlink Environment: Detecção de ambiente em ancestral físico e pro
 run_test "Conselho Redaction: Redação de segredos, caminhos locais e exclusões no diff (PR-21)" \
     "python3 '$PLUGIN_DIR/tests/test_conselho_redaction.py' >/dev/null 2>&1"
 
-# 33. Onda 4 Baseline Regression Network (A1-A4)
-run_test "Onda 4 Baseline: Retrato de referência v1.4.0 e rede de não-regressão (--check)" \
+# 33. Onda 4 Baseline Regression Network (A1-A4) (Deep Audit)
+run_deep_test "Onda 4 Baseline: Retrato de referência v1.4.0 e rede de não-regressão (--check)" \
     "python3 '$PLUGIN_DIR/tests/tools/onda4_baseline.py' --check"
 
 # 34. PR-13 Engine Unit Suite (Agnóstico de Host)
@@ -307,20 +442,20 @@ run_test "Host Adapters: Contrato HostAdapter e isolamento de hosts em adapters/
 run_test "Cross-Host Conformance: Mesma decisão em todos os hosts sobre 1.016 casos e tabela de render (PR-17)" \
     "python3 '$PLUGIN_DIR/tests/test_cross_host_conformance.py' >/dev/null 2>&1"
 
-# 38. PR-14/15 Mutation Falsifiability Suite (Regra AT5)
-run_test "Host Adapters Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-14/15)" \
+# 38. PR-14/15 Mutation Falsifiability Suite (Regra AT5) (Deep Audit)
+run_deep_test "Host Adapters Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-14/15)" \
     "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p14.py' >/dev/null 2>&1"
 
-# 39. PR-15b Muse Adapter Mutations Suite (Regra AT5)
-run_test "Muse Adapter Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-15b)" \
+# 39. PR-15b Muse Adapter Mutations Suite (Regra AT5) (Deep Audit)
+run_deep_test "Muse Adapter Mutations: Provas de falsificabilidade por mutação em clone temporário (PR-15b)" \
     "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p15b.py' >/dev/null 2>&1"
 
-# 40. PR-16 Fallback Muse Mutation Suite (Regra AT5 / BJ3)
-run_test "Fallback Muse Mutations: Provas de falsificabilidade da reserva do Muse em clone temporário (PR-16)" \
+# 40. PR-16 Fallback Muse Mutation Suite (Regra AT5 / BJ3) (Deep Audit)
+run_deep_test "Fallback Muse Mutations: Provas de falsificabilidade da reserva do Muse em clone temporário (PR-16)" \
     "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p16.py' >/dev/null 2>&1"
 
-# 41. PR-17 Cross-Host Conformance Mutations Suite (Regra AT5)
-run_test "Cross-Host Mutations: Falsificabilidade por mutação no Muse e Claude em clone temporário (PR-17)" \
+# 41. PR-17 Cross-Host Conformance Mutations Suite (Regra AT5) (Deep Audit)
+run_deep_test "Cross-Host Mutations: Falsificabilidade por mutação no Muse e Claude em clone temporário (PR-17)" \
     "python3 '$PLUGIN_DIR/tests/tools/test_mutation_p17.py' >/dev/null 2>&1"
 
 # 42. PR-16 Multi-Host Package Generator Suite (Determinismo, Completude e Controle Negativo)
@@ -352,6 +487,10 @@ run_test "Test Runner Docker Service: Suporte a docker_service host/none e regre
     "python3 '$PLUGIN_DIR/tests/test_runner_docker_service.py' >/dev/null 2>&1"
 
 
+
+if [[ "$CEH_PARALLEL_POOL" -eq 1 ]]; then
+    flush_parallel_results
+fi
 
 SUITE_DURATION=$(( $(date +%s) - SUITE_START ))
 

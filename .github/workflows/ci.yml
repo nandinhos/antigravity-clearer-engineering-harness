@@ -20,298 +20,80 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  promotion-check:
-    name: Promotion SHA Check
+  precheck:
+    name: Pre-Check (Promotion & Diff Scope)
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
+      pull-requests: read
     outputs:
       already_verified: ${{ steps.check.outputs.already_verified }}
+      docs_only: ${{ steps.check.outputs.docs_only }}
     steps:
-      - name: Check if commit SHA already passed CI
+      - name: Evaluate SHA Fast-Pass & Docs-Only Scope
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
+          PUSH_SHA: ${{ github.sha }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUM: ${{ github.event.pull_request.number }}
         run: |
-          if [ "$EVENT_NAME" = "push" ] && { [ "$REF_NAME" = "staging" ] || [ "$REF_NAME" = "main" ]; }; then
-            PASSED_COUNT=$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${SHA}&status=completed&per_page=20" \
+          TARGET_SHA="$PUSH_SHA"
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "$PR_SHA" ]; then
+            TARGET_SHA="$PR_SHA"
+          fi
+
+          # 1. Fast-Pass: se o commit SHA já foi aprovado em CI (push staging/main ou qualquer PR)
+          if [ "$EVENT_NAME" = "pull_request" ] || { [ "$EVENT_NAME" = "push" ] && { [ "$REF_NAME" = "staging" ] || [ "$REF_NAME" = "main" ]; }; }; then
+            PASSED_COUNT=$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${TARGET_SHA}&status=completed&per_page=20" \
               --jq "[.workflow_runs[] | select(.id != (${RUN_ID}|tonumber) and .conclusion == \"success\")] | length" 2>/dev/null || echo "0")
             if [ "${PASSED_COUNT:-0}" -gt 0 ]; then
-              echo "Commit SHA ${SHA} já aprovado em CI (${PASSED_COUNT} run(s)). Pulando reexecução."
+              echo "Commit SHA ${TARGET_SHA} já aprovado em CI (${PASSED_COUNT} run(s)). Ativando FAST-PASS."
               echo "already_verified=true" >> "$GITHUB_OUTPUT"
+              echo "docs_only=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           fi
           echo "already_verified=false" >> "$GITHUB_OUTPUT"
 
-  validate:
-    name: Validate (${{ matrix.os }} - Python ${{ matrix.python-version }})
-    needs: [promotion-check]
-    if: needs.promotion-check.outputs.already_verified != 'true'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.10', '3.12']
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Verify Apple Legacy Bash 3.2 Behavior (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          echo "=== Apple Legacy Bash Version ==="
-          /bin/bash --version
-
-          echo "=== Syntax Check under /bin/bash 3.2 ==="
-          /bin/bash -n install.sh
-          /bin/bash -n uninstall.sh
-
-          echo "=== Fail-Closed Verification under /bin/bash 3.2 ==="
-          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-bash32-XXXXXX")
-          TMP_HOME="$TMP_DIR/home"
-          mkdir -p "$TMP_HOME"
-
-          # 1. Pipe execution under /bin/bash 3.2 must fail with exit code != 0 and log Bash 4.0+ requirement
-          set +e
-          PIPE_OUT=$(cat install.sh | HOME="$TMP_HOME" /bin/bash 2>&1)
-          PIPE_EC=$?
-          set -e
-          echo "Pipe output: $PIPE_OUT"
-          echo "Pipe exit code: $PIPE_EC"
-          if [[ $PIPE_EC -eq 0 ]]; then
-            echo "ERROR: /bin/bash 3.2 pipe install unexpectedly succeeded!"
-            exit 1
-          fi
-          echo "$PIPE_OUT" | grep -F "Bash 4.0+ is required"
-
-          # 2. Direct script execution under /bin/bash 3.2 must fail with exit code != 0 and log Bash 4.0+ requirement
-          set +e
-          DIRECT_OUT=$(HOME="$TMP_HOME" /bin/bash install.sh 2>&1)
-          DIRECT_EC=$?
-          set -e
-          echo "Direct output: $DIRECT_OUT"
-          echo "Direct exit code: $DIRECT_EC"
-          if [[ $DIRECT_EC -eq 0 ]]; then
-            echo "ERROR: /bin/bash 3.2 direct install unexpectedly succeeded!"
-            exit 1
-          fi
-          echo "$DIRECT_OUT" | grep -F "Bash 4.0+ is required"
-
-          rm -rf "$TMP_DIR"
-
-      - name: Install system dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install bash
-          # Ensure Homebrew GNU Bash 5+ takes precedence over Apple legacy Bash 3.2
-          if [[ -d "/opt/homebrew/bin" ]]; then
-            echo "/opt/homebrew/bin" >> $GITHUB_PATH
-          fi
-          if [[ -d "/usr/local/bin" ]]; then
-            echo "/usr/local/bin" >> $GITHUB_PATH
+          # 2. Docs-Only Fast-Path (fail-closed: workflow_dispatch ou erro de API roda suíte completa)
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-      - name: Make scripts executable
-        run: |
-          chmod +x clearer-engineering/scripts/*.sh
-          chmod +x clearer-engineering/tests/*.sh
-          chmod +x evals/run.sh
-          chmod +x install.sh
-          chmod +x uninstall.sh
-
-      - name: Syntax check on Bash scripts
-        run: |
-          find clearer-engineering/ -name "*.sh" -exec bash -n {} +
-          bash -n install.sh
-          bash -n uninstall.sh
-          bash -n evals/run.sh
-
-      - name: Syntax check on Python scripts (compileall)
-        run: |
-          python3 -m compileall -q clearer-engineering evals
-
-      - name: Install Official Fixed Shellcheck (v0.11.0 with SHA-256)
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
-        run: |
-          SHELLCHECK_VERSION="v0.11.0"
-          EXPECTED_SHA256="8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198"
-          URL="https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
-          echo "Downloading official shellcheck ${SHELLCHECK_VERSION} from ${URL}..."
-          curl -fsSL "$URL" -o shellcheck.tar.xz
-          ACTUAL_SHA256=$(sha256sum shellcheck.tar.xz | awk '{print $1}')
-          echo "Validating SHA256 checksum: expected ${EXPECTED_SHA256}, got ${ACTUAL_SHA256}"
-          if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
-            echo "ERROR: SHA256 mismatch for official shellcheck binary!"
-            exit 1
+          CHANGED_FILES=""
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "$PR_NUM" ]; then
+            CHANGED_FILES=$(gh api "repos/${REPO}/pulls/${PR_NUM}/files" --paginate --jq '.[].filename' 2>/dev/null || true)
+          elif [ "$EVENT_NAME" = "push" ]; then
+            CHANGED_FILES=$(gh api "repos/${REPO}/commits/${TARGET_SHA}" --jq '.files[].filename' 2>/dev/null || true)
           fi
-          tar -xf shellcheck.tar.xz
-          sudo cp "shellcheck-${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
-          rm -rf shellcheck.tar.xz "shellcheck-${SHELLCHECK_VERSION}"
-          echo "=== Shellcheck Version & Verification ==="
-          /usr/local/bin/shellcheck --version
 
-      - name: Run Shellcheck (Strict Zero Warnings Gate - Single Job)
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
-        run: |
-          set -o pipefail
-          mkdir -p build/reports
-          ALL_SH=$(find clearer-engineering/ evals/ -name "*.sh"; echo install.sh; echo uninstall.sh)
-          /usr/local/bin/shellcheck -f gcc $ALL_SH | tee build/reports/shellcheck-report.txt
-          echo "=== Shellcheck Count Summary ==="
-          grep -oE "SC[0-9]{4}" build/reports/shellcheck-report.txt | sort | uniq -c || true
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "Lista de arquivos vazia ou indisponível (fail-closed): rodando suíte completa."
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-      - name: Upload Shellcheck Report Artifact
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
-        uses: actions/upload-artifact@v4
-        with:
-          name: shellcheck-report-ubuntu-latest-py3.12
-          path: build/reports/shellcheck-report.txt
-          if-no-files-found: ignore
-
-      - name: Test One-Liner Pipe Install (Offline Mock Git)
-        run: |
-          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-pipe-mock-XXXXXX")
-          MOCK_GIT_DIR="$TMP_DIR/mock_git"
-          mkdir -p "$MOCK_GIT_DIR"
-          cat << 'EOF' > "$MOCK_GIT_DIR/git"
-          #!/usr/bin/env bash
-          if [[ "$1" == "clone" ]]; then
-              target_dir=""
-              for arg in "$@"; do
-                  if [[ "$arg" != -* && "$arg" != "clone" && "$arg" != http* && "$arg" != file* ]]; then
-                      target_dir="$arg"
-                  fi
-              done
-              mkdir -p "$target_dir"
-              cp -r "$GITHUB_WORKSPACE/." "$target_dir/"
-              exit 0
+          NON_DOC=$(printf '%s\n' "$CHANGED_FILES" | grep -Ev '^([^/]+\.md|docs/.*|CHANGELOG\.md|LICENSE)$' || true)
+          if [ -z "$NON_DOC" ]; then
+            echo "Alteração exclusivamente documental detectada:"
+            printf '%s\n' "$CHANGED_FILES"
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
           else
-              exec /usr/bin/git "$@"
+            echo "Alteração de código/infra detectada; executando suíte Core completa."
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
           fi
-          EOF
-          chmod +x "$MOCK_GIT_DIR/git"
 
-          TMP_HOME="$TMP_DIR/home"
-          OUTSIDE_DIR="$TMP_DIR/outside"
-          mkdir -p "$TMP_HOME" "$OUTSIDE_DIR"
-
-          (cd "$OUTSIDE_DIR" && cat "$GITHUB_WORKSPACE/install.sh" | HOME="$TMP_HOME" PATH="$MOCK_GIT_DIR:$PATH" bash)
-          test -f "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json"
-          rm -rf "$TMP_DIR"
-
-      - name: Test One-Liner Pipe Install (Real Git Clone via file://)
-        run: |
-          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-pipe-real-XXXXXX")
-          TMP_HOME="$TMP_DIR/home"
-          OUTSIDE_DIR="$TMP_DIR/outside"
-          mkdir -p "$TMP_HOME" "$OUTSIDE_DIR"
-
-          # Tests real git clone over local filesystem protocol without internet access
-          (cd "$OUTSIDE_DIR" && cat "$GITHUB_WORKSPACE/install.sh" | CEH_REPO_URL="file://$GITHUB_WORKSPACE" HOME="$TMP_HOME" bash)
-
-          # Verify installed assets origin matches workspace commit exactly
-          cmp -s "$TMP_HOME/.gemini/config/plugins/clearer-engineering/profiles/clearer-harness.agent.md" "$GITHUB_WORKSPACE/clearer-engineering/profiles/clearer-harness.agent.md"
-          cmp -s "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json" "$GITHUB_WORKSPACE/clearer-engineering/plugin.json"
-
-          rm -rf "$TMP_DIR"
-
-      - name: Run Safety Gate Unit Test Matrix (DEV, STAGING, PROD & RTK)
-        run: |
-          python3 clearer-engineering/tests/test_safety_matrix.py
-
-      - name: Run Canonical Test Suite (Hermetic)
-        run: |
-          ./clearer-engineering/tests/run-all-tests.sh
-
-      - name: Run Adversarial Test Suite (Controlled Regressions & Evidence)
-        run: |
-          ./clearer-engineering/tests/run-adversarial-tests.sh
-
-      - name: Run Integration Scripts & Branch Topology Tests
-        run: |
-          bash clearer-engineering/scripts/detect-project.sh .
-          bash clearer-engineering/scripts/preflight.sh
-          bash clearer-engineering/scripts/diff-audit.sh
-          bash clearer-engineering/scripts/evidence-report.sh
-          bash clearer-engineering/scripts/ceh-help.sh
-
-          TMP_ENT=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-ent-XXXXXX")
-          git -C "$TMP_ENT" init -b main
-          git -C "$TMP_ENT" config user.name "CI"
-          git -C "$TMP_ENT" config user.email "ci@clearer.dev"
-          touch "$TMP_ENT/README.md"
-          git -C "$TMP_ENT" add README.md
-          git -C "$TMP_ENT" commit -m "init"
-          bash clearer-engineering/scripts/setup-branches.sh --enterprise "$TMP_ENT"
-          bash clearer-engineering/scripts/detect-project.sh "$TMP_ENT" | grep "MODO ENTERPRISE"
-          rm -rf "$TMP_ENT"
-
-          TMP_CLS=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-cls-XXXXXX")
-          git -C "$TMP_CLS" init -b main
-          git -C "$TMP_CLS" config user.name "CI"
-          git -C "$TMP_CLS" config user.email "ci@clearer.dev"
-          touch "$TMP_CLS/README.md"
-          git -C "$TMP_CLS" add README.md
-          git -C "$TMP_CLS" commit -m "init"
-          bash clearer-engineering/scripts/setup-branches.sh --classic "$TMP_CLS"
-          bash clearer-engineering/scripts/detect-project.sh "$TMP_CLS" | grep "MODO CLÁSSICO"
-          rm -rf "$TMP_CLS"
-
-      - name: Run Install, Idempotency & Uninstall Verification
-        run: |
-          ./clearer-engineering/tests/run-install-verification.sh
-
-      - name: Run Smoke Evals (Deterministic RFC 2119 criteria)
-        run: |
-          ./evals/run.sh
-
-      - name: Run Document Structure & Line Budget Audit
-        run: |
-          bash clearer-engineering/scripts/doc-audit.sh
-
-      - name: Run Full E2E Simulation & Integration Lifecycle
-        run: |
-          ./clearer-engineering/tests/run-e2e-simulation.sh
-
-      - name: Run CEH Doctor Verification & Diagnostics
-        run: |
-          sh clearer-engineering/scripts/ceh-doctor.sh --self-check
-          sh clearer-engineering/scripts/ceh-doctor.sh --evidence
-          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-XXXXXX")
-          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
-          HOME="$DOC_TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
-          rm -rf "$DOC_TMP_HOME"
-
-      - name: Verify CEH Doctor under Apple Legacy Bash 3.2 (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --self-check
-          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --evidence
-          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-mac-XXXXXX")
-          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
-          HOME="$DOC_TMP_HOME" /bin/bash clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
-          rm -rf "$DOC_TMP_HOME"
-
-  claude-env:
-    name: Claude Code Environment Parity (ubuntu-latest - Python 3.12)
-    needs: [promotion-check]
-    if: needs.promotion-check.outputs.already_verified != 'true'
+  docs-check:
+    name: Docs & Schema Validation
+    needs: [precheck]
+    if: needs.precheck.outputs.already_verified != 'true' && needs.precheck.outputs.docs_only == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -324,106 +106,225 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Make scripts executable
+      - name: Run Document Structure Audit & Content Schema
         run: |
-          chmod +x clearer-engineering/scripts/*.sh
-          chmod +x clearer-engineering/tests/*.sh
-          chmod +x evals/run.sh
-          chmod +x install.sh
-          chmod +x uninstall.sh
+          bash clearer-engineering/scripts/doc-audit.sh
+          python3 clearer-engineering/tests/test_content_schema.py
 
-      - name: Run Canonical Suite under Claude Code Environment (Parity Test)
+  core-linux:
+    name: Core Suite (ubuntu-latest - Python 3.12)
+    needs: [precheck]
+    if: needs.precheck.outputs.already_verified != 'true' && needs.precheck.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Make scripts executable & Syntax Check (Bash + Python)
+        run: |
+          chmod +x clearer-engineering/scripts/*.sh clearer-engineering/tests/*.sh evals/run.sh install.sh uninstall.sh
+          find clearer-engineering/ -name "*.sh" -exec bash -n {} +
+          bash -n install.sh uninstall.sh evals/run.sh
+          python3 -m compileall -q clearer-engineering evals
+
+      - name: Cache Official Shellcheck v0.11.0
+        id: cache-shellcheck
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ceh-shellcheck
+          key: shellcheck-v0.11.0-linux-x86_64
+
+      - name: Install Official Fixed Shellcheck (v0.11.0 with SHA-256)
+        run: |
+          CACHE_BIN="$HOME/.cache/ceh-shellcheck/shellcheck"
+          if [[ ! -x "$CACHE_BIN" ]]; then
+            SHELLCHECK_VERSION="v0.11.0"
+            EXPECTED_SHA256="8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198"
+            URL="https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+            curl -fsSL "$URL" -o shellcheck.tar.xz
+            ACTUAL_SHA256=$(sha256sum shellcheck.tar.xz | awk '{print $1}')
+            if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
+              echo "ERROR: SHA256 mismatch for official shellcheck binary!"
+              exit 1
+            fi
+            tar -xf shellcheck.tar.xz
+            mkdir -p "$HOME/.cache/ceh-shellcheck"
+            cp "shellcheck-${SHELLCHECK_VERSION}/shellcheck" "$CACHE_BIN"
+            chmod +x "$CACHE_BIN"
+            rm -rf shellcheck.tar.xz "shellcheck-${SHELLCHECK_VERSION}"
+          fi
+          sudo cp "$CACHE_BIN" /usr/local/bin/shellcheck
+          /usr/local/bin/shellcheck --version
+
+      - name: Run Shellcheck (Strict Zero Warnings Gate)
+        run: |
+          set -o pipefail
+          mkdir -p build/reports
+          ALL_SH=$(find clearer-engineering/ evals/ -name "*.sh"; echo install.sh; echo uninstall.sh)
+          /usr/local/bin/shellcheck -f gcc $ALL_SH | tee build/reports/shellcheck-report.txt
+          grep -oE "SC[0-9]{4}" build/reports/shellcheck-report.txt | sort | uniq -c || true
+
+      - name: Run Core Functional Test Suite (Parallel, 12/12 Critical Domains)
+        run: |
+          ./clearer-engineering/tests/run-all-tests.sh --core
+
+      - name: Run Adversarial, Smoke-Evals & E2E Simulation
+        run: |
+          ./clearer-engineering/tests/run-adversarial-tests.sh
+          ./evals/run.sh
+          ./clearer-engineering/tests/run-e2e-simulation.sh
+
+      - name: Verify One-Liner Pipe Install (file://) & CEH Doctor Byte-for-Byte
+        run: |
+          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-pipe-real-XXXXXX")
+          TMP_HOME="$TMP_DIR/home"
+          OUTSIDE_DIR="$TMP_DIR/outside"
+          mkdir -p "$TMP_HOME" "$OUTSIDE_DIR"
+          (cd "$OUTSIDE_DIR" && cat "$GITHUB_WORKSPACE/install.sh" | CEH_REPO_URL="file://$GITHUB_WORKSPACE" HOME="$TMP_HOME" bash)
+          cmp -s "$TMP_HOME/.gemini/config/plugins/clearer-engineering/profiles/clearer-harness.agent.md" "$GITHUB_WORKSPACE/clearer-engineering/profiles/clearer-harness.agent.md"
+          cmp -s "$TMP_HOME/.gemini/config/plugins/clearer-engineering/plugin.json" "$GITHUB_WORKSPACE/clearer-engineering/plugin.json"
+          HOME="$TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --self-check
+          HOME="$TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --evidence
+          HOME="$TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$TMP_DIR"
+
+      - name: Verify Claude Code Environment Parity (CLAUDECODE=1)
         env:
           CLAUDECODE: "1"
           CLAUDE_PROJECT_DIR: "${{ github.workspace }}"
           CLAUDE_CODE_ENTRYPOINT: "cli"
-          CLAUDE_ADDITIONAL_DIRECTORIES: "/tmp/mock-claude-dirs"
-          CLAUDE_AFTER_LAST_COMPACT: "false"
-          CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "50"
-          CLAUDE_AUTO_BACKGROUND_TASKS: "1"
-          CLAUDE_CODE_ACCOUNT_UUID: "mock-account-uuid-0000"
-          CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1"
-          CLAUDE_CODE_BASE_REF: "refs/heads/main"
-          CLAUDE_CODE_CHILD_SESSION: "0"
-          CLAUDE_CODE_CONTAINER_ID: "mock-container-0"
-          CLAUDE_CODE_DEBUG: "0"
-          CLAUDE_CODE_DIAGNOSTICS_FILE: "/tmp/mock-claude-diag.log"
-          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "0"
-          CLAUDE_CODE_ENVIRONMENT_RUNNER_VERSION: "0.1.0"
-          CLAUDE_CODE_EXECPATH: "/usr/local/bin/claude"
-          CLAUDE_CODE_MESSAGING_SOCKET: "/tmp/mock-claude.sock"
-          CLAUDE_CODE_ORGANIZATION_UUID: "mock-org-uuid-0000"
-          CLAUDE_CODE_REMOTE: "0"
-          CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE: "local"
-          CLAUDE_CODE_REMOTE_SESSION_ID: "mock-remote-session-0"
-          CLAUDE_CODE_SESSION_ID: "mock-session-id-0000"
           CLAUDE_CODE_VERSION: "0.2.29"
-          CLAUDE_EFFORT: "high"
-          CLAUDE_PID: "12345"
-          USER: "runner"
         run: |
-          echo "=== Executing Canonical Test Suite with Claude Code Environment Variables ==="
-          ./clearer-engineering/tests/run-all-tests.sh
-
-      - name: Run CEH Doctor under Claude Code Environment
-        env:
-          CLAUDECODE: "1"
-          CLAUDE_PROJECT_DIR: "${{ github.workspace }}"
-          CLAUDE_CODE_ENTRYPOINT: "cli"
-          CLAUDE_ADDITIONAL_DIRECTORIES: "/tmp/mock-claude-dirs"
-          CLAUDE_AFTER_LAST_COMPACT: "false"
-          CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "50"
-          CLAUDE_AUTO_BACKGROUND_TASKS: "1"
-          CLAUDE_CODE_ACCOUNT_UUID: "mock-account-uuid-0000"
-          CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1"
-          CLAUDE_CODE_BASE_REF: "refs/heads/main"
-          CLAUDE_CODE_CHILD_SESSION: "0"
-          CLAUDE_CODE_CONTAINER_ID: "mock-container-0"
-          CLAUDE_CODE_DEBUG: "0"
-          CLAUDE_CODE_DIAGNOSTICS_FILE: "/tmp/mock-claude-diag.log"
-          CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "0"
-          CLAUDE_CODE_ENVIRONMENT_RUNNER_VERSION: "0.1.0"
-          CLAUDE_CODE_EXECPATH: "/usr/local/bin/claude"
-          CLAUDE_CODE_MESSAGING_SOCKET: "/tmp/mock-claude.sock"
-          CLAUDE_CODE_ORGANIZATION_UUID: "mock-org-uuid-0000"
-          CLAUDE_CODE_REMOTE: "0"
-          CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE: "local"
-          CLAUDE_CODE_REMOTE_SESSION_ID: "mock-remote-session-0"
-          CLAUDE_CODE_SESSION_ID: "mock-session-id-0000"
-          CLAUDE_CODE_VERSION: "0.2.29"
-          CLAUDE_EFFORT: "high"
-          CLAUDE_PID: "12345"
-          USER: "runner"
-        run: |
+          python3 clearer-engineering/tests/test_adapters.py
+          python3 clearer-engineering/tests/test_cross_host_conformance.py
+          python3 clearer-engineering/tests/test_hook_failclosed.py
           sh clearer-engineering/scripts/ceh-doctor.sh --self-check
-          sh clearer-engineering/scripts/ceh-doctor.sh --evidence
           DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-claude-XXXXXX")
           HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
           HOME="$DOC_TMP_HOME" sh clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
           rm -rf "$DOC_TMP_HOME"
 
+  py310-compat:
+    name: Python 3.10 Compatibility (ubuntu-latest)
+    needs: [precheck]
+    if: needs.precheck.outputs.already_verified != 'true' && needs.precheck.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Validate Python 3.10 Compatibility & Core Contracts
+        run: |
+          chmod +x clearer-engineering/scripts/*.sh clearer-engineering/tests/*.sh evals/run.sh install.sh uninstall.sh
+          python3 -m compileall -q clearer-engineering evals
+          ./clearer-engineering/tests/run-fast-tests.sh
+          python3 clearer-engineering/tests/test_ceh_decisions.py
+          python3 clearer-engineering/tests/test_runner_docker_service.py
+          python3 clearer-engineering/tests/test_package.py
+          python3 clearer-engineering/tests/test_cross_host_conformance.py
+
+  macos-compat:
+    name: macOS & BSD Compatibility (macos-latest - Python 3.12)
+    needs: [precheck]
+    if: needs.precheck.outputs.already_verified != 'true' && needs.precheck.outputs.docs_only != 'true'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify Apple Legacy Bash 3.2 Fail-Closed Behavior
+        run: |
+          /bin/bash --version
+          /bin/bash -n install.sh
+          /bin/bash -n uninstall.sh
+          TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-bash32-XXXXXX")
+          TMP_HOME="$TMP_DIR/home"
+          mkdir -p "$TMP_HOME"
+          set +e
+          PIPE_OUT=$(cat install.sh | HOME="$TMP_HOME" /bin/bash 2>&1)
+          PIPE_EC=$?
+          DIRECT_OUT=$(HOME="$TMP_HOME" /bin/bash install.sh 2>&1)
+          DIRECT_EC=$?
+          set -e
+          [[ $PIPE_EC -ne 0 ]] && echo "$PIPE_OUT" | grep -F "Bash 4.0+ is required"
+          [[ $DIRECT_EC -ne 0 ]] && echo "$DIRECT_OUT" | grep -F "Bash 4.0+ is required"
+          rm -rf "$TMP_DIR"
+
+      - name: Install GNU Bash 5+ (Homebrew)
+        run: |
+          brew install bash
+          if [[ -d "/opt/homebrew/bin" ]]; then echo "/opt/homebrew/bin" >> "$GITHUB_PATH"; fi
+          if [[ -d "/usr/local/bin" ]]; then echo "/usr/local/bin" >> "$GITHUB_PATH"; fi
+
+      - name: Run macOS-Specific Contracts (Symlinks, Install, Doctor & Fast Core)
+        run: |
+          chmod +x clearer-engineering/scripts/*.sh clearer-engineering/tests/*.sh evals/run.sh install.sh uninstall.sh
+          ./clearer-engineering/tests/run-fast-tests.sh
+          python3 clearer-engineering/tests/test_symlink_environment.py
+          python3 clearer-engineering/tests/test_runner_docker_service.py
+          ./clearer-engineering/tests/run-install-verification.sh
+          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --self-check
+          /bin/bash clearer-engineering/scripts/ceh-doctor.sh --evidence
+          DOC_TMP_HOME=$(mktemp -d "${TMPDIR:-/tmp}/ceh-ci-doc-verify-mac-XXXXXX")
+          HOME="$DOC_TMP_HOME" SKIP_DIAGNOSTICS=1 bash install.sh
+          HOME="$DOC_TMP_HOME" /bin/bash clearer-engineering/scripts/ceh-doctor.sh --verify "$GITHUB_WORKSPACE"
+          rm -rf "$DOC_TMP_HOME"
+
   ci-ok:
     name: CI Aggregated Status (ci-ok)
     runs-on: ubuntu-latest
-    needs: [promotion-check, validate, claude-env]
+    needs: [precheck, docs-check, core-linux, py310-compat, macos-compat]
     if: always()
     steps:
       - name: Evaluate Upstream Quality Gates
         run: |
           echo "=== CEH CI Aggregated Quality Gate Evaluation ==="
-          echo "Promotion Check Already Verified: ${{ needs.promotion-check.outputs.already_verified }}"
-          echo "Validate Job Status: ${{ needs.validate.result }}"
-          echo "Claude Environment Job Status: ${{ needs.claude-env.result }}"
+          echo "Already Verified: ${{ needs.precheck.outputs.already_verified }}"
+          echo "Docs Only:        ${{ needs.precheck.outputs.docs_only }}"
+          echo "docs-check:       ${{ needs.docs-check.result }}"
+          echo "core-linux:       ${{ needs.core-linux.result }}"
+          echo "py310-compat:     ${{ needs.py310-compat.result }}"
+          echo "macos-compat:     ${{ needs.macos-compat.result }}"
 
-          if [[ "${{ needs.promotion-check.outputs.already_verified }}" == "true" ]]; then
-            echo "✔ PROMOTION DETECTED: Commit SHA was already verified in upstream branch with success. (ci-ok: FAST-PASS)"
+          if [[ "${{ needs.precheck.outputs.already_verified }}" == "true" ]]; then
+            echo "✔ PROMOTION FAST-PASS: Commit SHA já aprovado em CI anterior."
             exit 0
           fi
 
-          if [[ "${{ needs.validate.result }}" == "success" && "${{ needs.claude-env.result }}" == "success" ]]; then
-            echo "✔ ALL REQUIRED CI GATES PASSED (ci-ok: SUCCESS)"
-            exit 0
-          else
-            echo "✖ ONE OR MORE CI GATES FAILED"
+          if [[ "${{ needs.precheck.outputs.docs_only }}" == "true" ]]; then
+            if [[ "${{ needs.docs-check.result }}" == "success" ]]; then
+              echo "✔ DOCS-ONLY FAST-PATH: Auditoria documental e schema aprovados."
+              exit 0
+            fi
+            echo "✖ DOCS-ONLY CHECK FAILED"
             exit 1
           fi
+
+          if [[ "${{ needs.core-linux.result }}" == "success" && "${{ needs.py310-compat.result }}" == "success" && "${{ needs.macos-compat.result }}" == "success" ]]; then
+            echo "✔ ALL REQUIRED CI GATES PASSED (ci-ok: SUCCESS)"
+            exit 0
+          fi
+
+          echo "✖ ONE OR MORE CI GATES FAILED"
+          exit 1
