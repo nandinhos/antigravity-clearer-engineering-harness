@@ -89,7 +89,7 @@ class TestRunnerDockerService(unittest.TestCase):
         ci_local = scripts_dir / "ci-local.sh"
         ci_local.write_text(
             "#!/bin/sh\n"
-            f"printf 'HOST_RAN\\n' > '{self.host_marker}'\n"
+            f"printf 'HOST_RAN:%s\\n' \"${{CI_RUNTIME:-unset}}\" > '{self.host_marker}'\n"
             "echo 'ci-local host ok'\n"
             "exit 0\n",
             encoding="utf-8",
@@ -215,6 +215,56 @@ class TestRunnerDockerService(unittest.TestCase):
         self.assertTrue(self.docker_exec_log.exists(), "Deveria despachar via container web quando null.")
         exec_log = self.docker_exec_log.read_text(encoding="utf-8")
         self.assertIn("compose exec -T web ./scripts/ci-local.sh", exec_log)
+
+    def _install_mock_rtk(self) -> Path:
+        rtk_log = self.base_dir / "rtk_calls.log"
+        mock_rtk = self.fake_bin / "rtk"
+        mock_rtk.write_text(
+            "#!/bin/sh\n"
+            f"printf '%s\\n' \"$*\" >> '{rtk_log}'\n"
+            "case \"$1\" in\n"
+            "  *=*)\n"
+            "    echo '[rtk: No such file or directory (os error 2)]' >&2\n"
+            "    exit 127\n"
+            "    ;;\n"
+            "esac\n"
+            "exec \"$@\"\n",
+            encoding="utf-8",
+        )
+        mock_rtk.chmod(0o755)
+        return rtk_log
+
+    def test_env_prefix_command_skips_rtk_wrap_and_emits_canonical_cert(self) -> None:
+        """Regressão: VAR=val cmd não deve ser embrulhado em 'rtk VAR=val cmd'."""
+        rtk_log = self._install_mock_rtk()
+        self._commit_ceh_config(
+            {"canonical_test_command": "CI_RUNTIME=docker ./scripts/ci-local.sh"}
+        )
+        res = self._run_runner()
+        self.assertEqual(res.returncode, 0, f"Stdout:\n{res.stdout}\nStderr:\n{res.stderr}")
+        self.assertFalse(rtk_log.exists(), "rtk não deve embrulhar comando com prefixo VAR=val.")
+        self.assertTrue(self.host_marker.exists(), "Script ./scripts/ci-local.sh deveria ter executado.")
+        self.assertEqual(self.host_marker.read_text(encoding="utf-8").strip(), "HOST_RAN:docker")
+
+        cert = self._read_cert()
+        self.assertIs(cert.get("canonical_verified"), True)
+        self.assertEqual(cert.get("status"), "PASS")
+        self.assertEqual(cert.get("exit_code"), 0)
+        self.assertEqual(cert.get("normalized_runner"), "CI_RUNTIME=docker ./scripts/ci-local.sh")
+
+    def test_plain_command_keeps_rtk_wrap_when_rtk_present(self) -> None:
+        """Preservação: comando simples sem VAR=val continua usando rtk quando disponível."""
+        rtk_log = self._install_mock_rtk()
+        self._commit_ceh_config(
+            {
+                "canonical_test_command": "./scripts/ci-local.sh",
+                "docker_service": "host",
+            }
+        )
+        res = self._run_runner()
+        self.assertEqual(res.returncode, 0, f"Stdout:\n{res.stdout}\nStderr:\n{res.stderr}")
+        self.assertTrue(rtk_log.exists(), "rtk deveria envolver comando simples sem prefixo VAR=val.")
+        self.assertIn("./scripts/ci-local.sh", rtk_log.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
