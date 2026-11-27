@@ -147,7 +147,7 @@ fi
 
 # Token economy proxy: if rtk is available, wrap test command to cut output by up to 80%
 if command -v rtk >/dev/null 2>&1; then
-    if [[ ! "$TEST_CMD" =~ ^[[:space:]]*rtk[[:space:]] ]]; then
+    if [[ ! "$TEST_CMD" =~ ^[[:space:]]*(rtk[[:space:]]|[A-Za-z_][A-Za-z0-9_]*=) ]]; then
         TEST_CMD="rtk $TEST_CMD"
     fi
 fi
